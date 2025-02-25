@@ -1,0 +1,12 @@
+# Para Python/Django
+__pycache__/
+*.pyc
+*.pyo
+venv/
+env/
+db.sqlite3
+
+# Para Node.js/React/Vue
+node_modules/
+dist/
+build/
