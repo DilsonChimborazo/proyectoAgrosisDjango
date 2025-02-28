@@ -8,8 +8,8 @@ import CalendarPage from './pages/CalendarPage';
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Principal><HomePage /></Principal>} />
-      <Route path="/inicoSesion" element={<Login />} />
+      <Route path="/" element={<Login />} />
+      <Route path="/principal" element={<Principal><HomePage /></Principal>} />
       <Route path="/usuarios" element={<Principal><UsersPage /></Principal>} />
       <Route path="/calendario" element={<Principal><CalendarPage /></Principal>} />
     </Routes>

@@ -40,12 +40,13 @@ export default function Principal({ children }: LayoutProps) {
         </div>
 
         {/* Menú */}
-        <nav className="mt-4 space-y-2 text-center text-lg">
+        <nav className="mt-4  text-center text-lg">
           {menuItems.map((item) => (
             <Link to={item.path} key={item.name} onClick={() => setActive(item.name)}>
               <button
                 className={`flex items-center gap-3 w-full shadow-lg p-4 bg-white px-4 py-3 text-center rounded-full transition-all duration-300
-                  ${active === item.name ? "bg-gray-300 text-gray-800 shadow-inner" : "bg-white hover:bg-gray-200"}`}
+                  ${active === item.name ? "bg-gray-300 text-gray-800 shadow-inner" : "bg-white hover:bg-gray-200"}
+                  mb-4`}
               >
                 {item.icon}
                 <span>{item.name}</span>
