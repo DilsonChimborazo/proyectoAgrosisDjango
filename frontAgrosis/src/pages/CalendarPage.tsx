@@ -1,10 +1,10 @@
-
+import ListarAsignacion from '../components/ListarAsignacion'; 
 
 const CalendarPage = () => {
   return (
     <div>
       <h1>Calendario</h1>
-      <p>Esta es la página del calendario.</p>
+      <ListarAsignacion />
     </div>
   );
 };

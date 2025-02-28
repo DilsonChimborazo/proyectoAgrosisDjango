@@ -5,8 +5,6 @@ from asgiref.sync import sync_to_async
 from apps.usuarios.usuario.models import Usuarios
 from apps.trazabilidad.actividad.models import Actividad
 from channels.layers import get_channel_layer
-from apps.usuarios.usuario.models import Usuarios 
-from apps.trazabilidad.actividad.models import Actividad
 
 
 class Asignacion_actividadesConsumer(AsyncWebsocketConsumer):
@@ -72,14 +70,11 @@ class Asignacion_actividadesConsumer(AsyncWebsocketConsumer):
                 id_identificacion=usuario
             )
 
-            # Obtener el nombre de la actividad desde fk_id_actividad
-            actividad_nombre = asignacion_actividades.fk_id_actividad.nombre_actividad
-            usuario_nombre = usuario.nombre
-            usuario_apellido = usuario.apellido
             # Crear el mensaje para notificación
-            return {
-                "mensaje": f"{usuario_nombre} {usuario_apellido} Se le ha asignado la actividad {actividad_nombre} para realizarse el dia {asignacion_actividades.fecha}."
-            }
+            mensaje = f"{usuario.nombre} {usuario.apellido} se le ha asignado la actividad {actividad.nombre_actividad} para realizarse el día {asignacion_actividades.fecha}."
+            
+            # Devolver el mensaje con los detalles de la asignación
+            return {"message": mensaje}
 
         except Usuarios.DoesNotExist:
             return {"error": "El usuario no existe."}
