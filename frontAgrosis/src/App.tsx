@@ -1,17 +1,19 @@
-import { Routes, Route } from 'react-router-dom';
-import Login from './components/InicioSesion'
-import Principal from './components/Principal'; 
-import HomePage from './pages/HomePage'; 
-import UsersPage from './pages/UsersPage';
-import CalendarPage from './pages/CalendarPage';
+import { Route, Routes } from "react-router-dom";
+
+import IndexPage from "@/pages/index";
+import DocsPage from "@/pages/docs";
+import PricingPage from "@/pages/pricing";
+import BlogPage from "@/pages/blog";
+import AboutPage from "@/pages/about";
 
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Principal><HomePage /></Principal>} />
-      <Route path="/inicoSesion" element={<Login />} />
-      <Route path="/usuarios" element={<Principal><UsersPage /></Principal>} />
-      <Route path="/calendario" element={<Principal><CalendarPage /></Principal>} />
+      <Route element={<IndexPage />} path="/" />
+      <Route element={<DocsPage />} path="/docs" />
+      <Route element={<PricingPage />} path="/pricing" />
+      <Route element={<BlogPage />} path="/blog" />
+      <Route element={<AboutPage />} path="/about" />
     </Routes>
   );
 }

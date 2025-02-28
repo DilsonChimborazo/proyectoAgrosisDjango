@@ -1,0 +1,53 @@
+.sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    border-radius: 9999px; /* Redondeado completo */
+    background-color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+  }
+  
+  .sidebar-item:hover {
+    background-color: #cbd5e1; /* Gris claro */
+    color: white;
+  }
+  
+  /* Contenedor de subitems (animación) */
+  .subitems-container {
+    overflow: hidden;
+    transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+    max-height: 0;
+    opacity: 0;
+  }
+  
+  /* Cuando los subitems están expandidos */
+  .subitems-container.expanded {
+    max-height: 500px; /* Ajusta según el contenido */
+    opacity: 1;
+  }
+  
+  /* Estilo de los subitems */
+  .subitem {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    border-radius: 9999px;
+    background-color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    font-weight: 500;
+    cursor: pointer;
+    width: 83.33%;
+    margin: 0 auto;
+    transition: all 0.3s ease-in-out;
+  }
+  
+  .subitem:hover {
+    background-color: #cbd5e1;
+    color: white;
+  }
+  
