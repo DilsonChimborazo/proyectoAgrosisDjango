@@ -1,12 +1,11 @@
+import Principal from '../components/Principal'
 
-import DefaultLayout from "@/layouts/default";
 
-export default function IndexPage() {
+export default function Home() {
   return (
-    <DefaultLayout>
-      <section className="flex flex-col items-center justify-center gap-4 py-8 md:py-10">
-
-      </section>
-    </DefaultLayout>
+    <Principal>
+      <h1 className="text-2xl font-bold">Bienvenido a AgroSIS</h1>
+      <p>Aquí va el contenido de la página...</p>
+    </Principal>
   );
 }
