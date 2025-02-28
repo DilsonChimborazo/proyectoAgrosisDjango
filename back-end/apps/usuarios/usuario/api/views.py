@@ -4,7 +4,7 @@ from apps.usuarios.usuario.api.serializer import LeerUsuarioSerializer, Escribir
 from rest_framework.permissions import IsAuthenticated
 
 class UsuarioViewsSet(ModelViewSet):
-    permission_classes = [IsAuthenticated]
+    #permission_classes = [IsAuthenticated]
     queryset = Usuarios.objects.all()
 
     def get_serializer_class(self):

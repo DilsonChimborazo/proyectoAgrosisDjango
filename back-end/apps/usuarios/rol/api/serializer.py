@@ -4,4 +4,4 @@ from apps.usuarios.rol.models import Rol
 class RolSerializer(ModelSerializer):
     class Meta:
         model = Rol
-        fields = '__all__'
+        fields = ['id', 'rol']

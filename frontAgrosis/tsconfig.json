@@ -1,28 +1,28 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "module": "ESNext",
-    "skipLibCheck": true,
+    "target": "ES2020",                       // Establecer la versión de ECMAScript objetivo.
+    "useDefineForClassFields": true,           // Para un manejo adecuado de los campos de clase.
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],  // Incluir las bibliotecas necesarias.
+    "module": "ESNext",                        // Usar módulos de ESNext.
+    "skipLibCheck": true,                      // Omite la comprobación de tipos en las bibliotecas.
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"]                       // Alias para acceder a las rutas dentro de src.
     },
+    "moduleResolution": "bundler",             // Usar el modo bundler para la resolución de módulos.
+    "allowImportingTsExtensions": true,        // Permite importar archivos con extensiones .ts.
+    "resolveJsonModule": true,                 // Permite importar archivos JSON como módulos.
+    "isolatedModules": true,                   // Asegura que cada archivo se pueda compilar independientemente.
+    "noEmit": true,                            // Evita que TypeScript genere archivos de salida.
+    "jsx": "react-jsx",                       // Activar el modo JSX de React 17+ sin necesidad de importar React.
 
-    /* Bundler mode */
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react-jsx",
-
-    /* Linting */
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    /* Linting y reglas estrictas */
+    "strict": true,                            // Activa todas las opciones de tipo estricto.
+    "noUnusedLocals": true,                    // Marca errores para las variables no utilizadas.
+    "noUnusedParameters": true,                // Marca errores para los parámetros no utilizados.
+    "noFallthroughCasesInSwitch": true         // Evita caídas en las declaraciones switch.
   },
-  "include": ["src"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "include": ["src"],                           // Asegura que TypeScript analice todos los archivos en src.
+  "references": [
+    { "path": "./tsconfig.node.json" }          // Si tienes un tsconfig adicional para Node.js, lo incluye aquí.
+  ]
 }
