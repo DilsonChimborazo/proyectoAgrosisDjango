@@ -19,7 +19,7 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/principal" element={<Principal><HomePage /></Principal>} />
         <Route path="/usuarios" element={<Principal><UsersPage /></Principal>} />
-        <Route path="/calendario" element={<Principal><CalendarPage /></Principal>} />
+        <Route path="/actividad" element={<Principal><CalendarPage /></Principal>} />
       </Routes>
     </QueryClientProvider>
   );
