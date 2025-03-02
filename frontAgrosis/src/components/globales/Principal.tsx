@@ -1,6 +1,6 @@
 import { ReactNode, useState } from "react";
 import { Button, Input } from "@nextui-org/react";
-import { Menu, Search, X , Bell as Notification} from "lucide-react";
+import { Menu, Search, Bell as Notification } from "lucide-react";
 import { Home, User, Calendar, Map, Leaf, DollarSign, Bug, Clipboard, Cpu } from "lucide-react";
 import { Link } from "react-router-dom";  
 
@@ -22,7 +22,7 @@ const menuItems = [
 
 export default function Principal({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [active, setActive] = useState("");
+  const [active, setActive] = useState<string>("");
 
   return (
     <div className="flex h-screen w-screen">
@@ -33,18 +33,15 @@ export default function Principal({ children }: LayoutProps) {
           ${sidebarOpen ? "translate-x-0" : "-translate-x-64"}`}
       >
         <div className="flex justify-between items-center">
-          <img src="../../public/logo_proyecto-removebg-preview.png" alt="logo" width={180} />
-          <Button isIconOnly variant="light" onClick={() => setSidebarOpen(false)}>
-            <X size={30} />
-          </Button>
+          <img src="/logo_proyecto-removebg-preview.png" alt="logo" width={180} />
         </div>
 
         {/* Menú */}
-        <nav className="mt-4  text-center text-lg">
+        <nav className="mt-4 text-center text-lg">
           {menuItems.map((item) => (
             <Link to={item.path} key={item.name} onClick={() => setActive(item.name)}>
               <button
-                className={`flex items-center gap-3 w-full shadow-lg p-4 bg-white px-4 py-3 text-center rounded-full transition-all duration-300
+                className={`flex items-center gap-3 w-full shadow-lg p-4 rounded-full transition-all duration-300
                   ${active === item.name ? "bg-gray-300 text-gray-800 shadow-inner" : "bg-white hover:bg-gray-200"}
                   mb-4`}
               >
@@ -54,10 +51,8 @@ export default function Principal({ children }: LayoutProps) {
             </Link>
           ))}
         </nav>
-
-        {/* Logo sena */}
         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
-          <img src="../../public/logoSena.png" alt="SENA" className="w-16" />
+          <img src="/logoSena.png" alt="SENA" className="w-16" />
         </div>
       </div>
 
@@ -72,14 +67,9 @@ export default function Principal({ children }: LayoutProps) {
             <Input className="hidden md:block w-64 ml-4" placeholder="Buscar..." endContent={<Search size={25} className="text-green-700" />} />
           </div>
           <div className="flex items-center space-x-4">
-            {/* Icono de Notificación */}
             <Notification size={24} className="text-white" />
             <p> | </p>
-
-            {/* Icono de Usuario */}
             <User size={24} className="text-white" />
-
-            {/* Nombre del Usuario */}
             <span className="text-white">Nombre del Usuario</span>
           </div>
         </div>

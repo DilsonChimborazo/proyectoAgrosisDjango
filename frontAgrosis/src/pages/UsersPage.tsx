@@ -1,6 +1,6 @@
 
-import Usuarios from '../components/Usuarios';  // Asegúrate de que la ruta es correcta
-import CrearUsuario from '../components/CrearUsuario';  // Asegúrate de que la ruta es correcta
+import Usuarios from '../components/usuarios/Usuarios';  // Asegúrate de que la ruta es correcta
+import CrearUsuario from '../components/usuarios/CrearUsuario';  // Asegúrate de que la ruta es correcta
 
 const UsersPage = () => {
   return (

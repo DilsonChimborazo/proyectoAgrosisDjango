@@ -1,4 +1,4 @@
-import ListarAsignacion from '../components/ListarAsignacion'; 
+import ListarAsignacion from '../components/trazabilidad/ListarAsignacion'; 
 
 const CalendarPage = () => {
   return (

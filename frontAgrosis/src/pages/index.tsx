@@ -1,4 +1,4 @@
-import Principal from '../components/Principal'
+import Principal from '../components/globales/Principal'
 
 
 export default function Home() {
