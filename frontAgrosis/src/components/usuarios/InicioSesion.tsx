@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button, Input } from "@nextui-org/react";
-import { Eye, EyeOff, Lock, Mail } from "lucide-react";
+import { Eye, EyeOff, Mail } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function Login() {

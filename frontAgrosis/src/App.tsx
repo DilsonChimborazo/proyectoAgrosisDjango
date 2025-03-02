@@ -16,10 +16,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Routes>
-        {/* Ruta para el inicio de sesión */}
         <Route path="/" element={<Login />} />
-
-        {/* Rutas protegidas, todas envueltas por el Layout Principal */}
         <Route path="/principal" element={<Principal><HomePage /></Principal>} />
         <Route path="/usuarios" element={<Principal><UsersPage /></Principal>} />
         <Route path="/calendario" element={<Principal><CalendarPage /></Principal>} />

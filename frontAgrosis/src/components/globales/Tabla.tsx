@@ -1,19 +1,9 @@
-interface TablaProps<T> {
-  headers: string[]; // Los encabezados de la tabla
-  data: T[]; // Datos genéricos que puede ser cualquier tipo
-  onClickAction: (row: T) => void; // Función para manejar la acción de clic
-}
+import Button from "./Button";
 
 interface TablaProps<T> {
-  headers: string[]; // Encabezados de la tabla
-  data: T[]; // Datos genéricos
-  onClickAction: (row: T) => void; // Función para manejar la acción de clic
-}
-
-interface TablaProps<T> {
-  headers: string[]; // Encabezados de la tabla
-  data: T[]; // Datos genéricos
-  onClickAction: (row: T) => void; // Función para manejar la acción de clic
+  headers: string[];
+  data: T[]; 
+  onClickAction: (row: T) => void; 
 }
 
 const Tabla = <T extends { [key: string]: any }>({ headers, data, onClickAction }: TablaProps<T>) => {
@@ -21,7 +11,7 @@ const Tabla = <T extends { [key: string]: any }>({ headers, data, onClickAction 
     <div className="overflow-x-auto  shadow-lg rounded-lg p-4">
       <table className="min-w-full border border-gray-300 rounded-lg shadow-md">
         <thead>
-          <tr className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
+          <tr className="bg-gradient-to-r from-indigo-600 to-indigo-600 text-white">
             {headers.map((header, index) => (
               <th key={index} className="px-6 py-3 text-sm font-bold uppercase border border-gray-400">
                 {header}
@@ -44,12 +34,7 @@ const Tabla = <T extends { [key: string]: any }>({ headers, data, onClickAction 
                 </td>
               ))}
               <td className="px-6 py-3 text-center border border-gray-300">
-                <button
-                  onClick={() => onClickAction(row)}
-                  className="bg-green-500 text-white px-3 py-2 rounded-lg shadow-md hover:bg-green-600 transform hover:scale-105 transition duration-300 ease-in-out"
-                >
-                  Ver detalles
-                </button>
+                <Button text="Ver detalles" onClick={() => onClickAction(row)} variant="primary" />
               </td>
             </tr>
           ))}

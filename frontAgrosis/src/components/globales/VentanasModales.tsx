@@ -1,15 +1,14 @@
 import React from 'react';
 
-// Definir un tipo de contenido genérico para el modal
 interface VentanaModalProps {
   isOpen: boolean;
   onClose: () => void;
-  contenido: any; // Puede ser cualquier tipo de dato, pero será más seguro definirlo con tipos específicos
-  tipo: 'usuario' | 'asignacion'; // Diferenciar el tipo de contenido
+  contenido: any; 
+  tipo: 'usuario' | 'asignacion'; 
 }
 
 const VentanaModal: React.FC<VentanaModalProps> = ({ isOpen, onClose, contenido, tipo }) => {
-  if (!isOpen) return null; // Si no está abierto, no renderizar nada
+  if (!isOpen) return null;
 
   const renderContenido = () => {
     switch (tipo) {
