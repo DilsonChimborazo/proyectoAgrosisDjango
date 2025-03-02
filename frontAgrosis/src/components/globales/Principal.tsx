@@ -85,12 +85,7 @@ export default function Principal({ children }: LayoutProps) {
               {item.submenu ? (
                 <button
                   onClick={() => toggleMenu(item.name)}
-                  className={`flex items-center gap-3 w-full shadow-lg p-4 rounded-full transition-all duration-300
-
-                    ${active === item.name ? "bg-gray-300 text-gray-800 shadow-inner" : "bg-white hover:bg-gray-200"} mb-2`}
-                  ${active === item.name ? "bg-gray-300 text-gray-800 shadow-inner" : "bg-white hover:bg-gray-200"}
-                    mb-2`}
-
+                  className={`flex items-center gap-3 w-full shadow-lg p-4 rounded-full transition-all duration-300 ${active === item.name ? "bg-gray-300 text-gray-800 shadow-inner" : "bg-white hover:bg-gray-200"} mb-2`}
                 >
                   {item.icon}
                   <span className="flex-grow text-left">{item.name}</span>
@@ -99,13 +94,7 @@ export default function Principal({ children }: LayoutProps) {
               ) : (
                 <Link to={item.path} onClick={() => setActive(item.name)}>
                   <button
-                    className={`flex items-center gap-3 w-full shadow-lg p-4 rounded-full transition-all duration-300
-
-                      ${active === item.name ? "bg-gray-300 text-gray-800 shadow-inner" : "bg-white hover:bg-gray-200"} mb-2`}
-
-                      ${active === item.name ? "bg-gray-300 text-gray-800 shadow-inner" : "bg-white hover:bg-gray-200"}
-                      mb-2`}
-
+                    className={`flex items-center gap-3 w-full shadow-lg p-4 rounded-full transition-all duration-300 ${active === item.name ? "bg-gray-300 text-gray-800 shadow-inner" : "bg-white hover:bg-gray-200"} mb-2`}
                   >
                     {item.icon}
                     <span>{item.name}</span>
@@ -119,13 +108,7 @@ export default function Principal({ children }: LayoutProps) {
                   {item.submenu.map((subItem) => (
                     <Link to={subItem.path} key={subItem.name} onClick={() => setActive(subItem.name)}>
                       <button
-                        className={`block w-full text-left p-3 rounded-lg transition-all duration-300
-
-                          ${active === subItem.name ? "bg-gray-200 text-gray-900" : "hover:bg-gray-100"}`}
-
-                          ${active === subItem.name ? "bg-gray-200 text-gray-900" : "hover:bg-gray-100"}
-                          `}
-
+                        className={`block w-full text-left p-3 rounded-lg transition-all duration-300 ${active === subItem.name ? "bg-gray-200 text-gray-900" : "hover:bg-gray-100"}`}
                       >
                         {subItem.name}
                       </button>
@@ -137,13 +120,11 @@ export default function Principal({ children }: LayoutProps) {
           ))}
         </nav>
 
-
         {/* Logo SENA en la parte inferior del sidebar */}
         <div className="mt-auto flex justify-center items-center">
-
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
-
-          <img src="/logoSena.png" alt="SENA" className="w-16" />
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
+            <img src="/logoSena.png" alt="SENA" className="w-16" />
+          </div>
         </div>
       </div>
 
@@ -167,20 +148,20 @@ export default function Principal({ children }: LayoutProps) {
 
         {/* Contenido Principal */}
         <div
-  className="mt-16 p-6 transition-all duration-300"
-  style={{
-    backgroundImage: "url('/fondo.jpg')",
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-  }}
->
-  <div style={{ minHeight: "100vh" }}>
-    {children}
-  </div>
-</div>
+          className="mt-16 p-6 transition-all duration-300"
+          style={{
+            backgroundImage: "url('/fondo.jpg')",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        >
+          <div style={{ minHeight: "100vh" }}>
+            {children}
+          </div>
+        </div>
 
         {/* Footer */}
-        <div className=" bottom-0 left-0 w-full bg-green-700 text-white p-4 z-40 transition-all duration-300">
+        <div className="bottom-0 left-0 w-full bg-green-700 text-white p-4 z-40 transition-all duration-300">
           <p className="text-center w-full">Agrosoft © 2025 Todos los derechos reservados.</p>
           <p className="text-center w-full">Centro de Gestion y Desarrollo Surcolombiano </p>
         </div>
