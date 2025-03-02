@@ -23,6 +23,7 @@ function App() {
         <Route path="/actividad" element={<Principal><CalendarPage /></Principal>} />
         <Route path="/iot" element={<Principal><IOtPage /></Principal>} />
         <Route path="/crear-sensor" element={<Principal><CrearSensor /></Principal>} />
+
       </Routes>
     </QueryClientProvider>
   );

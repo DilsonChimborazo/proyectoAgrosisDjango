@@ -86,7 +86,12 @@ export default function Principal({ children }: LayoutProps) {
                 <button
                   onClick={() => toggleMenu(item.name)}
                   className={`flex items-center gap-3 w-full shadow-lg p-4 rounded-full transition-all duration-300
+<<<<<<< HEAD
                     ${active === item.name ? "bg-gray-300 text-gray-800 shadow-inner" : "bg-white hover:bg-gray-200"} mb-2`}
+=======
+                    ${active === item.name ? "bg-gray-300 text-gray-800 shadow-inner" : "bg-white hover:bg-gray-200"}
+                    mb-2`}
+>>>>>>> eb05e07906087e2ac2f06fdf07d71575972d6194
                 >
                   {item.icon}
                   <span className="flex-grow text-left">{item.name}</span>
@@ -96,7 +101,12 @@ export default function Principal({ children }: LayoutProps) {
                 <Link to={item.path} onClick={() => setActive(item.name)}>
                   <button
                     className={`flex items-center gap-3 w-full shadow-lg p-4 rounded-full transition-all duration-300
+<<<<<<< HEAD
                       ${active === item.name ? "bg-gray-300 text-gray-800 shadow-inner" : "bg-white hover:bg-gray-200"} mb-2`}
+=======
+                      ${active === item.name ? "bg-gray-300 text-gray-800 shadow-inner" : "bg-white hover:bg-gray-200"}
+                      mb-2`}
+>>>>>>> eb05e07906087e2ac2f06fdf07d71575972d6194
                   >
                     {item.icon}
                     <span>{item.name}</span>
@@ -111,7 +121,12 @@ export default function Principal({ children }: LayoutProps) {
                     <Link to={subItem.path} key={subItem.name} onClick={() => setActive(subItem.name)}>
                       <button
                         className={`block w-full text-left p-3 rounded-lg transition-all duration-300
+<<<<<<< HEAD
                           ${active === subItem.name ? "bg-gray-200 text-gray-900" : "hover:bg-gray-100"}`}
+=======
+                          ${active === subItem.name ? "bg-gray-200 text-gray-900" : "hover:bg-gray-100"}
+                          `}
+>>>>>>> eb05e07906087e2ac2f06fdf07d71575972d6194
                       >
                         {subItem.name}
                       </button>
@@ -123,8 +138,12 @@ export default function Principal({ children }: LayoutProps) {
           ))}
         </nav>
 
+<<<<<<< HEAD
         {/* Logo SENA en la parte inferior del sidebar */}
         <div className="mt-auto flex justify-center items-center">
+=======
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
+>>>>>>> eb05e07906087e2ac2f06fdf07d71575972d6194
           <img src="/logoSena.png" alt="SENA" className="w-16" />
         </div>
       </div>
