@@ -4,7 +4,7 @@ interface VentanaModalProps {
   isOpen: boolean;
   onClose: () => void;
   contenido: any; 
-  tipo: 'usuario' | 'asignacion'; 
+  tipo: 'usuario' | 'asignacion' | 'sensores'; 
 }
 
 const VentanaModal: React.FC<VentanaModalProps> = ({ isOpen, onClose, contenido, tipo }) => {
@@ -37,6 +37,20 @@ const VentanaModal: React.FC<VentanaModalProps> = ({ isOpen, onClose, contenido,
             </div>
           </>
         );
+        case 'sensores':
+          return (
+            <>
+              <h2 className="text-2xl font-semibold mb-4 text-gray-800">Detalles de Sensores</h2>
+              <div className="space-y-2 text-gray-700">
+                <p><strong>Sensor:</strong> {contenido.nombre_sensor}</p>
+                <p><strong>Tipo Sensor:</strong> {contenido.tipo_sensor}</p>
+                <p><strong>Unidad de Medida:</strong> {contenido.unidad_medida}</p>
+                <p><strong>Descripcion:</strong> {contenido.descripcion}</p>
+                <p><strong>Medida Minima:</strong> {contenido.medida_minima}</p>
+                <p><strong>Medida Maxima:</strong> {contenido.medida_maxima}</p>
+              </div>
+            </>
+          );
       default:
         return null;
     }

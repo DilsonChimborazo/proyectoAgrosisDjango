@@ -37,10 +37,9 @@ const Asignaciones = () => {
   const headers = ['ID', 'Fecha', 'Observaciones', 'Actividad', 'Usuario'];
 
   return (
-    <div className=" mx-auto p-4">
-      <h1 className="text-2xl font-semibold text-gray-800 mb-4">Lista de Asignaciones</h1>
-      
+    <div className=" mx-auto p-4">  
       <Tabla
+        title="Lista de Asignaciones"
         headers={headers}
         data={tablaData} // Los datos transformados
         onClickAction={openModal} // Función para manejar el clic

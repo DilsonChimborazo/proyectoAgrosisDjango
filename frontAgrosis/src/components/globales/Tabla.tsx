@@ -1,17 +1,21 @@
 import Button from "./Button";
 
 interface TablaProps<T> {
+  title: string;
   headers: string[];
   data: T[]; 
   onClickAction: (row: T) => void; 
 }
 
-const Tabla = <T extends { [key: string]: any }>({ headers, data, onClickAction }: TablaProps<T>) => {
+const Tabla = <T extends { [key: string]: any }>({title, headers, data, onClickAction }: TablaProps<T>) => {
   return (
-    <div className="overflow-x-auto  shadow-lg rounded-lg p-4">
-      <table className="min-w-full border border-gray-300 rounded-lg shadow-md">
+    <div className="overflow-x-auto  rounded-lg p-4">
+      <table className="min-w-full border border-gray-300  rounded-lg shadow-md">
+        <caption className="text-lg font-bold text-gray-800 bg-white uppercase p-2">
+          {title}
+        </caption>
         <thead>
-          <tr className="bg-gradient-to-r from-indigo-600 to-indigo-600 text-white">
+          <tr className="bg-gradient-to-r from-green-700 to-green-700 text-white">
             {headers.map((header, index) => (
               <th key={index} className="px-6 py-3 text-sm font-bold uppercase border border-gray-400">
                 {header}
@@ -34,7 +38,7 @@ const Tabla = <T extends { [key: string]: any }>({ headers, data, onClickAction 
                 </td>
               ))}
               <td className="px-6 py-3 text-center border border-gray-300">
-                <Button text="Ver detalles" onClick={() => onClickAction(row)} variant="primary" />
+                <Button text="Ver detalles" onClick={() => onClickAction(row)} variant="success" />
               </td>
             </tr>
           ))}

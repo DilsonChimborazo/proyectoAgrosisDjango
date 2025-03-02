@@ -28,7 +28,6 @@ class UsuarioManager(BaseUserManager):
 
 
 class Usuarios(AbstractUser):
- 
     fk_id_rol = models.ForeignKey(Rol, on_delete=models.SET_NULL, null=True, blank=True)
     nombre = models.CharField(max_length=30)
     apellido = models.CharField(max_length=30)

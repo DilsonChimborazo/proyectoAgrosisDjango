@@ -1,13 +1,11 @@
 
-import Usuarios from '../components/usuarios/Usuarios';  // Asegúrate de que la ruta es correcta
-import CrearUsuario from '../components/usuarios/CrearUsuario';  // Asegúrate de que la ruta es correcta
+import Usuarios from '../components/usuarios/Usuarios';
+import CrearUsuario from '../components/usuarios/CrearUsuario';  
 
 const UsersPage = () => {
   return (
     <div>
-      <h1>Gestión de Usuarios</h1>
       <div>
-        <h2>Lista de Usuarios</h2>
         <Usuarios />
       </div>
       <div>
