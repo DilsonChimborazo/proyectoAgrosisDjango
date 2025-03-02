@@ -13,6 +13,7 @@ import CrearSensor from "./components/iot/CrearSensor";
 // Crear el cliente de React Query
 const queryClient = new QueryClient();
 
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
