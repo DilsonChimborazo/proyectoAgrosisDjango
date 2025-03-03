@@ -122,7 +122,7 @@ export default function Principal({ children }: LayoutProps) {
 
         {/* Logo SENA en la parte inferior del sidebar */}
         <div className="mt-auto flex justify-center items-center">
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
+          <div className="bottom-4 left-1/2 transform -translate-x-1/2">
             <img src="/logoSena.png" alt="SENA" className="w-16" />
           </div>
         </div>

@@ -26,31 +26,42 @@ const Asignaciones = () => {
   // Si hay un error
   if (error) return <div className="text-center text-red-500">Error al cargar los datos: {error.message}</div>;
 
+  // Mapeo de datos para la tabla
   const tablaData = (asignaciones ?? []).map((asignacion) => ({
     id: asignacion.id,
-    fecha: new Date(asignacion.fecha).toLocaleDateString('es-ES'),
-    observaciones: asignacion.observaciones,
-    nombre_actividad: asignacion.fk_id_actividad.nombre_actividad,
-    usuario: `${asignacion.id_identificacion.nombre} ${asignacion.id_identificacion.apellido}`,
+    fecha: asignacion.fecha
+      ? new Date(asignacion.fecha).toLocaleDateString('es-ES', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        })
+      : 'Sin fecha',
+    observaciones: asignacion.observaciones || 'N/A',
+    actividad: asignacion.fk_id_actividad?.nombre_actividad || 'Sin actividad',
+    usuario: asignacion.id_identificacion
+      ? `${asignacion.id_identificacion.nombre} ${asignacion.id_identificacion.apellido}`
+      : 'Sin usuario',
   }));
 
   const headers = ['ID', 'Fecha', 'Observaciones', 'Actividad', 'Usuario'];
 
   return (
-    <div className=" mx-auto p-4">  
+    <div className="mx-auto p-4">
       <Tabla
         title="Lista de Asignaciones"
         headers={headers}
-        data={tablaData} // Los datos transformados
-        onClickAction={openModal} // Función para manejar el clic
+        data={tablaData}
+        onClickAction={openModal}
       />
-      
-      <VentanaModal
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        contenido={selectedAsignacion} // Pasar la asignación seleccionada
-        tipo="asignacion" // El tipo de modal
-      />
+
+      {selectedAsignacion && (
+        <VentanaModal
+          isOpen={isModalOpen}
+          onClose={closeModal}
+          titulo="Detalles de la Asignación"
+          contenido={selectedAsignacion}
+        />
+      )}
     </div>
   );
 };

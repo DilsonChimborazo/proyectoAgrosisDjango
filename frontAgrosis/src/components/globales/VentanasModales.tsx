@@ -3,66 +3,28 @@ import React from 'react';
 interface VentanaModalProps {
   isOpen: boolean;
   onClose: () => void;
-  contenido: any; 
-  tipo: 'usuario' | 'asignacion' | 'sensores'; 
+  contenido: Record<string, any>;
+  titulo: string;
 }
 
-const VentanaModal: React.FC<VentanaModalProps> = ({ isOpen, onClose, contenido, tipo }) => {
+const VentanaModal: React.FC<VentanaModalProps> = ({ isOpen, onClose, contenido, titulo }) => {
   if (!isOpen) return null;
-
-  const renderContenido = () => {
-    switch (tipo) {
-      case 'usuario':
-        return (
-          <>
-            <h2 className="text-2xl font-semibold mb-4 text-gray-800">Detalles del Usuario</h2>
-            <div className="space-y-2 text-gray-700">
-              <p><strong>ID:</strong> {contenido.id}</p>
-              <p><strong>Nombre:</strong> {contenido.nombre}</p>
-              <p><strong>Apellido:</strong> {contenido.apellido}</p>
-              <p><strong>Correo Electrónico:</strong> {contenido.email}</p>
-              <p><strong>Rol:</strong> {contenido.fk_id_rol?.rol}</p>
-            </div>
-          </>
-        );
-      case 'asignacion':
-        return (
-          <>
-            <h2 className="text-2xl font-semibold mb-4 text-gray-800">Detalles de Asignación</h2>
-            <div className="space-y-2 text-gray-700">
-              <p><strong>Actividad:</strong> {contenido.fk_id_actividad?.nombre_actividad}</p>
-              <p><strong>Usuario:</strong> {`${contenido.id_identificacion?.nombre} ${contenido.id_identificacion?.apellido}`}</p>
-              <p><strong>Fecha:</strong> {new Date(contenido.fecha).toLocaleDateString('es-ES')}</p>
-              <p><strong>Observaciones:</strong> {contenido.observaciones}</p>
-            </div>
-          </>
-        );
-        case 'sensores':
-          return (
-            <>
-              <h2 className="text-2xl font-semibold mb-4 text-gray-800">Detalles de Sensores</h2>
-              <div className="space-y-2 text-gray-700">
-                <p><strong>Sensor:</strong> {contenido.nombre_sensor}</p>
-                <p><strong>Tipo Sensor:</strong> {contenido.tipo_sensor}</p>
-                <p><strong>Unidad de Medida:</strong> {contenido.unidad_medida}</p>
-                <p><strong>Descripcion:</strong> {contenido.descripcion}</p>
-                <p><strong>Medida Minima:</strong> {contenido.medida_minima}</p>
-                <p><strong>Medida Maxima:</strong> {contenido.medida_maxima}</p>
-              </div>
-            </>
-          );
-      default:
-        return null;
-    }
-  };
 
   return (
     <div className="fixed inset-0 bg-gray-500 bg-opacity-70 flex justify-center items-start z-50">
       <div className="bg-white p-8 rounded-xl shadow-lg w-96 max-w-lg">
-        {renderContenido()}
-        <button 
+        <h2 className="text-2xl font-semibold mb-4 text-gray-800">{titulo}</h2>
+        <div className="space-y-2 text-gray-700">
+          {Object.entries(contenido).map(([key, value]) => (
+            <p key={key}>
+              <strong>{key.replace(/_/g, ' ').toUpperCase()}:</strong> {String(value)}
+            </p>
+          ))}
+        </div>
+        <button
           className="mt-6 w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-200"
-          onClick={onClose}>
+          onClick={onClose}
+        >
           Cerrar
         </button>
       </div>
