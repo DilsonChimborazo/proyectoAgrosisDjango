@@ -11,6 +11,8 @@ import IOtPage from "./pages/IotPage";
 import CrearSensor from "./components/iot/CrearSensor";
 import LotesPage from "./pages/LotesPage";
 import ErasPage from "./pages/ErasPage";
+import HerramientasPage from "./pages/inventario/HerramientaPage";
+import InsumoPage from "./pages/inventario/InsumoPage";
 
 // Crear el cliente de React Query
 const queryClient = new QueryClient();
@@ -29,6 +31,9 @@ function App() {
         <Route path="/crear-sensor" element={<Principal><CrearSensor /></Principal>} />
         <Route path="/lotes" element={<Principal><LotesPage /></Principal>} />
         <Route path="/eras" element={<Principal><ErasPage /></Principal>} />
+        {/*rutas modulo inventario*/}
+        <Route path="/herramientas" element={<Principal><HerramientasPage/></Principal>} />
+        <Route path="/insumo" element={<Principal><InsumoPage/></Principal>} />
 
       </Routes>
     </QueryClientProvider>
