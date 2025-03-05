@@ -30,10 +30,10 @@ const Produccion = () => {
 
   const produccionList = Array.isArray(produccion) ? produccion : [];
 
-  const mappedProduccion = produccionList.map((prod) => ({
-    id: prod.id_produccion,
-    cantidad: prod.cantidad_produccion ?? "No disponible",
-    fecha: prod.fecha,
+  const mappedProduccion = produccionList.map((produccion) => ({
+    id: produccion.id_produccion,
+    cantidad: produccion.cantidad_produccion ?? "No disponible",
+    fecha: produccion.fecha,
   }));
 
   return (
