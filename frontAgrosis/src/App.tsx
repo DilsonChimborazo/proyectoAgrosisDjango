@@ -33,7 +33,7 @@ function App() {
         <Route path="/eras" element={<Principal><ErasPage /></Principal>} />
         {/*rutas modulo inventario*/}
         <Route path="/herramientas" element={<Principal><HerramientasPage/></Principal>} />
-        <Route path="/insumo" element={<Principal><InsumoPage/></Principal>} />
+        <Route path="/insumos" element={<Principal><InsumoPage/></Principal>} />
 
       </Routes>
     </QueryClientProvider>
