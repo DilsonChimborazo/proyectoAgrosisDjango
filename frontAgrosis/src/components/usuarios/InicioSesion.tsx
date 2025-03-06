@@ -1,18 +1,40 @@
 import { useState } from "react";
 import { Button, Input } from "@nextui-org/react";
-import { Eye, EyeOff, Mail } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function Login() {
-  const [email, setEmail] = useState("");
+  const [identificacion, setIdentificacion] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Correo:", email, "Contraseña:", password);
-    navigate("/principal");
+    setError(null); // Resetear errores
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/token/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ identificacion, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || "Error en la autenticación");
+      }
+
+      localStorage.setItem("token", data.token);
+
+      navigate("/principal"); // Redirige después del login exitoso
+    } catch (err: any) {
+      setError(err.message);
+    }
   };
 
   return (
@@ -27,18 +49,19 @@ export default function Login() {
           Iniciar Sesión
         </h2>
 
+        {error && <p className="text-red-500 text-center">{error}</p>}
+
         {/* Formulario */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Campo Email */}
+          {/* Campo Identificación */}
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-600">Correo Electrónico</label>
+            <label className="mb-2 block text-sm font-medium text-gray-600">Identificación</label>
             <Input
-              type="email"
+              type="text"
               className="w-full rounded border border-gray-300 p-2 focus:border-green-500 focus:outline-none"
-              placeholder="usuario@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              endContent={<Mail size={20} className="text-gray-400" />}
+              placeholder="Tu identificación"
+              value={identificacion}
+              onChange={(e) => setIdentificacion(e.target.value)}
               required
             />
           </div>
