@@ -11,13 +11,14 @@ import IOtPage from "./pages/IotPage";
 import CrearSensor from "./components/iot/CrearSensor";
 import LotesPage from "./pages/LotesPage";
 import ErasPage from "./pages/ErasPage";
-
-
-//COMPONENTES TRAZABILIDAD
 import EspeciesPage from "./pages/trazabilidad/EspeciePage";
 import RealizaPage from "./pages/trazabilidad/RealizaPage";
 import SemillerosPage from "./pages/trazabilidad/SemillerosPage";
 import CalendarioLunarPage from "./pages/trazabilidad/CalendarioLunarPage";
+import CultivosPage from "./pages/CultivosPage";
+import ResiduosPage from "./pages/ResiduosPage";
+import PeaPage from "./pages/PeaPage";
+import ControlFitosanitarioPage from "./pages/ControlFitosanitarioPage";
 
 // Crear el cliente de React Query
 const queryClient = new QueryClient();
@@ -36,6 +37,11 @@ function App() {
         <Route path="/crear-sensor" element={<Principal><CrearSensor /></Principal>} />
         <Route path="/lotes" element={<Principal><LotesPage /></Principal>} />
         <Route path="/eras" element={<Principal><ErasPage /></Principal>} />
+        {/**rutas modulo trazabilidad xiomara*/}
+        <Route path="/cultivos" element={<Principal><CultivosPage /></Principal>} />
+        <Route path="/residuos" element={<Principal><ResiduosPage /></Principal>} />
+        <Route path="/pea" element={<Principal><PeaPage /></Principal>} />
+        <Route path="/control-fitosanitario" element={<Principal><ControlFitosanitarioPage /></Principal>} />
 
         {/**rutas modulo trazabilidad*/}
         <Route path="/especies" element={<Principal><EspeciesPage/></Principal>}/>
