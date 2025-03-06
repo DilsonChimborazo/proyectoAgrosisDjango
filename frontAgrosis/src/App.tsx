@@ -1,7 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-// Importa tus componentes
+
 import Login from "./components/usuarios/InicioSesion";
 import Principal from "./components/globales/Principal";
 import HomePage from "./pages/HomePage";
@@ -20,7 +20,7 @@ import ResiduosPage from "./pages/ResiduosPage";
 import PeaPage from "./pages/PeaPage";
 import ControlFitosanitarioPage from "./pages/ControlFitosanitarioPage";
 
-// Crear el cliente de React Query
+
 const queryClient = new QueryClient();
 
 
@@ -29,6 +29,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <Routes>
         <Route path="/" element={<Login />} />
+        <Route path="/Home" element={<Principal><HomePage /></Principal>} />
         <Route path="/principal" element={<Principal><HomePage /></Principal>} />
         <Route path="/usuarios" element={<Principal><UsersPage /></Principal>} />
         <Route path="/actividad" element={<Principal><CalendarPage /></Principal>} />
@@ -37,18 +38,15 @@ function App() {
         <Route path="/crear-sensor" element={<Principal><CrearSensor /></Principal>} />
         <Route path="/lotes" element={<Principal><LotesPage /></Principal>} />
         <Route path="/eras" element={<Principal><ErasPage /></Principal>} />
-        {/**rutas modulo trazabilidad xiomara*/}
+        {/**rutas modulo trazabilidad*/}
         <Route path="/cultivos" element={<Principal><CultivosPage /></Principal>} />
         <Route path="/residuos" element={<Principal><ResiduosPage /></Principal>} />
         <Route path="/pea" element={<Principal><PeaPage /></Principal>} />
         <Route path="/control-fitosanitario" element={<Principal><ControlFitosanitarioPage /></Principal>} />
-
-        {/**rutas modulo trazabilidad*/}
         <Route path="/especies" element={<Principal><EspeciesPage/></Principal>}/>
         <Route path="/realiza" element={<Principal><RealizaPage/></Principal>}/>
         <Route path="/semilleros" element={<Principal><SemillerosPage/></Principal>}/>
         <Route path="/calendario-lunar" element={<Principal><CalendarioLunarPage/></Principal>}/>
-
       </Routes>
     </QueryClientProvider>
   );

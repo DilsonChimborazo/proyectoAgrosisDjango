@@ -31,7 +31,7 @@ export interface Cultivo {
 
 const fetchControlFitosanitario = async (): Promise<ControlFitosanitario[]> => {
     try {
-        const { data } = await axios.get(`${apiUrl}control-fitosanitario/`);
+        const { data } = await axios.get(`${apiUrl}control_fitosanitario/`);
         return data;
     } catch (error) {
         console.error("Error al obtener Control Fitosanitario:", error);
