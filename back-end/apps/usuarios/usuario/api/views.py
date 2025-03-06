@@ -4,7 +4,10 @@ from apps.usuarios.usuario.api.serializer import LeerUsuarioSerializer, Escribir
 
 class UsuarioViewSet(viewsets.ModelViewSet):
     queryset = Usuarios.objects.all()
-    serializer_class = LeerUsuarioSerializer, EscribirUsuarioSerlializer
+    def get_serializer_class(self):
+        if self.action in ['list', 'retrieve']:
+            return LeerUsuarioSerializer  
+        return EscribirUsuarioSerlializer
 
     def get_permissions(self):
         """ Solo los administradores pueden gestionar usuarios """

@@ -4,10 +4,17 @@ export function useAuth() {
   const [error, setError] = useState<string | null>(null);
 
   const login = async (identificacion: string, password: string) => {
-    setError(null); 
+    setError(null);
+
+    const apiUrl = import.meta.env.VITE_API_URL;
+
+    if (!apiUrl) {
+      setError("La URL de la API no está definida");
+      return { success: false };
+    }
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/token/", {
+      const response = await fetch(`${apiUrl}token/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -16,21 +23,44 @@ export function useAuth() {
       });
 
       const data = await response.json();
+      console.log("Respuesta completa de la API:", data); // Depuración
 
       if (!response.ok) {
-        throw new Error(data.detail || "Error en la autenticación");
+        console.error("Error en la autenticación:", response.status);
+        throw new Error(data.detail || "Error en la autenticación.");
       }
 
-      localStorage.setItem("token", data.token);
+      // Utiliza el campo `access` como el token principal
+      if (!data.access) {
+        throw new Error("El token de acceso no fue proporcionado por la API.");
+      }
+
+      // Guarda el token de acceso en localStorage
+      localStorage.setItem("token", data.access);
+      console.log("Token de acceso guardado exitosamente:", data.access);
+
+      // Si deseas guardar el refresh token, hazlo así:
+      if (data.refresh) {
+        localStorage.setItem("refreshToken", data.refresh);
+        console.log("Refresh token guardado:", data.refresh);
+      }
+
       return { success: true };
     } catch (err: any) {
+      console.error("Error en el proceso de autenticación:", err); // Depuración
       setError(err.message);
       return { success: false };
     }
   };
 
   const logout = () => {
-    localStorage.removeItem("token");
+    if (typeof localStorage !== "undefined") {
+      localStorage.removeItem("token");
+      localStorage.removeItem("refreshToken");
+      console.log("Tokens eliminados exitosamente.");
+    } else {
+      console.warn("localStorage no está disponible.");
+    }
   };
 
   return { login, logout, error };
