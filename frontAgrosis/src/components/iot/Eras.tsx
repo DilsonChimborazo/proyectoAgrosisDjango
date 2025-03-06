@@ -41,7 +41,7 @@ const mappedEras = erasList.map((eras) => ({
 return (
     <div className="overflow-x-auto bg-white shadow-md rounded-lg">
     <Tabla
-        title="Lotes"
+        title="Eras"
         headers={headers}
         data={mappedEras}
         onClickAction={handleRowClick}

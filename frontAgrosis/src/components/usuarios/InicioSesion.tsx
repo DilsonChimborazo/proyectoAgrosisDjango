@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Button, Input } from "@nextui-org/react";
 import { Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -31,92 +30,118 @@ export default function Login() {
       });
 
       const data = await response.json();
-      console.log("Respuesta completa de la API:", data); // Depuración
 
       if (!response.ok) {
         throw new Error(data.detail || "Error en la autenticación");
       }
 
-      // Utiliza el campo `access` como token principal
       if (!data.access) {
         throw new Error("El token de acceso no fue proporcionado por la API.");
       }
 
-      // Guarda el token de acceso en localStorage
       localStorage.setItem("token", data.access);
-      console.log("Token de acceso guardado exitosamente:", data.access);
 
-      // Si deseas guardar el refresh token
       if (data.refresh) {
         localStorage.setItem("refreshToken", data.refresh);
-        console.log("Refresh token guardado:", data.refresh);
       }
 
       navigate("/principal");
     } catch (err: any) {
-      console.error("Error en el inicio de sesión:", err); // Depuración
       setError(err.message);
     }
   };
 
   return (
-    <div className="flex h-screen w-screen items-center justify-center bg-gray-100">
-      <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
-        {/* Logo */}
-        <div className="flex justify-center mb-4">
+    <div className="flex h-screen w-screen items-center justify-center bg-gray-100 relative">
+      {/* Fondo con ondas y degradado */}
+      <div className="absolute inset-0 bg-gradient-to-b from-green-300 to-green-600 opacity-50"></div>
+      <div className="absolute inset-0 bg-[url('/waves.svg')] bg-cover opacity-30"></div>
+
+      <div className="relative z-10 w-full max-w-md p-8 bg-white rounded-2xl shadow-xl">
+        <div className="flex justify-center mb-6">
           <img
             src="../../public/logo_proyecto-removebg-preview.png"
             alt="Logo"
-            width={180}
+            className="w-28 h-auto drop-shadow-md"
           />
         </div>
 
-        <h2 className="mb-4 text-center text-2xl font-semibold text-gray-700">
-          Iniciar Sesión
+        <h2 className="text-5xl font-extrabold text-center text-green-700">
+          Bienvenido!
         </h2>
+        <p className="text-center text-gray-500 mb-6">
+          Inicia sesión para continuar.
+        </p>
 
-        {error && <p className="text-red-500 text-center">{error}</p>}
+        {error && (
+          <p className="text-red-500 text-center mb-4 font-semibold">
+            {error}
+          </p>
+        )}
 
-        {/* Formulario */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-600">
+            <label
+              htmlFor="identificacion"
+              className="block text-sm font-medium text-gray-700"
+            >
               Identificación
             </label>
-            <Input
+            <input
+              id="identificacion"
               type="text"
               placeholder="Tu identificación"
               value={identificacion}
               onChange={(e) => setIdentificacion(e.target.value)}
               required
+              className="w-full px-4 py-3 mt-2 border rounded-xl shadow-sm focus:ring-2 focus:ring-green-400 focus:outline-none transition-all"
             />
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-600">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700"
+            >
               Contraseña
             </label>
             <div className="relative">
-              <Input
+              <input
+                id="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="********"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                endContent={
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <EyeOff /> : <Eye />}
-                  </button>
-                }
                 required
+                className="w-full px-4 py-3 mt-2 border rounded-xl shadow-sm focus:ring-2 focus:ring-green-400 focus:outline-none transition-all"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-4 flex items-center text-gray-500 hover:text-gray-700"
+              >
+                {showPassword ? <EyeOff /> : <Eye />}
+              </button>
             </div>
           </div>
 
-          <Button type="submit">Iniciar sesión</Button>
+          <button
+            type="submit"
+            className="w-full py-3 text-white bg-green-600 rounded-xl hover:bg-green-700 transition-all font-semibold shadow-md"
+          >
+            Iniciar sesión
+          </button>
         </form>
+
+        <p className="mt-6 text-center text-sm text-gray-600">
+          ¿No tienes cuenta?{" "}
+          <a
+            href="/register"
+            className="font-semibold text-green-500 hover:text-green-700 transition-all"
+          >
+            Regístrate aquí
+          </a>
+        </p>
       </div>
     </div>
   );

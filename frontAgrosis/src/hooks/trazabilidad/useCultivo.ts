@@ -37,7 +37,7 @@ export interface Especie {
 // Función para obtener los usuarios con manejo de errores
 const fetchAsignacion = async (): Promise<Cultivos[]> => {
     try {
-        const { data } = await axios.get(`${apiUrl}cultivos/`);
+        const { data } = await axios.get(`${apiUrl}cultivo/`);
         return data;
     } catch (error) {
         console.error("Error al obtener cultivos:", error);

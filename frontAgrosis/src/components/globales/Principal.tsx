@@ -71,7 +71,7 @@ export default function Principal({ children }: LayoutProps) {
   };
 
   const handleLogout = () => {
-    navigate("/login");
+    navigate("/");
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
