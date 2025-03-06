@@ -164,7 +164,7 @@ export default function Principal({ children }: LayoutProps) {
         <div className="bottom-0 left-0 w-full bg-green-700 text-white p-4 z-40 transition-all duration-300">
           <p className="text-center w-full">Agrosoft © 2025 Todos los derechos reservados.</p>
           <p className="text-center w-full">Centro de Gestion y Desarrollo Surcolombiano </p>
-        </div>
+        </div>  
       </div>
     </div>
   );
