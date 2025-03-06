@@ -1,93 +1,68 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
-import axios from 'axios';
+import { useState } from "react";
 
-const apiUrl = import.meta.env.VITE_API_URL;
+export function useAuth() {
+  const [error, setError] = useState<string | null>(null);
 
-export interface User {
-    id: number;
-    nombre: string;
-    apellido: string;
-    rol: string;
-}
+  const login = async (identificacion: string, password: string) => {
+    setError(null);
 
-export interface AuthResponse {
-    access: string;
-    refresh: string;
-    user_id: number;
-    nombre: string;
-    apellido: string;
-    rol: string;
-    exp: number; 
-}
+    const apiUrl = import.meta.env.VITE_API_URL;
 
-const fetchUser = async (): Promise<User | null> => {
-    const storedUser = localStorage.getItem('user');
-    const tokenExpiration = localStorage.getItem('token_expiration');
-
-    if (storedUser && tokenExpiration && Date.now() < Number(tokenExpiration)) {
-        return JSON.parse(storedUser);
+    if (!apiUrl) {
+      setError("La URL de la API no está definida");
+      return { success: false };
     }
-    return null;
-};
 
-const loginRequest = async (email: string, password: string): Promise<AuthResponse> => {
     try {
-        const { data } = await axios.post<AuthResponse>(`${apiUrl}token/`, { email, password });
-        return data;
-    } catch (error) {
-        console.error("Error al autenticar:", error);
-        throw new Error("Error de autenticación");
+      const response = await fetch(`${apiUrl}token/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ identificacion, password }),
+      });
+
+      const data = await response.json();
+      console.log("Respuesta completa de la API:", data); // Depuración
+
+      if (!response.ok) {
+        console.error("Error en la autenticación:", response.status);
+        throw new Error(data.detail || "Error en la autenticación.");
+      }
+
+      // Utiliza el campo `access` como el token principal
+      if (!data.access) {
+        throw new Error("El token de acceso no fue proporcionado por la API.");
+      }
+
+      // Guarda el token de acceso en localStorage
+      localStorage.setItem("token", data.access);
+      console.log("Token de acceso guardado exitosamente:", data.access);
+
+      // Si deseas guardar el refresh token, hazlo así:
+      if (data.refresh) {
+        localStorage.setItem("refreshToken", data.refresh);
+        console.log("Refresh token guardado:", data.refresh);
+      }
+
+      return { success: true };
+    } catch (err: any) {
+      console.error("Error en el proceso de autenticación:", err); // Depuración
+      setError(err.message);
+      return { success: false };
     }
-};
+  };
 
-const logoutRequest = async() => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('token_expiration');
-    localStorage.removeItem('user');
-};
+  const logout = () => {
+    if (typeof localStorage !== "undefined") {
+      localStorage.removeItem("token");
+      localStorage.removeItem("refreshToken");
+      console.log("Tokens eliminados exitosamente.");
+    } else {
+      console.warn("localStorage no está disponible.");
+    }
+  };
 
-export const useAuth = () => {
-    const { data: user, isLoading, refetch } = useQuery<User | null, Error>({
-        queryKey: ['user'],
-        queryFn: fetchUser,
-        staleTime: 1000 * 60 * 10,
-        retry: false,
-    });
+  return { login, logout, error };
+}
 
-    const loginMutation = useMutation({
-        mutationFn: (variables: { email: string, password: string }) => loginRequest(variables.email, variables.password),
-        onSuccess: (data: AuthResponse) => {
-            const { access, refresh, user_id, nombre, apellido, rol, exp } = data;
-            const expirationTime = Date.now() + exp * 1000;
-
-            localStorage.setItem('access_token', access);
-            localStorage.setItem('refresh_token', refresh);
-            localStorage.setItem('token_expiration', expirationTime.toString());
-            localStorage.setItem('user', JSON.stringify({ id: user_id, nombre, apellido, rol }));
-
-            refetch(); // Refrescar la información del usuario
-        },
-        onError: (error: any) => {
-            console.error("Error al realizar el login:", error.message);
-        },
-    });
-
-    const logoutMutation = useMutation({
-        mutationFn: async () => {
-            await logoutRequest(); 
-        },
-        onSuccess: () => {
-            refetch();  
-        },
-    });
-    
-
-    return {
-        user,
-        isAuthenticated: !!user,
-        isLoading,
-        login: loginMutation.mutate,
-        logout: logoutMutation.mutate,
-    };
-};
