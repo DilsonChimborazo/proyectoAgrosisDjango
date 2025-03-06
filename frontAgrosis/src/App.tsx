@@ -12,6 +12,13 @@ import CrearSensor from "./components/iot/CrearSensor";
 import LotesPage from "./pages/LotesPage";
 import ErasPage from "./pages/ErasPage";
 
+
+//COMPONENTES TRAZABILIDAD
+import EspeciesPage from "./pages/trazabilidad/EspeciePage";
+import RealizaPage from "./pages/trazabilidad/RealizaPage";
+import SemillerosPage from "./pages/trazabilidad/SemillerosPage";
+import CalendarioLunarPage from "./pages/trazabilidad/CalendarioLunarPage";
+
 // Crear el cliente de React Query
 const queryClient = new QueryClient();
 
@@ -20,8 +27,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/Home" element={<Principal><HomePage /></Principal>} />
+        <Route path="/" element={<Login />} />
         <Route path="/principal" element={<Principal><HomePage /></Principal>} />
         <Route path="/usuarios" element={<Principal><UsersPage /></Principal>} />
         <Route path="/actividad" element={<Principal><CalendarPage /></Principal>} />
@@ -30,6 +36,12 @@ function App() {
         <Route path="/crear-sensor" element={<Principal><CrearSensor /></Principal>} />
         <Route path="/lotes" element={<Principal><LotesPage /></Principal>} />
         <Route path="/eras" element={<Principal><ErasPage /></Principal>} />
+
+        {/**rutas modulo trazabilidad*/}
+        <Route path="/especies" element={<Principal><EspeciesPage/></Principal>}/>
+        <Route path="/realiza" element={<Principal><RealizaPage/></Principal>}/>
+        <Route path="/semilleros" element={<Principal><SemillerosPage/></Principal>}/>
+        <Route path="/calendario-lunar" element={<Principal><CalendarioLunarPage/></Principal>}/>
 
       </Routes>
     </QueryClientProvider>
