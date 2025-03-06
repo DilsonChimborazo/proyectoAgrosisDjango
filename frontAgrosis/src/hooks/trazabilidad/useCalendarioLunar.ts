@@ -10,7 +10,6 @@ export interface CalendarioLunar {
   evento: string;
 }
 
-// Función para obtener los eventos del calendario lunar con manejo de errores
 const fetchCalendarioLunar = async (): Promise<CalendarioLunar[]> => {
   try {
     const { data } = await axios.get(`${apiUrl}calendario_lunar/`);
