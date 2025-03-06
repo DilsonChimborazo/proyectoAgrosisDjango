@@ -22,6 +22,10 @@ import ResiduosPage from "./pages/ResiduosPage";
 import PeaPage from "./pages/PeaPage";
 import ControlFitosanitarioPage from "./pages/ControlFitosanitarioPage";
 
+import ProduccionPage from "./pages/finanzas/produccion/GeneraPage";
+import VentaPage from "./pages/finanzas/venta/VentaPage";
+
+
 const queryClient = new QueryClient();
 
 
@@ -33,7 +37,6 @@ function App() {
         <Route path="/Home" element={<Principal><HomePage /></Principal>} />
         <Route path="/principal" element={<Principal><HomePage /></Principal>} />
         <Route path="/usuarios" element={<Principal><UsersPage /></Principal>} />
-        <Route path="/actividad" element={<Principal><CalendarPage /></Principal>} />
         {/**rutas modulo iot */}
         <Route path="/iot" element={<Principal><IOtPage /></Principal>} />
         <Route path="/crear-sensor" element={<Principal><CrearSensor /></Principal>} />
@@ -43,6 +46,7 @@ function App() {
         <Route path="/herramientas" element={<Principal><HerramientasPage/></Principal>} />
         <Route path="/insumos" element={<Principal><InsumoPage/></Principal>} />
         {/**rutas modulo trazabilidad*/}
+        <Route path="/actividad" element={<Principal><CalendarPage /></Principal>} />
         <Route path="/cultivos" element={<Principal><CultivosPage /></Principal>} />
         <Route path="/residuos" element={<Principal><ResiduosPage /></Principal>} />
         <Route path="/pea" element={<Principal><PeaPage /></Principal>} />
@@ -51,6 +55,9 @@ function App() {
         <Route path="/realiza" element={<Principal><RealizaPage/></Principal>}/>
         <Route path="/semilleros" element={<Principal><SemillerosPage/></Principal>}/>
         <Route path="/calendario-lunar" element={<Principal><CalendarioLunarPage/></Principal>}/>
+        {/**rutas modulo finanzas */}
+        <Route path="/produccion" element={<Principal><ProduccionPage /></Principal>} />
+        <Route path="/ventas" element={<Principal><VentaPage /></Principal>} />
       </Routes>
     </QueryClientProvider>
   );
