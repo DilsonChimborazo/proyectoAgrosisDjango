@@ -1,5 +1,5 @@
 import { ReactNode, useState } from "react";
-import { Button, Input } from "@nextui-org/react";
+import { Button, Input } from "@heroui/react";
 import { Menu, Search, Bell as Notification, ChevronDown, ChevronUp } from "lucide-react";
 import { Home, User, Calendar, Map, Leaf, DollarSign, Bug, LogOut, Clipboard, Cpu } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";

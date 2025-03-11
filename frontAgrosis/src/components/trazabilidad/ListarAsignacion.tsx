@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { useAsignacion } from '../../hooks/trazabilidad/useAsignacion';
-import VentanaModal from '../globales/VentanasModales';
-import Tabla from '../globales/Tabla';
+import { useState } from "react";
+import { useAsignacion } from "../../hooks/trazabilidad/useAsignacion";
+import VentanaModal from "../globales/VentanasModales";
+import Tabla from "../globales/Tabla";
+
 
 const Asignaciones = () => {
   const { data: asignaciones, error, isLoading } = useAsignacion();
@@ -30,37 +31,28 @@ const Asignaciones = () => {
   const tablaData = (asignaciones ?? []).map((asignacion) => ({
     id: asignacion.id,
     fecha: asignacion.fecha
-      ? new Date(asignacion.fecha).toLocaleDateString('es-ES', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
+      ? new Date(asignacion.fecha).toLocaleDateString("es-ES", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
         })
-      : 'Sin fecha',
-    observaciones: asignacion.observaciones || 'N/A',
-    actividad: asignacion.fk_id_actividad?.nombre_actividad || 'Sin actividad',
+      : "Sin fecha",
+    observaciones: asignacion.observaciones || "N/A",
+    actividad: asignacion.fk_id_actividad?.nombre_actividad || "Sin actividad",
     usuario: asignacion.id_identificacion
       ? `${asignacion.id_identificacion.nombre} ${asignacion.id_identificacion.apellido}`
-      : 'Sin usuario',
+      : "Sin usuario",
   }));
 
-  const headers = ['ID', 'Fecha', 'Observaciones', 'Actividad', 'Usuario'];
+  const headers = ["ID", "Fecha", "Observaciones", "Actividad", "Usuario"];
 
   return (
     <div className="mx-auto p-4">
-      <Tabla
-        title="Lista de Asignaciones"
-        headers={headers}
-        data={tablaData}
-        onClickAction={openModal}
-      />
+
+      <Tabla title="Lista de Asignaciones" headers={headers} data={tablaData} onClickAction={openModal} />
 
       {selectedAsignacion && (
-        <VentanaModal
-          isOpen={isModalOpen}
-          onClose={closeModal}
-          titulo="Detalles de la Asignación"
-          contenido={selectedAsignacion}
-        />
+        <VentanaModal isOpen={isModalOpen} onClose={closeModal} titulo="Detalles de la Asignación" contenido={selectedAsignacion} />
       )}
     </div>
   );

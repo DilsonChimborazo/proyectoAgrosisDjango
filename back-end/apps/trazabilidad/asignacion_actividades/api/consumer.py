@@ -6,16 +6,20 @@ from apps.usuarios.usuario.models import Usuarios
 from apps.trazabilidad.actividad.models import Actividad
 from channels.layers import get_channel_layer
 
-
 class Asignacion_actividadesConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         """Conexión WebSocket"""
+        print(f"✅ Intentando conectar WebSocket: {self.channel_name}")
+        
         # Usar un grupo único para la asignación de actividades
         await self.channel_layer.group_add("asignacion_actividades", self.channel_name)
         await self.accept()
 
+        print(f"✅ Conectado al WebSocket: {self.channel_name}")
+
     async def disconnect(self, close_code):
         """Desconexión WebSocket"""
+        print(f"🔌 Desconectando WebSocket: {self.channel_name} (código: {close_code})")
         await self.channel_layer.group_discard("asignacion_actividades", self.channel_name)
 
     async def receive(self, text_data):
@@ -51,6 +55,7 @@ class Asignacion_actividadesConsumer(AsyncWebsocketConsumer):
 
     async def asignacion_actividades_data(self, event):
         """Envía los datos de asignación de actividad al cliente en tiempo real"""
+        print(f"📩 Enviando datos de asignación a los clientes: {event['message']}")
         await self.send(text_data=json.dumps({"message": event["message"]}))
 
     @sync_to_async

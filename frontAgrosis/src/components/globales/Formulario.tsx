@@ -36,7 +36,7 @@ const Formulario: React.FC<FormProps> = ({ fields, onSubmit, isError, isSuccess,
     };
 
     return (
-        <form onSubmit={handleSubmit} className="max-w-md mx-auto bg-white p-6 rounded-lg shadow-lg">
+        <form onSubmit={handleSubmit} className="max-w-5xl mx-auto bg-white p-6 rounded-3xl shadow-lg">
             <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">{title}</h2>
             {fields.map((field) => (
                 <div key={field.id} className="mb-4">
@@ -63,6 +63,7 @@ const Formulario: React.FC<FormProps> = ({ fields, onSubmit, isError, isSuccess,
                             className="w-full p-2 border border-gray-300 rounded"
                             onChange={(e) => handleChange(field.id, e.target.value)}
                             value={formData[field.id] || field.value || ''}
+                            placeholder={`Ingrese ${field.label.toLowerCase()}`}
                         />
                     )}
                 </div>
@@ -78,7 +79,7 @@ const Formulario: React.FC<FormProps> = ({ fields, onSubmit, isError, isSuccess,
                 </div>
             )}
 
-            <div className="flex justify-center items-center">
+            <div className="flex justify-center items-center mt-16">
                 <Button text="Registrarse" className='mx-2' onClick={handleButtonClick} variant="success" />
                 <Button text="Cancelar" className='mx-2' onClick={() => navigate("/iot")} variant="danger" />
             </div>

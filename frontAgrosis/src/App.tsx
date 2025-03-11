@@ -21,7 +21,7 @@ import CultivosPage from "./pages/CultivosPage";
 import ResiduosPage from "./pages/ResiduosPage";
 import PeaPage from "./pages/PeaPage";
 import ControlFitosanitarioPage from "./pages/ControlFitosanitarioPage";
-
+import ActividadNotifications from "./components/trazabilidad/ActividadNotifications"; 
 import ProduccionPage from "./pages/finanzas/produccion/GeneraPage";
 import VentaPage from "./pages/finanzas/venta/VentaPage";
 
@@ -46,7 +46,10 @@ function App() {
         <Route path="/herramientas" element={<Principal><HerramientasPage/></Principal>} />
         <Route path="/insumos" element={<Principal><InsumoPage/></Principal>} />
         {/**rutas modulo trazabilidad*/}
-        <Route path="/actividad" element={<Principal><CalendarPage /></Principal>} />
+        <Route path="/actividad" element={<Principal>
+          <CalendarPage />
+          <ActividadNotifications userId={1} />
+          </Principal>} />
         <Route path="/cultivos" element={<Principal><CultivosPage /></Principal>} />
         <Route path="/residuos" element={<Principal><ResiduosPage /></Principal>} />
         <Route path="/pea" element={<Principal><PeaPage /></Principal>} />
