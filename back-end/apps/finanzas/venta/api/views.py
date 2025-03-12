@@ -5,7 +5,7 @@ from apps.finanzas.venta.api.serializers import leerVentaSerializer, escribirVen
 
 class VentaViewSet(ModelViewSet):
     queryset = Venta.objects.all()
-    permissions_clases = [IsAuthenticatedOrReadOnly]
+    #permissions_clases = [IsAuthenticatedOrReadOnly]
     
     def get_serializer_class(self):
         if self.action in ['list','retrive']:

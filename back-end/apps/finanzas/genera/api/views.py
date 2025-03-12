@@ -5,7 +5,7 @@ from apps.finanzas.genera.api.serializers import leerGeneraSerializer, escribirG
 
 class GeneraViewSet(ModelViewSet):
     queryset = Genera.objects.all()
-    permissions_clases = [IsAuthenticatedOrReadOnly]
+    #permissions_clases = [IsAuthenticatedOrReadOnly]
     
     def get_serializer_class(self):
         if self.action in ['list','retrive']:

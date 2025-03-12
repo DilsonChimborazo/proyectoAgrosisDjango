@@ -1,5 +1,9 @@
-
 *.pyc
 __pycache__/
+migrations/
+*/migrations/
 
-
+# Ignorar todas las migraciones de Django
+**/migrations/*.py
+**/migrations/*.pyc
+**/migrations/__pycache__/
