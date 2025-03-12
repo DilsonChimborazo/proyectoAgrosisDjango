@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.0",
+    "@heroicons/react": "^2.2.0",
     "@heroui/button": "2.2.16",
     "@heroui/code": "2.2.12",
     "@heroui/dropdown": "2.3.16",
@@ -30,6 +32,7 @@
     "axios": "^1.8.1",
     "clsx": "2.1.1",
     "framer-motion": "11.15.0",
+    "heroicons": "^2.2.0",
     "lucide-react": "^0.476.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
