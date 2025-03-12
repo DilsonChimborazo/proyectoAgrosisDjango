@@ -56,30 +56,21 @@ class Asignacion_actividadesConsumer(AsyncWebsocketConsumer):
     async def asignacion_actividades_data(self, event):
         """Envía los datos de asignación de actividad al cliente en tiempo real"""
         print(f"📩 Enviando datos de asignación a los clientes: {event['message']}")
-        await self.send(text_data=json.dumps({"message": event["message"]}))
+        await self.send(text_data=json.dumps( event["message"]))
 
     @sync_to_async
     def asignar_actividad(self, fecha, fk_id_actividad, id_identificacion):
         """Asigna la actividad en la base de datos y devuelve los datos"""
         try:
-            # Obtener la instancia de la actividad a partir del ID
             actividad = Actividad.objects.get(id=fk_id_actividad)
-
-            # Obtener la instancia del usuario a partir del ID
             usuario = Usuarios.objects.get(id=id_identificacion)
-
-            # Asignar la actividad al usuario
             asignacion_actividades = Asignacion_actividades.objects.create(
                 fecha=fecha,
-                fk_id_actividad=actividad,  # Asigna la instancia de la actividad
+                fk_id_actividad=actividad, 
                 id_identificacion=usuario
             )
-
-            # Crear el mensaje para notificación
-            mensaje = f"{usuario.nombre} {usuario.apellido} se le ha asignado la actividad {actividad.nombre_actividad} para realizarse el día {asignacion_actividades.fecha}."
-            
-            # Devolver el mensaje con los detalles de la asignación
-            return {"message": mensaje}
+            mensaje = f"{usuario.nombre} {usuario.apellido} se le ha asignado la actividad {actividad.nombre_actividad} para realizarse el dia {asignacion_actividades.fecha}."
+            return  mensaje
 
         except Usuarios.DoesNotExist:
             return {"error": "El usuario no existe."}

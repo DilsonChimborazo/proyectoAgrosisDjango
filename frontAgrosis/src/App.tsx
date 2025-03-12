@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import './styles/globals.css'; 
 
 import Login from "./components/usuarios/InicioSesion";
 import Principal from "./components/globales/Principal";
@@ -22,11 +23,13 @@ import PeaPage from "./pages/PeaPage";
 import ControlFitosanitarioPage from "./pages/ControlFitosanitarioPage";
 import ProduccionPage from "./pages/finanzas/produccion/GeneraPage";
 import VentaPage from "./pages/finanzas/venta/VentaPage";
+import { HeroUIProvider } from "@heroui/system";
 
 const queryClient = new QueryClient();
 
 function App() {
   return (
+    <HeroUIProvider>
     <QueryClientProvider client={queryClient}>
         <Routes>
           <Route path="/" element={<Login />} />
@@ -60,6 +63,7 @@ function App() {
           <Route path="/ventas" element={<Principal><VentaPage /></Principal>} />
         </Routes>
     </QueryClientProvider>
+  </HeroUIProvider>
   );
 }
 
