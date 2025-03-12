@@ -17,11 +17,27 @@ export const useCrearSensores = () => {
 
     return useMutation({
         mutationFn: async (nuevoSensor: Sensores) => {
-            const { data } = await axios.post(`${apiUrl}sensores/`, nuevoSensor);
-            return data;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["sensores"] }); 
-        },
+            const token = localStorage.getItem("token");
+            if (!token) {
+                throw new Error("No se ha encontrado un token de autenticación");
+            }
+    const { data } = await axios.post(
+        `${apiUrl}sensores/`,
+        nuevoSensor,
+        {
+            headers: {
+            Authorization: `Bearer ${token}`, 
+            },
+        }
+    );
+
+    return data;
+    },
+    onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["sensores"] });
+    },
+    onError: (error: any) => {
+        console.error("Error al crear el sensor:", error.message);
+    },
     });
 };

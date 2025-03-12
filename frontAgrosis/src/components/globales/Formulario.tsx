@@ -29,6 +29,7 @@ const Formulario: React.FC<FormProps> = ({ fields, onSubmit, isError, isSuccess,
     const handleSubmit = (event: React.FormEvent) => {
         event.preventDefault();
         onSubmit(formData);
+        navigate("/iot");
     };
 
     const handleButtonClick = () => {
@@ -80,7 +81,7 @@ const Formulario: React.FC<FormProps> = ({ fields, onSubmit, isError, isSuccess,
             )}
 
             <div className="flex justify-center items-center mt-16">
-                <Button text="Registrarse" className='mx-2' onClick={handleButtonClick} variant="success" />
+                <Button text="Registrar" className='mx-2' onClick={handleButtonClick}  variant="success" />
                 <Button text="Cancelar" className='mx-2' onClick={() => navigate("/iot")} variant="danger" />
             </div>
         </form>
