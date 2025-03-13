@@ -6,6 +6,9 @@ venv/
 env/
 db.sqlite3
 
+
+
+
 # Para Node.js/React/Vue
 node_modules/
 dist/
