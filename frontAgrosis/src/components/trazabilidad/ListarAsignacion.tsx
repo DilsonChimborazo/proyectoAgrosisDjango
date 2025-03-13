@@ -2,6 +2,11 @@ import { useState } from 'react';
 import { useAsignacion } from '../../hooks/trazabilidad/useAsignacion';
 import VentanaModal from '../globales/VentanasModales';
 import Tabla from '../globales/Tabla';
+import Button from '../globales/Button';
+import { useNavigate } from 'react-router-dom';
+
+
+
 
 const Asignaciones = () => {
   const { data: asignaciones, error, isLoading } = useAsignacion();
@@ -14,6 +19,7 @@ const Asignaciones = () => {
     setIsModalOpen(true);
   };
 
+  const navigate = useNavigate();
   // Función para cerrar el modal
   const closeModal = () => {
     setIsModalOpen(false);
@@ -47,6 +53,7 @@ const Asignaciones = () => {
 
   return (
     <div className="mx-auto p-4">
+      <Button text="Crear Asignacion" className='mx-2' onClick={() => navigate("/CrearAsignacion") } variant="success" />
       <Tabla
         title="Lista de Asignaciones"
         headers={headers}

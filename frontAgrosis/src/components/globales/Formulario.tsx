@@ -80,7 +80,7 @@ const Formulario: React.FC<FormProps> = ({ fields, onSubmit, isError, isSuccess,
 
             <div className="flex justify-center items-center">
                 <Button text="Registrarse" className='mx-2' onClick={handleButtonClick} variant="success" />
-                <Button text="Cancelar" className='mx-2' onClick={() => navigate("/iot")} variant="danger" />
+                <Button text="Cancelar" className='mx-2' onClick={() => navigate("/")} variant="danger" />
             </div>
         </form>
     );
