@@ -11,6 +11,7 @@ import IOtPage from "./pages/IotPage";
 import CrearSensor from "./components/iot/CrearSensor";
 import LotesPage from "./pages/LotesPage";
 import ErasPage from "./pages/ErasPage";
+
 import HerramientasPage from "./pages/inventario/HerramientaPage";
 import InsumoPage from "./pages/inventario/InsumoPage";
 import EspeciesPage from "./pages/trazabilidad/EspeciePage";
@@ -24,6 +25,9 @@ import ControlFitosanitarioPage from "./pages/ControlFitosanitarioPage";
 import ProduccionPage from "./pages/finanzas/produccion/GeneraPage";
 import VentaPage from "./pages/finanzas/venta/VentaPage";
 import { HeroUIProvider } from "@heroui/system";
+
+import  CrearAsignacion  from "./components/trazabilidad/CrearAsignacion";
+
 
 const queryClient = new QueryClient();
 
@@ -62,6 +66,21 @@ function App() {
           <Route path="/produccion" element={<Principal><ProduccionPage /></Principal>} />
           <Route path="/ventas" element={<Principal><VentaPage /></Principal>} />
         </Routes>
+
+      <Routes>
+        <Route path="/" element={<Login />} />
+        <Route path="/principal" element={<Principal><HomePage /></Principal>} />
+        <Route path="/usuarios" element={<Principal><UsersPage /></Principal>} />
+        <Route path="/actividad" element={<Principal><CalendarPage /></Principal>} />
+        {/**rutas modulo iot */}
+        <Route path="/iot" element={<Principal><IOtPage /></Principal>} />
+        <Route path="/crear-sensor" element={<Principal><CrearSensor /></Principal>} />
+        <Route path="/lotes" element={<Principal><LotesPage /></Principal>} />
+        <Route path="/eras" element={<Principal><ErasPage /></Principal>} />
+        {/**rutas modulo de trazabilidad */}
+        <Route path="/CrearAsignacion" element={<Principal><CrearAsignacion /></Principal>} />
+
+      </Routes>
     </QueryClientProvider>
   </HeroUIProvider>
   );
