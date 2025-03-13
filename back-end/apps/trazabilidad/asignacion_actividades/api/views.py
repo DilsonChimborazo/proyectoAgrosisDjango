@@ -13,7 +13,7 @@ from apps.trazabilidad.actividad.models import Actividad
 
 
 class Asignacion_actividadesModelViewSet(ModelViewSet):
-    permissions_clases = [IsAuthenticatedOrReadOnly]
+    #permissions_clases = [IsAuthenticatedOrReadOnly]
     queryset = Asignacion_actividades.objects.all()
 
     def get_serializer_class(self):
