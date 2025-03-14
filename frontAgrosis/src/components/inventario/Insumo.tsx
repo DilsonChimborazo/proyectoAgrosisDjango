@@ -2,11 +2,14 @@ import { useState } from 'react';
 import { useInsumo } from '../../hooks/inventario/herramientas/useInsumo'
 import Tabla from '../globales/Tabla';
 import VentanaModal from '../globales/VentanasModales';
+import Button from '../globales/Button';
+import { useNavigate } from'react-router-dom';
 
 const Insumo = () => {
   const { data: insumo, isLoading, error } = useInsumo();
   const [selectedInsumo, setSelectedInsumo] = useState<object | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   const openModalHandler = (insumo: object) => {
     setSelectedInsumo(insumo);
@@ -39,7 +42,8 @@ const Insumo = () => {
   }));
 
   return (
-    <div className="overflow-x-auto bg-white shadow-md rounded-lg">
+    <div className="overflow-x-auto shadow-md rounded-lg">
+      <Button text="Crear insumo" className='m-2' onClick={() => navigate("/CrearInsumos") } variant="success" />
       <Tabla
         title="insumo"
         headers={headers}

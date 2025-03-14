@@ -1,13 +1,11 @@
 import React from "react";
 
-interface ButtonProps {
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     text: string;
-    onClick: () => void;
     variant?: "success" | "primary" | "danger"; 
-    className?: string; 
 }
 
-const Button: React.FC<ButtonProps> = ({ text, onClick, variant = "primary", className }) => {
+const Button: React.FC<ButtonProps> = ({ text, variant = "primary", className, ...props }) => {
     const baseStyles =
         "px-4 py-2 rounded-lg font-semibold shadow-md transition duration-300 ease-in-out transform hover:scale-105";
 
@@ -19,8 +17,9 @@ const Button: React.FC<ButtonProps> = ({ text, onClick, variant = "primary", cla
 
     return (
         <button
-            onClick={onClick}
-            className={`${baseStyles} ${variantStyles[variant]} ${className}`}>
+            className={`${baseStyles} ${variantStyles[variant]} ${className}`}
+            {...props} 
+        >
             {text}
         </button>
     );

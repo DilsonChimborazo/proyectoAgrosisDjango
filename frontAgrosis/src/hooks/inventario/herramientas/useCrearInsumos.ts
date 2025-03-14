@@ -21,7 +21,7 @@ export const useCrearInsumos = () => {
                 throw new Error("No se ha encontrado un token de autenticación");
             }
             const { data } = await axios.post(
-                `${apiUrl}insumos/`,
+                `${apiUrl}insumo/`,
                 nuevoInsumo,
                 {
                     headers: {

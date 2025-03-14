@@ -9,7 +9,6 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('asignacion_actividades', '0001_initial'),
         ('insumo', '0001_initial'),
     ]
 

@@ -1,9 +1,11 @@
-import { Insumo } from '@/hooks/inventario/useCrearInsumos';
-import { useCrearInsumos } from '../../hooks/inventario/useCrearInsumos';
+import { Insumo } from '@/hooks/inventario/herramientas/useCrearInsumos';
+import { useCrearInsumos } from '../../hooks/inventario/herramientas/useCrearInsumos';
 import Formulario from '../globales/Formulario';
+import { useNavigate } from 'react-router-dom';
 
 const CrearInsumos = () => {
   const mutation = useCrearInsumos();
+  const  navigate  = useNavigate();
 
   const formFields = [
     { id: 'nombre', label: 'Nombre del Insumo', type: 'text' },
@@ -22,6 +24,7 @@ const CrearInsumos = () => {
       unidad_medida: formData.unidad_medida,
     };
     mutation.mutate(nuevoInsumo);
+    navigate('/insumos');
   };
 
   return (

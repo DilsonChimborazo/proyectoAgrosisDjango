@@ -23,23 +23,20 @@ export function useAuth() {
       });
 
       const data = await response.json();
-      console.log("Respuesta completa de la API:", data); // Depuración
+      console.log("Respuesta completa de la API:", data); 
 
       if (!response.ok) {
         console.error("Error en la autenticación:", response.status);
         throw new Error(data.detail || "Error en la autenticación.");
       }
 
-      // Utiliza el campo `access` como el token principal
       if (!data.access) {
         throw new Error("El token de acceso no fue proporcionado por la API.");
       }
 
-      // Guarda el token de acceso en localStorage
       localStorage.setItem("token", data.access);
       console.log("Token de acceso guardado exitosamente:", data.access);
 
-      // Si deseas guardar el refresh token, hazlo así:
       if (data.refresh) {
         localStorage.setItem("refreshToken", data.refresh);
         console.log("Refresh token guardado:", data.refresh);
@@ -47,7 +44,7 @@ export function useAuth() {
 
       return { success: true };
     } catch (err: any) {
-      console.error("Error en el proceso de autenticación:", err); // Depuración
+      console.error("Error en el proceso de autenticación:", err); 
       setError(err.message);
       return { success: false };
     }

@@ -18,17 +18,16 @@ const Tabla = <T extends { [key: string]: any }>({
   rowsPerPage = 10,
 }: TablaProps<T>) => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [filter, setFilter] = useState(""); // Estado para el filtro de búsqueda
+  const [filter, setFilter] = useState(""); 
   const totalPages = Math.ceil(data.length / rowsPerPage);
 
-  // Filtrar los datos
+
   const filteredData = data.filter((row) =>
     Object.values(row).some((value) =>
       value?.toString().toLowerCase().includes(filter.toLowerCase())
     )
   );
 
-  // Datos paginados
   const paginatedData = filteredData.slice(
     (currentPage - 1) * rowsPerPage,
     currentPage * rowsPerPage

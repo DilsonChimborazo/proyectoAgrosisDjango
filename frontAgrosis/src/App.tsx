@@ -27,6 +27,8 @@ import VentaPage from "./pages/finanzas/venta/VentaPage";
 import { HeroUIProvider } from "@heroui/system";
 
 import  CrearAsignacion  from "./components/trazabilidad/CrearAsignacion";
+import CrearInsumos from "./components/inventario/CrearInsumos";
+import CrearHerramientas from "./components/inventario/CrearHerramientas";
 
 
 const queryClient = new QueryClient();
@@ -37,10 +39,8 @@ function App() {
     <QueryClientProvider client={queryClient}>
         <Routes>
           <Route path="/" element={<Login />} />
-          <Route path="/Home" element={<Principal><HomePage /></Principal>} />
           <Route path="/principal" element={<Principal><HomePage /></Principal>} />
           <Route path="/usuarios" element={<Principal><UsersPage /></Principal>} />
-          
           {/* Rutas módulo IOT */}
           <Route path="/iot" element={<Principal><IOtPage /></Principal>} />
           <Route path="/crear-sensor" element={<Principal><CrearSensor /></Principal>} />
@@ -50,6 +50,8 @@ function App() {
           {/* Rutas módulo inventario */}
           <Route path="/herramientas" element={<Principal><HerramientasPage /></Principal>} />
           <Route path="/insumos" element={<Principal><InsumoPage /></Principal>} />
+          <Route path="/CrearHerramientas" element={<Principal><CrearHerramientas /></Principal>} />
+          <Route path="/CrearInsumos" element={<Principal><CrearInsumos /></Principal>} />
           
           {/* Rutas módulo trazabilidad */}
           <Route path="/actividad" element={<Principal><CalendarPage /></Principal>} />
@@ -61,26 +63,12 @@ function App() {
           <Route path="/realiza" element={<Principal><RealizaPage /></Principal>} />
           <Route path="/semilleros" element={<Principal><SemillerosPage /></Principal>} />
           <Route path="/calendario-lunar" element={<Principal><CalendarioLunarPage /></Principal>} />
+          <Route path="/CrearAsignacion" element={<Principal><CrearAsignacion /></Principal>} />
           
           {/* Rutas módulo finanzas */}
           <Route path="/produccion" element={<Principal><ProduccionPage /></Principal>} />
           <Route path="/ventas" element={<Principal><VentaPage /></Principal>} />
         </Routes>
-
-      <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/principal" element={<Principal><HomePage /></Principal>} />
-        <Route path="/usuarios" element={<Principal><UsersPage /></Principal>} />
-        <Route path="/actividad" element={<Principal><CalendarPage /></Principal>} />
-        {/**rutas modulo iot */}
-        <Route path="/iot" element={<Principal><IOtPage /></Principal>} />
-        <Route path="/crear-sensor" element={<Principal><CrearSensor /></Principal>} />
-        <Route path="/lotes" element={<Principal><LotesPage /></Principal>} />
-        <Route path="/eras" element={<Principal><ErasPage /></Principal>} />
-        {/**rutas modulo de trazabilidad */}
-        <Route path="/CrearAsignacion" element={<Principal><CrearAsignacion /></Principal>} />
-
-      </Routes>
     </QueryClientProvider>
   </HeroUIProvider>
   );
