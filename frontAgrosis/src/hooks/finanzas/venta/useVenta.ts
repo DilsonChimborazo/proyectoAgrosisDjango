@@ -14,9 +14,9 @@ export interface Venta {
   id_venta: number;
   fk_id_produccion: Produccion | null; 
   cantidad: number;
-  precio_unitario: number;
+  precio_unidad: number;
   total_venta: number;
-  fecha_venta: string;
+  fecha: string;
 }
 
 const fetchVentas = async (): Promise<Venta[]> => {

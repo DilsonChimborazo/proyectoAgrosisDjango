@@ -1,58 +1,62 @@
 import { useState } from 'react';
-import { useGenera } from '../../../hooks/finanzas/produccion/useGenera'; // Ajusta la ruta según tu estructura
+import { useGenera } from '../../../hooks/finanzas/produccion/useGenera';
 import Tabla from '../../globales/Tabla';
 import VentanaModal from '../../globales/VentanasModales';
+import Button from "@/components/globales/Button";
+import { useNavigate } from "react-router-dom";
 
 const GeneraComponent = () => {
-  const { data: genera, isLoading, error } = useGenera();
-  const [selectedGenera, setSelectedGenera] = useState<object | null>(null);
+  const navigate = useNavigate();
+  const { data: genera, error, isLoading } = useGenera();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedGenera, setSelectedGenera] = useState<any>(null);
 
-  const openModalHandler = (genera: object) => {
-    setSelectedGenera(genera);
+  const openModal = (generaItem: any) => {
+    setSelectedGenera(generaItem);
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
-    setSelectedGenera(null);
     setIsModalOpen(false);
+    setSelectedGenera(null);
   };
 
+  if (isLoading) return <div className="text-center text-gray-500">Cargando...</div>;
+  if (error) return <div className="text-center text-red-500">Error al cargar los datos: {error.message}</div>;
 
-  const headers = [
-    "ID Genera",
-    "Nombre Cultivo",
-    "Fecha Plantación",
-    "Cantidad Producción",
-    "Fecha Producción"
-  ];
+  // Mapeo de los datos para la tabla
+  const tablaData = Array.isArray(genera)
+    ? genera.map(item => ({
+        id: item.id_genera,
+        cultivo: item.fk_id_cultivo?.nombre_cultivo ?? "No disponible",
+        fecha_plantacion: item.fk_id_cultivo?.fecha_plantacion ?? "No disponible",
+        cantidad_produccion: item.fk_id_produccion?.cantidad_produccion?.toString() ?? "No disponible",
+        fecha_produccion: item.fk_id_produccion?.fecha ?? "No disponible",
+      }))
+    : [];
 
-  const handleRowClick = (genera: object) => {
-    openModalHandler(genera);
-  };
-
-  if (isLoading) return <div>Cargando datos de genera...</div>;
-  if (error instanceof Error) return <div>Error al cargar los datos: {error.message}</div>;
-
-  const generaList = Array.isArray(genera) ? genera : [];
-
-
-  const mappedGenera = generaList.map((genera) => ({
-    id: genera.id_genera,
-    nombre_cultivo: genera.fk_id_cultivo?.nombre_cultivo ?? "No disponible",
-    fecha_plantacion: genera.fk_id_cultivo?.fecha_plantacion ?? "No disponible",
-    cantidad_produccion: genera.fk_id_produccion?.cantidad_produccion ?? "No disponible",
-    fecha_produccion: genera.fk_id_produccion?.fecha ?? "No disponible",
-  }));
+  const headers = ["ID", "Cultivo", "Fecha Plantación", "Cantidad Producción", "Fecha Producción"];
 
   return (
-    <div className="overflow-x-auto bg-white shadow-md rounded-lg">
-      <Tabla title="Producción" headers={headers} data={mappedGenera} onClickAction={handleRowClick} />
+    <div className="mx-auto p-4">
+      <Button 
+        text="Registrar Producción" 
+        onClick={() => navigate("/Registrar-Producción")} 
+        variant="success" 
+      />
+
+      <Tabla 
+        title="Lista de producciones" 
+        headers={headers} 
+        data={tablaData} 
+        onClickAction={openModal}
+      />
+
       {selectedGenera && (
         <VentanaModal
           isOpen={isModalOpen}
           onClose={closeModal}
-          titulo="Detalles de Genera"
+          titulo="Detalles de la produccion"
           contenido={selectedGenera}
         />
       )}

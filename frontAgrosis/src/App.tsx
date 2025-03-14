@@ -11,7 +11,6 @@ import IOtPage from "./pages/IotPage";
 import CrearSensor from "./components/iot/CrearSensor";
 import LotesPage from "./pages/LotesPage";
 import ErasPage from "./pages/ErasPage";
-
 import HerramientasPage from "./pages/inventario/HerramientaPage";
 import InsumoPage from "./pages/inventario/InsumoPage";
 import EspeciesPage from "./pages/trazabilidad/EspeciePage";
@@ -22,13 +21,15 @@ import CultivosPage from "./pages/CultivosPage";
 import ResiduosPage from "./pages/ResiduosPage";
 import PeaPage from "./pages/PeaPage";
 import ControlFitosanitarioPage from "./pages/ControlFitosanitarioPage";
-import ProduccionPage from "./pages/finanzas/produccion/GeneraPage";
+import ProduccionPage from "./pages/finanzas/produccion/ProduccionPage";
+import GeneraPage from "./pages/finanzas/produccion/GeneraPage";
 import VentaPage from "./pages/finanzas/venta/VentaPage";
+import CrearVentaPage from "./pages/finanzas/venta/CrearVentaPage";
 import { HeroUIProvider } from "@heroui/system";
-
 import  CrearAsignacion  from "./components/trazabilidad/CrearAsignacion";
 import CrearInsumos from "./components/inventario/CrearInsumos";
 import CrearHerramientas from "./components/inventario/CrearHerramientas";
+
 
 
 const queryClient = new QueryClient();
@@ -36,7 +37,7 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <HeroUIProvider>
-    <QueryClientProvider client={queryClient}>
+      <QueryClientProvider client={queryClient}>
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/principal" element={<Principal><HomePage /></Principal>} />
@@ -66,11 +67,21 @@ function App() {
           <Route path="/CrearAsignacion" element={<Principal><CrearAsignacion /></Principal>} />
           
           {/* Rutas módulo finanzas */}
-          <Route path="/produccion" element={<Principal><ProduccionPage /></Principal>} />
+          <Route path="/produccion" element={<Principal><GeneraPage /></Principal>} />
+          <Route path="/registrar-producción" element={<Principal><ProduccionPage /></Principal>} />
           <Route path="/ventas" element={<Principal><VentaPage /></Principal>} />
+          <Route path="/registrar-venta" element={<Principal><CrearVentaPage /></Principal>} />
+          
+
+          {/* Rutas adicionales */}
+          <Route path="/crear-asignacion" element={<Principal><CrearAsignacion /></Principal>} />
+
+          {/* Ruta por defecto para manejar errores 404 */}
+          <Route path="*" element={<h1>404 - Página no encontrada</h1>} />
         </Routes>
     </QueryClientProvider>
   </HeroUIProvider>
+
   );
 }
 
