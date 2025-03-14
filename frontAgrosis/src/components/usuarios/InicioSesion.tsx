@@ -21,7 +21,7 @@ export default function Login() {
     }
 
     try {
-      const response = await fetch(`${apiUrl}token/`, {
+      const response = await fetch(`${apiUrl}api/token/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -32,7 +32,12 @@ export default function Login() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.detail || "Error en la autenticación");
+        if (data.detail === "No active account found with the given credentials") {
+          setError("Usuario no registrado o contraseña incorrecta.");
+        } else {
+          setError(data.detail || "Error en la autenticación.");
+        }
+        return;
       }
 
       if (!data.access) {
@@ -44,7 +49,7 @@ export default function Login() {
       if (data.refresh) {
         localStorage.setItem("refreshToken", data.refresh);
       }
-
+    
       navigate("/principal");
     } catch (err: any) {
       setError(err.message);

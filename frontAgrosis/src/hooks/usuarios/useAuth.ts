@@ -14,7 +14,7 @@ export function useAuth() {
     }
 
     try {
-      const response = await fetch(`${apiUrl}token/`, {
+      const response = await fetch(`${apiUrl}api/token/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

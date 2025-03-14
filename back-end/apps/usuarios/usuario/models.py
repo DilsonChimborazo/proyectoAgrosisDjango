@@ -12,13 +12,18 @@ class UsuarioManager(BaseUserManager):
         email = self.normalize_email(email)
         user = self.model(identificacion=identificacion, email=email, **extra_fields)
         if password:
-            user.set_password(password)  # 🔐 Encripta la contraseña antes de guardarla
+            user.set_password(password) 
         user.save(using=self._db)
         return user
 
     def create_superuser(self, identificacion, email, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
+
         extra_fields.setdefault('is_superuser', True)
+        if 'fk_id_rol' not in extra_fields or extra_fields['fk_id_rol'] is None:
+            from apps.usuarios.rol.models import Rol
+            admin_role, _ = Rol.objects.get_or_create(rol="Administrador")
+            extra_fields['fk_id_rol'] = admin_role
 
         return self.create_user(identificacion, email, password, **extra_fields)
 

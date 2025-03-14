@@ -3,7 +3,7 @@ import axios from 'axios';
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
-// Interfaz para Rol (basada en el modelo Django)
+
 export interface Rol {
   id: number;
   rol: string;
@@ -28,7 +28,7 @@ const fetchUsuarios = async (): Promise<Usuario[]> => {
     console.log("Token enviado:", token);
 
     // Solicitud al backend con el token de autenticación
-    const response = await axios.get(`${apiUrl}usuario/`, {
+    const response = await axios.get(`${apiUrl}api/usuario/`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
