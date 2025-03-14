@@ -31,7 +31,7 @@ const herramientas = () => {
 
   const mappedHerramientas = HerramientasList.map(herramientas => ({
     id: herramientas.id_herramientas,
-    nombre: herramientas.nombre_h,
+    nombre_h: herramientas.nombre_h,
     estado: herramientas.estado,
     fecha_prestamo: herramientas.fecha_prestamo,
   }));
