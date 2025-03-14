@@ -26,7 +26,8 @@ SECRET_KEY = 'django-insecure-i3#3g)h1k+8vnmb@u_4$=%)flbpo1n6i2hx16*2v7piui_^nl6
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
+
 
 
 # Application definition
@@ -147,7 +148,7 @@ CHANNEL_LAYERS = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'agrosis',  
+        'NAME': 'agrosis4',  
         'USER': 'postgres',                
         'PASSWORD': 'adso2024',          
         'HOST': 'localhost',                  

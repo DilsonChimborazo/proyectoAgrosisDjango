@@ -17,13 +17,12 @@ django.setup()  # 🔹 Inicializar Django antes de importar cualquier módulo re
 from django.core.asgi import get_asgi_application
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
-from .routing import websocket_urlpatterns
-
+from apps.iot.mide.api.router import websocket_urlpatterns as mide_ws
 
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),
-    "websocket": AuthMiddlewareStack(  # Agregamos AuthMiddlewareStack para WebSockets autenticados
-        URLRouter(websocket_urlpatterns)
+    "websocket": AuthMiddlewareStack(
+        URLRouter(mide_ws)
     ),
 })
