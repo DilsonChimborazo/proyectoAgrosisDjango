@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { useInsumo } from '../../hooks/inventario/herramientas/useInsumo'
-import Tabla from '../globales/Tabla';
-import VentanaModal from '../globales/VentanasModales';
-import Button from '../globales/Button';
+import { useInsumo } from '../../../hooks/inventario/insumos/useInsumo'
+import Tabla from '../../globales/Tabla';
+import VentanaModal from '../../globales/VentanasModales';
+import Button from '../../globales/Button';
 import { useNavigate } from'react-router-dom';
 
 const Insumo = () => {

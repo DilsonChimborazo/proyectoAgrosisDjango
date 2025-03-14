@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useControlFitosanitario } from '../../hooks/trazabilidad/useControlFitosanitario';
+import { useControlFitosanitario } from '../../hooks/trazabilidad/controlFitosanitario/useControlFitosanitario';
 import VentanaModal from '../globales/VentanasModales';
 import Tabla from '../globales/Tabla';
 

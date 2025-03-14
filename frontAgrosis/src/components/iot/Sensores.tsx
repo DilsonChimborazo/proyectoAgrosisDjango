@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useSensores } from '../../hooks/iot/useSensores';
+import { useSensores } from '../../hooks/iot/sensores/useSensores';
 import VentanaModal from '../globales/VentanasModales';
 import Tabla from '../globales/Tabla';
 import Button from "@/components/globales/Button";

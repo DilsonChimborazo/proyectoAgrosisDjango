@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { useAsignacion } from '../../hooks/trazabilidad/useAsignacion';
+import { useAsignacion } from '../../hooks/trazabilidad/asignacion/useAsignacion';
 import VentanaModal from '../globales/VentanasModales';
 import Tabla from '../globales/Tabla';
 import Button from '../globales/Button';

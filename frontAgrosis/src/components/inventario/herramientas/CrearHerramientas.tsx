@@ -1,6 +1,6 @@
 import { Herramientas } from '@/hooks/inventario/herramientas/useCrearHerramientas';
-import { useCrearHerramientas } from '../../hooks/inventario/herramientas/useCrearHerramientas';
-import Formulario from '../globales/Formulario';
+import { useCrearHerramientas } from '@/hooks/inventario/herramientas/useCrearHerramientas';
+import Formulario from '../../globales/Formulario';
 import { useNavigate } from 'react-router-dom';
 
 const CrearHerramientas = () => {

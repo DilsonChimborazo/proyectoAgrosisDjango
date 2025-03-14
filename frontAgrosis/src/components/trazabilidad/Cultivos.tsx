@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useCultivo} from '../../hooks/trazabilidad/useCultivo';
+import { useCultivo} from '../../hooks/trazabilidad/cultivo/useCultivo';
 import VentanaModal from '../globales/VentanasModales';
 import Tabla from '../globales/Tabla';
 

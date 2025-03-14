@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useCalendarioLunar } from '../../hooks/trazabilidad/useCalendarioLunar';
+import { useCalendarioLunar } from '../../hooks/trazabilidad/calendarioLunar/useCalendarioLunar';
 import VentanaModal from '../globales/VentanasModales';
 import Tabla from '../globales/Tabla';
 

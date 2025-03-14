@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { usePea } from '../../hooks/trazabilidad/usePea';
+import { usePea } from '../../hooks/trazabilidad/pea/usePea';
 import VentanaModal from '../globales/VentanasModales';
 import Tabla from '../globales/Tabla';
 

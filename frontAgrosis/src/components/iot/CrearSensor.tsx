@@ -1,5 +1,5 @@
-import { Sensores } from '@/hooks/iot/useCrearSensores';
-import { useCrearSensores } from '../../hooks/iot/useCrearSensores';
+import { Sensores } from '@/hooks/iot/sensores/useCrearSensores';
+import { useCrearSensores } from '../../hooks/iot/sensores/useCrearSensores';
 import Formulario from '../globales/Formulario';
 
 

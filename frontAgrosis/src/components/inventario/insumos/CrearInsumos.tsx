@@ -1,6 +1,6 @@
-import { Insumo } from '@/hooks/inventario/herramientas/useCrearInsumos';
-import { useCrearInsumos } from '../../hooks/inventario/herramientas/useCrearInsumos';
-import Formulario from '../globales/Formulario';
+import { Insumo } from '@/hooks/inventario/insumos/useCrearInsumos';
+import { useCrearInsumos } from '../../../hooks/inventario/insumos/useCrearInsumos';
+import Formulario from '../../globales/Formulario';
 import { useNavigate } from 'react-router-dom';
 
 const CrearInsumos = () => {

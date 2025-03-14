@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useLotes } from '../../hooks/iot/useLotes';
+import { useLotes } from '../../hooks/iot/lote/useLotes';
 import Tabla from '../globales/Tabla';
 import VentanaModal from '../globales/VentanasModales';
 

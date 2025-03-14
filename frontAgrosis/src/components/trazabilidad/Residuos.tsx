@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useResiduos } from '../../hooks/trazabilidad/useResiduos';
+import { useResiduos } from '../../hooks/trazabilidad/residuos/useResiduos';
 import VentanaModal from '../globales/VentanasModales';
 import Tabla from '../globales/Tabla';
 

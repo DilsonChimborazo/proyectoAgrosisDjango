@@ -27,8 +27,8 @@ import VentaPage from "./pages/finanzas/venta/VentaPage";
 import CrearVentaPage from "./pages/finanzas/venta/CrearVentaPage";
 import { HeroUIProvider } from "@heroui/system";
 import  CrearAsignacion  from "./components/trazabilidad/CrearAsignacion";
-import CrearInsumos from "./components/inventario/CrearInsumos";
-import CrearHerramientas from "./components/inventario/CrearHerramientas";
+import CrearInsumos from "./components/inventario/insumos/CrearInsumos";
+import CrearHerramientas from "./components/inventario/herramientas/CrearHerramientas";
 
 
 
@@ -41,6 +41,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/principal" element={<Principal><HomePage /></Principal>} />
+          <Route path="/home" element={<Principal><HomePage /></Principal>} />
           <Route path="/usuarios" element={<Principal><UsersPage /></Principal>} />
           {/* Rutas módulo IOT */}
           <Route path="/iot" element={<Principal><IOtPage /></Principal>} />

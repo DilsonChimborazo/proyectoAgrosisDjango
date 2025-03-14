@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useEras } from '../../hooks/iot/useEras';
+import { useEras } from '../../hooks/iot/eras/useEras';
 import Tabla from '../globales/Tabla';
 import VentanaModal from '../globales/VentanasModales';
 

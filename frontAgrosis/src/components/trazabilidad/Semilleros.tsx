@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useSemilleros } from '../../hooks/trazabilidad/useSemilleros';
+import { useSemilleros } from '../../hooks/trazabilidad/semillero/useSemilleros';
 import VentanaModal from '../globales/VentanasModales';
 import Tabla from '../globales/Tabla';
 

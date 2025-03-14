@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { useHerramientas } from '../../hooks/inventario/herramientas/useHerramientas';
-import Tabla from '../globales/Tabla';
-import VentanaModal from '../globales/VentanasModales';
-import Button from '../globales/Button';
+import { useHerramientas } from '../../../hooks/inventario/herramientas/useHerramientas';
+import Tabla from '../../globales/Tabla';
+import VentanaModal from '../../globales/VentanasModales';
+import Button from '../../globales/Button';
 import { useNavigate } from "react-router-dom";
 
 const herramientas = () => {
