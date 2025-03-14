@@ -22,7 +22,7 @@ export const useCrearVenta = () => {
       }
 
       const { data } = await axios.post(
-        `${apiUrl}venta/`, // Ajusta la URL según tu endpoint
+        `${apiUrl}venta/`, 
         nuevaVenta,
         {
           headers: {

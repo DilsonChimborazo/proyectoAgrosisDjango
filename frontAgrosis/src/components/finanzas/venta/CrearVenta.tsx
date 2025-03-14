@@ -2,6 +2,7 @@ import { NuevaVenta} from '@/hooks/finanzas/venta/useCrearVenta';
 import { useCrearVenta } from '../../../hooks/finanzas/venta/useCrearVenta';
 import Formulario from '../../globales/Formulario';
 
+
 const CrearVenta = () => {
     const mutation = useCrearVenta();
 
@@ -23,6 +24,7 @@ const CrearVenta = () => {
         };
 
         mutation.mutate(nuevaVenta);
+        console.log(nuevaVenta);
     };
 
     return (
