@@ -11,3 +11,7 @@ class Mide(models.Model):
 
     def __str__(self):
         return f"Nombre del sensor: {self.fk_id_sensor.nombre_sensor} Era: {self.fk_id_era}"  
+    
+    
+    
+    
