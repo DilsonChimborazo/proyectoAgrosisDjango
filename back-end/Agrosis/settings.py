@@ -68,7 +68,6 @@ INSTALLED_APPS = [
     'apps.trazabilidad.calendario_lunar',
 
     #FINANZAS
-    'apps.finanzas.genera',
     'apps.finanzas.produccion',
     'apps.finanzas.venta',
     
