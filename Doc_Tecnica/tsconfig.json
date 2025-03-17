@@ -1,0 +1,10 @@
+
+
+{
+  "extends": "astro/tsconfigs/strict",
+  "compilerOptions": {
+    "types": ["@astro/types"]
+  },
+  "include": ["src", "astro-env.d.ts", "**/*.astro", "**/*.ts"],
+  "exclude": ["dist", "node_modules"]
+}
