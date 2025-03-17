@@ -3,6 +3,9 @@ import { useEspecie } from '../../hooks/trazabilidad/useEspecie';
 import VentanaModal from '../globales/VentanasModales';
 import Tabla from '../globales/Tabla';
 import { Especie } from '../../hooks/trazabilidad/useEspecie';
+import Button from '../globales/Button';
+import { useNavigate } from 'react-router-dom';
+
 
 const Especies = () => {
   const { data: especies = [], error, isLoading } = useEspecie();
@@ -15,6 +18,9 @@ const Especies = () => {
     setIsModalOpen(true);
   };
 
+  
+  const navigate=useNavigate()
+  
   // Función para cerrar el modal
   const closeModal = () => {
     setIsModalOpen(false);
@@ -37,6 +43,7 @@ const Especies = () => {
 
   return (
     <div className="mx-auto p-4">
+      <Button text="Crear Especie" className='mx-2' onClick={() => navigate("/CrearEspecie") } variant="success" />
       <Tabla
         title="Lista de Especies"
         headers={headers}

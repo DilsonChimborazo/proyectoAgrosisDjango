@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useSemilleros } from '../../hooks/trazabilidad/useSemilleros';
 import VentanaModal from '../globales/VentanasModales';
 import Tabla from '../globales/Tabla';
+import Button from '../globales/Button';
+import { useNavigate } from 'react-router-dom';
 
 const Semillero = () => {
   const { data: semillas, error, isLoading } = useSemilleros();
@@ -13,6 +15,8 @@ const Semillero = () => {
     setSelectedSemilla(semilla);
     setIsModalOpen(true);
   };
+
+  const navigate=useNavigate()
 
   // Función para cerrar el modal
   const closeModal = () => {
@@ -39,6 +43,8 @@ const Semillero = () => {
 
   return (
     <div className="mx-auto p-4">
+
+      <Button text="Crear Semillero" className='mx-2' onClick={() => navigate("/CrearSemillero") } variant="success" />
       <Tabla
         title="Lista de Semilleros"
         headers={headers}

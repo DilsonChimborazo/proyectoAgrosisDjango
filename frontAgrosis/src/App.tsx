@@ -27,7 +27,10 @@ import VentaPage from "./pages/finanzas/venta/VentaPage";
 import { HeroUIProvider } from "@heroui/system";
 
 import  CrearAsignacion  from "./components/trazabilidad/CrearAsignacion";
-
+import CrearCalendarioLunar from "./components/trazabilidad/CrearCalendarioLunar"
+import CrearCultivo from "./components/trazabilidad/CrearCultivo";
+import CrearEspecie from "./components/trazabilidad/CrearEspecie";
+import CrearSemillero from "./components/trazabilidad/CrearSemillero";
 
 const queryClient = new QueryClient();
 
@@ -79,6 +82,10 @@ function App() {
         <Route path="/eras" element={<Principal><ErasPage /></Principal>} />
         {/**rutas modulo de trazabilidad */}
         <Route path="/CrearAsignacion" element={<Principal><CrearAsignacion /></Principal>} />
+        <Route path="/CrearCalendarioLunar" element={<Principal><CrearCalendarioLunar /></Principal>}/>
+        <Route path="/CrearCultivo" element={<Principal><CrearCultivo/></Principal>}/>
+        <Route path="/CrearEspecie" element={<Principal><CrearEspecie/></Principal>}/>
+        <Route path="/CrearSemillero" element={<Principal><CrearSemillero/></Principal>}/>
 
       </Routes>
     </QueryClientProvider>
