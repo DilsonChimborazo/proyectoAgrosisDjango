@@ -1,4 +1,4 @@
-import ControlFitosanitario from '../components/trazabilidad/ControlFitosanitario';
+import ControlFitosanitario from '../../components/trazabilidad/ControlFitosanitario';
 
 const ControlFitosanitarioPage = () => {
     return (

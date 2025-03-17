@@ -1,4 +1,4 @@
-import Residuos from '../components/trazabilidad/Residuos';
+import Residuos from '../../components/trazabilidad/Residuos';
 
 const ResiduosPage = () => {
     return (

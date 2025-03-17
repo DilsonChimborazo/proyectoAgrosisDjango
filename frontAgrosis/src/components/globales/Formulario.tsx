@@ -16,10 +16,14 @@ interface FormProps {
     isError?: boolean;
     isSuccess?: boolean;
     title: string;  
+    initialValues?: { [key: string]: string };
 }
+const Formulario: React.FC<FormProps> = ({ fields, onSubmit, isError, isSuccess, title,initialValues }) => {
+    const [formData, setFormData] = React.useState<{ [key: string]: string }>(initialValues || {}); // ✅ Usa initialValues
 
-const Formulario: React.FC<FormProps> = ({ fields, onSubmit, isError, isSuccess, title }) => {
-    const [formData, setFormData] = React.useState<{ [key: string]: string }>({});
+    React.useEffect(() => {
+        setFormData(initialValues || {}); // ✅ Cuando cambien los initialValues, actualiza el estado
+    }, [initialValues]);
 
     const handleChange = (id: string, value: string) => {
         setFormData((prev) => ({ ...prev, [id]: value }));
@@ -28,8 +32,7 @@ const Formulario: React.FC<FormProps> = ({ fields, onSubmit, isError, isSuccess,
 
     const handleSubmit = (event: React.FormEvent) => {
         event.preventDefault();
-        onSubmit(formData);
-        navigate("/iot");
+        onSubmit(formData);     
     };
 
     const handleButtonClick = () => {
@@ -83,13 +86,9 @@ const Formulario: React.FC<FormProps> = ({ fields, onSubmit, isError, isSuccess,
 
             <div className="flex justify-center items-center mt-16">
                 <Button text="Registrar" className='mx-2' onClick={handleButtonClick}  variant="success" />
-                <Button text="Cancelar" className='mx-2' onClick={() => navigate("/iot")} variant="danger" />
+                <Button text="Cancelar" className='mx-2' onClick={() => navigate(-1)} variant="danger" />
             </div>
 
-            <div className="flex justify-center items-center">
-                <Button text="Registrarse" className='mx-2' onClick={handleButtonClick} variant="success" />
-                <Button text="Cancelar" className='mx-2' onClick={() => navigate("/")} variant="danger" />
-            </div>
         </form>
     );
 };

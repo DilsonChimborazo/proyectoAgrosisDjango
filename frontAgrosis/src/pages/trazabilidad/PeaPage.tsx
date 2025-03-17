@@ -1,4 +1,4 @@
-import Pea from '../components/trazabilidad/Pea';
+import Pea from '../../components/trazabilidad/Pea';
 
 const PeaPage = () => {
     return (

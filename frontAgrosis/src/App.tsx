@@ -18,16 +18,19 @@ import EspeciesPage from "./pages/trazabilidad/EspeciePage";
 import RealizaPage from "./pages/trazabilidad/RealizaPage";
 import SemillerosPage from "./pages/trazabilidad/SemillerosPage";
 import CalendarioLunarPage from "./pages/trazabilidad/CalendarioLunarPage";
-import CultivosPage from "./pages/CultivosPage";
-import ResiduosPage from "./pages/ResiduosPage";
-import PeaPage from "./pages/PeaPage";
-import ControlFitosanitarioPage from "./pages/ControlFitosanitarioPage";
+import CultivosPage from "./pages/trazabilidad/CultivosPage";
+import ResiduosPage from "./pages/trazabilidad/ResiduosPage";
+import PeaPage from "./pages/trazabilidad/PeaPage";
+import ControlFitosanitarioPage from "./pages/trazabilidad/ControlFitosanitarioPage";
 import ProduccionPage from "./pages/finanzas/produccion/GeneraPage";
 import VentaPage from "./pages/finanzas/venta/VentaPage";
 import { HeroUIProvider } from "@heroui/system";
 
-import  CrearAsignacion  from "./components/trazabilidad/CrearAsignacion";
+import CrearAsignacion  from "./components/trazabilidad/CrearAsignacion";
+import CrearCultivo from "./components/trazabilidad/cultivos/CrearCultivos";
 
+
+import ActualizarCultivo from "./components/trazabilidad/cultivos/ActualizarCultivo";
 
 const queryClient = new QueryClient();
 
@@ -53,7 +56,7 @@ function App() {
           
           {/* Rutas módulo trazabilidad */}
           <Route path="/actividad" element={<Principal><CalendarPage /></Principal>} />
-          <Route path="/cultivos" element={<Principal><CultivosPage /></Principal>} />
+          <Route path="/cultivo" element={<Principal><CultivosPage /></Principal>} />
           <Route path="/residuos" element={<Principal><ResiduosPage /></Principal>} />
           <Route path="/pea" element={<Principal><PeaPage /></Principal>} />
           <Route path="/control-fitosanitario" element={<Principal><ControlFitosanitarioPage /></Principal>} />
@@ -79,6 +82,10 @@ function App() {
         <Route path="/eras" element={<Principal><ErasPage /></Principal>} />
         {/**rutas modulo de trazabilidad */}
         <Route path="/CrearAsignacion" element={<Principal><CrearAsignacion /></Principal>} />
+        <Route path="/crearcultivo" element={<Principal><CrearCultivo /></Principal>}/>
+
+        {/**rutas modulo de trazabilidad actualizar*/}
+        <Route path="/actualizarcultivo/:id" element={<Principal><ActualizarCultivo /></Principal>} />
 
       </Routes>
     </QueryClientProvider>

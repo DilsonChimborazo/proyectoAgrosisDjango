@@ -1,4 +1,4 @@
-import Cultivos from '../components/trazabilidad/Cultivos';
+import Cultivos from '../../components/trazabilidad/cultivos/Cultivos';
 
 const CultivosPage = () => {
     return (
