@@ -5,7 +5,7 @@ from apps.trazabilidad.tipo_residuos.api.serializers import LeerTipo_residuosSer
 
 class LeerResiduosSerializer(ModelSerializer):
     fk_id_cultivo = LeerCultivoSerializer() 
-    fk_id_tipo_residuos = LeerTipo_residuosSerializer()
+    fk_id_tipo_residuo = LeerTipo_residuosSerializer()
     class Meta:
         model = Residuos
         fields = '__all__'

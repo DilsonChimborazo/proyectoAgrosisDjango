@@ -61,14 +61,16 @@ const fetchAsignacion = async (): Promise<Residuos[]> => {
     }
 };
 
-
-
 export const useResiduos= () => {
     return useQuery<Residuos[], Error>({
         queryKey: ['Residuos'],
-        queryFn: fetchAsignacion,
+        queryFn: async () => {
+            const data = await fetchAsignacion();
+            console.log("Datos de residuos en React Query:", data);
+            return data;
+        },
         gcTime: 1000 * 60 * 10, 
-
     });
 };
+
 

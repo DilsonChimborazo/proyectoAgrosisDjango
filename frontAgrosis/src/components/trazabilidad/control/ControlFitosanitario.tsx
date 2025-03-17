@@ -1,12 +1,15 @@
 import { useState } from 'react';
-import { useControlFitosanitario } from '../../hooks/trazabilidad/useControlFitosanitario';
-import VentanaModal from '../globales/VentanasModales';
-import Tabla from '../globales/Tabla';
+import { useControlFitosanitario } from '../../../hooks/trazabilidad/control/useControlFitosanitario';
+import VentanaModal from '../../globales/VentanasModales';
+import Tabla from '../../globales/Tabla';
+import Button from '../../globales/Button';
+import { useNavigate } from 'react-router-dom';
 
 const ControlFitosanitario = () => {
   const { data: controles, isLoading, error } = useControlFitosanitario();
   const [selectedControl, setSelectedControl] = useState<null | object>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   const openModalHandler = (control: object) => {
     setSelectedControl(control);
@@ -39,12 +42,15 @@ const ControlFitosanitario = () => {
 
   return (
     <div className="overflow-x-auto bg-white shadow-md rounded-lg">
+      <Button text="Crear Control Fitosanitario" className='mx-2' onClick={() => navigate("/crearcontrolfitosanitario")} variant="success" />
+
       <Tabla
         title="Lista de Controles Fitosanitarios"
         headers={headers}
         data={mappedControles}
         onClickAction={handleRowClick}
       />
+
       {selectedControl && (
         <VentanaModal
           isOpen={isModalOpen}

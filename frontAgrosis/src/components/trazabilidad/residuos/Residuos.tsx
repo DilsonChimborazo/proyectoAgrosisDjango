@@ -1,12 +1,15 @@
 import { useState } from 'react';
-import { useResiduos } from '../../hooks/trazabilidad/useResiduos';
-import VentanaModal from '../globales/VentanasModales';
-import Tabla from '../globales/Tabla';
+import { useResiduos } from '../../../hooks/trazabilidad/residuo/useResiduos';
+import VentanaModal from '../../globales/VentanasModales';
+import Tabla from '../../globales/Tabla';
+import Button from '../../globales/Button';
+import { useNavigate } from 'react-router-dom';
 
 const Residuos = () => {
   const { data: residuos, isLoading, error } = useResiduos();
   const [selectedResiduo, setSelectedResiduo] = useState<object | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   const openModalHandler = (residuo: object) => {
     setSelectedResiduo(residuo);
@@ -17,8 +20,6 @@ const Residuos = () => {
     setSelectedResiduo(null);
     setIsModalOpen(false);
   };
-
-  const headers = ['ID', 'Nombre', 'Fecha', 'Descripción', 'Cultivo', 'Tipo de Residuo'];
 
   const handleRowClick = (residuo: object) => {
     openModalHandler(residuo);
@@ -36,22 +37,35 @@ const Residuos = () => {
     descripcion: residuo.descripcion,
     cultivo: residuo.fk_id_cultivo ? residuo.fk_id_cultivo.nombre_cultivo : 'Sin cultivo',
     tipo_residuo: residuo.fk_id_tipo_residuo ? residuo.fk_id_tipo_residuo.nombre_tipo_residuo : 'Sin tipo',
+    acciones: (
+      <button 
+        className="bg-blue-500 text-white px-3 py-1 rounded"
+        onClick={() => navigate(`/actualizarresiduo/${residuo.id}`)}
+      >
+        Editar
+      </button>
+    ),
   }));
+
+  const headers = ['ID', 'Nombre', 'Fecha', 'Descripción', 'Cultivo', 'Tipo de Residuo', 'Acciones'];
 
   return (
     <div className="overflow-x-auto bg-white shadow-md rounded-lg">
+      <Button text="Crear Residuo" className='mx-2' onClick={() => navigate("/crearresiduo")} variant="success" />
+
       <Tabla
         title="Lista de Residuos"
         headers={headers}
         data={mappedResiduos}
         onClickAction={handleRowClick}
       />
+
       {selectedResiduo && (
         <VentanaModal
           isOpen={isModalOpen}
           onClose={closeModal}
           titulo="Detalles del Residuo"
-          contenido={selectedResiduo} 
+          contenido={selectedResiduo}
         />
       )}
     </div>

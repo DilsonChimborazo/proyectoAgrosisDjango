@@ -28,9 +28,13 @@ import { HeroUIProvider } from "@heroui/system";
 
 import CrearAsignacion  from "./components/trazabilidad/CrearAsignacion";
 import CrearCultivo from "./components/trazabilidad/cultivos/CrearCultivos";
+import CrearResiduo from "./components/trazabilidad/residuos/CrearResiduo";
+import CrearPea from "./components/trazabilidad/peas/CrearPea";
+import CrearControlFitosanitario from "./components/trazabilidad/control/CrearControlFitosanitario";
 
 
 import ActualizarCultivo from "./components/trazabilidad/cultivos/ActualizarCultivo";
+
 
 const queryClient = new QueryClient();
 
@@ -83,6 +87,9 @@ function App() {
         {/**rutas modulo de trazabilidad */}
         <Route path="/CrearAsignacion" element={<Principal><CrearAsignacion /></Principal>} />
         <Route path="/crearcultivo" element={<Principal><CrearCultivo /></Principal>}/>
+        <Route path="/crearresiduo" element={<Principal><CrearResiduo /></Principal>} />
+        <Route path="/crearpea" element={<Principal><CrearPea /></Principal>} />
+        <Route path="/crearcontrolfitosanitario" element={<Principal><CrearControlFitosanitario /></Principal>} />
 
         {/**rutas modulo de trazabilidad actualizar*/}
         <Route path="/actualizarcultivo/:id" element={<Principal><ActualizarCultivo /></Principal>} />
