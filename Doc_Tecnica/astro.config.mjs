@@ -14,14 +14,18 @@ export default defineConfig({
 				{
 					label: 'Autenticacion',
 					items: [
-						{ label: 'token', slug: 'guides/token'}
+						{ label: 'token', slug: 'autenticacion/token'}
 					],
 				},
 				{
 					label: 'usuarios',
 					items: [
-                        { label: 'Creacion de Usuarios', slug: 'guides/crearusuario' },
-						{ label: 'Obtener Usuarios', slug: 'guides/obtenerusuarios'}
+                        { label: 'Creacion de Usuarios', slug: 'usuarios/crearusuario' },
+						{ label: 'Obtener Usuarios', slug: 'usuarios/obtenerusuarios'},
+						{ label: 'Actuallizar usuarios', slug: 'usuarios/actualizarusuario'},
+						{ label: 'Obtener usuarios por identificacion', slug: 'usuarios/obtenerusuariobyid'},
+						{ label: 'Actualizar usuarios por campo especifico', slug: 'usuarios/patchusuarios'},
+						{ label: 'Eliminar usuarios', slug: 'usuarios/deleteusuarios'},
                     ],
 				},
 				{

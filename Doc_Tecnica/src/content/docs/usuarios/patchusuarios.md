@@ -1,18 +1,18 @@
 ---
-title: "Crear usuario"
-description: "Crea los usuarios para que puedan iniciar sesion en el sistema."
+title: "Actulaizar usuarios"
+description: "Actualiza los datos de los usuarios ya registrados en el sistema."
 ---
 
 
 ## Descripción:
-Solicitud utilizada para el resgistro de nuevos usuarios.
+Solicitud utilizada la actualizacion de los datos de un usuario ya registrado previamente.
 
 ---
 
 
 ## Metodo: 
 ```
- POST
+ PATCH
 ```
 ---
 
@@ -21,31 +21,22 @@ Solicitud utilizada para el resgistro de nuevos usuarios.
 
 ### **Endpoint**
 ```
-http://127.0.0.1:8000/api/usuario/
+http://127.0.0.1:8000/api/usuario/{identificacion}
 ```
 
 ### **Cuerpo de la solicitud**
-Envía un objeto JSON con los siguientes campos:
+Envía un objeto JSON con el campo que deseas actualizar:
 
 ```json
 {
-    "identificacion": "1234567891",
     "nombre": "Dilson",
-    "apellido": "Chimborazo",
-    "email": "Dilson@gmail.com",
-    "password": "123456.",
-    "fk_id_rol": 1
 }
 ```
 
 | Campo           | Tipo   | Requerido | Descripción                |
 |----------------|--------|-----------|-----------------------------|
-| identificacion | string | ✅       | Identificación del usuario  |
 | nombre         | string | ✅       | Contraseña del usuario      |
-| apellido       | string | ✅       | Contraseña del usuario      |
-| email          | string | ✅       | Contraseña del usuario      |
-| password       | string | ✅       | Contraseña del usuario      |
-| fk_id_rol      | integer| ✅       | Contraseña del usuario      |
+
 
 ## **Respuesta**
 
@@ -66,16 +57,16 @@ Si las credenciales son correctas, recibirás un código **201** con la siguient
 | Campo           | Tipo   | Descripción                |
 |----------------|--------|-----------------------------|
 | identificacion | string | Identificación del usuario  |
-| nombre         | string | Contraseña del usuario      |
-| apellido       | string | Contraseña del usuario      |
-| email          | string | Contraseña del usuario      |
+| nombre         | string | nombre del usuario      |
+| apellido       | string | apellido del usuario      |
+| email          | string | email del usuario      |
 | password       | string | Contraseña del usuario      |
-| fk_id_rol      | integer| Contraseña del usuario      |
+| fk_id_rol      | integer| rol asignado del usuario      |
 :::
 
 
 ### **Códigos de respuesta**
-- **201**: Autenticación exitosa, devuelve el array del usuario registrado.
+- **201**: Actualizacion exitosa, devuelve el array del usuario registrado.
 - **400**: Credenciales incorrectas.
 - **500**: Error del servidor.
 
