@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { useActualizarProduccion } from "../../../hooks/finanzas/produccion/UseActualizarProduccion";
+import { useActualizarProduccion } from "../../../hooks/finanzas/produccion/useActualizarProduccion"
 import { useNavigate, useParams } from "react-router-dom";
-import { useProduccionId } from "../../../hooks/finanzas/produccion/UseProduccionId";
+import { useProduccionId } from "../../../hooks/finanzas/produccion/useProduccionId";
 import Formulario from "../../globales/Formulario";
 
 const ActualizarProduccion = () => {

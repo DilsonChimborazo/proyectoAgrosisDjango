@@ -27,16 +27,24 @@ const VentaComponent = () => {
   // Mapeo de los datos para la tabla
   const ventasList = Array.isArray(ventas) ? ventas : [];
   const mappedVentas = ventasList.map((venta) => ({
-    id: venta.id_venta,
+    id_venta: venta.id_venta,
     cantidad: venta.cantidad,
     precio_unitario: venta.precio_unidad,
     total_venta: venta.cantidad * venta.precio_unidad,
     fecha_venta: venta.fecha,
     cantidad_produccion: venta.fk_id_produccion?.cantidad_produccion ?? "No disponible",
     fecha_produccion: venta.fk_id_produccion?.fecha ?? "No disponible",
+    acciones: (
+      <button
+        className="bg-blue-500 text-white px-3 py-1 rounded"
+        onClick={() => navigate(`/actualizarventa/${venta.id_venta}`)}
+      >
+        Editar
+      </button>
+    ),
   }));
 
-  const headers = ["ID Venta", "Cantidad Vendida", "Precio Unitario", "Total Venta", "Fecha Venta", "Cantidad Producción", "Fecha Producción"];
+  const headers = ["ID Venta", "Cantidad Vendida", "Precio Unitario", "Total Venta", "Fecha Venta", "Cantidad Producción", "Fecha Producción", "Acciones"];
 
   return (
     <div className="mx-auto p-4">
