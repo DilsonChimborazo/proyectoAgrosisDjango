@@ -14,7 +14,7 @@ export interface Especie {
   nombre_comun: string;
   nombre_cientifico: string;
   descripcion: string;
-  fk_id_tipo_cultivo: number;
+  fk_id_tipo_cultivo: TipoCultivo | null;
 }
 
 export interface Semillero {
@@ -26,41 +26,35 @@ export interface Semillero {
 }
 
 export interface Cultivo {
-  id_cultivo: number;
+  id: number;
   fecha_plantacion: string;
   nombre_cultivo: string;
   descripcion: string;
-  fk_id_especie: number;
-  fk_id_semillero: number;
+  fk_id_especie: Especie | null;
+  fk_id_semillero: Semillero | null;
 }
 
 export interface Produccion {
   id_produccion: number;
-  fk_id_cultivo: number;
+  fk_id: Cultivo | null;
   cantidad_produccion: number;
   fecha: string;
 }
 
-export interface Genera {
-  id_genera: number;
-  fk_id_cultivo: Cultivo | null;
-  fk_id_produccion: Produccion | null; 
-}
-
-const fetchGenera = async (): Promise<Genera[]> => {
+const fetchProduccion = async (): Promise<Produccion[]> => {
   try {
-    const { data } = await axios.get(`${apiUrl}genera/`);
+    const { data } = await axios.get(`${apiUrl}produccion/`);
     return data;
   } catch (error) {
-    console.error("Error al obtener los datos de genera:", error);
-    throw new Error("No se pudo obtener la lista de genera");
+    console.error("Error al obtener los datos de producción:", error);
+    throw new Error("No se pudo obtener la lista de producción");
   }
 };
 
-export const useGenera = () => {
-  return useQuery<Genera[], Error>({
-    queryKey: ['genera'],
-    queryFn: fetchGenera,
+export const useProduccion = () => {
+  return useQuery<Produccion[], Error>({
+    queryKey: ['produccion'],
+    queryFn: fetchProduccion,
     staleTime: 1000 * 60 * 10,
   });
 };

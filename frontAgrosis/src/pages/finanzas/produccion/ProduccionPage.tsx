@@ -1,9 +1,9 @@
-import CrearProduccion from '../../../components/finanzas/produccion/CrearProduccion'; 
+import Produccion from '../../../components/finanzas/produccion/Produccion'; 
 
 const ProduccionPage = () => {
   return (
     <div>
-      <CrearProduccion />
+      <Produccion />
     </div>
   );
 };

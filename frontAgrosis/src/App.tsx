@@ -22,7 +22,7 @@ import ResiduosPage from "./pages/ResiduosPage";
 import PeaPage from "./pages/PeaPage";
 import ControlFitosanitarioPage from "./pages/ControlFitosanitarioPage";
 import ProduccionPage from "./pages/finanzas/produccion/ProduccionPage";
-import GeneraPage from "./pages/finanzas/produccion/GeneraPage";
+import CrearProduccionPage from "./pages/finanzas/produccion/CrearProduccionPage";
 import VentaPage from "./pages/finanzas/venta/VentaPage";
 import CrearVentaPage from "./pages/finanzas/venta/CrearVentaPage";
 import { HeroUIProvider } from "@heroui/system";
@@ -62,8 +62,8 @@ function App() {
           <Route path="/calendario-lunar" element={<Principal><CalendarioLunarPage /></Principal>} />
           
           {/* Rutas módulo finanzas */}
-          <Route path="/produccion" element={<Principal><GeneraPage /></Principal>} />
-          <Route path="/registrar-producción" element={<Principal><ProduccionPage /></Principal>} />
+          <Route path="/produccion" element={<Principal><ProduccionPage /></Principal>} />
+          <Route path="/registrar-producción" element={<Principal><CrearProduccionPage /></Principal>} />
           <Route path="/ventas" element={<Principal><VentaPage /></Principal>} />
           <Route path="/registrar-venta" element={<Principal><CrearVentaPage /></Principal>} />
           
