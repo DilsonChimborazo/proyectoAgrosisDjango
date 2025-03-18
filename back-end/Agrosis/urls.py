@@ -46,7 +46,6 @@ from apps.trazabilidad.semillero.api.router import routerSemillero
 from apps.trazabilidad.tipo_cultivo.api.router import routerTipo_cultivo
 
 #rutas de finanzas
-from apps.finanzas.genera.api.router import router_Genera
 from apps.finanzas.produccion.api.router import router_produccion
 from apps.finanzas.venta.api.router import router_venta
 
@@ -94,7 +93,6 @@ urlpatterns = [
     path('api/', include(router_Ubicacion.urls)),
     
     #FINANZAS
-    path('api/', include(router_Genera.urls)),
     path('api/', include(router_produccion.urls)),
     path('api/', include(router_venta.urls)),
 

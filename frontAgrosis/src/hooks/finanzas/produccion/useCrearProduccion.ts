@@ -3,8 +3,9 @@ import axios from "axios";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
+
 export interface Produccion {
-    fk_id_cultivo: number | null;
+    fk_id: number | null;
     cantidad_produccion: number;
     fecha: string;
 }
@@ -20,14 +21,15 @@ export const useCrearProduccion = () => {
             }
 
             const { data } = await axios.post(
-                `${apiUrl}produccion/`,  // Ajusta la URL según tu endpoint
+                `${apiUrl}produccion/`,  // Corregido
                 nuevaProduccion,
                 {
                     headers: {
-                        Authorization: `Bearer ${token}`,
+                        Authorization: `Bearer ${token}`,  // Corregido
                     },
                 }
             );
+
 
             return data;
         },

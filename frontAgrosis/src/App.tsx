@@ -18,14 +18,11 @@ import EspeciesPage from "./pages/trazabilidad/EspeciePage";
 import RealizaPage from "./pages/trazabilidad/RealizaPage";
 import SemillerosPage from "./pages/trazabilidad/SemillerosPage";
 import CalendarioLunarPage from "./pages/trazabilidad/CalendarioLunarPage";
-
-import GeneraPage from "./pages/finanzas/produccion/GeneraPage";
-
 import CultivosPage from "./pages/trazabilidad/CultivosPage";
 import ResiduosPage from "./pages/trazabilidad/ResiduosPage";
 import PeaPage from "./pages/trazabilidad/PeaPage";
 import ControlFitosanitarioPage from "./pages/trazabilidad/ControlFitosanitarioPage";
-import ProduccionPage from "./pages/finanzas/produccion/GeneraPage";
+import ProduccionPage from "./pages/finanzas/produccion/ProduccionPage";
 import VentaPage from "./pages/finanzas/venta/VentaPage";
 import CrearVentaPage from "./pages/finanzas/venta/CrearVentaPage";
 import { HeroUIProvider } from "@heroui/system";
@@ -43,6 +40,9 @@ import EditarResiduo from "./components/trazabilidad/residuos/ActualizarResiduo"
 import ActualizarPea from "./components/trazabilidad/peas/ActualizarPea";
 import ActualizarControlFitosanitario from "./components/trazabilidad/control/ActualizarControlFitosanitario"
 
+
+import CrearProduccionPage from "./pages/finanzas/produccion/CrearProduccionPage";
+import ActualizarProduccionPage from "./pages/finanzas/produccion/ActualizarProduccionPage";
 
 
 const queryClient = new QueryClient();
@@ -92,10 +92,11 @@ function App() {
           <Route path="/controlfitosanitario/editar/:id" element={<Principal><ActualizarControlFitosanitario /></Principal>} />
           
           {/* Rutas módulo finanzas */}
-          <Route path="/produccion" element={<Principal><GeneraPage /></Principal>} />
-          <Route path="/registrar-producción" element={<Principal><ProduccionPage /></Principal>} />
+          <Route path="/produccion" element={<Principal><ProduccionPage /></Principal>} />
+          <Route path="/registrar-producción" element={<Principal><CrearProduccionPage /></Principal>} />
           <Route path="/ventas" element={<Principal><VentaPage /></Principal>} />
           <Route path="/registrar-venta" element={<Principal><CrearVentaPage /></Principal>} />
+          <Route path="/actualizarproduccion/:id_produccion" element={<Principal><ActualizarProduccionPage /></Principal>} />
           
 
           {/* Rutas adicionales */}

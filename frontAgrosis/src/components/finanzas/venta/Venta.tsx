@@ -30,7 +30,7 @@ const VentaComponent = () => {
     id: venta.id_venta,
     cantidad: venta.cantidad,
     precio_unitario: venta.precio_unidad,
-    total_venta: venta.total_venta ?? "No disponible", 
+    total_venta: venta.cantidad * venta.precio_unidad,
     fecha_venta: venta.fecha,
     cantidad_produccion: venta.fk_id_produccion?.cantidad_produccion ?? "No disponible",
     fecha_produccion: venta.fk_id_produccion?.fecha ?? "No disponible",

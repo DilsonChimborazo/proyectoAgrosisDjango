@@ -6,14 +6,14 @@ const CrearProduccion = () => {
     const mutation = useCrearProduccion();
 
     const formFields = [
-        { id: 'fk_id_cultivo', label: 'ID Cultivo', type: 'number' },
+        { id: 'fk_id', label: 'ID Cultivo', type: 'number' },
         { id: 'cantidad_produccion', label: 'Cantidad de Producción', type: 'number' },
         { id: 'fecha', label: 'Fecha', type: 'date' },
     ];
 
     const handleSubmit = (formData: { [key: string]: string }) => {
         const nuevaProduccion: Produccion = {
-            fk_id_cultivo: formData.fk_id_cultivo ? parseInt(formData.fk_id_cultivo) : null,
+            fk_id: formData.fk_id ? parseInt(formData.fk_id, 10) : null,
             cantidad_produccion: parseFloat(formData.cantidad_produccion),
             fecha: formData.fecha,
         };
@@ -23,6 +23,7 @@ const CrearProduccion = () => {
 
     return (
         <div className="p-10">
+            <h2 className="text-2xl font-bold mb-4">Registrar Producción</h2>
             <Formulario 
                 fields={formFields} 
                 onSubmit={handleSubmit} 

@@ -5,7 +5,7 @@ from apps.trazabilidad.cultivo.models import Cultivo
 
 class Produccion(models.Model):
     id_produccion = models.AutoField(primary_key=True)
-    fk_id_cultivo = models.ForeignKey(Cultivo, on_delete=models.SET_NULL, null=True)
+    fk_id = models.ForeignKey(Cultivo, on_delete=models.SET_NULL, null=True)
     cantidad_produccion = models.DecimalField(null=True,max_digits=20,decimal_places=10)
     fecha = models.DateField() 
 
