@@ -33,10 +33,6 @@ const ActualizarCultivo = () => {
             });
         }
     }, [cultivo]);
-    
-    
-    
-
     // Manejo del envío del formulario
     const handleSubmit = (data: { [key: string]: string }) => {
         if (!id) return;

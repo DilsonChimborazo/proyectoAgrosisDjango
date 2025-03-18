@@ -34,6 +34,9 @@ import CrearControlFitosanitario from "./components/trazabilidad/control/CrearCo
 
 
 import ActualizarCultivo from "./components/trazabilidad/cultivos/ActualizarCultivo";
+import EditarResiduo from "./components/trazabilidad/residuos/ActualizarResiduo";
+import ActualizarPea from "./components/trazabilidad/peas/ActualizarPea";
+import ActualizarControlFitosanitario from "./components/trazabilidad/control/ActualizarControlFitosanitario"
 
 
 const queryClient = new QueryClient();
@@ -92,7 +95,10 @@ function App() {
         <Route path="/crearcontrolfitosanitario" element={<Principal><CrearControlFitosanitario /></Principal>} />
 
         {/**rutas modulo de trazabilidad actualizar*/}
-        <Route path="/actualizarcultivo/:id" element={<Principal><ActualizarCultivo /></Principal>} />
+        <Route path="actualizarcultivo/:id" element={<Principal><ActualizarCultivo /></Principal>} />
+        <Route path="/residuos/editar/:id" element={<Principal><EditarResiduo /></Principal>} />
+        <Route path="/pea/editar/:id" element={<Principal><ActualizarPea /></Principal>} />
+        <Route path="/controlfitosanitario/editar/:id" element={<Principal><ActualizarControlFitosanitario /></Principal>} />
 
       </Routes>
     </QueryClientProvider>

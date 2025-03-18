@@ -1,10 +1,12 @@
-import { useCrearControlFitosanitario } from '../../../hooks/trazabilidad/control/useCrearControlFitosanitario';
-import Formulario from '../../globales/Formulario';
-import { useNavigate } from "react-router-dom";
+import { useCrearControlFitosanitario } from '@/hooks/trazabilidad/control/useCrearControlFitosanitario';
+import Formulario from '@/components/globales/Formulario';
+import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 
 const CrearControlFitosanitario = () => {
     const mutation = useCrearControlFitosanitario();
     const navigate = useNavigate();
+    const [errorMensaje, setErrorMensaje] = useState("");
 
     const formFields = [
         { id: 'fecha_control', label: 'Fecha de Control', type: 'date' },
@@ -12,41 +14,47 @@ const CrearControlFitosanitario = () => {
         { id: 'fk_id_desarrollan', label: 'ID de Desarrollan', type: 'number' },
     ];
 
-    const handleSubmit = (formData: { [key: string]: string }) => {
-        if (!formData.fecha_control) {
-            console.error("Error: La fecha es obligatoria.");
+    const handleSubmit = (formData: Record<string, any>) => {
+        // Validación de campos vacíos
+        if (!formData.fecha_control || !formData.descripcion || !formData.fk_id_desarrollan) {
+            setErrorMensaje("Todos los campos son obligatorios.");
             return;
         }
 
-        const fechaISO = new Date(formData.fecha_control).toISOString().split("T")[0];
+        // Convertir a número asegurando que sea válido
+        const idDesarrollan = Number(formData.fk_id_desarrollan);
+        if (isNaN(idDesarrollan)) {
+            setErrorMensaje("El ID de Desarrollan debe ser un número válido.");
+            return;
+        }
 
         const nuevoControl = {
-            fecha_control: fechaISO,
+            fecha_control: new Date(formData.fecha_control).toISOString().split('T')[0],
             descripcion: formData.descripcion,
-            fk_id_desarrollan: parseInt(formData.fk_id_desarrollan) || 0,
+            fk_id_desarrollan: idDesarrollan,
         };
 
-        console.log("Enviando Control Fitosanitario al backend:", nuevoControl);
-        
         mutation.mutate(nuevoControl, {
             onSuccess: () => {
-                console.log("Control Fitosanitario creado exitosamente, redirigiendo...");
-                navigate("/control-fitosanitario"); 
+                console.log('✅ Control Fitosanitario creado exitosamente.');
+                navigate('/control-fitosanitario');
             },
             onError: (error) => {
-                console.error("Error al crear Control Fitosanitario:", error);
-            }
+                console.error('❌ Error al crear Control Fitosanitario:', error);
+                setErrorMensaje("Ocurrió un error al registrar el control.");
+            },
         });
-    }
+    };
 
     return (
         <div className="max-w-4xl mx-auto p-4">
+            {errorMensaje && <p className="text-red-500 mb-2">{errorMensaje}</p>}
             <Formulario 
                 fields={formFields} 
                 onSubmit={handleSubmit} 
                 isError={mutation.isError} 
                 isSuccess={mutation.isSuccess}
-                title="Registrar Control Fitosanitario"  
+                title="Registrar Control Fitosanitario"
             />
         </div>
     );

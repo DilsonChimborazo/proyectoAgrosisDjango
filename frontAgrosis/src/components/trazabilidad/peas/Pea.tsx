@@ -15,13 +15,10 @@ const Pea = () => {
     setSelectedPea(pea);
     setIsModalOpen(true);
   };
-
   const closeModal = () => {
     setSelectedPea(null);
     setIsModalOpen(false);
   };
-
-  const headers = ['ID', 'Nombre', 'Descripción'];
 
   const handleRowClick = (pea: object) => {
     openModalHandler(pea);
@@ -36,7 +33,17 @@ const Pea = () => {
     id: pea.id,
     nombre_pea: pea.nombre_pea,
     descripcion: pea.descripcion,
+    acciones: (
+      <button 
+        className="bg-blue-500 text-white px-3 py-1 rounded" 
+        onClick={() => navigate(`/pea/editar/${pea.id}`)}
+      >
+        Editar
+      </button>
+    ),
   }));
+  const headers = ['ID', 'Nombre', 'Descripción', 'Acciones'];
+
 
   return (
     <div className="overflow-x-auto bg-white shadow-md rounded-lg">

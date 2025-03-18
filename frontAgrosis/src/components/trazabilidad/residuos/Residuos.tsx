@@ -40,7 +40,7 @@ const Residuos = () => {
     acciones: (
       <button 
         className="bg-blue-500 text-white px-3 py-1 rounded"
-        onClick={() => navigate(`/actualizarresiduo/${residuo.id}`)}
+        onClick={() => navigate(`/residuos/editar/${residuo.id}`)}
       >
         Editar
       </button>
