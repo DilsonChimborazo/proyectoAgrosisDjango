@@ -8,6 +8,7 @@ interface FormField {
     type: string;
     options?: string[];
     value?: string;
+    
 }
 
 interface FormProps {
@@ -15,7 +16,8 @@ interface FormProps {
     onSubmit: (formData: { [key: string]: string }) => void;
     isError?: boolean;
     isSuccess?: boolean;
-    title: string;  
+    title: string;
+    initialValues: { [key: string]: string };
 }
 
 const Formulario: React.FC<FormProps> = ({ fields, onSubmit, isError, isSuccess, title }) => {
