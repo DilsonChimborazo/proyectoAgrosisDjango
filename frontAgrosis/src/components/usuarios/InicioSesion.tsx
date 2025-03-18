@@ -49,6 +49,16 @@ export default function Login() {
       if (data.refresh) {
         localStorage.setItem("refreshToken", data.refresh);
       }
+
+      const userResponse = await fetch(`${apiUrl}api/usuario/`, {
+        method: "GET",
+        headers: { Authorization: `Bearer ${data.access}` },
+      });
+
+      if (userResponse.ok) {
+        const userData = await userResponse.json();
+        localStorage.setItem("userData", JSON.stringify(userData));
+      }
     
       navigate("/principal");
     } catch (err: any) {
@@ -58,7 +68,6 @@ export default function Login() {
 
   return (
     <div className="flex h-screen w-screen items-center justify-center bg-gray-100 relative">
-      {/* Fondo con ondas y degradado */}
       <div className="absolute inset-0 bg-gradient-to-b from-green-300 to-green-600 opacity-50"></div>
       <div className="absolute inset-0 bg-[url('/waves.svg')] bg-cover opacity-30"></div>
 

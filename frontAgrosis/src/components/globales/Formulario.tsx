@@ -6,7 +6,7 @@ interface FormField {
     id: string;
     label: string;
     type: string;
-    options?: string[];
+    options?: { value: string; label: string }[]; // Ahora las opciones tienen value y label
     value?: string;
 }
 
@@ -51,9 +51,10 @@ const Formulario: React.FC<FormProps> = ({ fields, onSubmit, isError, isSuccess,
                             onChange={(e) => handleChange(field.id, e.target.value)}
                             value={formData[field.id] || field.value || ''}
                         >
+                            <option value="">Seleccione una opción</option>
                             {field.options?.map((option) => (
-                                <option key={option} value={option}>
-                                    {option}
+                                <option key={option.value} value={option.value}>
+                                    {option.label}
                                 </option>
                             ))}
                         </select>
@@ -63,7 +64,7 @@ const Formulario: React.FC<FormProps> = ({ fields, onSubmit, isError, isSuccess,
                             id={field.id}
                             className="w-full p-2 border border-gray-300 rounded"
                             onChange={(e) => handleChange(field.id, e.target.value)}
-                            value={formData[field.id] || field.value || ''}
+                            value={formData[field.id] ?? ''}
                             placeholder={`Ingrese ${field.label.toLowerCase()}`}
                         />
                     )}
@@ -80,9 +81,8 @@ const Formulario: React.FC<FormProps> = ({ fields, onSubmit, isError, isSuccess,
                 </div>
             )}
 
-
             <div className="flex justify-center items-center mt-16">
-                <Button text="Registrar" className='mx-2' onClick={handleButtonClick}  variant="success" />
+                <Button text="Registrar" className='mx-2' onClick={handleButtonClick} variant="success" />
                 <Button text="Cancelar" className='mx-2' onClick={() => navigate("/iot")} variant="danger" />
             </div>
 
@@ -93,6 +93,5 @@ const Formulario: React.FC<FormProps> = ({ fields, onSubmit, isError, isSuccess,
         </form>
     );
 };
-
 
 export default Formulario;

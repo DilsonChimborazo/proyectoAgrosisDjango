@@ -9,14 +9,13 @@ export interface Rol {
   rol: string;
 }
 
-// Interfaz para Usuario (basada en el modelo Django)
 export interface Usuario {
   id: number;
   identificacion: string;
   email: string;
   nombre: string;
   apellido: string;
-  fk_id_rol: Rol | null; // Puede ser null si el rol está vacío
+  fk_id_rol: Rol | null;
 }
 
 // Función para obtener usuarios desde el endpoint
