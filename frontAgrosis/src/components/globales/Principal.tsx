@@ -21,12 +21,12 @@ const menuItems = [
   },
   { name: "Mapa", icon: <Map size={18} />, path: "/mapa" },
   {
-    name: "Cultivos",
+    name: "Cultivo",
     icon: <Leaf size={18} />,
     submenu: [
       { name: "Eras", path: "/eras" },
       { name: "Lotes", path: "/lotes" },
-      { name: "Cultivos", path: "/cultivos" },
+      { name: "Cultivos", path: "/cultivo" },
       { name: "Especies", path: "/especies" },
       { name: "Semilleros", path: "/semilleros" },
       { name: "Residuos", path: "/residuos" },
