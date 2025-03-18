@@ -6,7 +6,7 @@ interface FormField {
     id: string;
     label: string;
     type: string;
-    options?: { value: string | number; label: string }[];  
+    options?: { value: string; label: string }[]; 
     value?: string;
 }
 
@@ -61,7 +61,7 @@ const Formulario: React.FC<FormProps> = ({ fields, onSubmit, isError, isSuccess,
                             id={field.id}
                             className="w-full p-2 border border-gray-300 rounded"
                             onChange={(e) => handleChange(field.id, e.target.value)}
-                            value={formData[field.id] || ''}
+                            value={formData[field.id] ?? ''}
                             placeholder={`Ingrese ${field.label.toLowerCase()}`}
                         />
                     )}
@@ -78,10 +78,10 @@ const Formulario: React.FC<FormProps> = ({ fields, onSubmit, isError, isSuccess,
                     Enviado exitosamente
                 </div>
             )}
-
             <div className="flex justify-center items-center mt-8">
                 <Button text="Registrar" className='mx-2' variant="success" type="submit" />
                 <Button text="Cancelar" className='mx-2'   onClick={(e) => {e.preventDefault(); navigate(-1);}} variant="danger" />
+
             </div>
         </form>
     );

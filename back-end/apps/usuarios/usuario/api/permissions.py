@@ -5,7 +5,7 @@ class IsUsuarioReadOnly(BasePermission):
 
     def has_permission(self, request, view):
 
-        user_role = getattr(request.user.fk_id_rol, 'nombre', None)
+        user_role = getattr(request.user.fk_id_rol, 'rol', None)
 
         if user_role == "administrador":
             return True

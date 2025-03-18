@@ -14,7 +14,7 @@ export function useAuth() {
     }
 
     try {
-      const response = await fetch(`${apiUrl}token/`, {
+      const response = await fetch(`${apiUrl}api/token/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -24,6 +24,7 @@ export function useAuth() {
 
       const data = await response.json();
       console.log("Respuesta completa de la API:", data); 
+
 
       if (!response.ok) {
         console.error("Error en la autenticación:", response.status);

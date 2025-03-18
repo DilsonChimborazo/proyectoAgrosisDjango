@@ -21,7 +21,7 @@ export default function Login() {
     }
 
     try {
-      const response = await fetch(`${apiUrl}token/`, {
+      const response = await fetch(`${apiUrl}api/token/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -32,7 +32,12 @@ export default function Login() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.detail || "Error en la autenticación");
+        if (data.detail === "No active account found with the given credentials") {
+          setError("Usuario no registrado o contraseña incorrecta.");
+        } else {
+          setError(data.detail || "Error en la autenticación.");
+        }
+        return;
       }
 
       if (!data.access) {
@@ -45,6 +50,16 @@ export default function Login() {
         localStorage.setItem("refreshToken", data.refresh);
       }
 
+      const userResponse = await fetch(`${apiUrl}api/usuario/`, {
+        method: "GET",
+        headers: { Authorization: `Bearer ${data.access}` },
+      });
+
+      if (userResponse.ok) {
+        const userData = await userResponse.json();
+        localStorage.setItem("userData", JSON.stringify(userData));
+      }
+    
       navigate("/principal");
     } catch (err: any) {
       setError(err.message);
@@ -53,7 +68,6 @@ export default function Login() {
 
   return (
     <div className="flex h-screen w-screen items-center justify-center bg-gray-100 relative">
-      {/* Fondo con ondas y degradado */}
       <div className="absolute inset-0 bg-gradient-to-b from-green-300 to-green-600 opacity-50"></div>
       <div className="absolute inset-0 bg-[url('/waves.svg')] bg-cover opacity-30"></div>
 
