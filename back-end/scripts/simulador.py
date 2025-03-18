@@ -1,60 +1,74 @@
-import os
-import django
-import random
 import asyncio
 import json
+import random
 import websockets
-from django.utils.timezone import now
 from asgiref.sync import sync_to_async
-
-# Configurar Django para acceder a los modelos
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "Agrosis.settings")
-django.setup()
-
-from apps.iot.sensores.models import Sensores
 from apps.iot.mide.models import Mide
+from apps.iot.sensores.models import Sensores
+from apps.iot.eras.models import Eras
 
-@sync_to_async
-def obtener_sensores():
-    """ Obtiene todos los sensores registrados en la base de datos """
-    return list(Sensores.objects.all())
+async def obtener_sensores():
+    """ Obtiene la lista de sensores disponibles """
+    sensores = await sync_to_async(lambda: list(Sensores.objects.values("id")))()
+    return sensores
 
-@sync_to_async
-def guardar_medicion(sensor, valor):
-    """ Guarda el valor medido en la tabla Mide """
-    return Mide.objects.create(
-        fk_id_sensor=sensor,
-        fk_id_era=None,  # Ajusta según la lógica de tu aplicación
-        valor_medicion=valor,
-        fecha_medicion=now()
+async def obtener_eras():
+    """ Obtiene la lista de eras disponibles """
+    eras = await sync_to_async(lambda: list(Eras.objects.values("id")))()
+    return eras
+
+async def registrar_medicion(sensor_id, era_id, valor):
+    """ Guarda una nueva medición en la base de datos """
+    await sync_to_async(Mide.objects.create)(
+        fk_id_sensor_id=sensor_id,
+        fk_id_era_id=era_id,
+        valor_medicion=valor
     )
+    print(f"✅ Medición guardada en BD: Sensor {sensor_id}, Era {era_id}, Valor {valor}")
 
 async def send_random_data():
-    """ Simula el envío de datos de sensores a WebSockets """
-    uri = "ws://localhost:8000/ws/sensores/"
-    async with websockets.connect(uri) as websocket:
-        while True:
-            sensores = await obtener_sensores()
+    """ Simula el envío de datos de sensores a WebSockets y registra en la BD """
+    uri = "ws://localhost:8000/ws/api/mide/"
+    
+    while True:
+        try:
+            async with websockets.connect(uri) as websocket:
+                while True:
+                    sensores = await obtener_sensores()
+                    eras = await obtener_eras()
 
-            if sensores:
-                sensor = random.choice(sensores)
-                valor = round(random.uniform(sensor.medida_minima - 10, sensor.medida_maxima + 10), 2)
+                    if sensores and eras:
+                        sensor = random.choice(sensores)["id"]
+                        era = random.choice(eras)["id"]
+                        valor = round(random.uniform(0, 100), 2)
 
-                data = {
-                    "sensor_id": sensor.id,
-                    "valor": valor,
-                }
+                        data = {
+                            "fk_id_sensor": sensor,
+                            "fk_id_era": era,
+                            "valor_medicion": valor,
+                        }
 
-                # Enviar datos al WebSocket
-                await websocket.send(json.dumps(data))
-                print(f"📡 Enviando datos: {data}")
+                        # Enviar datos al WebSocket
+                        await websocket.send(json.dumps(data))
+                        
+                        # 🖥️ Mostrar en consola cada 10 segundos
+                        print("📡 Enviando datos al WebSocket:")
+                        print(f"   - Sensor ID: {sensor}")
+                        print(f"   - Era ID: {era}")
+                        print(f"   - Valor Medición: {valor}")
+                        print("-" * 40)
 
-                # Guardar la medición en la base de datos
-                await guardar_medicion(sensor, valor)
+                        # Registrar medición en la BD
+                        await registrar_medicion(sensor, era, valor)
 
-            await asyncio.sleep(10)  # Enviar datos cada 5 segundos
+                    await asyncio.sleep(10)  # Enviar datos cada 10 segundos
 
-def run():
-    """ Ejecuta el simulador correctamente con Django """
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(send_random_data())
+        except websockets.exceptions.ConnectionClosedError:
+            print("⚠️ Conexión WebSocket cerrada. Reintentando en 5 segundos...")
+            await asyncio.sleep(5)
+        except Exception as e:
+            print(f"❌ Error en el simulador: {e}")
+            await asyncio.sleep(5)  # Esperar antes de reintentar
+
+if __name__ == "__main__":
+    asyncio.run(send_random_data())

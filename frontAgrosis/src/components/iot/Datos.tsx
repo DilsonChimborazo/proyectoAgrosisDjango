@@ -1,69 +1,113 @@
 import { useState, useEffect } from "react";
-import { useMide } from "../../hooks/iot/useMide";
 import { Line } from "react-chartjs-2";
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from "chart.js";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import { useMide } from "../../hooks/iot/useMide";
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 export default function SensorDisplay() {
-    const [sensorReadings, setSensorReadings] = useState({
-        labels: [] as string[],
-        data: [] as number[],
-    });
+  const sensorData = useMide();
+  const [sensorReadings, setSensorReadings] = useState<{
+    labels: string[];
+    data: number[];
+  }>({
+    labels: [],
+    data: [],
+  });
 
-    const sensorData = useMide();
+  useEffect(() => {
+    console.log("\ud83d\udccc sensorData recibido:", JSON.stringify(sensorData, null, 2));
 
-    useEffect(() => {
-        if (sensorData && sensorData.fecha_medicion && typeof sensorData.valor_medicion === "number") {
-            const formattedDate = new Date(sensorData.fecha_medicion).toLocaleTimeString();
+    if (!Array.isArray(sensorData) || sensorData.length === 0) {
+      console.warn("⚠️ No hay datos del sensor aún...");
+      return;
+    }
 
-            setSensorReadings((prevData) => {
-                const newLabels = [...prevData.labels, formattedDate].slice(-10); // Máximo 10 valores
-                const newData = [...prevData.data, sensorData.valor_medicion].slice(-10);
+    const ultimaMedicion = sensorData[sensorData.length - 1];
+    const { fecha_medicion, valor_medicion } = ultimaMedicion;
 
-                return {
-                    labels: newLabels,
-                    data: newData,
-                };
-            });
-        }
-    }, [sensorData]);
+    if (!fecha_medicion || valor_medicion === undefined) {
+      console.warn("⚠️ Datos del sensor incompletos:", ultimaMedicion);
+      return;
+    }
 
-    const data = {
-        labels: sensorReadings.labels,
-        datasets: [
-            {
-                label: "Temperatura (°C)",
-                data: sensorReadings.data,
-                borderColor: "rgb(75, 192, 192)",
-                backgroundColor: "rgba(75, 192, 192, 0.2)",
-                tension: 0.1,
-            },
-        ],
-    };
+    // Convertir fecha correctamente
+    const fecha = new Date(fecha_medicion);
+    if (isNaN(fecha.getTime())) {
+      console.error("❌ Fecha inválida recibida:", fecha_medicion);
+      return;
+    }
 
-    return (
-        <div className="max-w-md mx-auto mt-10 shadow-lg rounded-2xl bg-white p-6">
-            <div className="text-center">
-                <h2 className="text-xl font-bold">Sensor en Tiempo Real</h2>
-                <div className="mt-4">
-                    {sensorData ? (
-                        <>
-                            <p className="text-2xl font-semibold text-blue-600">{sensorData.valor_medicion} °C</p>
-                            <p className="text-gray-500 text-sm">Última lectura: {sensorData.fecha_medicion}</p>
-                        </>
-                    ) : (
-                        <p className="text-gray-500">Esperando datos...</p>
-                    )}
-                </div>
-                <div className="mt-8">
-                    {sensorReadings.data.length > 0 ? (
-                        <Line data={data} />
-                    ) : (
-                        <p>Cargando gráfico...</p>
-                    )}
-                </div>
-            </div>
-        </div>
-    );
+    // Convertir valor_medicion a número
+    const valorNumerico = Number(valor_medicion);
+    if (isNaN(valorNumerico)) {
+      console.error("❌ Valor de medición inválido:", valor_medicion);
+      return;
+    }
+
+    setSensorReadings((prev) => ({
+      labels: [...prev.labels, fecha.toLocaleTimeString("es-ES")].slice(-10),
+      data: [...prev.data, valorNumerico].slice(-10),
+    }));
+  }, [sensorData]);
+
+  const chartData = {
+    labels: sensorReadings.labels,
+    datasets: [
+      {
+        label: "Medición Sensor (°C)",
+        data: sensorReadings.data,
+        borderColor: "rgb(75, 192, 192)",
+        backgroundColor: "rgba(75, 192, 192, 0.2)",
+        tension: 0.4,
+        pointRadius: 4,
+      },
+    ],
+  };
+
+  return (
+    <div className="max-w-lg mx-auto mt-8 shadow-md rounded-xl bg-white p-6">
+      <h2 className="text-lg font-bold text-center text-gray-700">
+        Sensor en Tiempo Real
+      </h2>
+      <div className="text-center mt-4">
+        {sensorReadings.data.length > 0 ? (
+          <>
+            <p className="text-3xl font-semibold text-blue-600">
+              {sensorReadings.data.slice(-1)[0]} °C
+            </p>
+            <p className="text-gray-500 text-sm">
+              Última lectura: {sensorReadings.labels.slice(-1)[0]}
+            </p>
+          </>
+        ) : (
+          <p className="text-gray-500">Esperando datos...</p>
+        )}
+      </div>
+      <div className="mt-6">
+        {sensorReadings.data.length > 0 ? (
+          <Line data={chartData} />
+        ) : (
+          <p>Cargando gráfico...</p>
+        )}
+      </div>
+    </div>
+  );
 }

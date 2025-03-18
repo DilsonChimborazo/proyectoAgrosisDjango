@@ -138,7 +138,7 @@ ASGI_APPLICATION = 'Agrosis.asgi.application'
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels.layers.InMemoryChannelLayer",  # Solo para desarrollo
-    },
+    }
 }
 
 
