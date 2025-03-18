@@ -27,6 +27,7 @@ import VentaPage from "./pages/finanzas/venta/VentaPage";
 import CrearVentaPage from "./pages/finanzas/venta/CrearVentaPage";
 import { HeroUIProvider } from "@heroui/system";
 import CrearAsignacion from "./components/trazabilidad/CrearAsignacion";
+import ActualizarProduccionPage from "./pages/finanzas/produccion/ActualizarProduccionPage";
 
 const queryClient = new QueryClient();
 
@@ -66,6 +67,7 @@ function App() {
           <Route path="/registrar-producción" element={<Principal><CrearProduccionPage /></Principal>} />
           <Route path="/ventas" element={<Principal><VentaPage /></Principal>} />
           <Route path="/registrar-venta" element={<Principal><CrearVentaPage /></Principal>} />
+          <Route path="/actualizarproduccion/:id_produccion" element={<Principal><ActualizarProduccionPage /></Principal>} />
           
 
           {/* Rutas adicionales */}

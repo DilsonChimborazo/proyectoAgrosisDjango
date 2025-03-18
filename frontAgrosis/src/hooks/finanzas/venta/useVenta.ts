@@ -27,7 +27,7 @@ export interface Semillero {
 }
 
 export interface Cultivo {
-  id_cultivo: number;
+  id: number;
   fecha_plantacion: string;
   nombre_cultivo: string;
   descripcion: string;
@@ -38,7 +38,7 @@ export interface Cultivo {
 
 export interface Produccion {
   id_produccion: number;
-  fk_id_cultivo: Cultivo 
+  fk_id: Cultivo 
   cantidad_produccion: number;
   fecha: string;
 }
