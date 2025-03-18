@@ -22,19 +22,17 @@ const HomePage = () => {
     console.log("Datos de medición recibidos:", sensorData);
 
     if (sensorData.length > 0) {
+      // Filtrar y agregar solo las mediciones nuevas
       setSensorReadings((prevReadings) => {
-        const updatedReadings = [...prevReadings];
-
-        sensorData.forEach((newReading) => {
-          const index = updatedReadings.findIndex((reading) => reading.fk_id_sensor === newReading.fk_id_sensor);
-          if (index !== -1) {
-            updatedReadings[index] = newReading;
-          } else {
-            updatedReadings.push(newReading);
-          }
-        });
-
-        return updatedReadings;
+        const newReadings = sensorData.filter(
+          (newReading) =>
+            !prevReadings.some(
+              (reading) =>
+                reading.fk_id_sensor === newReading.fk_id_sensor &&
+                reading.fecha_medicion === newReading.fecha_medicion
+            )
+        );
+        return [...prevReadings, ...newReadings];
       });
 
       // Agrupar datos por sensor
@@ -57,7 +55,7 @@ const HomePage = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
       {/* Sensores Activos */}
-      <div className=" bg-white shadow-md rounded-lg p-8">
+      <div className="bg-white shadow-md rounded-lg p-8">
         <h2 className="text-xl font-semibold text-gray-700">📡 Sensores Activos</h2>
         <ul className="text-gray-600">
           {sensorReadings.length > 0 ? (

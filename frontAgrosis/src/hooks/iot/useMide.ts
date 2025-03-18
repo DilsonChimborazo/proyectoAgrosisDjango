@@ -17,7 +17,7 @@ export interface Sensor {
 // Interfaz para las mediciones del WebSocket
 export interface Mide {
   fk_id_sensor: number;
-  nombre_sensor: string; 
+  nombre_sensor: string;
   fk_id_era: number;
   valor_medicion: number;
   fecha_medicion: string;
@@ -29,6 +29,7 @@ export function useMide() {
   const socketRef = useRef<WebSocket | null>(null);
   const reconnectAttempts = useRef(0);
   const isManuallyClosed = useRef(false);
+  const processedMeasurements = useRef<Set<string>>(new Set()); // Set para mediciones procesadas
 
   // 📌 Conexión WebSocket
   const connectWebSocket = useCallback(() => {
@@ -46,13 +47,29 @@ export function useMide() {
     socket.onmessage = (event) => {
       try {
         const data: Mide = JSON.parse(event.data);
+
+        // Verificar si la medición ya fue procesada (si existe en el Set)
+        const measurementId = `${data.fk_id_sensor}-${data.fecha_medicion}`;
+        if (processedMeasurements.current.has(measurementId)) {
+          console.log("🔄 Medición ya procesada, ignorando...");
+          return; // No procesar si ya se había recibido esta medición
+        }
+
         if (
           typeof data.valor_medicion === "number" &&
           typeof data.fk_id_sensor === "number" &&
           typeof data.fk_id_era === "number" &&
           typeof data.fecha_medicion === "string"
         ) {
+          // Marcar la medición como procesada
+          processedMeasurements.current.add(measurementId);
+
+          // Agregar la nueva medición al estado
           setSensorData((prev) => [...prev, data]);
+
+          // Aquí podrías enviar los datos a la base de datos
+          // Por ejemplo:
+          // sendToDatabase(data); // Enviar a la base de datos
         } else {
           console.warn("⚠ Datos WebSocket inválidos:", data);
         }
