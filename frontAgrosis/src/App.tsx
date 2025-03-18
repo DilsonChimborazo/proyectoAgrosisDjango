@@ -32,6 +32,11 @@ import CrearCultivo from "./components/trazabilidad/CrearCultivo";
 import CrearEspecie from "./components/trazabilidad/CrearEspecie";
 import CrearSemillero from "./components/trazabilidad/CrearSemillero";
 
+import ActualizarCalendarioLunar from "./components/trazabilidad/ActualizarCalendario";
+import ActualizarEspecie from "./components/trazabilidad/ActualizarEspecie"
+import ActualizarSemillero from "./components/trazabilidad/ActualizarSemillero"
+
+
 const queryClient = new QueryClient();
 
 function App() {
@@ -86,6 +91,12 @@ function App() {
         <Route path="/CrearCultivo" element={<Principal><CrearCultivo/></Principal>}/>
         <Route path="/CrearEspecie" element={<Principal><CrearEspecie/></Principal>}/>
         <Route path="/CrearSemillero" element={<Principal><CrearSemillero/></Principal>}/>
+
+
+
+        <Route path="/actualizarCalendarioLunar" element={<Principal><ActualizarCalendarioLunar/></Principal>}/>
+        <Route path="/actualizarEspecie" element={<Principal><ActualizarEspecie/></Principal>}/>
+        <Route path="/actualizarSemillero" element={<Principal><ActualizarSemillero/></Principal>}/>
 
       </Routes>
     </QueryClientProvider>

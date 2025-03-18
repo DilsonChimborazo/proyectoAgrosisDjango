@@ -62,14 +62,14 @@ const ActualizarCalendarioLunar = () => {
                     { id: "fecha", label: "Fecha", type: "date" },
                     { id: "descripcion", label: "Descripción", type: "text" },
                     { id: "evento", label: "Evento", type: "text" },
-                ]
-            }
+                ]}
 
+                
+                initialValues={formData} // Aquí se pasa initialValues
                 onSubmit={handleSubmit}
                 isError={actualizarCalendarioLunar.isError}
                 isSuccess={actualizarCalendarioLunar.isSuccess}
                 title="Actualizar Calendario Lunar"
-                initialValues={formData}
                 key={JSON.stringify(formData)} // 🔥 Fuerza re-render cuando los datos cambian
             />
         </div>

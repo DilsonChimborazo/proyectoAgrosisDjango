@@ -37,6 +37,14 @@ const Especies = () => {
   const tablaData = especies.map((especie) => ({
     ...especie, // Pasamos todo el objeto para evitar el error
     tipo_cultivo: especie.fk_id_tipo_cultivo?.nombre || 'Sin tipo de cultivo',
+    acciones: (
+      <button 
+          className="bg-blue-500 text-white px-3 py-1 rounded" 
+          onClick={() => navigate(`/actualizarEspecie/${especie.id}`)}
+      >
+          Editar
+      </button>
+  ),
   }));
 
   const headers = ['ID', 'Nombre Común', 'Nombre Científico', 'Descripción', 'Tipo de Cultivo'];

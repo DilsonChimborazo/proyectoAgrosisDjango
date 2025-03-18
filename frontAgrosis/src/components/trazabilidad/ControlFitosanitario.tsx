@@ -35,6 +35,7 @@ const ControlFitosanitario = () => {
     descripcion: control.descripcion,
     cultivo: control.fk_id_desarrollan?.fk_id_cultivo?.nombre_cultivo || 'Sin cultivo',
     pea: control.fk_id_desarrollan?.fk_id_pea?.nombre_pea || 'Sin PEA',
+    
   }));
 
   return (

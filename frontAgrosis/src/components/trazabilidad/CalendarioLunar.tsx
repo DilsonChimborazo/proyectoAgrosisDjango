@@ -36,6 +36,14 @@ const CalendarioLunar = () => {
     fecha: evento.fecha,
     descripcion: evento.descripcion || 'N/A',
     evento: evento.evento,
+      acciones: (
+        <button 
+            className="bg-blue-500 text-white px-3 py-1 rounded" 
+            onClick={() => navigate(`/actualizarCalendarioLunar/${evento.id_calendario_lunar}`)}
+        >
+            Editar
+        </button>
+    ),
   })) : [];
 
   const headers = ['ID Calendario Lunar', 'Fecha', 'Descripción', 'Evento'];
@@ -56,6 +64,7 @@ const CalendarioLunar = () => {
           onClose={closeModal}
           titulo="Detalles del Calendario Lunar"
           contenido={selectedEvento}
+          
         />
       )}
     </div>
