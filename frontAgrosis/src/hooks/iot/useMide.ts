@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
 const WS_URL = "ws://localhost:8000/ws/api/mide/";
-const API_SENSORES = "http://localhost:8000/api/sensores/"; // URL de la API para obtener los sensores
+const API_SENSORES = "http://localhost:8000/api/sensores/";
 
-// Interfaz para Sensores
+// 📌 Interfaz para Sensores
 export interface Sensor {
   id: number;
   nombre_sensor: string;
@@ -14,10 +14,10 @@ export interface Sensor {
   medida_maxima: number;
 }
 
-// Interfaz para las mediciones del WebSocket
+// 📌 Interfaz para las mediciones del WebSocket
 export interface Mide {
   fk_id_sensor: number;
-  nombre_sensor: string; 
+  nombre_sensor: string;
   fk_id_era: number;
   valor_medicion: number;
   fecha_medicion: string;
@@ -25,12 +25,12 @@ export interface Mide {
 
 export function useMide() {
   const [sensorData, setSensorData] = useState<Mide[]>([]);
-  const [sensors, setSensors] = useState<Sensor[]>([]); // Estado para los sensores
+  const [sensors, setSensors] = useState<Sensor[]>([]);
   const socketRef = useRef<WebSocket | null>(null);
   const reconnectAttempts = useRef(0);
   const isManuallyClosed = useRef(false);
 
-  // 📌 Conexión WebSocket
+  // 📌 Conexión WebSocket con reconexión automática
   const connectWebSocket = useCallback(() => {
     if (isManuallyClosed.current) return;
     console.log("🔄 Intentando conectar al WebSocket...");
@@ -44,25 +44,29 @@ export function useMide() {
     };
 
     socket.onmessage = (event) => {
+      console.log("📩 Mensaje recibido del WebSocket:", event.data);
+
+      if (!event.data) {
+        console.warn("⚠ No se recibió ningún dato del WebSocket");
+        return;
+      }
+
       try {
-        const data: Mide = JSON.parse(event.data);
-        if (
-          typeof data.valor_medicion === "number" &&
-          typeof data.fk_id_sensor === "number" &&
-          typeof data.fk_id_era === "number" &&
-          typeof data.fecha_medicion === "string"
-        ) {
-          setSensorData((prev) => [...prev, data]);
-        } else {
-          console.warn("⚠ Datos WebSocket inválidos:", data);
-        }
+        const data: Mide | Mide[] = JSON.parse(event.data);
+        console.log("📊 Datos procesados:", data);
+
+        setSensorData((prev) => {
+          const updatedData = Array.isArray(data) ? [...prev, ...data] : [...prev, data];
+          console.log("📈 Cantidad de mediciones almacenadas:", updatedData.length);
+          return updatedData.slice(-50); // Mantener las últimas 50 mediciones
+        });
       } catch (error) {
-        console.error("❌ Error procesando mensaje:", error);
+        console.error("❌ Error procesando mensaje del WebSocket:", error);
       }
     };
 
-    socket.onerror = () => {
-      console.error("❌ WebSocket error");
+    socket.onerror = (error) => {
+      console.error("❌ WebSocket error:", error);
       socket.close();
     };
 
@@ -70,7 +74,7 @@ export function useMide() {
       if (!isManuallyClosed.current) {
         console.warn("⚠ WebSocket cerrado, intentando reconectar...");
         const retryTime = Math.min(5000, 1000 * 2 ** reconnectAttempts.current);
-        reconnectAttempts.current += 1;
+        reconnectAttempts.current = Math.min(reconnectAttempts.current + 1, 6); // Limita intentos
         setTimeout(connectWebSocket, retryTime);
       }
     };
@@ -80,10 +84,12 @@ export function useMide() {
   useEffect(() => {
     const fetchSensors = async () => {
       try {
+        console.log("🌍 Obteniendo lista de sensores...");
         const response = await fetch(API_SENSORES);
         if (!response.ok) throw new Error("Error al obtener sensores");
         const data: Sensor[] = await response.json();
-        setSensors(data); // Guardar sensores en el estado
+        console.log("📊 Sensores obtenidos:", data);
+        setSensors(data);
       } catch (error) {
         console.error("❌ Error obteniendo sensores:", error);
       }
@@ -99,6 +105,7 @@ export function useMide() {
     return () => {
       isManuallyClosed.current = true;
       socketRef.current?.close();
+      console.log("🚫 WebSocket cerrado manualmente");
     };
   }, [connectWebSocket]);
 
