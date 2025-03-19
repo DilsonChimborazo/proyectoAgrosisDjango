@@ -1,10 +1,12 @@
 import { Sensores } from '@/hooks/iot/sensores/useCrearSensores';
-import { useCrearSensores } from '../../hooks/iot/sensores/useCrearSensores';
-import Formulario from '../globales/Formulario';
+import { useCrearSensores } from '../../../hooks/iot/sensores/useCrearSensores';
+import Formulario from '../../globales/Formulario';
+import { useNavigate } from'react-router-dom';
 
 
 const CrearSensor = () => {
 const mutation = useCrearSensores()
+const navigate = useNavigate();
 
 const formFields = [
     { id: 'nombre_sensor', label: 'nombre_sensor', type: 'text' },
@@ -25,6 +27,7 @@ const handleSubmit = (formData: { [key: string]: string }) => {
         medida_maxima: parseFloat(formData.medida_maxima),
     };
     mutation.mutate(newUser);
+    navigate('/sensores');
 };
 
 return (

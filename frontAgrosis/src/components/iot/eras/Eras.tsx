@@ -1,12 +1,15 @@
 import { useState } from 'react';
-import { useEras } from '../../hooks/iot/eras/useEras';
-import Tabla from '../globales/Tabla';
-import VentanaModal from '../globales/VentanasModales';
+import { useEras } from '../../../hooks/iot/eras/useEras';
+import Tabla from '../../globales/Tabla';
+import VentanaModal from '../../globales/VentanasModales';
+import Button from "@/components/globales/Button";
+import { useNavigate } from "react-router-dom";
 
 const Eras = () => {
 const { data: eras, isLoading, error } = useEras();
 const [selectedLote, setSelectedLote] = useState<object | null>(null);
 const [isModalOpen, setIsModalOpen] = useState(false);
+const navigate = useNavigate();
 
 const openModalHandler = (eras: object) => {
     setSelectedLote(eras);
@@ -18,7 +21,11 @@ const closeModal = () => {
     setIsModalOpen(false);
 };
 
-const headers = ['ID', 'Descripcion', 'Nombre Lote'];
+const handleUpdate = (residuo: { id: number }) => {
+    navigate(`/EditarEras/${residuo.id}`);
+  };
+
+const headers = ['ID', 'Descripcion', 'Nombre Lote', "Acciones"];
 
 const handleRowClick = (eras: object) => {
     openModalHandler(eras);
@@ -39,12 +46,18 @@ const mappedEras = erasList.map((eras) => ({
 
 
 return (
-    <div className="overflow-x-auto bg-white shadow-md rounded-lg">
+    <div className="overflow-x-auto  rounded-lg">
+    <Button
+        text="Crear eras" 
+        onClick={() => navigate("/Crear-eras")} 
+        variant="success" 
+      />
     <Tabla
         title="Eras"
         headers={headers}
         data={mappedEras}
         onClickAction={handleRowClick}
+        onUpdate={handleUpdate}
     />
     {selectedLote && (
         <VentanaModal

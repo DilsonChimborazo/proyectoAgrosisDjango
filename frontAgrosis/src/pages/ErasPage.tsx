@@ -1,4 +1,4 @@
-import Eras from '../components/iot/Eras'; 
+import Eras from '../components/iot/eras/Eras'; 
 
 const ErasPage = () => {
   return (

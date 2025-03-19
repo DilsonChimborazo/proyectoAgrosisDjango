@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { useSensores } from '../../hooks/iot/sensores/useSensores';
-import VentanaModal from '../globales/VentanasModales';
-import Tabla from '../globales/Tabla';
+import { useSensores } from '../../../hooks/iot/sensores/useSensores';
+import VentanaModal from '../../globales/VentanasModales';
+import Tabla from '../../globales/Tabla';
 import Button from "@/components/globales/Button";
 import { useNavigate } from "react-router-dom";
 
@@ -23,6 +23,10 @@ const Sensores = () => {
     setSelectedSensor(null);
   };
 
+  const handleUpdate = (residuo: { id: number }) => {
+    navigate(`/EditarSensor/${residuo.id}`);
+  };
+
   // Si los datos aún están cargando
   if (isLoading) return <div className="text-center text-gray-500">Cargando...</div>;
 
@@ -40,7 +44,7 @@ const Sensores = () => {
     max: sensor.medida_maxima,
   }));
 
-  const headers = ['ID', 'Nombre', 'Tipo', 'Unidad', 'Descripción', 'Mínimo', 'Máximo'];
+  const headers = ['ID', 'Nombre', 'Tipo', 'Unidad', 'Descripción', 'Mínimo', 'Máximo','Acciones'];
 
   return (
     <div className="mx-auto p-4">
@@ -55,6 +59,7 @@ const Sensores = () => {
         headers={headers}
         data={tablaData}
         onClickAction={openModal}
+        onUpdate={handleUpdate}
       />
 
       {selectedSensor && (

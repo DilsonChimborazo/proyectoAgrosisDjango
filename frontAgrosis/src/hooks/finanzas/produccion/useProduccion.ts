@@ -35,7 +35,7 @@ export interface Cultivo {
 }
 
 export interface Produccion {
-  id_produccion: number;
+  id: number;
   fk_id: Cultivo | null;
   cantidad_produccion: number;
   fecha: string;

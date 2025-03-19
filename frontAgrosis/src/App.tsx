@@ -8,7 +8,7 @@ import HomePage from "./pages/HomePage";
 import UsersPage from "./pages/UsersPage";
 import CalendarPage from "./pages/CalendarPage";
 import IOtPage from "./pages/IotPage";
-import CrearSensor from "./components/iot/CrearSensor";
+import CrearSensor from "./components/iot/sensores/CrearSensor";
 import LotesPage from "./pages/LotesPage";
 import ErasPage from "./pages/ErasPage";
 import CrearUsuario from "./components/usuarios/crearUsuario";
@@ -43,6 +43,11 @@ import ActualizarControlFitosanitario from "./components/trazabilidad/control/Ac
 
 import CrearProduccionPage from "./pages/finanzas/produccion/CrearProduccionPage";
 import ActualizarProduccionPage from "./pages/finanzas/produccion/ActualizarProduccionPage";
+import CrearEras from "./components/iot/eras/CrearEras";
+import EditarEras from "./components/iot/eras/EditarEras";
+import CrearLote from "./components/iot/lotes/CrearLote";
+import EditarLote from "./components/iot/lotes/EditarLote";
+import EditarSensor from "./components/iot/sensores/EditarSensores";
 
 
 const queryClient = new QueryClient();
@@ -60,8 +65,13 @@ function App() {
           {/* Rutas módulo IOT */}
           <Route path="/iot" element={<Principal><IOtPage /></Principal>} />
           <Route path="/crear-sensor" element={<Principal><CrearSensor /></Principal>} />
+          <Route path="/EditarSensor/:id" element={<Principal><EditarSensor /></Principal>} />
           <Route path="/lotes" element={<Principal><LotesPage /></Principal>} />
+          <Route path="/crear-lote" element={<Principal><CrearLote /></Principal>} />
+          <Route path="/Editarlote/:id" element={<Principal><EditarLote /></Principal>} />
           <Route path="/eras" element={<Principal><ErasPage /></Principal>} />
+          <Route path="/crear-eras" element={<Principal><CrearEras /></Principal>} />
+          <Route path="/EditarEras/:id" element={<Principal><EditarEras /></Principal>} />
           
           {/* Rutas módulo inventario */}
           <Route path="/herramientas" element={<Principal><HerramientasPage /></Principal>} />
@@ -86,7 +96,7 @@ function App() {
           <Route path="/crearcontrolfitosanitario" element={<Principal><CrearControlFitosanitario /></Principal>} />
 
           {/**rutas modulo de trazabilidad actualizar*/}
-          <Route path="actualizarcultivo/:id" element={<Principal><ActualizarCultivo /></Principal>} />
+          <Route path="/actualizarcultivo/:id" element={<Principal><ActualizarCultivo /></Principal>} />
           <Route path="/residuos/editar/:id" element={<Principal><EditarResiduo /></Principal>} />
           <Route path="/pea/editar/:id" element={<Principal><ActualizarPea /></Principal>} />
           <Route path="/controlfitosanitario/editar/:id" element={<Principal><ActualizarControlFitosanitario /></Principal>} />

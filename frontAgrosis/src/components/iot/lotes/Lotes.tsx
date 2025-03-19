@@ -1,12 +1,15 @@
 import { useState } from 'react';
-import { useLotes } from '../../hooks/iot/lote/useLotes';
-import Tabla from '../globales/Tabla';
-import VentanaModal from '../globales/VentanasModales';
+import { useLotes } from '../../../hooks/iot/lote/useLotes';
+import Tabla from '../../globales/Tabla';
+import VentanaModal from '../../globales/VentanasModales';
+import Button from "@/components/globales/Button";
+import { useNavigate } from "react-router-dom";
 
 const Lotes = () => {
   const { data: lotes, isLoading, error } = useLotes();
   const [selectedLote, setSelectedLote] = useState<object | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   const openModalHandler = (lote: object) => {
     setSelectedLote(lote);
@@ -18,7 +21,11 @@ const Lotes = () => {
     setIsModalOpen(false);
   };
 
-  const headers = ['ID', 'Nombre', 'Dimensión', 'Ubicación', 'Estado'];
+  const handleUpdate = (residuo: { id: number }) => {
+    navigate(`/Editarlote/${residuo.id}`);
+  };
+
+  const headers = ['ID', 'Nombre', 'Dimensión', 'Ubicación', 'Estado', 'Acciones'];
 
   const handleRowClick = (lote: object) => {
     openModalHandler(lote);
@@ -40,12 +47,19 @@ const Lotes = () => {
   }));
 
   return (
-    <div className="overflow-x-auto bg-white shadow-md rounded-lg">
+    <div className="overflow-x-auto  rounded-lg">
+      <Button
+        text="Crear lotes" 
+        onClick={() => navigate("/Crear-lote")} 
+        variant="success" 
+      />
+
       <Tabla
         title="Lotes"
         headers={headers}
         data={mappedLotes}
         onClickAction={handleRowClick}
+        onUpdate={handleUpdate}
       />
       {selectedLote && (
         <VentanaModal

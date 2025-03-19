@@ -25,6 +25,10 @@ const Pea = () => {
     openModalHandler(pea);
   };
 
+  const handleUpdate = (residuo: { id: number }) => {
+    navigate(`/pea/editar/${residuo.id}`);
+  };
+
   if (isLoading) return <div>Cargando PEA...</div>;
   if (error instanceof Error) return <div>Error al cargar los PEA: {error.message}</div>;
 
@@ -33,21 +37,13 @@ const Pea = () => {
   const mappedPeas = peasList.map(pea => ({
     id: pea.id,
     nombre_pea: pea.nombre_pea,
-    descripcion: pea.descripcion,
-    acciones: (
-      <button 
-        className="bg-blue-500 text-white px-3 py-1 rounded" 
-        onClick={() => navigate(`/pea/editar/${pea.id}`)}
-      >
-        Editar
-      </button>
-    ),
+    descripcion: pea.descripcion
   }));
   const headers = ['ID', 'Nombre', 'Descripción', 'Acciones'];
 
 
   return (
-    <div className="overflow-x-auto bg-white shadow-md rounded-lg">
+    <div className="overflow-x-auto  rounded-lg">
       <Button text="Crear PEA" className='mx-2' onClick={() => navigate("/crearpea")} variant="success" />
 
       <Tabla
@@ -55,6 +51,7 @@ const Pea = () => {
         headers={headers}
         data={mappedPeas}
         onClickAction={handleRowClick}
+        onUpdate={handleUpdate}
       />
 
       {selectedPea && (

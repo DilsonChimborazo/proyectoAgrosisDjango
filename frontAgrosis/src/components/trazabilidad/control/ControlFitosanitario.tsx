@@ -26,6 +26,10 @@ const ControlFitosanitario = () => {
     openModalHandler(control);
   };
 
+  const handleUpdate = (residuo: { id: number }) => {
+    navigate(`/controlfitosanitario/editar/${residuo.id}`);
+  };
+
   if (isLoading) return <div>Cargando Controles Fitosanitarios...</div>;
   if (error instanceof Error) return <div>Error al cargar los controles: {error.message}</div>;
 
@@ -36,21 +40,13 @@ const ControlFitosanitario = () => {
     fecha_control: new Date(control.fecha_control).toLocaleDateString(),
     descripcion: control.descripcion,
     cultivo: control.fk_id_desarrollan?.fk_id_cultivo?.nombre_cultivo || 'Sin cultivo',
-    pea: control.fk_id_desarrollan?.fk_id_pea?.nombre_pea || 'Sin PEA',
-    acciones: (
-      <button 
-        className="bg-blue-500 text-white px-3 py-1 rounded" 
-        onClick={() => navigate(`/controlfitosanitario/editar/${control.id}`)}
-      >
-        Editar
-      </button>
-    ),
+    pea: control.fk_id_desarrollan?.fk_id_pea?.nombre_pea || 'Sin PEA'
   }));
 
   const headers = ['ID', 'Fecha de Control', 'Descripción', 'Cultivo', 'PEA', 'Acciones'];
 
   return (
-    <div className="overflow-x-auto bg-white shadow-md rounded-lg">
+    <div className="overflow-x-auto  rounded-lg">
       <Button text="Crear Control Fitosanitario" className='mx-2' onClick={() => navigate("/crearcontrolfitosanitario")} variant="success" />
 
       <Tabla
@@ -58,6 +54,7 @@ const ControlFitosanitario = () => {
         headers={headers}
         data={mappedControles}
         onClickAction={handleRowClick}
+        onUpdate={handleUpdate}
       />
 
       {selectedControl && (

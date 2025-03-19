@@ -10,7 +10,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import { useMide } from "../../hooks/iot/useMide";
+import { useMide } from "../../../hooks/iot/useMide";
 
 ChartJS.register(
   CategoryScale,

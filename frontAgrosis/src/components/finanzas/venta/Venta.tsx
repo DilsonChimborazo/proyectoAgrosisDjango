@@ -21,6 +21,10 @@ const VentaComponent = () => {
     setIsModalOpen(false);
   };
 
+  const handleUpdate = (cultivo: { id: number }) => {
+    navigate(`/actualizarcultivo/${cultivo.id}`);
+  };
+
   if (isLoading) return <div className="text-center text-gray-500">Cargando ventas...</div>;
   if (error) return <div className="text-center text-red-500">Error al cargar los datos: {error.message}</div>;
 
@@ -36,7 +40,7 @@ const VentaComponent = () => {
     fecha_produccion: venta.fk_id_produccion?.fecha ?? "No disponible",
   }));
 
-  const headers = ["ID Venta", "Cantidad Vendida", "Precio Unitario", "Total Venta", "Fecha Venta", "Cantidad Producción", "Fecha Producción"];
+  const headers = ["ID Venta", "Cantidad Vendida", "Precio Unitario", "Total Venta", "Fecha Venta", "Cantidad Producción", "Fecha Producción", "Acciones"];
 
   return (
     <div className="mx-auto p-4">
@@ -51,6 +55,7 @@ const VentaComponent = () => {
         headers={headers} 
         data={mappedVentas} 
         onClickAction={openModalHandler} 
+        onUpdate={handleUpdate}
       />
 
       {selectedVenta && (

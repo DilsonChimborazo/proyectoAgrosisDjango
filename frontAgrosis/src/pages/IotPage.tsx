@@ -1,4 +1,4 @@
-import Sensores from "@/components/iot/Sensores";
+import Sensores from "@/components/iot/sensores/Sensores";
 
 
 

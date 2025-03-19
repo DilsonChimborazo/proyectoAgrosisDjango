@@ -23,7 +23,6 @@ const CrearProduccion = () => {
 
     return (
         <div className="p-10">
-            <h2 className="text-2xl font-bold mb-4">Registrar Producción</h2>
             <Formulario 
                 fields={formFields} 
                 onSubmit={handleSubmit} 

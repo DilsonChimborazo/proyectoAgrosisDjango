@@ -1,5 +1,4 @@
 import { useState } from 'react';
-
 import { useResiduos } from '../../../hooks/trazabilidad/residuo/useResiduos';
 import VentanaModal from '../../globales/VentanasModales';
 import Tabla from '../../globales/Tabla';
@@ -25,6 +24,9 @@ const Residuos = () => {
   const handleRowClick = (residuo: object) => {
     openModalHandler(residuo);
   };
+  const handleUpdate = (residuo: { id: number }) => {
+    navigate(`/residuos/editar/${residuo.id}`);
+  };
 
   if (isLoading) return <div>Cargando residuos...</div>;
   if (error instanceof Error) return <div>Error al cargar los residuos: {error.message}</div>;
@@ -37,21 +39,13 @@ const Residuos = () => {
     fecha: new Date(residuo.fecha).toLocaleDateString(),
     descripcion: residuo.descripcion,
     cultivo: residuo.fk_id_cultivo ? residuo.fk_id_cultivo.nombre_cultivo : 'Sin cultivo',
-    tipo_residuo: residuo.fk_id_tipo_residuo ? residuo.fk_id_tipo_residuo.nombre_tipo_residuo : 'Sin tipo',
-    acciones: (
-      <button 
-        className="bg-blue-500 text-white px-3 py-1 rounded"
-        onClick={() => navigate(`/residuos/editar/${residuo.id}`)}
-      >
-        Editar
-      </button>
-    ),
+    tipo_residuo: residuo.fk_id_tipo_residuo ? residuo.fk_id_tipo_residuo.nombre_tipo_residuo : 'Sin tipo'
   }));
 
   const headers = ['ID', 'Nombre', 'Fecha', 'Descripción', 'Cultivo', 'Tipo de Residuo', 'Acciones'];
 
   return (
-    <div className="overflow-x-auto bg-white shadow-md rounded-lg">
+    <div className="overflow-x-auto  rounded-lg">
       <Button text="Crear Residuo" className='mx-2' onClick={() => navigate("/crearresiduo")} variant="success" />
 
       <Tabla
@@ -59,6 +53,7 @@ const Residuos = () => {
         headers={headers}
         data={mappedResiduos}
         onClickAction={handleRowClick}
+        onUpdate={handleUpdate} 
       />
 
       {selectedResiduo && (

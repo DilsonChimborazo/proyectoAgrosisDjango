@@ -39,7 +39,7 @@ export interface Cultivo {
 
 
 interface Produccion {
-  id_produccion: number;
+  id: number;
   cantidad_produccion?: number | null; 
   fecha?: string;
   fk_id?: Cultivo | null;
@@ -57,9 +57,17 @@ const ProduccionComponent = () => {
     setIsModalOpen(true);
   };
 
+  const handleRowClick = (produccion: { id: number }) => {
+    openModalHandler(produccion);
+  };
+
   const closeModal = () => {
     setSelectedProduccion(null);
     setIsModalOpen(false);
+  };
+
+  const handleUpdate = (cultivo: { id: number }) => {
+    navigate(`/actualizarproduccion/${cultivo.id}`);
   };
 
   if (isLoading) return <div className="text-center text-gray-500">Cargando producciones...</div>;
@@ -68,19 +76,11 @@ const ProduccionComponent = () => {
   // Mapeo de los datos para la tabla
   const produccionList: Produccion[] = Array.isArray(producciones) ? producciones : [];
   const mappedProducciones = produccionList.map((produccion) => ({
-    id_produccion: produccion.id_produccion,
+    id: produccion.id,
     cantidad_produccion: produccion.cantidad_produccion ?? null,
     fecha_produccion: produccion.fecha ?? "No disponible",
     nombre_cultivo: produccion.fk_id?.nombre_cultivo ?? "No disponible",
-    fecha_plantacion: produccion.fk_id?.fecha_plantacion ?? "No disponible",
-    acciones: (
-      <button
-        className="bg-blue-500 text-white px-3 py-1 rounded"
-        onClick={() => navigate(`/actualizarproduccion/${produccion.id_produccion}`)}
-      >
-        Editar
-      </button>
-    ),
+    fecha_plantacion: produccion.fk_id?.fecha_plantacion ?? "No disponible"
   }));
 
   const headers = ["ID Producción", "Cantidad Producción", "Fecha Producción", "Cultivo", "Fecha Plantación", "Acciones"];
@@ -89,7 +89,13 @@ const ProduccionComponent = () => {
     <div className="mx-auto p-4">
       <Button text="Registrar Producción" onClick={() => navigate("/Registrar-Producción")} variant="success" />
 
-      <Tabla title="Lista de Producciones" headers={headers} data={mappedProducciones} onClickAction={openModalHandler} />
+      <Tabla 
+        title="Lista de Producciones" 
+        headers={headers} 
+        data={mappedProducciones} 
+        onClickAction={handleRowClick} 
+        onUpdate={handleUpdate}
+      />
 
       {selectedProduccion && (
         <VentanaModal isOpen={isModalOpen} onClose={closeModal} titulo="Detalles de Producción" contenido={selectedProduccion} />
