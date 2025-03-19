@@ -61,6 +61,9 @@ const Tabla = <T extends { [key: string]: any }>({
             <th className="px-6 py-3 text-sm font-bold uppercase border border-gray-400">
               Acción
             </th>
+            <th className="px-6 py-3 text-sm font-bold uppercase border border-gray-400">
+              Acción
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -79,6 +82,13 @@ const Tabla = <T extends { [key: string]: any }>({
                   {row[key] !== null && row[key] !== undefined ? row[key] : "—"}
                 </td>
               ))}
+              <td className="px-6 py-3 text-center border border-gray-300">
+                <Button
+                  text="Editar"
+                  onClick={() => onClickAction(row)}
+                  variant="primary"
+                />
+              </td>
               <td className="px-6 py-3 text-center border border-gray-300">
                 <Button
                   text="Ver detalles"

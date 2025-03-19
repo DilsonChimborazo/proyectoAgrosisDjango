@@ -1,9 +1,8 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useEffect} from "react";
 import { Button, Input } from "@heroui/react";
 import { Menu, Search, Bell as Notification, ChevronDown, ChevronUp } from "lucide-react";
 import { Home, User, Calendar, Map, Leaf, DollarSign, Bug, LogOut, Clipboard, Cpu } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-
 interface LayoutProps {
   children: ReactNode;
 }
@@ -60,18 +59,29 @@ const menuItems = [
 ];
 
 export default function Principal({ children }: LayoutProps) {
+  const [usuario, setUsuario] = useState<{ nombre: string } | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [active, setActive] = useState<string>("");
   const [openMenus, setOpenMenus] = useState<{ [key: string]: boolean }>({});
   const [searchQuery, setSearchQuery] = useState<string>("");
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const usuarioGuardado = localStorage.getItem("user");
+    if (usuarioGuardado) {
+      setUsuario(JSON.parse(usuarioGuardado));
+    }
+  }, []);
+
   const toggleMenu = (name: string) => {
     setOpenMenus((prev) => ({ ...prev, [name]: !prev[name] }));
   };
 
   const handleLogout = () => {
-    navigate("/");
+    localStorage.removeItem("token"); 
+    localStorage.removeItem("user"); 
+    localStorage.removeItem("refreshToken"); 
+    navigate("/"); 
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -170,8 +180,8 @@ export default function Principal({ children }: LayoutProps) {
             <span
               className="text-white cursor-pointer hover:text-yellow-100"
               onClick={() => navigate("/usuarios")}
-            >
-              Nombre del Usuario
+             >
+              {usuario ? usuario.nombre : "Usuario no identificado"}
             </span>
           </div>
         </div>

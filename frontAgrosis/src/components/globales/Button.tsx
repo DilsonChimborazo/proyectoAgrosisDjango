@@ -15,6 +15,7 @@ const Button: React.FC<ButtonProps> = ({ text, onClick, variant = "primary", cla
         success: "bg-green-700 text-white hover:bg-green-600", 
         primary: "bg-blue-500 text-white hover:bg-blue-600", 
         danger: "bg-red-500 text-white hover:bg-red-600", 
+        info: "bg-blue-500, bg-blue-600",
     };
 
     return (

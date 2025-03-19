@@ -26,6 +26,7 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
+from apps.usuarios.usuario.api.views import CustomTokenObtainPairView 
 
 #rutas de trazabilidad
 from apps.trazabilidad.actividad.api.router import router_actividad
@@ -83,7 +84,7 @@ urlpatterns = [
     path('api/', include(routerRol.urls)),
     path('api/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('api/redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     
     #IOT

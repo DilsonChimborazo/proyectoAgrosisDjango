@@ -13,10 +13,10 @@ const Usuarios = () => {
   const [mensaje, setMensaje] = useState<string | null>(null);
 
   useEffect(() => {
-    const usuarioGuardado = JSON.parse(localStorage.getItem("userData") || "[]");
+    const usuarioGuardado = localStorage.getItem("user");
   
-    if (Array.isArray(usuarioGuardado) && usuarioGuardado.length > 0) {
-      const usuario = usuarioGuardado[0];
+    if (usuarioGuardado) {
+      const usuario = JSON.parse(usuarioGuardado);
   
       if (usuario?.fk_id_rol?.rol === "Administrador") {
         setEsAdministrador(true);
@@ -24,9 +24,10 @@ const Usuarios = () => {
         setEsAdministrador(false);
       }
     } else {
-      setEsAdministrador(false); // Si no hay datos, no es admin
+      setEsAdministrador(false);
     }
   }, []);
+  
 
   const handleCrearUsuario = () => {
     if (esAdministrador) {
@@ -64,7 +65,6 @@ const Usuarios = () => {
         className={`px-4 py-2 rounded-lg mb-4 ${
           esAdministrador ? "bg-green-600 text-white" : "bg-gray-400 text-gray-700 cursor-not-allowed"
         }`}
-        disabled={!esAdministrador}
       >
         + Crear Usuario
       </button>
