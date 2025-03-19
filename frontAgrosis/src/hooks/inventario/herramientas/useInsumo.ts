@@ -5,14 +5,13 @@ const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface Insumo{
     id_insumo: number;
-    nombre_h: Text;
-    tipo: Text;
+    nombre_insumo: string;
+    tipo: string;
     precio_unidad: number;
     cantidad: number;
-    unidad_medida: Text;
+    unidad_medida: string;
 
 }
-// Función para obtener los usuarios con manejo de errores
 const fetch = async (): Promise<Insumo[]> => {
     try {
         const { data } = await axios.get(`${apiUrl}insumo/`);

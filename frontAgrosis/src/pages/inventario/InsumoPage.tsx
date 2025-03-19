@@ -1,4 +1,4 @@
-import Insumo from '@/components/inventario/Insumo';
+import Insumo from '@/components/inventario/Insumos';
 
 const InsumoPage = () =>{
     return (

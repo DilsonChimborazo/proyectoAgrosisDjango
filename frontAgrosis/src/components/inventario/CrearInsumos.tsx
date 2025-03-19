@@ -1,5 +1,5 @@
-import { Insumo } from '@/hooks/inventario/useCrearInsumos';
-import { useCrearInsumos } from '../../hooks/inventario/useCrearInsumos';
+import { useCrearInsumos } from '../../hooks/inventario/herramientas/useCrearInsumos';
+import { Insumo } from '@/hooks/inventario/herramientas/useCrearInsumos';
 import Formulario from '../globales/Formulario';
 
 const CrearInsumos = () => {

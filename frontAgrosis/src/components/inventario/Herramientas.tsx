@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { useHerramientas } from '../../hooks/inventario/herramientas/useHerramientas';
+import {Herramientas}  from '../../hooks/inventario/herramientas/useHerramientas';
 import Tabla from '../globales/Tabla';
 import VentanaModal from '../globales/VentanasModales';
 
 const herramientas = () => {
   const { data: herramientas, isLoading, error } = useHerramientas();
-  const [selectedHerramientas, setSelectedHerramientas] = useState<object | null>(null);
+  const [selectedHerramientas, setSelectedHerramientas] = useState<Herramientas | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const openModalHandler = (herramientas: object) => {
+  const openModalHandler = (herramientas: Herramientas) => {
     setSelectedHerramientas(herramientas);
     setIsModalOpen(true);
   };
@@ -17,11 +18,11 @@ const herramientas = () => {
     setSelectedHerramientas(null);
     setIsModalOpen(false);
   };
-
+  
   const headers = ['ID', 'Nombre', 'Estado', 'Fecha_Prestamo'];
 
-  const handleRowClick = (herramientas: object) => {
-    openModalHandler(herramientas);
+  const handleRowClick = (Herramientas: Herramientas) => {
+    openModalHandler(Herramientas);
   };
 
   if (isLoading) return <div>Cargando herramientas...</div>;
