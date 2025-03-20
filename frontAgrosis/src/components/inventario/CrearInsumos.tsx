@@ -1,9 +1,11 @@
 import { useCrearInsumos } from '../../hooks/inventario/herramientas/useCrearInsumos';
 import { Insumo } from '@/hooks/inventario/herramientas/useCrearInsumos';
+import { useNavigate } from 'react-router-dom';
 import Formulario from '../globales/Formulario';
 
 const CrearInsumos = () => {
   const mutation = useCrearInsumos();
+  const navigate = useNavigate();
 
   const formFields = [
     { id: 'nombre', label: 'Nombre del Insumo', type: 'text' },
@@ -33,6 +35,13 @@ const CrearInsumos = () => {
         isSuccess={mutation.isSuccess}
         title="Crear Insumo"
       />
+      {/* Botón para regresar a la lista de insumos */}
+      <button 
+        className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        onClick={() => navigate('/insumos')}
+      >
+        Volver a Insumos
+      </button>
     </div>
   );
 };

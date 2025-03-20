@@ -1,12 +1,14 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useHerramientas } from "../../hooks/inventario/herramientas/useHerramientas";
 import { useActualizarHerramienta } from "../../hooks/inventario/herramientas/useActualizarHerramientas";
 import Formulario from "../globales/Formulario";
 
 const ActualizarHerramientas = () => {
     const { data: herramientas, isLoading, error } = useHerramientas();
-    const mutation = useActualizarHerramientas();
+    const mutation = useActualizarHerramienta();
     const [selectedHerramienta, setSelectedHerramienta] = useState<any | null>(null);
+    const navigate = useNavigate();
 
     if (isLoading) return <div>Cargando herramientas...</div>;
     if (error instanceof Error) return <div>Error al cargar herramientas: {error.message}</div>;
@@ -18,17 +20,17 @@ const ActualizarHerramientas = () => {
     ];
 
     const handleSubmit = (formData: { [key: string]: string }) => {
-        if (!selectedHerramientas) {
+        if (!selectedHerramienta) {
             console.error("No se ha seleccionado ninguna herramienta");
             return;
         }
 
-        const herramientasActualizada = {
-            ...selectedHerramienta, // Mantiene los valores previos
-            ...formData, // Reemplaza los nuevos datos
+        const herramientaActualizada = {
+            ...selectedHerramienta, 
+            ...formData, 
         };
 
-        mutation.mutate(herramientasActualizada);
+        mutation.mutate(herramientaActualizada);
     };
 
     return (
@@ -39,10 +41,10 @@ const ActualizarHerramientas = () => {
             <select
                 className="border p-2 mb-4 w-full"
                 onChange={(e) => {
-                    const herramientas = herramientas?.find(
+                    const herramientaSeleccionada = herramientas?.find(
                         (h: any) => h.id_herramientas === Number(e.target.value)
                     );
-                    setSelectedHerramienta(herramientas || null);
+                    setSelectedHerramienta(herramientaSeleccionada || null);
                 }}
             >
                 <option value="">Selecciona una herramienta</option>
@@ -54,16 +56,25 @@ const ActualizarHerramientas = () => {
                     ))}
             </select>
 
-            {/* Formulario de actualización */}
-            {selectedHerramientas && (
-                <Formulario
-                    fields={formFields}
-                    onSubmit={handleSubmit}
-                    isError={mutation.isError}
-                    isSuccess={mutation.isSuccess}
-                    title="Actualizar Herramienta"
-                    initialValues={selectedHerramientas}
-                />
+            {selectedHerramienta && (
+                <>
+                    <Formulario
+                        fields={formFields}
+                        onSubmit={handleSubmit}
+                        isError={mutation.isError}
+                        isSuccess={mutation.isSuccess}
+                        title="Actualizar Herramienta"
+                        initialValues={selectedHerramienta}
+                    />
+
+                    {/* Botón para regresar a la lista de herramientas */}
+                    <button 
+                        className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                        onClick={() => navigate('/herramientas')}
+                    >
+                        Volver a Herramientas
+                    </button>
+                </>
             )}
         </div>
     );

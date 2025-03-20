@@ -35,7 +35,7 @@ const Insumos = () => {
   if (error instanceof Error) return <div className="text-red-500">Error al cargar los insumos: {error.message}</div>;
 
   const InsumoList = Array.isArray(insumo) ? insumo : [];
-
+  
   const mappedInsumo = Array.isArray(InsumoList)?InsumoList.map(insumo => ({
     id: insumo.id_insumo,
     nombre: insumo.nombre_insumo,
@@ -45,6 +45,8 @@ const Insumos = () => {
     unidad_medida: insumo.unidad_medida,
   }))
   : []; 
+
+  console.log("mappedInsumo:", mappedInsumo, Array.isArray(mappedInsumo));
 
   return (
     <div className="max-w-4xl mx-auto p-4">

@@ -1,9 +1,12 @@
+
 import { Herramientas } from '@/hooks/inventario/herramientas/useCrearHerramientas';
 import { useCrearHerramientas } from '../../hooks/inventario/herramientas/useCrearHerramientas';
+import { useNavigate } from 'react-router-dom';
 import Formulario from '../globales/Formulario';
 
 const CrearHerramientas = () => {
     const mutation = useCrearHerramientas();
+    const navigate = useNavigate();
 
     const formFields = [
         { id: 'nombre_h', label: 'Nombre', type: 'text' },
@@ -29,6 +32,14 @@ const CrearHerramientas = () => {
                 isSuccess={mutation.isSuccess}
                 title="Crear Herramienta"  
             />
+            {/* Botón adicional */}
+            <button 
+                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                onClick={() => navigate('/herramientas')}
+            >
+                Volver a Herramientas
+            </button>
+            
         </div>
     );
 };

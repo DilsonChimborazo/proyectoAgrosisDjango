@@ -25,6 +25,14 @@ import ProduccionPage from "./pages/finanzas/produccion/GeneraPage";
 import VentaPage from "./pages/finanzas/venta/VentaPage";
 import { HeroUIProvider } from "@heroui/system";
 
+import ListarHerramientas from "./components/inventario/ListarHerramientas";
+import CrearHerramientas from "./components/inventario/CrearHerramientas";
+import ActualizarHerramientas from "./components/inventario/ActualizarHerramientas";
+import ListarInsumos from "./components/inventario/ListarInsumos";
+import CrearInsumos from "./components/inventario/CrearInsumos";
+import ActualizarInsumos from "./components/inventario/ActualizarInsumos";
+
+
 const queryClient = new QueryClient();
 
 function App() {
@@ -45,7 +53,13 @@ function App() {
           
           {/* Rutas módulo inventario */}
           <Route path="/herramientas" element={<Principal><HerramientasPage /></Principal>} />
+          <Route path="/herramientas" element={<Principal><CrearHerramientas /></Principal>} />
+          <Route path="/herramientas" element={<Principal><ListarHerramientas /></Principal>} />
+          <Route path="/herramientas" element={<Principal><ActualizarHerramientas /></Principal>} />
           <Route path="/insumos" element={<Principal><InsumoPage /></Principal>} />
+          <Route path="/insumos" element={<Principal><ListarInsumos /></Principal>} />
+          <Route path="/insumos" element={<Principal><CrearInsumos /></Principal>} />
+          <Route path="/insumos" element={<Principal><ActualizarInsumos /></Principal>} />
           
           {/* Rutas módulo trazabilidad */}
           <Route path="/actividad" element={<Principal><CalendarPage /></Principal>} />
