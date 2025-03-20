@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useActualizarInsumo } from "../../../hooks/inventario/insumos/useActualizarInsumos";
-import { useInsumo } from "../../../hooks/inventario/insumos/useInsumo";
 import Formulario from "../../globales/Formulario";
 import { useNavigate } from "react-router-dom";
+import { useInsumo} from "../../../hooks/inventario/insumos/useInsumo";
+
 
 const ActualizarInsumo = () => {
     const { data: insumos, isLoading, error } = useInsumo();
@@ -62,6 +63,14 @@ const ActualizarInsumo = () => {
                     initialValues={selectedInsumo}
                 />
             )}
+
+            {/* Botón para regresar a la lista de insumos */}
+            <button 
+                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                onClick={() => navigate('/insumos')}
+            >
+                Volver a Insumos
+            </button>
         </div>
     );
 };
