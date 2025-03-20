@@ -1,6 +1,6 @@
 import { Semilleros } from '@/hooks/trazabilidad/useCrearSemillero';
-import { useCrearSemillero } from '../../hooks/trazabilidad/useCrearSemillero';
-import Formulario from '../globales/Formulario';
+import { useCrearSemillero } from '../../../hooks/trazabilidad/useCrearSemillero';
+import Formulario from '../../globales/Formulario';
 
 
 const CrearSemillero = () => {

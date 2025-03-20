@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
-import { useActualizarCalendarioLunar } from "../../hooks/trazabilidad/useActualizarCalendario";
+import { useActualizarCalendarioLunar } from "../../../hooks/trazabilidad/useActualizarCalendario";
 import { useNavigate, useParams } from "react-router-dom";
-import { useCalendarioPorId } from "../../hooks/trazabilidad/useCalendarioPorId";
-import Formulario from "../globales/Formulario";
+import { useCalendarioPorId } from "../../../hooks/trazabilidad/useCalendarioPorId";
+import Formulario from "../../globales/Formulario";
 
 const ActualizarCalendarioLunar = () => {
-    const { id } = useParams(); // Obtener ID de la URL
-    const { data: calendario, isLoading, error } = useCalendarioPorId(id); // Traer datos por ID
-    const actualizarCalendarioLunar = useActualizarCalendarioLunar(); // Hook para actualizar
+    const { id } = useParams(); 
+    const { data: calendario, isLoading, error } = useCalendarioPorId(id); 
+    const actualizarCalendarioLunar = useActualizarCalendarioLunar(); 
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState<{ [key: string]: string }>({
@@ -65,12 +65,12 @@ const ActualizarCalendarioLunar = () => {
                 ]}
 
                 
-                initialValues={formData} // Aquí se pasa initialValues
+                initialValues={formData} 
                 onSubmit={handleSubmit}
                 isError={actualizarCalendarioLunar.isError}
                 isSuccess={actualizarCalendarioLunar.isSuccess}
                 title="Actualizar Calendario Lunar"
-                key={JSON.stringify(formData)} // 🔥 Fuerza re-render cuando los datos cambian
+                key={JSON.stringify(formData)} 
             />
         </div>
     );

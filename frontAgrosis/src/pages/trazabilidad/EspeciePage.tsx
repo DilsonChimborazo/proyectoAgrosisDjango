@@ -1,4 +1,4 @@
-import Especies from '../../components/trazabilidad/Especie'; 
+import Especies from '../../components/trazabilidad/especie/Especie'; 
 
 const EspeciesPage = () => {
   return (

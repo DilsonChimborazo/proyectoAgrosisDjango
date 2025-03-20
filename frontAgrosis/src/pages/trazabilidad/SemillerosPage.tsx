@@ -1,4 +1,4 @@
-import Semilleros from '../../components/trazabilidad/Semilleros';
+import Semilleros from '../../components/trazabilidad/semillero/Semilleros';
 
 const SemillerosPage = () => {
   return (

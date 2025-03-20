@@ -1,5 +1,5 @@
 import { Especie } from '@/hooks/trazabilidad/useCrearEspecie';
-import Formulario from '../globales/Formulario';
+import Formulario from '../../globales/Formulario';
 import { useCrearEspecie } from '@/hooks/trazabilidad/useCrearEspecie';
 
 

@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { useSemilleros } from '../../hooks/trazabilidad/semillero/useSemilleros';
-import VentanaModal from '../globales/VentanasModales';
-import Tabla from '../globales/Tabla';
-import Button from '../globales/Button';
+import { useSemilleros } from '../../../hooks/trazabilidad/semillero/useSemilleros';
+import VentanaModal from '../../globales/VentanasModales';
+import Tabla from '../../globales/Tabla';
+import Button from '../../globales/Button';
 import { useNavigate } from 'react-router-dom';
 
 const Semillero = () => {

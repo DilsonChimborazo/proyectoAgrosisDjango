@@ -28,7 +28,7 @@ import VentaPage from "./pages/finanzas/venta/VentaPage";
 import CrearVentaPage from "./pages/finanzas/venta/CrearVentaPage";
 import CrearInsumos from "./components/inventario/insumos/CrearInsumos";
 import CrearHerramientas from "./components/inventario/herramientas/CrearHerramientas";
-import CrearAsignacion  from "./components/trazabilidad/CrearAsignacion";
+import CrearAsignacion  from "./components/trazabilidad/actividad/CrearAsignacion";
 import CrearCultivo from "./components/trazabilidad/cultivos/CrearCultivos";
 import CrearResiduo from "./components/trazabilidad/residuos/CrearResiduo";
 import CrearPea from "./components/trazabilidad/peas/CrearPea";
@@ -45,12 +45,12 @@ import CrearLote from "./components/iot/lotes/CrearLote";
 import EditarLote from "./components/iot/lotes/EditarLote";
 import EditarSensor from "./components/iot/sensores/EditarSensores";
 import ActualizarHerramientas from "./components/inventario/herramientas/ActualizarHerramientas";
-import CrearCalendarioLunar from "./components/trazabilidad/CrearCalendarioLunar"
-import CrearEspecie from "./components/trazabilidad/CrearEspecie";
-import CrearSemillero from "./components/trazabilidad/CrearSemillero";
-import ActualizarCalendarioLunar from "./components/trazabilidad/ActualizarCalendario";
-import ActualizarEspecie from "./components/trazabilidad/ActualizarEspecie"
-import ActualizarSemillero from "./components/trazabilidad/ActualizarSemillero"
+import CrearCalendarioLunar from "./components/trazabilidad/calendarioLunar/CrearCalendarioLunar"
+import CrearEspecie from "./components/trazabilidad/especie/CrearEspecie";
+import CrearSemillero from "./components/trazabilidad/semillero/CrearSemillero";
+import ActualizarCalendarioLunar from "./components/trazabilidad/calendarioLunar/ActualizarCalendario";
+import ActualizarEspecie from "./components/trazabilidad/especie/ActualizarEspecie"
+import ActualizarSemillero from "./components/trazabilidad/semillero/ActualizarSemillero"
 
 
 

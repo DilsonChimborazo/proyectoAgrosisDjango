@@ -1,6 +1,6 @@
 import { CalendarioLunar } from '@/hooks/trazabilidad/useCrearCalendarioLunar';
-import { useCrearCalendarioLunar } from '../../hooks/trazabilidad/useCrearCalendarioLunar';
-import Formulario from '../globales/Formulario';
+import { useCrearCalendarioLunar } from '../../../hooks/trazabilidad/useCrearCalendarioLunar';
+import Formulario from '../../globales/Formulario';
 
 
 const CrearCalendarioLunar = () => {

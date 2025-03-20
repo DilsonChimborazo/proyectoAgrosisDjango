@@ -1,6 +1,6 @@
 
-import ActividadNotifications from '@/components/trazabilidad/ActividadNotifications';
-import ListarAsignacion from '../components/trazabilidad/ListarAsignacion'; 
+import ActividadNotifications from '@/components/trazabilidad/actividad/ActividadNotifications';
+import ListarAsignacion from '../components/trazabilidad/actividad/ListarAsignacion'; 
 
 const CalendarPage = () => {
   return (

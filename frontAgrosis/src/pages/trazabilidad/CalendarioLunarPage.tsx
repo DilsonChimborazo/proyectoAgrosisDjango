@@ -1,4 +1,4 @@
-import CalendarioLunar from '../../components/trazabilidad/CalendarioLunar';
+import CalendarioLunar from '../../components/trazabilidad/calendarioLunar/CalendarioLunar';
 
 const CalendarioLunarPage = () => {
   return (

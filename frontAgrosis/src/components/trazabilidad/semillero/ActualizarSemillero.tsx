@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { useActualizarSemillero } from "../../hooks/trazabilidad/useActualizarSemillero";
+import { useActualizarSemillero } from "../../../hooks/trazabilidad/useActualizarSemillero";
 import { useNavigate, useParams } from "react-router-dom";
-import { useSemilleroPorId } from "../../hooks/trazabilidad/useSemilleroPorId";
-import Formulario from "../globales/Formulario";
+import { useSemilleroPorId } from "../../../hooks/trazabilidad/useSemilleroPorId";
+import Formulario from "../../globales/Formulario";
 
 const ActualizarSemillero = () => {
     const { id } = useParams(); // Obtener ID de la URL

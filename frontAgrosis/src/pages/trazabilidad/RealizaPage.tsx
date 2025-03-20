@@ -1,4 +1,4 @@
-import Realiza from '../../components/trazabilidad/Realiza'; 
+import Realiza from '../../components/trazabilidad/realiza/Realiza'; 
 
 const RealizaPage = () => {
   return (

@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { useRealiza } from '../../hooks/trazabilidad/realiza/useRealiza';
-import VentanaModal from '../globales/VentanasModales';
-import Tabla from '../globales/Tabla';
+import { useRealiza } from '../../../hooks/trazabilidad/realiza/useRealiza';
+import VentanaModal from '../../globales/VentanasModales';
+import Tabla from '../../globales/Tabla';
 
 const Realiza = () => {
   const { data: realiza, error, isLoading } = useRealiza();

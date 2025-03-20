@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { useEspecie } from '../../hooks/trazabilidad/especie/useEspecie';
-import VentanaModal from '../globales/VentanasModales';
-import Tabla from '../globales/Tabla';
-import { Especie } from '../../hooks/trazabilidad/especie/useEspecie';
-import Button from '../globales/Button';
+import { useEspecie } from '../../../hooks/trazabilidad/especie/useEspecie';
+import VentanaModal from '../../globales/VentanasModales';
+import Tabla from '../../globales/Tabla';
+import { Especie } from '../../../hooks/trazabilidad/especie/useEspecie';
+import Button from '../../globales/Button';
 import { useNavigate } from 'react-router-dom';
 
 

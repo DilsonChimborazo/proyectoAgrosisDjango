@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { useActualizarEspecie } from "../../hooks/trazabilidad/useActualizarEspecie";
+import { useActualizarEspecie } from "../../../hooks/trazabilidad/useActualizarEspecie";
 import { useNavigate, useParams } from "react-router-dom";
-import { useEspeciePorId } from "../../hooks/trazabilidad/useEspeciePorId";
-import Formulario from "../globales/Formulario";
+import { useEspeciePorId } from "../../../hooks/trazabilidad/useEspeciePorId";
+import Formulario from "../../globales/Formulario";
 
 const ActualizarEspecie = () => {
     const { id } = useParams(); // Obtener ID de la URL
