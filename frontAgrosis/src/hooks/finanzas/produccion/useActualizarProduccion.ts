@@ -10,6 +10,7 @@ export interface Produccion {
     fecha: string;
 }
 
+
 export const useActualizarProduccion = () => {
     const queryClient = useQueryClient();
 
@@ -20,7 +21,7 @@ export const useActualizarProduccion = () => {
             return data;
         },
         onSuccess: (_data, variables) => {
-            queryClient.invalidateQueries({ queryKey: ["Produccion"] }); // Invalida la lista general
+            queryClient.invalidateQueries({ queryKey: ["produccion"] }); // Invalida la lista general
             queryClient.invalidateQueries({ queryKey: ["produccion", variables.id_produccion] }); // Invalida el detalle
         },
     });
