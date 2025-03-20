@@ -4,6 +4,7 @@ import Formulario from "../../globales/Formulario";
 import { useNavigate } from "react-router-dom";
 import { useInsumo} from "../../../hooks/inventario/insumos/useInsumo";
 
+
 const ActualizarInsumo = () => {
     const { data: insumos, isLoading, error } = useInsumo();
     const mutation = useActualizarInsumo();

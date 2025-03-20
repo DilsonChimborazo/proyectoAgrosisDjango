@@ -57,6 +57,7 @@ import ListarInsumos from "./components/inventario/insumos/Insumos";
 import ActualizarInsumos from "./components/inventario/insumos/ActualizarInsumos";
 
 
+
 const queryClient = new QueryClient();
 
 function App() {
@@ -89,7 +90,6 @@ function App() {
           <Route path="/herramientas" element={<Principal><ListarHerramientas /></Principal>} />
           <Route path="/insumos" element={<Principal><ListarInsumos /></Principal>} />
           <Route path="/insumos" element={<Principal><ActualizarInsumos /></Principal>} />
-
           
           {/* Rutas módulo trazabilidad */}
           <Route path="/actividad" element={<Principal><CalendarPage /></Principal>} />
