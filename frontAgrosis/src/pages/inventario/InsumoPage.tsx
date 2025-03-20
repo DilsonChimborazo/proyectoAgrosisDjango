@@ -1,9 +1,10 @@
-import Insumo from '@/components/inventario/insumos/Insumo';
+import Insumos from '@/components/inventario/insumos/Insumos';
+
 
 const InsumoPage = () =>{
     return (
         <div>
-            <Insumo />
+            <Insumos />
         </div>        
     );
 };
