@@ -1,4 +1,4 @@
-import Lotes from '../components/iot/lotes/Lotes'; 
+import Lotes from '../../components/iot/lotes/Lotes'; 
 
 const LotesPage = () => {
   return (

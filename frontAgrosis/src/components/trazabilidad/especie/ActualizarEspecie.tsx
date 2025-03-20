@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { useActualizarEspecie } from "../../../hooks/trazabilidad/useActualizarEspecie";
+import { useActualizarEspecie } from "../../../hooks/trazabilidad/especie/useActualizarEspecie";
 import { useNavigate, useParams } from "react-router-dom";
-import { useEspeciePorId } from "../../../hooks/trazabilidad/useEspeciePorId";
+import { useEspeciePorId } from "../../../hooks/trazabilidad/especie/useEspeciePorId";
 import Formulario from "../../globales/Formulario";
 
 const ActualizarEspecie = () => {

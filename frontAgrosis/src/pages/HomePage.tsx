@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useMide } from "../hooks/iot/useMide";
+import { useMide } from "../hooks/iot/mide/useMide";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
 

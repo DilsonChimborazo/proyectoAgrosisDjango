@@ -1,5 +1,5 @@
-import { CalendarioLunar } from '@/hooks/trazabilidad/useCrearCalendarioLunar';
-import { useCrearCalendarioLunar } from '../../../hooks/trazabilidad/useCrearCalendarioLunar';
+import { CalendarioLunar } from '@/hooks/trazabilidad/calendarioLunar/useCrearCalendarioLunar';
+import { useCrearCalendarioLunar } from '../../../hooks/trazabilidad/calendarioLunar/useCrearCalendarioLunar';
 import Formulario from '../../globales/Formulario';
 
 

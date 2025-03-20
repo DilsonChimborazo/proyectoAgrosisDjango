@@ -1,6 +1,6 @@
-import { Especie } from '@/hooks/trazabilidad/useCrearEspecie';
+import { Especie } from '@/hooks/trazabilidad/especie/useCrearEspecie';
 import Formulario from '../../globales/Formulario';
-import { useCrearEspecie } from '@/hooks/trazabilidad/useCrearEspecie';
+import { useCrearEspecie } from '@/hooks/trazabilidad/especie/useCrearEspecie';
 
 
 const CrearEspecie = () => {

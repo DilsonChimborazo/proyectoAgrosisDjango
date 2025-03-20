@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { useActualizarCalendarioLunar } from "../../../hooks/trazabilidad/useActualizarCalendario";
+import { useActualizarCalendarioLunar } from "../../../hooks/trazabilidad/calendarioLunar/useActualizarCalendario";
 import { useNavigate, useParams } from "react-router-dom";
-import { useCalendarioPorId } from "../../../hooks/trazabilidad/useCalendarioPorId";
+import { useCalendarioPorId } from "../../../hooks/trazabilidad/calendarioLunar/useCalendarioPorId";
 import Formulario from "../../globales/Formulario";
 
 const ActualizarCalendarioLunar = () => {

@@ -1,5 +1,5 @@
-import { Semilleros } from '@/hooks/trazabilidad/useCrearSemillero';
-import { useCrearSemillero } from '../../../hooks/trazabilidad/useCrearSemillero';
+import { Semilleros } from '@/hooks/trazabilidad/semillero/useCrearSemillero';
+import { useCrearSemillero } from '../../../hooks/trazabilidad/semillero/useCrearSemillero';
 import Formulario from '../../globales/Formulario';
 
 
