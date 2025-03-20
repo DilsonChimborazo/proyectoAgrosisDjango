@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { HeroUIProvider } from "@heroui/system";
 import './styles/globals.css'; 
 
 import Login from "./components/usuarios/InicioSesion";
@@ -25,7 +26,6 @@ import ControlFitosanitarioPage from "./pages/trazabilidad/ControlFitosanitarioP
 import ProduccionPage from "./pages/finanzas/produccion/ProduccionPage";
 import VentaPage from "./pages/finanzas/venta/VentaPage";
 import CrearVentaPage from "./pages/finanzas/venta/CrearVentaPage";
-import { HeroUIProvider } from "@heroui/system";
 import CrearInsumos from "./components/inventario/insumos/CrearInsumos";
 import CrearHerramientas from "./components/inventario/herramientas/CrearHerramientas";
 import CrearAsignacion  from "./components/trazabilidad/CrearAsignacion";
@@ -33,14 +33,10 @@ import CrearCultivo from "./components/trazabilidad/cultivos/CrearCultivos";
 import CrearResiduo from "./components/trazabilidad/residuos/CrearResiduo";
 import CrearPea from "./components/trazabilidad/peas/CrearPea";
 import CrearControlFitosanitario from "./components/trazabilidad/control/CrearControlFitosanitario";
-
-
 import ActualizarCultivo from "./components/trazabilidad/cultivos/ActualizarCultivo";
 import EditarResiduo from "./components/trazabilidad/residuos/ActualizarResiduo";
 import ActualizarPea from "./components/trazabilidad/peas/ActualizarPea";
 import ActualizarControlFitosanitario from "./components/trazabilidad/control/ActualizarControlFitosanitario"
-
-
 import CrearProduccionPage from "./pages/finanzas/produccion/CrearProduccionPage";
 import ActualizarProduccionPage from "./pages/finanzas/produccion/ActualizarProduccionPage";
 import CrearEras from "./components/iot/eras/CrearEras";
@@ -49,6 +45,13 @@ import CrearLote from "./components/iot/lotes/CrearLote";
 import EditarLote from "./components/iot/lotes/EditarLote";
 import EditarSensor from "./components/iot/sensores/EditarSensores";
 import ActualizarHerramientas from "./components/inventario/herramientas/ActualizarHerramientas";
+import CrearCalendarioLunar from "./components/trazabilidad/CrearCalendarioLunar"
+import CrearEspecie from "./components/trazabilidad/CrearEspecie";
+import CrearSemillero from "./components/trazabilidad/CrearSemillero";
+import ActualizarCalendarioLunar from "./components/trazabilidad/ActualizarCalendario";
+import ActualizarEspecie from "./components/trazabilidad/ActualizarEspecie"
+import ActualizarSemillero from "./components/trazabilidad/ActualizarSemillero"
+
 
 
 const queryClient = new QueryClient();
@@ -96,6 +99,16 @@ function App() {
           <Route path="/crearresiduo" element={<Principal><CrearResiduo /></Principal>} />
           <Route path="/crearpea" element={<Principal><CrearPea /></Principal>} />
           <Route path="/crearcontrolfitosanitario" element={<Principal><CrearControlFitosanitario /></Principal>} />
+          <Route path="/CrearCalendarioLunar" element={<Principal><CrearCalendarioLunar /></Principal>}/>
+          <Route path="/CrearCultivo" element={<Principal><CrearCultivo/></Principal>}/>
+          <Route path="/CrearEspecie" element={<Principal><CrearEspecie/></Principal>}/>
+          <Route path="/CrearSemillero" element={<Principal><CrearSemillero/></Principal>}/>
+
+
+
+          <Route path="/actualizarCalendarioLunar" element={<Principal><ActualizarCalendarioLunar/></Principal>}/>
+          <Route path="/actualizarEspecie" element={<Principal><ActualizarEspecie/></Principal>}/>
+          <Route path="/actualizarSemillero" element={<Principal><ActualizarSemillero/></Principal>}/>
 
           {/**rutas modulo de trazabilidad actualizar*/}
           <Route path="/actualizarcultivo/:id" element={<Principal><ActualizarCultivo /></Principal>} />
@@ -110,9 +123,6 @@ function App() {
           <Route path="/registrar-venta" element={<Principal><CrearVentaPage /></Principal>} />
           <Route path="/actualizarproduccion/:id_produccion" element={<Principal><ActualizarProduccionPage /></Principal>} />
           
-
-          {/* Rutas adicionales */}
-          <Route path="/crear-asignacion" element={<Principal><CrearAsignacion /></Principal>} />
 
           {/* Ruta por defecto para manejar errores 404 */}
           <Route path="*" element={<h1>404 - Página no encontrada</h1>} />

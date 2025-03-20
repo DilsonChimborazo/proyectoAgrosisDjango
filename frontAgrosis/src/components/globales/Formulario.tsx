@@ -18,6 +18,7 @@ interface FormProps {
     title: string;  
     initialValues?: { [key: string]: string };
 
+
 }
 const Formulario: React.FC<FormProps> = ({ fields, onSubmit, isError, isSuccess, title,initialValues }) => {
     const [formData, setFormData] = React.useState<{ [key: string]: string }>(initialValues || {}); // ✅ Usa initialValues
@@ -27,7 +28,6 @@ const Formulario: React.FC<FormProps> = ({ fields, onSubmit, isError, isSuccess,
     React.useEffect(() => {
         setFormData(initialValues || {}); // ✅ Cuando cambien los initialValues, actualiza el estado
     }, [initialValues]);
-
 
 
     const handleChange = (id: string, value: string) => {
@@ -101,6 +101,7 @@ const Formulario: React.FC<FormProps> = ({ fields, onSubmit, isError, isSuccess,
                 <Button text="Registrar" className='mx-2' onClick={handleButtonClick}  variant="success" />
                 <Button text="Cancelar" className='mx-2'   onClick={(e) => {e.preventDefault(); navigate(-1);}} variant="danger" />
             </div>
+
         </form>
     );
 };
