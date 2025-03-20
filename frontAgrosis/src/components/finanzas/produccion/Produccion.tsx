@@ -87,7 +87,7 @@ const ProduccionComponent = () => {
 
   return (
     <div className="mx-auto p-4">
-      <Button text="Registrar Producción" onClick={() => navigate("/Registrar-Producción")} variant="success" />
+      <Button text="Registrar Producción" onClick={() => navigate("/Registrar-Producción")} variant="green" />
 
       <Tabla 
         title="Lista de Producciones" 

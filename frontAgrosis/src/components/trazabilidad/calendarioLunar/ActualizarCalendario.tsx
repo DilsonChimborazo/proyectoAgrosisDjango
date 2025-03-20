@@ -12,7 +12,7 @@ const ActualizarCalendarioLunar = () => {
 
     const [formData, setFormData] = useState<{ [key: string]: string }>({
         fecha: "",
-        descripcion: "",
+        descripcion_evento: "",
         evento: "",
     });
 
@@ -21,7 +21,7 @@ const ActualizarCalendarioLunar = () => {
             console.log("🔄 Actualizando formulario con:", calendario);
             setFormData({
                 fecha: calendario.fecha ?? "",
-                descripcion: calendario.descripcion ?? "",
+                descripcion_evento: calendario.descripcion_evento ?? "",
                 evento: calendario.evento ?? "",
             });
         }
@@ -33,7 +33,7 @@ const ActualizarCalendarioLunar = () => {
         const calendarioActualizado = {
             id: Number(id),
             fecha: new Date(data.fecha).toISOString(),
-            descripcion: data.descripcion || "",
+            descripcion_evento: data.descripcion_evento || "",
             evento: data.evento || "",
         };
 

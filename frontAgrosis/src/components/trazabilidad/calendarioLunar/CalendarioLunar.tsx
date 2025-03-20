@@ -23,6 +23,10 @@ const CalendarioLunar = () => {
     setIsModalOpen(false);
     setSelectedEvento(null);
   };
+  const handleUpdate = (residuo: { id: number }) => {
+    navigate(`/actualizarCalendarioLunar/${residuo.id}`);
+  };
+
 
   // Si los datos aún están cargando
   if (isLoading) return <div className="text-center text-gray-500">Cargando...</div>;
@@ -32,30 +36,23 @@ const CalendarioLunar = () => {
 
   // Verificar que 'eventos' es un arreglo antes de mapear
   const tablaData = Array.isArray(eventos) ? eventos.map((evento) => ({
-    id: evento.id_calendario_lunar,
+    id: evento.id,
     fecha: evento.fecha,
-    descripcion: evento.descripcion || 'N/A',
+    descripcion_evento: evento.descripcion_evento || 'N/A',
     evento: evento.evento,
-      acciones: (
-        <button 
-            className="bg-blue-500 text-white px-3 py-1 rounded" 
-            onClick={() => navigate(`/actualizarCalendarioLunar/${evento.id_calendario_lunar}`)}
-        >
-            Editar
-        </button>
-    ),
   })) : [];
 
   const headers = ['ID Calendario Lunar', 'Fecha', 'Descripción', 'Evento'];
 
   return (
     <div className="mx-auto p-4">
-      <Button text="Crear Calendario Lunar" className='mx-2' onClick={() => navigate("/CrearCalendarioLunar") } variant="success" />
+      <Button text="Crear Calendario Lunar" className='mx-2' onClick={() => navigate("/CrearCalendarioLunar") } variant="green" />
       <Tabla
         title="Calendario Lunar"
         headers={headers}
         data={tablaData}
         onClickAction={openModal}
+        onUpdate={handleUpdate}
       />
 
       {selectedEvento && (

@@ -59,7 +59,7 @@ const Insumos = () => {
       <Button
         text="Crear insumos" 
         onClick={() => navigate("/CrearInsumos")} 
-        variant="success" 
+        variant="green" 
       />
       <Tabla
         title="Insumos"

@@ -47,7 +47,7 @@ const VentaComponent = () => {
       <Button 
         text="Registrar Venta" 
         onClick={() => navigate("/Registrar-Venta")} 
-        variant="success" 
+        variant="green" 
       />
 
       <Tabla 

@@ -49,7 +49,7 @@ const Asignaciones = () => {
 
   return (
     <div className="mx-auto p-4">
-      <Button text="Crear Asignacion" className='mx-2' onClick={() => navigate("/CrearAsignacion") } variant="success" />
+      <Button text="Crear Asignacion" className='mx-2' onClick={() => navigate("/CrearAsignacion") } variant="green" />
       <Tabla
         title="Lista de Asignaciones"
         headers={headers}

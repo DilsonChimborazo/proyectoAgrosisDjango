@@ -46,7 +46,7 @@ const Residuos = () => {
 
   return (
     <div className="overflow-x-auto  rounded-lg">
-      <Button text="Crear Residuo" className='mx-2' onClick={() => navigate("/crearresiduo")} variant="success" />
+      <Button text="Crear Residuo" className='mx-2' onClick={() => navigate("/crearresiduo")} variant="green" />
 
       <Tabla
         title="Lista de Residuos"

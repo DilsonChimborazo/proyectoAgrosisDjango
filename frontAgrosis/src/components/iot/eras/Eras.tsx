@@ -50,7 +50,7 @@ return (
     <Button
         text="Crear eras" 
         onClick={() => navigate("/Crear-eras")} 
-        variant="success" 
+        variant="green" 
       />
     <Tabla
         title="Eras"

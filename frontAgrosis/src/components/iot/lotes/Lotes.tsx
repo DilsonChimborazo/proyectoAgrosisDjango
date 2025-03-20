@@ -51,7 +51,7 @@ const Lotes = () => {
       <Button
         text="Crear lotes" 
         onClick={() => navigate("/Crear-lote")} 
-        variant="success" 
+        variant="green" 
       />
 
       <Tabla

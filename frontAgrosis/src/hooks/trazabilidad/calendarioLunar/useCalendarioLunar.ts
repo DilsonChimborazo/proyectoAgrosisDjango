@@ -4,9 +4,9 @@ import axios from 'axios';
 const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface CalendarioLunar {
-  id_calendario_lunar: number;
+  id: number;
   fecha: string;
-  descripcion: string;
+  descripcion_evento: string;
   evento: string;
 }
 

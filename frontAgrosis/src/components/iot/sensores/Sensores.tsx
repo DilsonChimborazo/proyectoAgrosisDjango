@@ -51,7 +51,7 @@ const Sensores = () => {
       <Button 
         text="Crear Sensor" 
         onClick={() => navigate("/Crear-Sensor")} 
-        variant="success" 
+        variant="green" 
       />
 
       <Tabla

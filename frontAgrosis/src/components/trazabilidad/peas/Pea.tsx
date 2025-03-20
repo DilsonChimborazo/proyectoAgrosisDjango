@@ -44,7 +44,7 @@ const Pea = () => {
 
   return (
     <div className="overflow-x-auto  rounded-lg">
-      <Button text="Crear PEA" className='mx-2' onClick={() => navigate("/crearpea")} variant="success" />
+      <Button text="Crear PEA" className='mx-2' onClick={() => navigate("/crearpea")} variant="green" />
 
       <Tabla
         title="Lista de PEA"

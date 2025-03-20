@@ -17,7 +17,6 @@ import {
   CarouselNext,
 } from "@/components/ui/carousel";
 
-
 const HomePage = () => {
   const { sensorData, sensors } = useMide();
   const [chartsData, setChartsData] = useState<{ [key: number]: any[] }>({});
@@ -31,13 +30,11 @@ const HomePage = () => {
     console.log("📊 Sensores obtenidos:", sensors);
     console.log("📡 Datos de medición recibidos:", sensorData);
 
-
     if (!sensors || sensors.length === 0) {
-      console.warn("⚠️ No se recibieron datos de sensores");
-
+      console.warn("⚠ No se recibieron datos de sensores");
     }
     if (!sensorData || sensorData.length === 0) {
-      console.warn("⚠️ No se recibieron datos de mediciones");
+      console.warn("⚠ No se recibieron datos de mediciones");
       return;
     }
 
@@ -70,7 +67,6 @@ const HomePage = () => {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-
       {/* 📡 Sensores Activos */}
       <div className="bg-white shadow-md rounded-lg p-8">
         <h2 className="text-xl font-semibold text-gray-700">📡 Sensores Activos</h2>
@@ -133,4 +129,4 @@ const HomePage = () => {
   );
 };
 
-export default HomePage;
+export default HomePage;

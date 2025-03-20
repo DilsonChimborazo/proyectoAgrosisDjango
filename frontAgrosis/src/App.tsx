@@ -90,7 +90,7 @@ function App() {
           <Route path="/residuos" element={<Principal><ResiduosPage /></Principal>} />
           <Route path="/pea" element={<Principal><PeaPage /></Principal>} />
           <Route path="/control-fitosanitario" element={<Principal><ControlFitosanitarioPage /></Principal>} />
-          <Route path="/especies" element={<Principal><EspeciesPage /></Principal>} />
+          <Route path="/especie" element={<Principal><EspeciesPage /></Principal>} />
           <Route path="/realiza" element={<Principal><RealizaPage /></Principal>} />
           <Route path="/semilleros" element={<Principal><SemillerosPage /></Principal>} />
           <Route path="/calendario-lunar" element={<Principal><CalendarioLunarPage /></Principal>} />
@@ -106,7 +106,7 @@ function App() {
 
 
 
-          <Route path="/actualizarCalendarioLunar" element={<Principal><ActualizarCalendarioLunar/></Principal>}/>
+          <Route path="/actualizarCalendarioLunar/:id" element={<Principal><ActualizarCalendarioLunar/></Principal>}/>
           <Route path="/actualizarEspecie" element={<Principal><ActualizarEspecie/></Principal>}/>
           <Route path="/actualizarSemillero" element={<Principal><ActualizarSemillero/></Principal>}/>
 

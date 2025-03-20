@@ -52,7 +52,7 @@ const Especies = () => {
 
   return (
     <div className="mx-auto p-4">
-      <Button text="Crear Especie" className='mx-2' onClick={() => navigate("/CrearEspecie") } variant="success" />
+      <Button text="Crear Especie" className='mx-2' onClick={() => navigate("/CrearEspecie") } variant="green" />
       <Tabla
         title="Lista de Especies"
         headers={headers}

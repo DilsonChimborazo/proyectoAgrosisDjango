@@ -5,7 +5,7 @@ const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface CalendarioLunar {
     fecha: string;
-    descripcion: string;
+    descripcion_evento: string;
     evento: string;
 
 }

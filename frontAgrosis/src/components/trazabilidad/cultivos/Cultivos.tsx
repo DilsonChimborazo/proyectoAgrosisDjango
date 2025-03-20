@@ -63,7 +63,7 @@ const Cultivos = () => {
         text="Crear Cultivo"
         className="mx-2"
         onClick={() => navigate("/crearcultivo")}
-        variant="success"
+        variant="green"
       />
 
       <Tabla

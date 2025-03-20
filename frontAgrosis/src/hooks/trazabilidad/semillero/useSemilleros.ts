@@ -4,8 +4,8 @@ import axios from 'axios';
 const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface Semilleros {
-  id_semillero: number;
-  nombre_semilla: string;
+  id: number;
+  nombre_semillero: string;
   fecha_siembra: string;
   fecha_estimada: string;
   cantidad: number;

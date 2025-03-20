@@ -48,7 +48,7 @@ const ControlFitosanitario = () => {
 
   return (
     <div className="overflow-x-auto  rounded-lg">
-      <Button text="Crear Control Fitosanitario" className='mx-2' onClick={() => navigate("/crearcontrolfitosanitario")} variant="success" />
+      <Button text="Crear Control Fitosanitario" className='mx-2' onClick={() => navigate("/crearcontrolfitosanitario")} variant="green" />
 
       <Tabla
         title="Lista de Controles Fitosanitarios"

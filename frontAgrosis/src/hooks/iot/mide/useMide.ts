@@ -29,7 +29,6 @@ export function useMide() {
   const socketRef = useRef<WebSocket | null>(null);
   const reconnectAttempts = useRef(0);
   const isManuallyClosed = useRef(false);
-  const processedMeasurements = useRef<Set<string>>(new Set()); // Set para mediciones procesadas
 
   // 📌 Conexión WebSocket con reconexión automática
   const connectWebSocket = useCallback(() => {
@@ -53,7 +52,6 @@ export function useMide() {
       }
 
       try {
-
         const data: Mide | Mide[] = JSON.parse(event.data);
         console.log("📊 Datos procesados:", data);
 
@@ -117,5 +115,5 @@ export function useMide() {
     console.log("🚫 WebSocket cerrado manualmente");
   };
 
-  return { sensorData, sensors, closeWebSocket };
+  return { sensorData, sensors, closeWebSocket };
 }

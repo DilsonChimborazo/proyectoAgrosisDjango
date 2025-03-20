@@ -40,7 +40,7 @@ const ListarHerramientas = () => {
 
     return (
         <div >
-            <Button text= "Crear Herramienta" className="mx-2" onClick={()=> navigate("/crearHerramientas")} variant="success"/>
+            <Button text= "Crear Herramienta" className="mx-2" onClick={()=> navigate("/crearHerramientas")} variant="green"/>
 
             <Tabla
                 title="Herramientas"
