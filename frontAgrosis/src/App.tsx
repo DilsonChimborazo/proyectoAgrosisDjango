@@ -52,6 +52,9 @@ import ActualizarCalendarioLunar from "./components/trazabilidad/calendarioLunar
 import ActualizarEspecie from "./components/trazabilidad/especie/ActualizarEspecie"
 import ActualizarSemillero from "./components/trazabilidad/semillero/ActualizarSemillero"
 import ActualizarVentaPage from "./pages/finanzas/venta/ActualizarVentaPage";
+import ListarHerramientas from "./components/inventario/herramientas/ListarHerramientas";
+import ListarInsumos from "./components/inventario/insumos/Insumos";
+import ActualizarInsumos from "./components/inventario/insumos/ActualizarInsumos";
 
 
 const queryClient = new QueryClient();
@@ -83,6 +86,10 @@ function App() {
           <Route path="/ActualizarHerramienta" element={<Principal><ActualizarHerramientas /></Principal>} />
           <Route path="/insumos" element={<Principal><InsumoPage /></Principal>} />
           <Route path="/CrearInsumos" element={<Principal><CrearInsumos /></Principal>} />
+          <Route path="/herramientas" element={<Principal><ListarHerramientas /></Principal>} />
+          <Route path="/insumos" element={<Principal><ListarInsumos /></Principal>} />
+          <Route path="/insumos" element={<Principal><ActualizarInsumos /></Principal>} />
+
           
           {/* Rutas módulo trazabilidad */}
           <Route path="/actividad" element={<Principal><CalendarPage /></Principal>} />
