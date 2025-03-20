@@ -6,6 +6,7 @@ interface TablaProps<T> {
   title: string;
   headers: string[];
   data: T[];
+  onEdit: (row: T) => void;
   onClickAction: (row: T) => void;
   rowsPerPage?: number;
 }
@@ -15,6 +16,7 @@ const Tabla = <T extends { [key: string]: any }>({
   headers,
   data,
   onClickAction,
+  onEdit,
   rowsPerPage = 10,
 }: TablaProps<T>) => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -85,7 +87,7 @@ const Tabla = <T extends { [key: string]: any }>({
               <td className="px-6 py-3 text-center border border-gray-300">
                 <Button
                   text="Editar"
-                  onClick={() => onClickAction(row)}
+                  onClick={() => onEdit(row)}
                   variant="primary"
                 />
               </td>

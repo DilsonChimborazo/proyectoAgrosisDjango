@@ -43,12 +43,16 @@ const Usuarios = () => {
     setIsModalOpen(true);
   }, []);
 
+  const handleEditarUsuario = (usuario: Record<string, any>) => {
+    navigate(`/editarUsuario/${usuario.id}`);
+  };
+
   const closeModal = useCallback(() => {
     setSelectedUser(null);
     setIsModalOpen(false);
   }, []);
 
-  const headers = ["Identificación", "Nombre", "Apellido", "Email", "Rol"];
+  const headers = ["ID","Identificación", "Nombre", "Apellido", "Email", "Rol"];
 
   return (
     <div className="overflow-x-auto bg-white shadow-md rounded-lg p-4">
@@ -86,6 +90,7 @@ const Usuarios = () => {
           title="Lista de Usuarios"
           headers={headers}
           data={usuarios.map((usuario) => ({
+            id: usuario.id,
             identificacion: usuario.identificacion,
             nombre: usuario.nombre,
             apellido: usuario.apellido,
@@ -93,6 +98,7 @@ const Usuarios = () => {
             rol: usuario.fk_id_rol?.rol || "Sin rol asignado",
           }))}
           onClickAction={openModalHandler}
+          onEdit={handleEditarUsuario}
         />
       )}
 

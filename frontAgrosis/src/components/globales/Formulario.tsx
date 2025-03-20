@@ -16,6 +16,7 @@ interface FormProps {
     isError?: boolean;
     isSuccess?: boolean;
     title: string;  
+    initialValues?: { [key: string]: string };
 }
 
 const Formulario: React.FC<FormProps> = ({ fields, onSubmit, isError, isSuccess, title }) => {
@@ -29,7 +30,6 @@ const Formulario: React.FC<FormProps> = ({ fields, onSubmit, isError, isSuccess,
     const handleSubmit = (event: React.FormEvent) => {
         event.preventDefault();
         onSubmit(formData);
-        navigate("/iot");
     };
 
     const handleButtonClick = () => {

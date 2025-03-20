@@ -12,6 +12,7 @@ import CrearSensor from "./components/iot/CrearSensor";
 import LotesPage from "./pages/LotesPage";
 import ErasPage from "./pages/ErasPage";
 import CrearUsuario from "./components/usuarios/crearUsuario";
+import ActualizarUsuario from "./components/usuarios/UpdateUsuario";
 
 import HerramientasPage from "./pages/inventario/HerramientaPage";
 import InsumoPage from "./pages/inventario/InsumoPage";
@@ -42,6 +43,7 @@ function App() {
           <Route path="/principal" element={<Principal><HomePage /></Principal>} />
           <Route path="/usuarios" element={<Principal><UsersPage /></Principal>} />
           <Route path="/crearUsuarios" element={<Principal><CrearUsuario /></Principal>} />
+          <Route path="/editarUsuario/:id" element={<Principal><ActualizarUsuario/></Principal>} />
 
           {/* Rutas módulo IOT */}
           <Route path="/iot" element={<Principal><IOtPage /></Principal>} />

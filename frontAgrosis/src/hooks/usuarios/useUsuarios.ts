@@ -33,7 +33,6 @@ const fetchUsuarios = async (): Promise<Usuario[]> => {
       },
     });
 
-    console.log("Datos recibidos de la API:", response.data);
     return response.data;
   } catch (error: any) {
     console.error("Error al obtener usuarios:", {
