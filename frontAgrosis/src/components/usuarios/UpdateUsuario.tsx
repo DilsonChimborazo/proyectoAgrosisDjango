@@ -97,7 +97,9 @@ const ActualizarUsuario = () => {
                 isError={actualizarUsuario.isError} 
                 isSuccess={actualizarUsuario.isSuccess}
                 title="Actualizar Usuario"  
-                initialValues={formData ?? {}}  
+                initialValues={Object.fromEntries(
+                    Object.entries(formData).map(([key, value]) => [key, String(value ?? "")])
+                )}  
                 key={JSON.stringify(formData)}
             />
         </div>
