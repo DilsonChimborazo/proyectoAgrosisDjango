@@ -25,7 +25,7 @@ const handleUpdate = (residuo: { id: number }) => {
     navigate(`/EditarEras/${residuo.id}`);
     };
 
-const headers = ['ID', 'Descripcion', 'Nombre Lote', "Acciones"];
+const headers = ['ID', 'Descripcion', 'Nombre Lote'];
 
 const handleRowClick = (eras: object) => {
     openModalHandler(eras);

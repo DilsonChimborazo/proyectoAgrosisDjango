@@ -11,14 +11,16 @@ interface TablaProps<T> {
   rowsPerPage?: number;
 }
 
-const Tabla = <T extends { id: number | string; [key: string]: any }>({
-  title,
-  headers,
-  data,
-  onClickAction,
-  onUpdate,
-  rowsPerPage = 10,
-}: TablaProps<T>) => {
+const Tabla = <T extends { id: number | string; [key: string]: any }>(
+  {
+    title,
+    headers,
+    data,
+    onClickAction,
+    onUpdate,
+    rowsPerPage = 10,
+  }: TablaProps<T>
+) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState("");
 
@@ -42,29 +44,32 @@ const Tabla = <T extends { id: number | string; [key: string]: any }>({
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
   return (
-    <div className="overflow-x-auto  rounded-lg p-4">
-      <div className="flex justify-between items-center bg-white p-3">
-        <h2 className="text-lg font-bold text-gray-800 uppercase">{title}</h2>
+    <div className="overflow-x-auto rounded-xl p-6  shadow-lg">
+      <div className="flex justify-between items-center bg-gray-50 p-4 rounded-t-xl border-b border-gray-200">
+        <h2 className="text-xl font-semibold text-gray-900 uppercase">{title}</h2>
         <input
           type="text"
           placeholder="Buscar..."
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          className="border border-gray-300 rounded-lg p-2"
+          className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-green-500"
         />
       </div>
 
-      <table className="min-w-full border  border-gray-300 rounded-lg shadow-md">
+      <table className="w-full border-collapse  overflow-hidden">
         <thead>
           <tr className="bg-gradient-to-r from-green-700 to-green-700 text-white">
             {headers.map((header, index) => (
               <th
                 key={index}
-                className="px-6 py-3 text-sm font-bold uppercase border border-gray-400"
+                className="px-6 py-4 text-sm font-bold uppercase border-b  text-left"
               >
                 {header}
               </th>
             ))}
+            <th className="px-6 py-4 text-sm font-bold uppercase border-b  text-center">
+              Acciones
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -72,24 +77,23 @@ const Tabla = <T extends { id: number | string; [key: string]: any }>({
             <tr
               key={row.id || index}
               className={`${
-                index % 2 === 0 ? "bg-white" : "bg-gray-100"
-              } border border-gray-300 hover:bg-yellow-100 transition duration-300 ease-in-out`}
+                index % 2 === 0 ? "bg-gray-50" : "bg-white"
+              }   hover:bg-green-100 transition duration-300 ease-in-out`}
             >
               {Object.keys(row).map((key, cellIndex) => (
                 <td
                   key={cellIndex}
-                  className="px-6 py-3 text-sm border border-gray-300 text-gray-700"
+                  className="px-6 py-4 text-sm text-gray-800"
                 >
                   {row[key] !== null && row[key] !== undefined ? row[key] : "—"}
                 </td>
               ))}
-              <td className="px-6 py-3 text-center border flex justify-center items-center border-gray-300 gap-2">
+              <td className="px-6 py-4 text-center flex justify-center gap-3">
                 <Button
                   text="Ver detalles"
                   onClick={() => onClickAction(row)}
                   variant="success"
                 />
-
                 <Button
                   text="Actualizar"
                   onClick={() => onUpdate(row)}
@@ -101,12 +105,8 @@ const Tabla = <T extends { id: number | string; [key: string]: any }>({
         </tbody>
       </table>
 
-      <div className="flex justify-end mt-4">
-        <Pagination
-          total={totalPages}
-          page={currentPage}
-          onChange={setCurrentPage}
-        />
+      <div className="flex justify-end mt-4 p-4 rounded-b-xl ">
+        <Pagination total={totalPages} page={currentPage} onChange={setCurrentPage} />
       </div>
     </div>
   );

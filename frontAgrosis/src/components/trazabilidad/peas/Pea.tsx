@@ -39,7 +39,7 @@ const Pea = () => {
     nombre_pea: pea.nombre_pea,
     descripcion: pea.descripcion
   }));
-  const headers = ['ID', 'Nombre', 'Descripción', 'Acciones'];
+  const headers = ['ID', 'Nombre', 'Descripción'];
 
 
   return (

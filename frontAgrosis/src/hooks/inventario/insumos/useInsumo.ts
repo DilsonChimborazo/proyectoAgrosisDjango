@@ -4,8 +4,8 @@ import axios from 'axios';
 const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface Insumo{
-    id_insumo: number;
-    nombre_insumo: string;
+    id: number;
+    nombre: string;
     tipo: string;
     precio_unidad: number;
     cantidad: number;

@@ -31,6 +31,8 @@ const CrearInsumos = () => {
 
   return (
     <div className="p-10">
+      
+
       <Formulario
         fields={formFields}
         onSubmit={handleSubmit}

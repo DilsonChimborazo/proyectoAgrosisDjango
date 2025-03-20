@@ -8,8 +8,8 @@ export const useActualizarHerramientas = () => {
 
     return useMutation({
         mutationFn: async (herramientaActualizada: any) => {
-            const { id_herramientas, ...datos } = herramientaActualizada;
-            const { data } = await axios.put(`${apiUrl}herramientas/${id_herramientas}`, datos);
+            const { id, ...datos } = herramientaActualizada;
+            const { data } = await axios.put(`${apiUrl}herramientas/${id}`, datos);
             return data;
         },
         onSuccess: () => {

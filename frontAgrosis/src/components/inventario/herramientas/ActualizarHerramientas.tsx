@@ -62,7 +62,7 @@ const ActualizarHerramientas = () => {
                     isError={mutation.isError}
                     isSuccess={mutation.isSuccess}
                     title="Actualizar Herramienta"
-                    initialValues={selectedHerramienta || {}} // Evita errores de carga inicial
+                    initialValues={selectedHerramienta || {}}
                 />
             )}
         </div>

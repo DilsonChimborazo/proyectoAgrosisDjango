@@ -51,7 +51,7 @@ const Usuarios = () => {
   };
 
 
-  const headers = ["ID", "Identificación", "Nombre", "Apellido", "Email", "Rol", "Acciones"];
+  const headers = ["ID", "Identificación", "Nombre", "Apellido", "Email", "Rol"];
 
 
   const mappedUsuarios = usuarios.map((usuario) => ({

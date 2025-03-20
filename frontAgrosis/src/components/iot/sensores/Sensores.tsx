@@ -44,7 +44,7 @@ const Sensores = () => {
     max: sensor.medida_maxima,
   }));
 
-  const headers = ['ID', 'Nombre', 'Tipo', 'Unidad', 'Descripción', 'Mínimo', 'Máximo','Acciones'];
+  const headers = ['ID', 'Nombre', 'Tipo', 'Unidad', 'Descripción', 'Mínimo', 'Máximo'];
 
   return (
     <div className="mx-auto p-4">

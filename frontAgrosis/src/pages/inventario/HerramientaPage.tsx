@@ -1,9 +1,9 @@
-import Herramientas from '../../components/inventario/herramientas/Herramientas';
+import ListarHerramientas from '../../components/inventario/herramientas/ListarHerramientas';
 
 const HerramientasPage = () =>{
     return (
         <div>
-            <Herramientas />
+            <ListarHerramientas />
         </div>        
     );
 };

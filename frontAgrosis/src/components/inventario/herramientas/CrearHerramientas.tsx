@@ -14,23 +14,52 @@ const CrearHerramientas = () => {
             label: 'Estado',
             type: 'select',
             options: [
-                { value: 'prestado', label: 'Prestado' },
-                { value: 'en_reparacion', label: 'En reparación' },
-                { value: 'disponible', label: 'Disponible' }
+                { value: 'Prestado', label: 'Prestado' },
+                { value: 'En_reparacion', label: 'En reparación' },
+                { value: 'Disponible', label: 'Disponible' }
             ]
         },
-        { id: 'fecha_prestamo', label: 'Fecha de Préstamo', type: 'Date' },
+        { id: 'fecha_prestamo', label: 'Fecha de Préstamo', type: 'datetime-local' },
     ];
 
     const handleSubmit = (formData: { [key: string]: string }) => {
+        console.log("Valor de fecha_prestamo recibido del formulario:", formData.fecha_prestamo);
+    
+        // Validar y convertir la fecha a formato ISO-8601
+        let fecha: string | null = null;
+    
+        if (formData.fecha_prestamo) {
+            const fechaObj = new Date(formData.fecha_prestamo);
+    
+            if (isNaN(fechaObj.getTime())) {
+                console.error("Fecha no válida:", formData.fecha_prestamo);
+                alert("Por favor, introduce una fecha válida.");
+                return; // Detenemos la ejecución si la fecha es inválida
+            } else {
+                fecha = fechaObj.toISOString(); // Convertimos la fecha a ISO-8601
+                console.log("Fecha válida y convertida a ISO-8601:", fecha);
+            }
+        } else {
+            console.log("Fecha no proporcionada");
+        }
+    
         const nuevaHerramienta: Herramientas = {
-            nombre_h: formData.nombre_h,
-            estado: formData.estado,
-            fecha_prestamo: new Date(formData.fecha_prestamo).toISOString().split('T')[0],
+            nombre_h: formData.nombre_h, // Nombre de la herramienta
+            fecha_prestamo: fecha, // Fecha en formato ISO-8601
+            estado: formData.estado, // Estado de la herramienta
         };
-        mutation.mutate(nuevaHerramienta);
-        navigate('/herramientas');
+    
+        mutation.mutate(nuevaHerramienta, {
+            onSuccess: () => {
+                console.log("Herramienta creada exitosamente:", nuevaHerramienta);
+                navigate('/herramientas');
+            },
+            onError: (error) => {
+                console.error("Error al crear la herramienta:", error.response?.data || error.message);
+            },
+        });
     };
+    
 
     return (
         <div className="p-10">
@@ -46,4 +75,3 @@ const CrearHerramientas = () => {
 };
 
 export default CrearHerramientas;
-

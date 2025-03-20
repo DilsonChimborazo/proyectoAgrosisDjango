@@ -68,14 +68,21 @@ const Formulario: React.FC<FormProps> = ({ fields, onSubmit, isError, isSuccess,
                             ))}
                         </select>
                     ) : (
-                        <input
-                            type={field.type}
-                            id={field.id}
-                            className="w-full p-2 border border-gray-300 rounded"
-                            onChange={(e) => handleChange(field.id, e.target.value)}
-                            value={formData[field.id] ?? ''}
-                            placeholder={`Ingrese ${field.label.toLowerCase()}`}
-                        />
+                    <input
+                    type={field.type}
+                    id={field.id}
+                    className="w-full p-2 border border-gray-300 rounded"
+                    onChange={(e) => {
+                        const value = e.target.value;
+                        handleChange(field.id, field.type === "datetime-local" ? new Date(value).toISOString() : value);
+                    }}
+                    value={
+                        field.type === "datetime-local" && formData[field.id]
+                        ? new Date(formData[field.id]).toISOString().slice(0, 16) // Convertir timestamp a `YYYY-MM-DDTHH:mm`
+                        : formData[field.id] ?? ""
+                    }
+                    placeholder={`Ingrese ${field.label.toLowerCase()}`}
+                    />
                     )}
                 </div>
             ))}

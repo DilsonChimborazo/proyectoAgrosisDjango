@@ -48,6 +48,7 @@ import EditarEras from "./components/iot/eras/EditarEras";
 import CrearLote from "./components/iot/lotes/CrearLote";
 import EditarLote from "./components/iot/lotes/EditarLote";
 import EditarSensor from "./components/iot/sensores/EditarSensores";
+import ActualizarHerramientas from "./components/inventario/herramientas/ActualizarHerramientas";
 
 
 const queryClient = new QueryClient();
@@ -75,8 +76,9 @@ function App() {
           
           {/* Rutas módulo inventario */}
           <Route path="/herramientas" element={<Principal><HerramientasPage /></Principal>} />
-          <Route path="/insumos" element={<Principal><InsumoPage /></Principal>} />
           <Route path="/CrearHerramientas" element={<Principal><CrearHerramientas /></Principal>} />
+          <Route path="/ActualizarHerramienta" element={<Principal><ActualizarHerramientas /></Principal>} />
+          <Route path="/insumos" element={<Principal><InsumoPage /></Principal>} />
           <Route path="/CrearInsumos" element={<Principal><CrearInsumos /></Principal>} />
           
           {/* Rutas módulo trazabilidad */}

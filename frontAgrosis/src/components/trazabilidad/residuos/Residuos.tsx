@@ -42,7 +42,7 @@ const Residuos = () => {
     tipo_residuo: residuo.fk_id_tipo_residuo ? residuo.fk_id_tipo_residuo.nombre_tipo_residuo : 'Sin tipo'
   }));
 
-  const headers = ['ID', 'Nombre', 'Fecha', 'Descripción', 'Cultivo', 'Tipo de Residuo', 'Acciones'];
+  const headers = ['ID', 'Nombre', 'Fecha', 'Descripción', 'Cultivo', 'Tipo de Residuo'];
 
   return (
     <div className="overflow-x-auto  rounded-lg">

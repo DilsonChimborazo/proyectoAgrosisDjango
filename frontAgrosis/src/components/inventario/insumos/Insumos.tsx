@@ -4,6 +4,7 @@ import { Insumo } from '../../../hooks/inventario/insumos/useInsumo';
 import Tabla from '../../globales/Tabla';
 import VentanaModal from '../../globales/VentanasModales';
 import { useNavigate } from 'react-router-dom';
+import Button from "@/components/globales/Button";
 
 const Insumos = () => {
   const { data: insumo, isLoading, error } = useInsumo();
@@ -44,8 +45,8 @@ const Insumos = () => {
   const InsumoList = Array.isArray(insumo) ? insumo : [];
 
   const mappedInsumo = Array.isArray(InsumoList)?InsumoList.map(insumo => ({
-    id: insumo.id_insumo,
-    nombre: insumo.nombre_insumo,
+    id: insumo.id,
+    nombre: insumo.nombre,
     tipo: insumo.tipo,
     precio_unidad: insumo.precio_unidad,
     cantidad: insumo.cantidad,
@@ -55,6 +56,11 @@ const Insumos = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-4">
+      <Button
+        text="Crear insumos" 
+        onClick={() => navigate("/CrearInsumos")} 
+        variant="success" 
+      />
       <Tabla
         title="Insumos"
         headers={headers}

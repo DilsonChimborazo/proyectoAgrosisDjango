@@ -55,7 +55,6 @@ const Cultivos = () => {
     "Descripción",
     "Especie",
     "Semillero",
-    "Acciones",
   ];
 
   return (

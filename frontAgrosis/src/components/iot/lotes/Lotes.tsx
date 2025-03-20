@@ -25,7 +25,7 @@ const Lotes = () => {
     navigate(`/Editarlote/${residuo.id}`);
   };
 
-  const headers = ['ID', 'Nombre', 'Dimensión', 'Ubicación', 'Estado', 'Acciones'];
+  const headers = ['ID', 'Nombre', 'Dimensión', 'Ubicación', 'Estado'];
 
   const handleRowClick = (lote: object) => {
     openModalHandler(lote);

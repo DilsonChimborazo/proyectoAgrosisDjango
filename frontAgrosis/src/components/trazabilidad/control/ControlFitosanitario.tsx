@@ -43,7 +43,7 @@ const ControlFitosanitario = () => {
     pea: control.fk_id_desarrollan?.fk_id_pea?.nombre_pea || 'Sin PEA'
   }));
 
-  const headers = ['ID', 'Fecha de Control', 'Descripción', 'Cultivo', 'PEA', 'Acciones'];
+  const headers = ['ID', 'Fecha de Control', 'Descripción', 'Cultivo', 'PEA'];
 
   return (
     <div className="overflow-x-auto  rounded-lg">
