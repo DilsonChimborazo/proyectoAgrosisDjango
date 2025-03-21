@@ -39,7 +39,7 @@ export interface Cultivo {
 
 
 interface Produccion {
-  id: number;
+  id_produccion: number;
   cantidad_produccion?: number | null; 
   fecha?: string;
   fk_id?: Cultivo | null;
@@ -57,7 +57,7 @@ const ProduccionComponent = () => {
     setIsModalOpen(true);
   };
 
-  const handleRowClick = (produccion: { id: number }) => {
+  const handleRowClick = (produccion: { id_produccion: number }) => {
     openModalHandler(produccion);
   };
 
@@ -66,8 +66,8 @@ const ProduccionComponent = () => {
     setIsModalOpen(false);
   };
 
-  const handleUpdate = (cultivo: { id: number }) => {
-    navigate(`/actualizarproduccion/${cultivo.id}`);
+  const handleUpdate = (cultivo: { id_produccion: number }) => {
+    navigate(`/actualizarproduccion/${cultivo.id_produccion}`);
   };
 
   if (isLoading) return <div className="text-center text-gray-500">Cargando producciones...</div>;
@@ -76,7 +76,7 @@ const ProduccionComponent = () => {
   // Mapeo de los datos para la tabla
   const produccionList: Produccion[] = Array.isArray(producciones) ? producciones : [];
   const mappedProducciones = produccionList.map((produccion) => ({
-    id: produccion.id,
+    id_produccion: produccion.id_produccion,
     cantidad_produccion: produccion.cantidad_produccion ?? null,
     fecha_produccion: produccion.fecha ?? "No disponible",
     nombre_cultivo: produccion.fk_id?.nombre_cultivo ?? "No disponible",

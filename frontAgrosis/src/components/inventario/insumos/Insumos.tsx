@@ -35,7 +35,7 @@ const Insumos = () => {
   };
 
   const handleUpdate = (residuo: { id: number }) => {
-    navigate(`/EditarEras/${residuo.id}`);
+    navigate(`/ActualizarInsumos/${residuo.id}`);
     };
 
 
@@ -55,7 +55,7 @@ const Insumos = () => {
   : []; 
 
   return (
-    <div className="max-w-4xl mx-auto p-4">
+    <div className="mx-auto p-4">
       <Button
         text="Crear insumos" 
         onClick={() => navigate("/CrearInsumos")} 

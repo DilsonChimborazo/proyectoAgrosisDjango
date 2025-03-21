@@ -25,6 +25,10 @@ const Asignaciones = () => {
     setSelectedAsignacion(null);
   };
 
+  const handleUpdate = (residuo: { id: number }) => {
+    navigate(`/actualizarasignacion/${residuo.id}`);
+  };
+
   if (isLoading) return <div className="text-center text-gray-500">Cargando...</div>;
 
   if (error) return <div className="text-center text-red-500">Error al cargar los datos: {error.message}</div>;
@@ -55,6 +59,7 @@ const Asignaciones = () => {
         headers={headers}
         data={tablaData}
         onClickAction={openModal}
+        onUpdate={handleUpdate}
       />
 
 

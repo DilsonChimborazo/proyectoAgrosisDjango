@@ -1,9 +1,11 @@
 import { Produccion } from '@/hooks/finanzas/produccion/useCrearProduccion';
 import { useCrearProduccion } from '../../../hooks/finanzas/produccion/useCrearProduccion';
 import Formulario from '../../globales/Formulario';
+import { useNavigate } from'react-router-dom';
 
 const CrearProduccion = () => {
     const mutation = useCrearProduccion();
+    const navigate = useNavigate();
 
     const formFields = [
         { id: 'fk_id', label: 'ID Cultivo', type: 'number' },
@@ -19,6 +21,7 @@ const CrearProduccion = () => {
         };
 
         mutation.mutate(nuevaProduccion);
+        navigate("/produccion");
     };
 
     return (

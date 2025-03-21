@@ -7,14 +7,14 @@ export interface Especie {
     nombre_comun: string;
     nombre_cientifico: string;
     descripcion: string;
-    fk_id_tipo_cultivo: number;
+    fk_id_tipo_cultivo_id: number;
 }
 export const useCrearEspecie = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
         mutationFn: async (nuevaEspecie: Especie) => {
-            const { data } = await axios.post(`${apiUrl}especie/`, nuevaEspecie);
+            const  data = await axios.post(`${apiUrl}especies/`, nuevaEspecie);
             return data;
         },
         onSuccess: () => {

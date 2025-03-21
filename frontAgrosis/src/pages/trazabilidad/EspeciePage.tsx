@@ -1,6 +1,6 @@
 import Especies from '../../components/trazabilidad/especie/Especie'; 
 
-const EspeciesPage = () => {
+const EspeciePage = () => {
   return (
     <div>
       <Especies />
@@ -8,4 +8,4 @@ const EspeciesPage = () => {
   );
 };
 
-export default EspeciesPage;
+export default EspeciePage;

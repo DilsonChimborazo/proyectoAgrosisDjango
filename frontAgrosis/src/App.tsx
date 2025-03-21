@@ -15,7 +15,7 @@ import ErasPage from "./pages/iot/ErasPage";
 import CrearUsuario from "./components/usuarios/crearUsuario";
 import HerramientasPage from "./pages/inventario/HerramientaPage";
 import InsumoPage from "./pages/inventario/InsumoPage";
-import EspeciesPage from "./pages/trazabilidad/EspeciePage";
+import EspeciePage from "./pages/trazabilidad/EspeciePage";
 import RealizaPage from "./pages/trazabilidad/RealizaPage";
 import SemillerosPage from "./pages/trazabilidad/SemillerosPage";
 import CalendarioLunarPage from "./pages/trazabilidad/CalendarioLunarPage";
@@ -52,6 +52,7 @@ import ActualizarCalendarioLunar from "./components/trazabilidad/calendarioLunar
 import ActualizarEspecie from "./components/trazabilidad/especie/ActualizarEspecie"
 import ActualizarSemillero from "./components/trazabilidad/semillero/ActualizarSemillero"
 import ActualizarVentaPage from "./pages/finanzas/venta/ActualizarVentaPage";
+import ActualizarInsumo from "./components/inventario/insumos/ActualizarInsumos";
 
 
 const queryClient = new QueryClient();
@@ -83,6 +84,7 @@ function App() {
           <Route path="/ActualizarHerramienta" element={<Principal><ActualizarHerramientas /></Principal>} />
           <Route path="/insumos" element={<Principal><InsumoPage /></Principal>} />
           <Route path="/CrearInsumos" element={<Principal><CrearInsumos /></Principal>} />
+          <Route path="/ActualizarInsumos" element={<Principal><ActualizarInsumo /></Principal>} />
           
           {/* Rutas módulo trazabilidad */}
           <Route path="/actividad" element={<Principal><CalendarPage /></Principal>} />
@@ -90,7 +92,7 @@ function App() {
           <Route path="/residuos" element={<Principal><ResiduosPage /></Principal>} />
           <Route path="/pea" element={<Principal><PeaPage /></Principal>} />
           <Route path="/control-fitosanitario" element={<Principal><ControlFitosanitarioPage /></Principal>} />
-          <Route path="/especie" element={<Principal><EspeciesPage /></Principal>} />
+          <Route path="/especies" element={<Principal><EspeciePage /></Principal>} />
           <Route path="/realiza" element={<Principal><RealizaPage /></Principal>} />
           <Route path="/semilleros" element={<Principal><SemillerosPage /></Principal>} />
           <Route path="/calendario-lunar" element={<Principal><CalendarioLunarPage /></Principal>} />

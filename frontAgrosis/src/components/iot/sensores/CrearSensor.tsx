@@ -27,7 +27,7 @@ const handleSubmit = (formData: { [key: string]: string }) => {
         medida_maxima: parseFloat(formData.medida_maxima),
     };
     mutation.mutate(newUser);
-    navigate('/sensores');
+    navigate('/iot');
 };
 
 return (

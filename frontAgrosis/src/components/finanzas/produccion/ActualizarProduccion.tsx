@@ -34,7 +34,7 @@ const ActualizarProduccion = () => {
 
         const produccionActualizada = {
             id_produccion: Number(id_produccion),
-            fk_id: parseInt(data.fk_id, 10) || 0,
+            fk_id_id: parseInt(data.fk_id, 10) || 0, // Cambiado a fk_id_id
             cantidad_produccion: parseFloat(data.cantidad_produccion),
             fecha: data.fecha,
         };
@@ -71,4 +71,3 @@ const ActualizarProduccion = () => {
 };
 
 export default ActualizarProduccion;
-
