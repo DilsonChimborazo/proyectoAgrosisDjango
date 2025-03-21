@@ -219,7 +219,7 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'samboniwilson09@gmail.com'
 EMAIL_HOST_PASSWORD = 'efyk evjb qksn fkki'  
 
-FRONTEND_URL = "http://localhost:8000"
+FRONTEND_URL = "http://localhost:5173"
 
 
 

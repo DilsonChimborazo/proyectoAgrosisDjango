@@ -142,6 +142,15 @@ export default function Login() {
           </button>
         </form>
 
+          <p className="mt-6 text-center text-sm text-gray-600">
+          ¿olvido su contraseña?{" "}
+          <a
+            href="/solicitarRecuperacion"
+            className="font-semibold text-green-500 hover:text-green-700 transition-all"
+          >
+            recuperala aqui
+          </a>
+        </p>
         <p className="mt-6 text-center text-sm text-gray-600">
           ¿No tienes cuenta?{" "}
           <a
