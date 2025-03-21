@@ -32,15 +32,15 @@ const Semillero = () => {
 
   // Verificar que 'semillas' es un arreglo antes de mapear
   const tablaData = Array.isArray(semillas) ? semillas.map((semilla) => ({
-    id_semillero: semilla.id_semillero,
-    nombre_semilla: semilla.nombre_semilla,
+    id: semilla.id,
+    nombre_semilla: semilla.nombre_semillero,
     fecha_siembra: semilla.fecha_siembra,
     fecha_estimada: semilla.fecha_estimada,
     cantidad: semilla.cantidad,
     acciones: (
       <button 
           className="bg-blue-500 text-white px-3 py-1 rounded" 
-          onClick={() => navigate(`/actualizarSemillero/${semilla.id_semillero}`)}
+          onClick={() => navigate(`/actualizarSemillero/${semilla.id}`)}
       >
           Editar
       </button>

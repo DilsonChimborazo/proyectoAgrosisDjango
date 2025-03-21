@@ -8,7 +8,7 @@ export const useSemilleroPorId = (id: string | undefined) => {
         queryKey: ["Semillero", id], 
         queryFn: async () => {
             if (!id) throw new Error("ID no proporcionado");
-            const { data } = await axios.get(`${apiUrl}semillero/${id}`);
+            const { data } = await axios.get(`${apiUrl}semilleros/${id}`);
             console.log("🌱 Datos obtenidos del backend:", data); // Verifica los datos
             return data;
         },

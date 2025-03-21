@@ -5,13 +5,13 @@ const apiUrl = import.meta.env.VITE_API_URL;
 
 export const useCalendarioPorId = (id: string | undefined) => {
     return useQuery({
-        queryKey: ["CalendarioLunar", id], 
+        queryKey: ["CalendarioLunar", id], // Clave específica para identificar esta consulta
         queryFn: async () => {
-            if (!id) throw new Error("ID no proporcionado");
-            const { data } = await axios.get(`${apiUrl}calendario-lunar/${id}`);
-            console.log("🌕 Datos obtenidos del backend:", data); // 👀 aqui se Verifican los datos
+            if (!id) throw new Error("ID no proporcionado"); // Verifica que se proporcione un ID válido
+            const { data } = await axios.get(`${apiUrl}calendario_lunar/${id}`); // Endpoint correspondiente
+            console.log("🌕 Datos obtenidos del backend:", data); // Imprime los datos obtenidos para depuración
             return data;
         },
-        enabled: !!id, // Solo se ejecuta la consulta si el ID está definido
+        enabled: !!id, // Activa la consulta solo si el ID está definido
     });
 };

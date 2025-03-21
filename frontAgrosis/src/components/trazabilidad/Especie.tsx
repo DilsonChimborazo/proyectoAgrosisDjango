@@ -1,26 +1,24 @@
+
 import { useState } from 'react';
-import { useEspecie } from '../../hooks/trazabilidad/useEspecie';
+import { useEspecie } from '../../hooks/trazabilidad/useEspecie'; // Hook para obtener las especies
 import VentanaModal from '../globales/VentanasModales';
 import Tabla from '../globales/Tabla';
-import { Especie } from '../../hooks/trazabilidad/useEspecie';
 import Button from '../globales/Button';
 import { useNavigate } from 'react-router-dom';
 
-
-const Especies = () => {
-  const { data: especies = [], error, isLoading } = useEspecie();
+const Especie = () => {
+  const { data: especies, error, isLoading } = useEspecie();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedEspecie, setSelectedEspecie] = useState<Especie | null>(null);
+  const [selectedEspecie, setSelectedEspecie] = useState<any>(null);
+
+  const navigate = useNavigate();
 
   // Función para abrir el modal con una especie seleccionada
-  const openModal = (especie: Especie) => {
+  const openModal = (especie: any) => {
     setSelectedEspecie(especie);
     setIsModalOpen(true);
   };
 
-  
-  const navigate=useNavigate()
-  
   // Función para cerrar el modal
   const closeModal = () => {
     setIsModalOpen(false);
@@ -33,21 +31,24 @@ const Especies = () => {
   // Si hay un error
   if (error) return <div className="text-center text-red-500">Error al cargar los datos: {error.message}</div>;
 
-  // Preparar datos para la tabla
-  const tablaData = especies.map((especie) => ({
-    ...especie, // Pasamos todo el objeto para evitar el error
-    tipo_cultivo: especie.fk_id_tipo_cultivo?.nombre || 'Sin tipo de cultivo',
+  // Verificar que 'especies' es un arreglo antes de mapear
+  const tablaData = Array.isArray(especies) ? especies.map((especie) => ({
+    id: especie.id, // ID de la especie
+    nombre_comun: especie.nombre_comun, // Nombre común
+    nombre_cientifico: especie.nombre_cientifico, // Nombre científico
+    descripcion: especie.descripcion, // Descripción de la especie
+    fk_id_tipo_cultivo: especie.fk_id_tipo_cultivo, // ID del tipo de cultivo
     acciones: (
       <button 
           className="bg-blue-500 text-white px-3 py-1 rounded" 
-          onClick={() => navigate(`/actualizarEspecie/${especie.id}`)}
+          onClick={() => navigate(`/actualizarEspecie/${especie.id}`)} // Navegar a actualizar especie
       >
           Editar
       </button>
-  ),
-  }));
+    ),
+  })) : [];
 
-  const headers = ['ID', 'Nombre Común', 'Nombre Científico', 'Descripción', 'Tipo de Cultivo'];
+  const headers = ['ID Especie', 'Nombre Común', 'Nombre Científico', 'Descripción', 'ID Tipo de Cultivo', 'Acciones'];
 
   return (
     <div className="mx-auto p-4">
@@ -56,7 +57,7 @@ const Especies = () => {
         title="Lista de Especies"
         headers={headers}
         data={tablaData}
-        onClickAction={(especie) => openModal(especie)}
+        onClickAction={openModal} // Abrir modal al hacer clic en una fila
       />
 
       {selectedEspecie && (
@@ -71,4 +72,4 @@ const Especies = () => {
   );
 };
 
-export default Especies;
+export default Especie;

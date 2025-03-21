@@ -6,7 +6,7 @@ const apiUrl = import.meta.env.VITE_API_URL;
 export interface CalendarioLunar {
     id: number;
     fecha: string;
-    descripcion: string;
+    descripcion_evento: string;
     evento: string;
 }
 
@@ -15,12 +15,12 @@ export const useActualizarCalendarioLunar = () => {
 
     return useMutation({
         mutationFn: async (calendarioActualizado: CalendarioLunar) => {
-            const { id, ...datos } = calendarioActualizado;
-            const { data } = await axios.put(`${apiUrl}calendario-lunar/${id}/`, datos);
+            const { id, ...datos } = calendarioActualizado; // Extraer el ID para usarlo en la URL
+            const { data } = await axios.put(`${apiUrl}calendario_lunar/${id}/`, datos); // Enviar PUT al endpoint
             return data;
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["CalendariosLunares"] }); // Actualizar la lista de calendarios lunares
+            queryClient.invalidateQueries({ queryKey: ["CalendarioLunar"] }); // Invalida la caché relacionada para refrescar los datos
         },
     });
 };
