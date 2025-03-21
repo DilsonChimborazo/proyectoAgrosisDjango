@@ -15,7 +15,7 @@ const fetchRoles = async (): Promise<Rol[]> => {
 
     console.log("Token enviado:", token);
 
-    const response = await axios.get(`${apiUrl}api/rol/`, {
+    const response = await axios.get(`${apiUrl}rol/`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

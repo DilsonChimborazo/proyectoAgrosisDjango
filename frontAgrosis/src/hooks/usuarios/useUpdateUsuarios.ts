@@ -30,7 +30,7 @@ export const useActualizarUsuario = () => {
 
             const { id, ...datos } = usuarioActualizado;
 
-            const { data } = await axios.patch(`${apiUrl}api/usuario/${id}/`, datos, {
+            const { data } = await axios.patch(`${apiUrl}usuario/${id}/`, datos, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 

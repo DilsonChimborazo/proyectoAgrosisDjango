@@ -181,7 +181,9 @@ export default function Principal({ children }: LayoutProps) {
               className="text-white cursor-pointer hover:text-yellow-100"
               onClick={() => navigate("/usuarios")}
              >
-              {usuario ? usuario.nombre : "Usuario no identificado"}
+              {usuario ? `${usuario?.nombre || 'Nombre no disponible'} ${usuario?.apellido || 'Apellido no disponible'}` : "Usuario no identificado"}
+
+
             </span>
           </div>
         </div>

@@ -27,7 +27,7 @@ export const useUsuarioPorId = (id: string | undefined) => {
                 throw new Error("No se ha encontrado un token de autenticación");
             }
 
-            const { data } = await axios.get<Usuario>(`${apiUrl}api/usuario/${id}`, {
+            const { data } = await axios.get<Usuario>(`${apiUrl}usuario/${id}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 

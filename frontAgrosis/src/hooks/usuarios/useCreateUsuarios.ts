@@ -23,7 +23,7 @@ export const useCreateUsuarios = () =>{
           throw new Error("No se ha encontrado un token de autenticacion");
         }
   const {data} = await axios.post(
-    `${apiUrl}api/usuario/`,
+    `${apiUrl}usuario/`,
     nuevoUsuario,
     {
 
