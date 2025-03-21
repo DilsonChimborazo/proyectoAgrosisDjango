@@ -1,5 +1,8 @@
 {
   "dependencies": {
-    "astro": "^5.5.2"
+
+    "astro": "^5.5.2",
+    "shadcn-ui": "^0.9.5"
+
   }
 }

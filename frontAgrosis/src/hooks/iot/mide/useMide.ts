@@ -115,5 +115,7 @@ export function useMide() {
     console.log("🚫 WebSocket cerrado manualmente");
   };
 
-  return { sensorData, sensors, closeWebSocket };
+
+  return { sensorData, sensors, closeWebSocket };
+
 }

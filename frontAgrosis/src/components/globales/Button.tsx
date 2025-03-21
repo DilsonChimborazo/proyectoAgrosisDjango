@@ -3,6 +3,9 @@ import React from "react";
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     text: string;
     variant?: "danger" | "success" | "warning" |"green";
+    onClick: () => void;
+    className?: string; 
+
 }
 
 const Button: React.FC<ButtonProps> = ({ text, variant = "success", className, ...props }) => {
