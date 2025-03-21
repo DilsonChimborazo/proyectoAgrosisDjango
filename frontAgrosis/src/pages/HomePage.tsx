@@ -31,10 +31,10 @@ const HomePage = () => {
     console.log("📡 Datos de medición recibidos:", sensorData);
 
     if (!sensors || sensors.length === 0) {
-      console.warn("⚠️ No se recibieron datos de sensores");
+      console.warn("⚠ No se recibieron datos de sensores");
     }
     if (!sensorData || sensorData.length === 0) {
-      console.warn("⚠️ No se recibieron datos de mediciones");
+      console.warn("⚠ No se recibieron datos de mediciones");
       return;
     }
 
@@ -45,7 +45,6 @@ const HomePage = () => {
         groupedData[reading.fk_id_sensor] = [];
       }
 
-      // 📌 Convertir fecha a formato legible
       let fechaLegible;
       try {
         fechaLegible = new Date(reading.fecha_medicion).toLocaleTimeString();
@@ -69,7 +68,7 @@ const HomePage = () => {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
       {/* 📡 Sensores Activos */}
       <div className="bg-white shadow-md rounded-lg p-8">
-        <h2 className="text-xl font-semibold text-gray-700">📡 Sensores Activos</h2>
+        <h2 className="text-xl font-semibold text-green-700">📡 Sensores Activos</h2>
         <ul className="text-gray-600">
           {sensorData.length > 0 ? (
             [...new Set(sensorData.map((r) => r.fk_id_sensor))].map((sensorId) => (
@@ -86,16 +85,22 @@ const HomePage = () => {
 
       {/* 🌡 Últimas Mediciones */}
       <div className="bg-white shadow-md rounded-lg p-8">
-        <h2 className="text-xl font-semibold text-gray-700">🌡 Últimas Mediciones</h2>
+        <h2 className="text-xl font-semibold text-green-700">🌡 Últimas Mediciones</h2>
         <ul className="text-gray-600">
           {sensorData.length > 0 ? (
-            sensorData.slice(-1).map((reading, index) => (
-              <li key={index} className="border-b py-2">
-                <strong>Sensor: {getSensorName(reading.fk_id_sensor)}</strong>:  
-                <span className="font-medium text-blue-600">{reading.valor_medicion ?? "--"}°C</span>  
-                (<span className="text-gray-500">{new Date(reading.fecha_medicion).toLocaleTimeString()}</span>)
-              </li>
-            ))
+            [...new Set(sensorData.map((r) => r.fk_id_sensor))].map((sensorId) => {
+              const latestReading = sensorData
+                .filter((r) => r.fk_id_sensor === sensorId)
+                .slice(-1)[0];
+
+              return (
+                <li key={sensorId} className="border-b py-2">
+                  <strong>Sensor: {getSensorName(sensorId)}</strong>:  
+                  <span className="font-medium text-blue-600">{latestReading.valor_medicion ?? "--"}°</span>  
+                  (<span className="text-gray-500">{new Date(latestReading.fecha_medicion).toLocaleTimeString()}</span>)
+                </li>
+              );
+            })
           ) : (
             <li className="text-gray-500">No hay mediciones disponibles</li>
           )}
@@ -104,11 +109,14 @@ const HomePage = () => {
 
       {/* 📊 Gráficos */}
       <div className="bg-white shadow-md rounded-lg p-9 col-span-1 md:col-span-2">
-        <h2 className="text-xl font-semibold text-gray-700">📊 Gráficos de Sensores y Mediciones</h2>
+        <h2 className="text-xl font-semibold text-green-700">📊 Gráficos de Sensores y Mediciones</h2>
         <Carousel>
           <CarouselContent>
             {Object.keys(chartsData).map((sensorId, index) => (
               <CarouselItem key={index}>
+                <h3 className="text-lg font-semibold text-center">
+                  {getSensorName(Number(sensorId))}
+                </h3>
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={chartsData[Number(sensorId)]}>
                     <CartesianGrid strokeDasharray="3 3" />

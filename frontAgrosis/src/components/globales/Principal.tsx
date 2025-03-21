@@ -27,7 +27,7 @@ const menuItems = [
       { name: "Eras", path: "/eras" },
       { name: "Lotes", path: "/lotes" },
       { name: "Cultivos", path: "/cultivos" },
-      { name: "Especies", path: "/especies" },
+      { name: "Especies", path: "/especie" },
       { name: "Semilleros", path: "/semilleros" },
       { name: "Residuos", path: "/residuos" },
     ],

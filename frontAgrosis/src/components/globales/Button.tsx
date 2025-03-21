@@ -3,7 +3,7 @@ import React from "react";
 interface ButtonProps {
     text: string;
     onClick: () => void;
-    variant?: "success" | "primary" | "danger"; 
+    variant?: "success" | "primary" | "danger" ; 
     className?: string; 
 }
 
