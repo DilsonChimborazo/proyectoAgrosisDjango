@@ -6,21 +6,22 @@ interface TablaProps<T> {
   title: string;
   headers: string[];
   data: T[];
+  onEdit: (row: T) => void;
   onClickAction: (row: T) => void;
   onUpdate: (row: T) => void;
   rowsPerPage?: number;
 }
 
-const Tabla = <T extends { id: number | string; [key: string]: any }>(
-  {
-    title,
-    headers,
-    data,
-    onClickAction,
-    onUpdate,
-    rowsPerPage = 10,
-  }: TablaProps<T>
-) => {
+
+const Tabla = <T extends { [key: string]: any }>({
+  title,
+  headers,
+  data,
+  onClickAction,
+  onUpdate,
+  rowsPerPage = 10,
+}: TablaProps<T>) => {
+
   const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState("");
 
@@ -70,6 +71,9 @@ const Tabla = <T extends { id: number | string; [key: string]: any }>(
             <th className="px-6 py-4 text-sm font-bold uppercase border-b  text-center">
               Acciones
             </th>
+            <th className="px-6 py-3 text-sm font-bold uppercase border border-gray-400">
+              Acción
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -89,6 +93,13 @@ const Tabla = <T extends { id: number | string; [key: string]: any }>(
                 </td>
               ))}
               <td className="px-6 py-4 text-center flex justify-center gap-3">
+                <Button
+                  text="Editar"
+                  onClick={() => onUpdate(row)}
+                  variant="success"
+                />
+              </td>
+              <td className="px-6 py-3 text-center border border-gray-300">
                 <Button
                   text="Ver detalles"
                   onClick={() => onClickAction(row)}

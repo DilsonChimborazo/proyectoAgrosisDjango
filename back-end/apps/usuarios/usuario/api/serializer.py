@@ -13,6 +13,7 @@ class EscribirUsuarioSerializer(ModelSerializer):
     class Meta:
         model = Usuarios
         fields = '__all__'
+        extra_kwargs = {'is_active': {'required': False}}
 
     def create(self, validated_data):
         usuario = Usuarios(**validated_data)

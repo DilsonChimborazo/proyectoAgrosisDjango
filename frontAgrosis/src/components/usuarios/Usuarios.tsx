@@ -14,14 +14,22 @@ const Usuarios = () => {
 
 
   useEffect(() => {
-    const usuarioGuardado = JSON.parse(localStorage.getItem("userData") || "[]");
-    if (Array.isArray(usuarioGuardado) && usuarioGuardado.length > 0) {
-      const usuario = usuarioGuardado[0] as Usuario;
-      setEsAdministrador(usuario?.fk_id_rol?.rol === "Administrador");
+
+    const usuarioGuardado = localStorage.getItem("user");
+  
+    if (usuarioGuardado) {
+      const usuario = JSON.parse(usuarioGuardado);
+  
+      if (usuario?.fk_id_rol?.rol === "Administrador") {
+        setEsAdministrador(true);
+      } else {
+        setEsAdministrador(false);
+      }
     } else {
       setEsAdministrador(false);
     }
   }, []);
+  
 
 
   const handleCrearUsuario = () => {
@@ -39,15 +47,15 @@ const Usuarios = () => {
     setIsModalOpen(true);
   }, []);
 
-
   const closeModal = useCallback(() => {
     setSelectedUser(null);
     setIsModalOpen(false);
   }, []);
 
 
+
   const handleUpdate = (usuario: Usuario) => {
-    navigate(`/actualizarcultivo/${usuario.id}`);
+    navigate(`/editarUsuario/${usuario.id}`);
   };
 
 
@@ -75,7 +83,6 @@ const Usuarios = () => {
         className={`px-4 py-2 rounded-lg mb-4 ${
           esAdministrador ? "bg-green-600 text-white" : "bg-gray-400 text-gray-700 cursor-not-allowed"
         }`}
-        disabled={!esAdministrador}
       >
         + Crear Usuario
       </button>
@@ -91,8 +98,16 @@ const Usuarios = () => {
 
         <Tabla
           title="Lista de Usuarios"
-          headers={[...headers]}
-          data={mappedUsuarios}
+
+          headers={headers}
+          data={usuarios.map((usuario) => ({
+            id: usuario.id,
+            identificacion: usuario.identificacion,
+            nombre: usuario.nombre,
+            apellido: usuario.apellido,
+            email: usuario.email,
+            rol: usuario.fk_id_rol?.rol || "Sin rol asignado",
+          }))}
           onClickAction={openModalHandler}
           onUpdate={handleUpdate}
         />

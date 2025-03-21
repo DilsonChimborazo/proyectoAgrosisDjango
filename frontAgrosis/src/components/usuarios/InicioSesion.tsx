@@ -50,16 +50,11 @@ export default function Login() {
         localStorage.setItem("refreshToken", data.refresh);
       }
 
-      const userResponse = await fetch(`${apiUrl}api/usuario/`, {
-        method: "GET",
-        headers: { Authorization: `Bearer ${data.access}` },
-      });
-
-      if (userResponse.ok) {
-        const userData = await userResponse.json();
-        localStorage.setItem("userData", JSON.stringify(userData));
+      if (data.user) {
+        localStorage.setItem("user", JSON.stringify(data.user));
+      } else {
+        console.warn("⚠ No se recibió información del usuario.");
       }
-    
       navigate("/principal");
     } catch (err: any) {
       setError(err.message);

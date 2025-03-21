@@ -13,6 +13,7 @@ const Button: React.FC<ButtonProps> = ({ text, variant = "success", className, .
         danger: "text-red-700 border-red-700 hover:text-white hover:bg-red-800",
         warning: "text-yellow-400 border-yellow-400 hover:text-white hover:bg-yellow-500",
         green: "text-white border-0 bg-green-800 hover:text-white bg-green-800",
+
     };
 
     return (

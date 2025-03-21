@@ -19,6 +19,7 @@ interface FormProps {
     initialValues?: { [key: string]: string };
 
 
+
 }
 const Formulario: React.FC<FormProps> = ({ fields, onSubmit, isError, isSuccess, title,initialValues }) => {
     const [formData, setFormData] = React.useState<{ [key: string]: string }>(initialValues || {}); // ✅ Usa initialValues
@@ -30,13 +31,18 @@ const Formulario: React.FC<FormProps> = ({ fields, onSubmit, isError, isSuccess,
     }, [initialValues]);
 
 
+
+
+
     const handleChange = (id: string, value: string) => {
         setFormData((prev) => ({ ...prev, [id]: value }));
     };
 
     const handleSubmit = (event: React.FormEvent) => {
         event.preventDefault();
+
         onSubmit(formData);     
+
     };
 
     const handleButtonClick = () => {

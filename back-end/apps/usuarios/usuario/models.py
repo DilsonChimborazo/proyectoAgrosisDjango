@@ -34,6 +34,7 @@ class Usuarios(AbstractUser):
     nombre = models.CharField(max_length=30)
     apellido = models.CharField(max_length=30)
     fk_id_rol = models.ForeignKey(Rol, on_delete=models.SET_NULL, null=True, blank=True)
+    is_active = models.BooleanField(default=True)
 
     USERNAME_FIELD = 'identificacion'  
     REQUIRED_FIELDS = ['email', 'nombre', 'apellido']  

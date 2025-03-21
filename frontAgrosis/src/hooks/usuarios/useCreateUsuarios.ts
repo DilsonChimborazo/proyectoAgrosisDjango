@@ -9,7 +9,7 @@ const apiUrl = import.meta.env.VITE_API_URL;
     email: string;
     nombre: string;
     apellido: string;
-    password: string
+    password: string;
     fk_id_rol: number;
 }
 
