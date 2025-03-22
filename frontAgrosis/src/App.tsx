@@ -14,6 +14,8 @@ import LotesPage from "./pages/iot/LotesPage";
 import ErasPage from "./pages/iot/ErasPage";
 import CrearUsuario from "./components/usuarios/crearUsuario";
 import ActualizarUsuario from "./components/usuarios/UpdateUsuario";
+import SolicitarRecuperacion from "./components/usuarios/SolicitarRecuperacion";
+import ResetearContrasena from "./components/usuarios/ResetearContrasena";
 import HerramientasPage from "./pages/inventario/HerramientaPage";
 import InsumoPage from "./pages/inventario/InsumoPage";
 import EspeciePage from "./pages/trazabilidad/EspeciePage";
@@ -63,12 +65,15 @@ function App() {
     <HeroUIProvider>
       <QueryClientProvider client={queryClient}>
         <Routes>
+          <Route path="/solicitarRecuperacion" element={<SolicitarRecuperacion />} />
+          <Route path="/resetearContrasena" element={<ResetearContrasena />} />
           <Route path="/" element={<Login />} />
+          <Route path="/Home" element={<Principal><HomePage /></Principal>} />
           <Route path="/principal" element={<Principal><HomePage /></Principal>} />
-          <Route path="/home" element={<Principal><HomePage /></Principal>} />
           <Route path="/usuarios" element={<Principal><UsersPage /></Principal>} />
           <Route path="/crearUsuarios" element={<Principal><CrearUsuario /></Principal>} />
           <Route path="/editarUsuario/:id" element={<Principal><ActualizarUsuario/></Principal>} />
+
 
 
           {/* Rutas módulo IOT */}

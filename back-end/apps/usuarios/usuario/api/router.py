@@ -5,4 +5,5 @@ routerUsuario = DefaultRouter()
 routerUsuario.register(prefix='usuario', viewset=UsuarioViewSet, basename='usuario')
 
 
+
     
