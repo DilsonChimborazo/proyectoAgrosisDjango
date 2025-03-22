@@ -118,8 +118,8 @@ function App() {
 
 
           <Route path="/actualizarCalendarioLunar/:id" element={<Principal><ActualizarCalendarioLunar/></Principal>}/>
-          <Route path="/actualizarEspecie" element={<Principal><ActualizarEspecie/></Principal>}/>
-          <Route path="/actualizarSemillero" element={<Principal><ActualizarSemillero/></Principal>}/>
+          <Route path="/actualizarEspecie/:id" element={<Principal><ActualizarEspecie/></Principal>}/>
+          <Route path="/actualizarSemillero/:id" element={<Principal><ActualizarSemillero/></Principal>}/>
 
           {/**rutas modulo de trazabilidad actualizar*/}
           <Route path="/actualizarcultivo/:id" element={<Principal><ActualizarCultivo /></Principal>} />

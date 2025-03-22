@@ -1,30 +1,33 @@
 import { useState, useEffect } from "react";
-import { useActualizarEspecie } from "../../../hooks/trazabilidad/especie/useActualizarEspecie";
 import { useNavigate, useParams } from "react-router-dom";
+import { useActualizarEspecie } from "../../../hooks/trazabilidad/especie/useActualizarEspecie";
 import { useEspeciePorId } from "../../../hooks/trazabilidad/especie/useEspeciePorId";
 import Formulario from "../../globales/Formulario";
 
+
 const ActualizarEspecie = () => {
     const { id } = useParams(); // Obtener ID de la URL
-    const { data: especie, isLoading, error } = useEspeciePorId(id); // Hook para traer los datos de una especie por ID
-    const actualizarEspecie = useActualizarEspecie(); // Hook para actualizar la especie
+    const { data: especie, isLoading, error } = useEspeciePorId(id); // Hook para obtener datos por ID
+    const actualizarEspecie = useActualizarEspecie(); // Hook para actualizar
     const navigate = useNavigate();
 
+    // Estado inicial del formulario
     const [formData, setFormData] = useState<{ [key: string]: string }>({
         nombre_comun: "",
         nombre_cientifico: "",
         descripcion: "",
-        fk_id_tipo_cultivo: "",
+        fk_id_tipo_cultivo: "", // Convertimos a string para evitar errores en el formulario
     });
 
     useEffect(() => {
         if (especie && Object.keys(especie).length > 0) {
             console.log("🔄 Actualizando formulario con:", especie);
+
             setFormData({
-                nombre_comun: especie.nombre_comun ?? "",
-                nombre_cientifico: especie.nombre_cientifico ?? "",
-                descripcion: especie.descripcion ?? "",
-                fk_id_tipo_cultivo: especie.fk_id_tipo_cultivo ? String(especie.fk_id_tipo_cultivo) : "",
+                nombre_comun: especie.nombre_comun || "",
+                nombre_cientifico: especie.nombre_cientifico || "",
+                descripcion: especie.descripcion || "",
+                fk_id_tipo_cultivo: especie.fk_id_tipo_cultivo?.toString() || "", // Convertir a string si existe
             });
         }
     }, [especie]);
@@ -33,19 +36,19 @@ const ActualizarEspecie = () => {
         if (!id) return;
 
         const especieActualizada = {
-            id: Number(id),
-            nombre_comun: data.nombre_comun || "",
-            nombre_cientifico: data.nombre_cientifico || "",
-            descripcion: data.descripcion || "",
-            fk_id_tipo_cultivo: parseInt(data.fk_id_tipo_cultivo) || 0,
+            id: Number(id), // Convertir ID a número
+            nombre_comun: data.nombre_comun.trim() || "",
+            nombre_cientifico: data.nombre_cientifico.trim() || "",
+            descripcion: data.descripcion.trim() || "",
+            fk_id_tipo_cultivo: data.fk_id_tipo_cultivo ? Number(data.fk_id_tipo_cultivo) : null, // Convertir a número o null
         };
 
-        console.log("🚀 Enviando datos al backend:", especieActualizada);
+        console.log("🚀 Enviando datos al backend:", especieActualizada); // Verifica los datos enviados
 
         actualizarEspecie.mutate(especieActualizada, {
             onSuccess: () => {
                 console.log("✅ Especie actualizada correctamente");
-                navigate("/especies");
+                navigate("/especies"); // Redirigir tras el éxito
             },
             onError: (error) => {
                 console.error("❌ Error al actualizar la especie:", error);
@@ -54,25 +57,25 @@ const ActualizarEspecie = () => {
     };
 
     if (isLoading) return <div className="text-gray-500">Cargando datos...</div>;
-    if (error) return <div className="text-red-500">Error al cargar los datos de la especie</div>;
+    if (error) return <div className="text-red-500">Error al cargar la especie</div>;
 
     console.log("📌 Estado actual de formData:", formData);
 
     return (
         <div className="max-w-4xl mx-auto p-4">
-            <Formulario
+            <Formulario 
                 fields={[
-                    { id: "nombre_comun", label: "Nombre Común", type: "text" },
-                    { id: "nombre_cientifico", label: "Nombre Científico", type: "text" },
-                    { id: "descripcion", label: "Descripción", type: "text" },
-                    { id: "fk_id_tipo_cultivo", label: "Tipo de Cultivo", type: "number" },
-                ]}
-                initialValues={formData} // Pasa los valores iniciales al formulario
-                onSubmit={handleSubmit}
-                isError={actualizarEspecie.isError}
+                    { id: 'nombre_comun', label: 'Nombre Común', type: 'text' },
+                    { id: 'nombre_cientifico', label: 'Nombre Científico', type: 'text' },
+                    { id: 'descripcion', label: 'Descripción', type: 'text' },
+                    { id: 'fk_id_tipo_cultivo', label: 'ID Tipo de Cultivo (Opcional)', type: 'number' },
+                ]} 
+                onSubmit={handleSubmit} 
+                isError={actualizarEspecie.isError} 
                 isSuccess={actualizarEspecie.isSuccess}
-                title="Actualizar Especie"
-                key={JSON.stringify(formData)} // Fuerza el re-render al cambiar los valores
+                title="Actualizar Especie"  
+                initialValues={formData}  
+                key={JSON.stringify(formData)} // Forzar re-render cuando cambien los datos
             />
         </div>
     );

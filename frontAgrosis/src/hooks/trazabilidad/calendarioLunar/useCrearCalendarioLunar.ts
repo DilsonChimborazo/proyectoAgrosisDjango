@@ -7,19 +7,19 @@ export interface CalendarioLunar {
     fecha: string;
     descripcion_evento: string;
     evento: string;
-
 }
 
 export const useCrearCalendarioLunar = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (nuevoCalendarioLunar: CalendarioLunar) => {
-            const { data } = await axios.post(`${apiUrl}calendario_lunar/`, nuevoCalendarioLunar);
+        mutationFn: async (nuevoCalendario: CalendarioLunar) => {
+            console.log("Datos enviados al backend:", nuevoCalendario);
+            const { data } = await axios.post(`${apiUrl}calendario_lunar/`, nuevoCalendario);
             return data;
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["calendario_lunar"] }); 
+            queryClient.invalidateQueries({ queryKey: ["CalendarioLunar"] }); // Actualización automática de datos
         },
     });
 };
