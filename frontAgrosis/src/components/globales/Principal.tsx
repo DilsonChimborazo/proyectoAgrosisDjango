@@ -190,18 +190,17 @@ export default function Principal({ children }: LayoutProps) {
           </div>
         </div>
 
-        <div
-          className="mt-16 p-6 transition-all duration-300"
-          style={{
-            backgroundImage: "url('/fondo.jpg')",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
-        >
-          <div style={{ minHeight: "100vh" }}>
+        <div className="mt-16 p-6 relative min-h-screen">
+          {/* Imagen de fondo con opacidad solo para la imagen */}
+          <div className="absolute inset-0" style={{ backgroundImage: "url('/fondo.jpg')", backgroundSize: "cover", backgroundPosition: "center", filter: "brightness(50%)" }}>
+          </div>
+
+          {/* Contenido sin opacidad */}
+          <div className="relative z-10">
             {children}
           </div>
         </div>
+
 
         <div className="bottom-0 left-0 w-full bg-green-700 text-white p-4 z-40 transition-all duration-300">
           <p className="text-center w-full">Agrosoft © 2025 Todos los derechos reservados.</p>

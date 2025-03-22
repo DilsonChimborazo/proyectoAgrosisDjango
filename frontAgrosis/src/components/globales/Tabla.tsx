@@ -57,7 +57,7 @@ const Tabla = <T extends { [key: string]: any }>({
       {filteredData.length === 0 ? (
         <div className="text-center text-gray-500 p-4">No se encontraron resultados.</div>
       ) : (
-        <table className="w-full border-collapse overflow-hidden">
+        <table className="w-full rounded-xl ">
           <thead>
             <tr className="bg-gradient-to-r from-green-700 to-green-700 text-white">
               {headers.map((header, index) => (
