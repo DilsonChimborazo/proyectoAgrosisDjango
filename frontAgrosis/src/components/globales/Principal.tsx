@@ -61,7 +61,7 @@ const menuItems = [
 ];
 
 export default function Principal({ children }: LayoutProps) {
-  const [usuario, setUsuario] = useState<{ nombre: string } | null>(null);
+  const [usuario, setUsuario] = useState<{ nombre: string, apellido: string} | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [active, setActive] = useState<string>("");
   const [openMenus, setOpenMenus] = useState<{ [key: string]: boolean }>({});
