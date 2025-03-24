@@ -1,8 +1,11 @@
 import { useState } from "react";
+
 import { useHerramientas } from "../../../hooks/inventario/herramientas/useHerramientas";
 import { useActualizarHerramientas } from "../../../hooks/inventario/herramientas/useActualizarHerramientas";
 import Formulario from "../../globales/Formulario";
 import { useNavigate } from "react-router-dom";
+
+
 
 
 const ActualizarHerramientas = () => {
@@ -30,6 +33,7 @@ const ActualizarHerramientas = () => {
             ...selectedHerramienta, // Mantiene los valores previos
             ...formData, // Reemplaza los nuevos datos
 
+
         };
 
         mutation.mutate(herramientaActualizada);
@@ -47,6 +51,7 @@ const ActualizarHerramientas = () => {
                         (h: any) => h.id_herramientas === Number(e.target.value)
                     );
                     setSelectedHerramienta(herramienta || null);
+
                 }}
             >
                 <option value="">Selecciona una herramienta</option>
@@ -79,7 +84,6 @@ const ActualizarHerramientas = () => {
                         Volver a Herramientas
                     </button>
                 </>
-
             )}
         </div>
     );
