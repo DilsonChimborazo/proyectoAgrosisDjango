@@ -5,7 +5,7 @@ import './styles/globals.css';
 
 import Login from "./components/usuarios/InicioSesion";
 import Principal from "./components/globales/Principal";
-import HomePage from "./pages/HomePage";
+import {HomePage} from "./pages/HomePage";
 import UsersPage from "./pages/usuarios/UsersPage";
 import CalendarPage from "./pages/trazabilidad/CalendarPage";
 import IOtPage from "./pages/iot/IotPage";

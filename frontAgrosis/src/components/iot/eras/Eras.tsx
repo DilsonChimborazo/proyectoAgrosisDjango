@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useEras } from '../../../hooks/iot/eras/useEras';
 import Tabla from '../../globales/Tabla';
 import VentanaModal from '../../globales/VentanasModales';
-import Button from "@/components/globales/Button";
 import { useNavigate } from "react-router-dom";
 
 const Eras = () => {
@@ -31,6 +30,10 @@ const handleRowClick = (eras: object) => {
     openModalHandler(eras);
 };
 
+const handleCreate = () => {
+    navigate("/crear-eras");
+  };
+
 if (isLoading) return <div>Cargando lotes...</div>;
 if (error instanceof Error) return <div>Error al cargar los lotes: {error.message}</div>;
 
@@ -47,17 +50,14 @@ const mappedEras = erasList.map((eras) => ({
 
 return (
     <div className="overflow-x-auto  rounded-lg">
-    <Button
-        text="Crear eras" 
-        onClick={() => navigate("/Crear-eras")} 
-        variant="green" 
-      />
     <Tabla
         title="Eras"
         headers={headers}
         data={mappedEras}
         onClickAction={handleRowClick}
         onUpdate={handleUpdate}
+        onCreate={handleCreate}
+        createButtonTitle="Crear"
     />
     {selectedLote && (
         <VentanaModal

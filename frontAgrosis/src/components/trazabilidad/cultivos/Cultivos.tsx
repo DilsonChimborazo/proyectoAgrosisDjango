@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useCultivo } from "../../../hooks/trazabilidad/cultivo/useCultivo";
 import VentanaModal from "../../globales/VentanasModales";
 import Tabla from "../../globales/Tabla";
-import Button from "../../globales/Button";
 import { useNavigate } from "react-router-dom";
 
 const Cultivos = () => {
@@ -27,6 +26,10 @@ const Cultivos = () => {
 
   const handleUpdate = (cultivo: { id: number }) => {
     navigate(`/actualizarcultivo/${cultivo.id}`);
+  };
+  
+  const handleCreate = () => {
+    navigate("/crearcultivo");
   };
 
   if (isLoading) return <div>Cargando cultivos...</div>;
@@ -59,19 +62,15 @@ const Cultivos = () => {
 
   return (
     <div className="overflow-x-auto  shadow-md rounded-lg">
-      <Button
-        text="Crear Cultivo"
-        className="mx-2"
-        onClick={() => navigate("/crearcultivo")}
-        variant="green"
-      />
-
       <Tabla
         title="Listar Cultivos"
         headers={[...headers]}
         data={mappedCultivos}
         onClickAction={handleRowClick}
         onUpdate={handleUpdate} 
+        onCreate={handleCreate}
+        createButtonTitle="Crear"
+        
       />
 
       {selectedCultivo && (

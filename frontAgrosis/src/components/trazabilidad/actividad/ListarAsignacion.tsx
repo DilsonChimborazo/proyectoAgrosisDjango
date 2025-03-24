@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { useAsignacion } from '../../../hooks/trazabilidad/asignacion/useAsignacion';
 import VentanaModal from '../../globales/VentanasModales';
 import Tabla from '../../globales/Tabla';
-import Button from '../../globales/Button';
 import { useNavigate } from 'react-router-dom';
 
 
@@ -29,6 +28,10 @@ const Asignaciones = () => {
     navigate(`/actualizarasignacion/${residuo.id}`);
   };
 
+  const handleCreate = () => {
+    navigate("/CrearAsignacion");
+  };
+
   if (isLoading) return <div className="text-center text-gray-500">Cargando...</div>;
 
   if (error) return <div className="text-center text-red-500">Error al cargar los datos: {error.message}</div>;
@@ -52,14 +55,15 @@ const Asignaciones = () => {
   const headers = ["ID", "Fecha", "Observaciones", "Actividad", "Usuario"];
 
   return (
-    <div className="mx-auto p-4">
-      <Button text="Crear Asignacion" className='mx-2' onClick={() => navigate("/CrearAsignacion") } variant="green" />
+    <div className="">
       <Tabla
         title="Lista de Asignaciones"
         headers={headers}
         data={tablaData}
         onClickAction={openModal}
         onUpdate={handleUpdate}
+        onCreate={handleCreate}
+        createButtonTitle="Crear"
       />
 
 

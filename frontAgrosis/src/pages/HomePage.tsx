@@ -20,9 +20,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Link } from "react-router-dom";
 
-export const HomePage = () => {
+
+const HomePage = () => {
   const { sensorData, sensors } = useMide();
   const [chartsData, setChartsData] = useState<{ [key: number]: any[] }>({});
   const [selectedSensorForChart, setSelectedSensorForChart] = useState<number | null>(null);
@@ -211,12 +211,7 @@ export const HomePage = () => {
                       <XAxis dataKey="fecha" />
                       <YAxis />
                       <Tooltip />
-                      <Line
-                        type="monotone"
-                        dataKey="valor"
-                        stroke="#82ca9d"
-                        activeDot={{ r: 8 }}
-                      />
+                      <Line type="monotone" dataKey="valor" stroke="#8884d8" />
                     </LineChart>
                   </ResponsiveContainer>
                 </CarouselItem>
@@ -226,77 +221,296 @@ export const HomePage = () => {
             <CarouselNext />
           </Carousel>
         ) : (
-          <p className="text-gray-500">No hay gráficos disponibles</p>
+          <p className="text-gray-500">No hay datos para mostrar gráficos</p>
         )}
       </div>
 
-      {/* Modal con Datos Históricos de Sensor */}
-      <Dialog open={!!selectedSensorForHistory}>
-        <DialogContent className="max-w-4xl w-full">
-          <DialogHeader>
-            <DialogTitle>
-              Datos Históricos de Sensor: {getSensorName(Number(selectedSensorForHistory))}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="flex justify-between mb-4">
-            <Select value={filterType} onValueChange={setFilterType}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filtrar por..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="day">Día</SelectItem>
-                <SelectItem value="week">Semana</SelectItem>
-                <SelectItem value="month">Mes</SelectItem>
-                <SelectItem value="year">Año</SelectItem>
-              </SelectContent>
-            </Select>
+      {/* Modal para gráficos */}
+      {selectedSensorForChart && (
+        <Dialog open={!!selectedSensorForChart} onOpenChange={() => setSelectedSensorForChart(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Gráfico de {getSensorName(selectedSensorForChart)}</DialogTitle>
+            </DialogHeader>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={chartsData[selectedSensorForChart] || []}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="fecha" />
+                <YAxis />
+                <Tooltip />
+                <Line type="monotone" dataKey="valor" stroke="#8884d8" />
+              </LineChart>
+            </ResponsiveContainer>
+          </DialogContent>
+        </Dialog>
+      )}
 
-            <Calendar selectedDate={selectedDate} onDateChange={setSelectedDate} />
-          </div>
+      {/* Modal para datos históricos */}
+      {selectedSensorForHistory && (
+        <Dialog open={!!selectedSensorForHistory} onOpenChange={() => setSelectedSensorForHistory(null)}>
+          <DialogContent className="max-w-4xl">
+            <DialogHeader>
+              <DialogTitle>Datos Históricos de {getSensorName(selectedSensorForHistory)}</DialogTitle>
+            </DialogHeader>
 
-          <div className="overflow-auto max-h-96">
-            <table className="w-full table-auto">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="px-4 py-2">Fecha</th>
-                  <th className="px-4 py-2">Valor</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paginatedData.length > 0 ? (
-                  paginatedData.map((row, index) => (
-                    <tr key={index} className="border-t">
-                      <td className="px-4 py-2">{row.fecha}</td>
-                      <td className="px-4 py-2">{row.valor}</td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={2} className="px-4 py-2 text-center">
-                      No hay datos disponibles
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+            {/* Filtros */}
+            <div className="flex space-x-4 mb-6">
+              <Select onValueChange={(value) => setFilterType(value as "day" | "week" | "month" | "year")}>
+                <SelectTrigger className="w-[150px]">
+                  <SelectValue placeholder="Filtrar por" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="day">Día</SelectItem>
+                  <SelectItem value="week">Semana</SelectItem>
+                  <SelectItem value="month">Mes</SelectItem>
+                  <SelectItem value="year">Año</SelectItem>
+                </SelectContent>
+              </Select>
 
-            <div className="flex justify-between items-center mt-4">
-              <Button
-                disabled={currentPage <= 1}
-                onClick={() => setCurrentPage(currentPage - 1)}
-              >
-                Anterior
-              </Button>
-              <Button
-                disabled={currentPage >= totalPages}
-                onClick={() => setCurrentPage(currentPage + 1)}
-              >
-                Siguiente
-              </Button>
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                className="rounded-md border"
+              />
             </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+
+            {/* Tabla de datos históricos con paginación */}
+            {filteredData.length > 0 ? (
+              <div>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full border-collapse">
+                    <thead>
+                      <tr>
+                        <th className="border-b p-4 text-left text-gray-700">Fecha</th>
+                        <th className="border-b p-4 text-left text-gray-700">Valor</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {paginatedData.map((data, index) => (
+                        <tr key={index} className="border-b">
+                          <td className="p-4">{data.fecha}</td>
+                          <td className="p-4">{data.valor}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Controles de paginación */}
+                <div className="flex justify-between items-center mt-4">
+                  <Button
+                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="bg-gray-600 text-white"
+                  >
+                    Anterior
+                  </Button>
+                  <p className="text-gray-600">
+                    Página {currentPage} de {totalPages}
+                  </p>
+                  <Button
+                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="bg-gray-600 text-white"
+                  >
+                    Siguiente
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <p className="text-gray-500">No hay datos disponibles para los filtros seleccionados.</p>
+            )}
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };
+
+const HistoricalDataPage = () => {
+  const { sensorData, sensors } = useMide();
+  const [selectedSensor, setSelectedSensor] = useState<number | null>(null);
+  const [filterType, setFilterType] = useState<"day" | "week" | "month" | "year">("day");
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [filteredData, setFilteredData] = useState<any[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 4; // Solo 4 filas por página
+  const maxPages = 3; // Máximo 3 páginas
+  const maxItems = itemsPerPage * maxPages; // Máximo 12 elementos (4 filas x 3 páginas)
+
+  
+
+  useEffect(() => {
+    console.log("📡 Datos de medición recibidos en HistoricalDataPage:", sensorData);
+    console.log("📊 Sensores obtenidos en HistoricalDataPage:", sensors);
+    console.log("📅 Fecha seleccionada:", selectedDate);
+    console.log("📌 Tipo de filtro:", filterType);
+    console.log("📌 Sensor seleccionado:", selectedSensor);
+
+    if (!sensorData || sensorData.length === 0 || !selectedSensor || !selectedDate) {
+      console.warn("⚠ Faltan datos para filtrar:", { sensorData, selectedSensor, selectedDate });
+      setFilteredData([]);
+      setCurrentPage(1);
+      return;
+    }
+
+    const filterData = () => {
+      const filtered = sensorData
+        .filter((reading) => reading.fk_id_sensor === selectedSensor)
+        .filter((reading) => {
+          const readingDate = new Date(reading.fecha_medicion);
+          if (isNaN(readingDate.getTime())) {
+            console.error("❌ Fecha inválida:", reading.fecha_medicion);
+            return false;
+          }
+          if (filterType === "day") {
+            return (
+              readingDate.getDate() === selectedDate.getDate() &&
+              readingDate.getMonth() === selectedDate.getMonth() &&
+              readingDate.getFullYear() === selectedDate.getFullYear()
+            );
+          } else if (filterType === "week") {
+            const startOfWeek = new Date(selectedDate);
+            startOfWeek.setDate(selectedDate.getDate() - selectedDate.getDay());
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6);
+            return readingDate >= startOfWeek && readingDate <= endOfWeek;
+          } else if (filterType === "month") {
+            return (
+              readingDate.getMonth() === selectedDate.getMonth() &&
+              readingDate.getFullYear() === selectedDate.getFullYear()
+            );
+          } else if (filterType === "year") {
+            return readingDate.getFullYear() === selectedDate.getFullYear();
+          }
+          return true;
+        })
+        .sort((a, b) => new Date(b.fecha_medicion).getTime() - new Date(a.fecha_medicion).getTime()) // Ordenar por fecha descendente (más reciente primero)
+        .slice(0, maxItems) // Limitar a un máximo de 12 elementos
+        .map((reading) => ({
+          fecha: new Date(reading.fecha_medicion).toLocaleString(),
+          valor: reading.valor_medicion,
+        }));
+
+      console.log("📊 Datos filtrados:", filtered);
+      setFilteredData(filtered);
+      setCurrentPage(1);
+    };
+
+    filterData();
+  }, [sensorData, selectedSensor, filterType, selectedDate]);
+
+  // Calcular los datos a mostrar en la página actual
+  const totalPages = Math.min(Math.ceil(filteredData.length / itemsPerPage), maxPages);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedData = filteredData.slice(startIndex, endIndex);
+
+  return (
+    <div className="p-6">
+      <h1 className="text-2xl font-bold text-green-700 mb-6">Datos Históricos</h1>
+
+      {/* Filtros */}
+      <div className="flex space-x-4 mb-6">
+        <Select onValueChange={(value) => setSelectedSensor(Number(value))}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="Seleccionar sensor" />
+          </SelectTrigger>
+          <SelectContent>
+            {sensors.map((sensor) => (
+              <SelectItem key={sensor.id} value={sensor.id.toString()}>
+                {sensor.nombre_sensor}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select onValueChange={(value) => setFilterType(value as "day" | "week" | "month" | "year")}>
+          <SelectTrigger className="w-[150px]">
+            <SelectValue placeholder="Filtrar por" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="day">Día</SelectItem>
+            <SelectItem value="week">Semana</SelectItem>
+            <SelectItem value="month">Mes</SelectItem>
+            <SelectItem value="year">Año</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Calendar
+          mode="single"
+          selected={selectedDate}
+          onSelect={setSelectedDate}
+          className="rounded-md border"
+        />
+      </div>
+
+      {/* Gráfico */}
+      <div className="bg-white shadow-md rounded-lg p-6 mb-6">
+        <h2 className="text-xl font-semibold text-green-700 mb-4">📊 Gráficos de Sensores y Mediciones</h2>
+        {filteredData.length > 0 ? (
+          <ResponsiveContainer width="100%" height={400}>
+            <LineChart data={filteredData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="fecha" />
+              <YAxis />
+              <Tooltip />
+              <Line type="monotone" dataKey="valor" stroke="#8884d8" />
+            </LineChart>
+          </ResponsiveContainer>
+        ) : (
+          <p className="text-gray-500">No hay datos disponibles para los filtros seleccionados.</p>
+        )}
+      </div>
+
+      {/* Lista de datos históricos con paginación */}
+      {filteredData.length > 0 && (
+        <div className="bg-white shadow-md rounded-lg p-6">
+          <h2 className="text-xl font-semibold text-green-700 mb-4">Lista de Mediciones</h2>
+          <div className="overflow-x-auto">
+            <table className="min-w-full border-collapse">
+              <thead>
+                <tr>
+                  <th className="border-b p-4 text-left text-gray-700">Fecha</th>
+                  <th className="border-b p-4 text-left text-gray-700">Valor</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedData.map((data, index) => (
+                  <tr key={index} className="border-b">
+                    <td className="p-4">{data.fecha}</td>
+                    <td className="p-4">{data.valor}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Controles de paginación */}
+          <div className="flex justify-between items-center mt-4">
+            <Button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="bg-gray-600 text-white"
+            >
+              Anterior
+            </Button>
+            <p className="text-gray-600">
+              Página {currentPage} de {totalPages}
+            </p>
+            <Button
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="bg-gray-600 text-white"
+            >
+              Siguiente
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export { HomePage, HistoricalDataPage };

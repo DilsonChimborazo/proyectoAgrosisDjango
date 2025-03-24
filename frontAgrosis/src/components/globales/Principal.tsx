@@ -1,8 +1,9 @@
-import { ReactNode, useState, useEffect} from "react";
+import { ReactNode, useState, useEffect } from "react";
 import { Button, Input } from "@heroui/react";
 import { Menu, Search, Bell as Notification, ChevronDown, ChevronUp } from "lucide-react";
 import { Home, User, Calendar, Map, Leaf, DollarSign, Bug, LogOut, Clipboard, Cpu } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+
 interface LayoutProps {
   children: ReactNode;
 }
@@ -25,10 +26,8 @@ const menuItems = [
     submenu: [
       { name: "Eras", path: "/eras" },
       { name: "Lotes", path: "/lotes" },
-
-      { name: "Cultivos", path: "/cultivos" },
-      { name: "Especies", path: "/especie" },
-
+      { name: "Cultivos", path: "/cultivo" },
+      { name: "Especies", path: "/especies" },
       { name: "Semilleros", path: "/semilleros" },
       { name: "Residuos", path: "/residuos" },
     ],
@@ -61,8 +60,8 @@ const menuItems = [
 ];
 
 export default function Principal({ children }: LayoutProps) {
-  const [usuario, setUsuario] = useState<{ nombre: string, apellido: string} | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [usuario, setUsuario] = useState<{ nombre: string; apellido: string } | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Cambiado a false para que el sidebar esté inactivo por defecto
   const [active, setActive] = useState<string>("");
   const [openMenus, setOpenMenus] = useState<{ [key: string]: boolean }>({});
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -80,10 +79,10 @@ export default function Principal({ children }: LayoutProps) {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("token"); 
-    localStorage.removeItem("user"); 
-    localStorage.removeItem("refreshToken"); 
-    navigate("/"); 
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("refreshToken");
+    navigate("/");
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -96,21 +95,25 @@ export default function Principal({ children }: LayoutProps) {
   };
 
   return (
-    <div className="flex h-screen w-full bg-fixed bg-cover bg-center" style={{ backgroundImage: "url('/frontAgrosis/public/fondo.jpg')" }}>
+    <div className="flex h-screen w-full overflow-x-hidden bg-fixed bg-cover bg-center" style={{ backgroundImage: "url('/fondo.jpg')" }}>
       <div
-        className={`bg-white p-4 flex flex-col w-64 h-full fixed top-0 left-0 z-50 border-t-4 border-r-4 rounded-tr-3xl transition-all duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-64"}`}
+        className={`bg-white p-2 sm:p-4 flex flex-col w-48 sm:w-64 h-full fixed top-0 left-0 z-50 border-t-4 border-r-4 rounded-tr-3xl transition-all duration-300 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-48 sm:-translate-x-64"
+        }`}
       >
         <div className="flex justify-between items-center">
-          <img src="/logo_proyecto-removebg-preview.png" alt="logo" width={180} />
+          <img src="/logo_proyecto-removebg-preview.png" alt="logo" width={150} className="sm:w-[180px]" />
         </div>
 
-        <nav className="mt-4 text-center text-lg flex-1 overflow-y-auto">
+        <nav className="mt-4 text-center text-base sm:text-lg flex-1 overflow-y-auto z-30">
           {menuItems.map((item) => (
             <div key={item.name}>
               {item.submenu ? (
                 <button
                   onClick={() => toggleMenu(item.name)}
-                  className={`flex items-center gap-3 w-full shadow-lg p-4 rounded-full transition-all duration-300 ${active === item.name ? "bg-gray-300 text-gray-800 shadow-inner" : "bg-white hover:bg-gray-200"} mb-2`}
+                  className={`flex items-center gap-3 w-full shadow-lg p-3 sm:p-4 rounded-full transition-all duration-300 ${
+                    active === item.name ? "bg-gray-300 text-gray-800 shadow-inner" : "bg-white hover:bg-gray-200"
+                  } mb-2`}
                 >
                   {item.icon}
                   <span className="flex-grow text-left">{item.name}</span>
@@ -119,7 +122,9 @@ export default function Principal({ children }: LayoutProps) {
               ) : (
                 <Link to={item.path} onClick={() => setActive(item.name)}>
                   <button
-                    className={`flex items-center gap-3 w-full shadow-lg p-4 rounded-full transition-all duration-300 ${active === item.name ? "bg-gray-300 text-gray-800 shadow-inner" : "bg-white hover:bg-gray-200"} mb-2`}
+                    className={`flex items-center gap-3 w-full shadow-lg p-3 sm:p-4 rounded-full transition-all duration-300 ${
+                      active === item.name ? "bg-gray-300 text-gray-800 shadow-inner" : "bg-white hover:bg-gray-200"
+                    } mb-2`}
                   >
                     {item.icon}
                     <span>{item.name}</span>
@@ -128,11 +133,13 @@ export default function Principal({ children }: LayoutProps) {
               )}
 
               {item.submenu && openMenus[item.name] && (
-                <div className="ml-6 mt-2">
+                <div className="ml-4 sm:ml-6 mt-2">
                   {item.submenu.map((subItem) => (
                     <Link to={subItem.path} key={subItem.name} onClick={() => setActive(subItem.name)}>
                       <button
-                        className={`block w-full text-left p-3 rounded-lg transition-all duration-300 ${active === subItem.name ? "bg-gray-200 text-gray-900" : "hover:bg-gray-100"}`}
+                        className={`block w-full text-left p-2 sm:p-3 rounded-lg transition-all duration-300 ${
+                          active === subItem.name ? "bg-gray-200 text-gray-900" : "hover:bg-gray-100"
+                        }`}
                       >
                         {subItem.name}
                       </button>
@@ -145,7 +152,7 @@ export default function Principal({ children }: LayoutProps) {
 
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 w-full shadow-lg p-4 rounded-full transition-all duration-300 bg-white hover:bg-red-500 text-black hover:text-white mt-28"
+            className="flex items-center gap-3 w-full shadow-lg p-3 sm:p-4 rounded-full transition-all duration-300 bg-white hover:bg-red-500 text-black hover:text-white mt-20 sm:mt-28"
           >
             <LogOut size={18} />
             <span>Cerrar sesión</span>
@@ -154,58 +161,71 @@ export default function Principal({ children }: LayoutProps) {
 
         <div className="mt-auto flex justify-center items-center">
           <div className="bottom-4 left-1/2 transform -translate-x-1/2">
-            <img src="/logoSena.png" alt="SENA" className="w-16" />
+            <img src="/logoSena.png" alt="SENA" className="w-12 sm:w-16" />
           </div>
         </div>
       </div>
 
-      <div className={`flex flex-col transition-all duration-300 w-full ${sidebarOpen ? "pl-64" : "pl-0"}`}>
-        <div className="fixed top-0 left-0 w-full bg-green-700 text-white p-4 flex justify-between items-center z-40 transition-all duration-300">
-          <div className={`flex items-center transition-all duration-300 ${sidebarOpen ? "ml-64" : "ml-0"}`}>
+      <div className={`flex flex-col transition-all duration-300 w-full ${sidebarOpen ? "pl-48 sm:pl-64" : "pl-0"}`}>
+        <div
+          className="fixed top-0 left-0 w-full bg-green-700 text-white p-2 sm:p-4 flex justify-between items-center z-40 transition-all duration-300"
+          style={{ zIndex: 40 }}
+        >
+          <div className={`flex items-center transition-all duration-300 ${sidebarOpen ? "ml-48 sm:ml-64" : "ml-0"}`}>
             <Button isIconOnly variant="light" className="text-white" onClick={() => setSidebarOpen(!sidebarOpen)}>
               <Menu size={20} />
             </Button>
             <form onSubmit={handleSearchSubmit}>
               <Input
-                className="hidden md:block w-64 ml-4"
+                className="w-48 sm:w-64 ml-2 border  rounded-md"
+                endContent={<Search size={20} className="ml-2" />}
                 placeholder="Buscar..."
-                endContent={<Search size={25} className="text-green-700" />}
                 value={searchQuery}
                 onChange={handleSearchChange}
               />
             </form>
           </div>
-          <div className="flex items-center space-x-4">
-            <Notification size={24} className="text-white" />
-            <p> | </p>
-            <User size={24} className="text-white" />
+          <div className="flex items-center space-x-2 sm:space-x-4">
+            <Notification size={20} className="text-white" />
+            <p className="hidden sm:block"> | </p>
+            <User size={20} className="text-white" />
             <span
-              className="text-white cursor-pointer hover:text-yellow-100"
+              className="text-white cursor-pointer hover:text-yellow-100 text-sm sm:text-base"
               onClick={() => navigate("/usuarios")}
-             >
-              {usuario ? `${usuario?.nombre || 'Nombre no disponible'} ${usuario?.apellido || 'Apellido no disponible'}` : "Usuario no identificado"}
-
-
+            >
+              {usuario
+                ? `${usuario?.nombre || "Nombre no disponible"} ${usuario?.apellido || "Apellido no disponible"}`
+                : "Usuario no identificado"}
             </span>
           </div>
         </div>
 
-        <div className="mt-16 p-6 relative min-h-screen">
+        <div className="mt-12 sm:mt-16 p-2 sm:p-6 relative min-h-screen">
           {/* Imagen de fondo con opacidad solo para la imagen */}
-          <div className="absolute inset-0" style={{ backgroundImage: "url('/fondo.jpg')", backgroundSize: "cover", backgroundPosition: "center", filter: "brightness(50%)" }}>
-          </div>
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: "url('/fondo.jpg')",
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              filter: "brightness(50%)",
+              zIndex: 0,
+            }}
+          ></div>
 
           {/* Contenido sin opacidad */}
-          <div className="relative z-10">
-            {children}
-          </div>
+          <div className="relative z-10">{children}</div>
         </div>
 
-
-        <div className="bottom-0 left-0 w-full bg-green-700 text-white p-4 z-40 transition-all duration-300">
-          <p className="text-center w-full">Agrosoft © 2025 Todos los derechos reservados.</p>
-          <p className="text-center w-full">Centro de Gestion y Desarrollo Surcolombiano </p>
-        </div>  
+        <div
+          className={`fixed bottom-0 left-0 bg-green-700 text-white p-2 z-30 transition-all duration-300 ${
+            sidebarOpen ? "pl-48 sm:pl-64" : "pl-0"
+          }`} // Añadí padding dinámico para el footer
+          style={{ width: sidebarOpen ? "calc(100% - 12rem)" : "100%", left: sidebarOpen ? "12rem" : "0" }} // Ajusté el ancho y la posición
+        >
+          <p className="text-center w-full text-xs sm:text-sm">Agrosoft © 2025 Todos los derechos reservados.</p>
+          <p className="text-center w-full text-xs sm:text-sm">Centro de Gestion y Desarrollo Surcolombiano</p>
+        </div>
       </div>
     </div>
   );

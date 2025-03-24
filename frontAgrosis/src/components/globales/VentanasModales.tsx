@@ -11,7 +11,7 @@ const VentanaModal: React.FC<VentanaModalProps> = ({ isOpen, onClose, contenido,
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-gray-500 bg-opacity-70 flex justify-center items-start z-50">
+    <div className="fixed inset-0 bg-gray-500 bg-opacity-70 flex justify-center items-start pt-20 ">
       <div className="bg-white p-8 rounded-xl shadow-lg w-96 max-w-lg">
         <h2 className="text-2xl font-semibold mb-4 text-gray-800">{titulo}</h2>
         <div className="space-y-2 text-gray-700">

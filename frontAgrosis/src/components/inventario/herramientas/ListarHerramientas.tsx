@@ -2,7 +2,6 @@ import { useHerramientas } from "@/hooks/inventario/herramientas/useHerramientas
 import  Tabla from '../../globales/Tabla';
 import {useState} from 'react';
 import VentanaModal from "../../globales/VentanasModales";
-import Button from "../../globales/Button";
 import {useNavigate} from 'react-router-dom';
 
 
@@ -26,6 +25,10 @@ const ListarHerramientas = () => {
     const handleUpdate = (residuo: { id: number }) => {
         navigate(`/ActualizarHerramienta/${residuo.id}`);
         };
+
+    const handleCreate = () => {
+        navigate("/CrearHerramientas");
+        };
     
 
     if (isLoading) return <div>Cargando herramientas...</div>
@@ -40,14 +43,14 @@ const ListarHerramientas = () => {
 
     return (
         <div >
-            <Button text= "Crear Herramienta" className="mx-2" onClick={()=> navigate("/crearHerramientas")} variant="green"/>
-
             <Tabla
                 title="Herramientas"
                 headers={["ID", "Nombre", "Estado", "Fecha Préstamo"]}
                 data={mappedHerramientas}
                 onClickAction={handleRowClick}
                 onUpdate={handleUpdate} 
+                onCreate={handleCreate}
+                createButtonTitle="Crear"
             />
             {selectedHerramientas && (
                 <VentanaModal

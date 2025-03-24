@@ -19,15 +19,6 @@ const Usuarios = () => {
     setEsAdministrador(usuario?.fk_id_rol?.rol === "Administrador");
   }, []);
 
-  const handleCrearUsuario = () => {
-    if (esAdministrador) {
-      navigate("/crearUsuarios");
-    } else {
-      setMensaje("No tienes permisos para crear usuarios.");
-      setTimeout(() => setMensaje(null), 3000);
-    }
-  };
-
   const openModalHandler = useCallback((usuario: Record<string, any>) => {
     setSelectedUser(usuario);
     setIsModalOpen(true);
@@ -35,6 +26,15 @@ const Usuarios = () => {
 
   const handleUpdate = (usuario: Record<string, any>) => {
     navigate(`/editarUsuario/${usuario.id}`);
+  };
+
+  const handleCreate = () => {
+    if (esAdministrador) {
+      navigate("/crearUsuarios");
+    }else {
+      setMensaje("No tienes permisos para crear usuarios.");
+      setTimeout(() => setMensaje(null), 3000);
+    }
   };
 
   const closeModal = useCallback(() => {
@@ -52,15 +52,6 @@ const Usuarios = () => {
           {mensaje}
         </div>
       )}
-
-      <button
-        onClick={handleCrearUsuario}
-        className={`px-4 py-2 rounded-lg mb-4 ${
-          esAdministrador ? "bg-green-600 text-white" : "bg-gray-400 text-gray-700 cursor-not-allowed"
-        }`}
-      >
-        + Crear Usuario
-      </button>
 
       {isLoading && <div className="text-center text-gray-500">Cargando usuarios...</div>}
 
@@ -88,6 +79,8 @@ const Usuarios = () => {
           }))}
           onClickAction={openModalHandler}
           onUpdate={handleUpdate}
+          onCreate={handleCreate}
+          createButtonTitle="crear"
         />
       )}
 

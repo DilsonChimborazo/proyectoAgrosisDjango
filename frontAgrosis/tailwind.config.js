@@ -8,11 +8,8 @@ module.exports = {
 	theme: {
 	  extend: {
 		borderRadius: {
-		  large: "var(--radius)", // Agrega el valor 'large' para que coincida con el estilo de los demás
-		  lg: "var(--radius)",
-		  md: "calc(var(--radius) - 2px)",
-		  sm: "calc(var(--radius) - 4px)",
-		  DEFAULT: "var(--radius)",
+			medium: "8px",
+		  	DEFAULT: "var(--radius)",
 		},
 		colors: {
 		  background: "hsl(var(--background))",
