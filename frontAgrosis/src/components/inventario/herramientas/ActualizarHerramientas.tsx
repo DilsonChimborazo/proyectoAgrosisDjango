@@ -6,8 +6,6 @@ import Formulario from "../../globales/Formulario";
 import { useNavigate } from "react-router-dom";
 
 
-
-
 const ActualizarHerramientas = () => {
     const { data: herramientas, isLoading, error } = useHerramientas();
     const mutation = useActualizarHerramientas();

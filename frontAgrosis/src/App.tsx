@@ -61,6 +61,7 @@ import ListarInsumos from "./components/inventario/insumos/Insumos";
 import ActualizarInsumos from "./components/inventario/insumos/ActualizarInsumos";
 
 
+
 const queryClient = new QueryClient();
 
 function App() {
@@ -97,10 +98,10 @@ function App() {
           <Route path="/insumos" element={<Principal><InsumoPage /></Principal>} />
           <Route path="/CrearInsumos" element={<Principal><CrearInsumos /></Principal>} />
           <Route path="/ActualizarInsumos" element={<Principal><ActualizarInsumos /></Principal>} />
-
           <Route path="/herramientas" element={<Principal><ListarHerramientas /></Principal>} />
           <Route path="/insumos" element={<Principal><ListarInsumos /></Principal>} />
           <Route path="/insumos" element={<Principal><ActualizarInsumo /></Principal>} />
+
 
           
           {/* Rutas módulo trazabilidad */}
