@@ -5,7 +5,7 @@ import './styles/globals.css';
 
 import Login from "./components/usuarios/InicioSesion";
 import Principal from "./components/globales/Principal";
-import {HomePage} from "./pages/HomePage";
+import {HomePage, HistoricalDataPage } from "./pages/HomePage";
 import UsersPage from "./pages/usuarios/UsersPage";
 import CalendarPage from "./pages/trazabilidad/CalendarPage";
 import IOtPage from "./pages/iot/IotPage";
@@ -86,6 +86,7 @@ function App() {
           <Route path="/eras" element={<Principal><ErasPage /></Principal>} />
           <Route path="/crear-eras" element={<Principal><CrearEras /></Principal>} />
           <Route path="/EditarEras/:id" element={<Principal><EditarEras /></Principal>} />
+          <Route path="/historical/:sensorId" element={<Principal><HistoricalDataPage /></Principal>}/>
           
           {/* Rutas módulo inventario */}
           <Route path="/herramientas" element={<Principal><HerramientasPage /></Principal>} />

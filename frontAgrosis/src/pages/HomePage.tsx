@@ -9,83 +9,265 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselPrevious,
-  CarouselNext,
-} from "@/components/ui/carousel";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
+// Íconos para los sensores
+const icons = {
+  temperatura: "🌡",
+  humedad: "💧",
+};
 
 const HomePage = () => {
   const { sensorData, sensors } = useMide();
   const [chartsData, setChartsData] = useState<{ [key: number]: any[] }>({});
-  const [selectedSensorForChart, setSelectedSensorForChart] = useState<number | null>(null);
-  const [selectedSensorForHistory, setSelectedSensorForHistory] = useState<number | null>(null);
-  const [filterType, setFilterType] = useState<"day" | "week" | "month" | "year">("day");
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [filteredData, setFilteredData] = useState<any[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 4; // Solo 4 filas por página
-  const maxPages = 3; // Máximo 3 páginas
-  const maxItems = itemsPerPage * maxPages; // Máximo 12 elementos (4 filas x 3 páginas)
+  const [realTimeData, setRealTimeData] = useState<{ [key: number]: { valor: number; fecha: string } }>({});
+  const [sensorDisplayData, setSensorDisplayData] = useState<any[]>([]);
+
+  // Cargar los sensores desde el backend (solo Temperatura y Humedad)
+  useEffect(() => {
+    if (!sensors || sensors.length === 0) {
+      console.warn("⚠ No se recibieron sensores del backend");
+      setSensorDisplayData([]);
+      return;
+    }
+
+    console.log("Sensores recibidos:", sensors); // Depuración para ver qué sensores llegan
+
+    const filteredSensors = sensors.filter((sensor) => {
+      const isTempOrHum = sensor.nombre_sensor === "Sensor de temperatura" || sensor.nombre_sensor === "Sensor de Humedad";
+      console.log(`Sensor: ${sensor.nombre_sensor}, Incluido: ${isTempOrHum}`); // Depuración
+      return isTempOrHum;
+    });
+
+    if (filteredSensors.length === 0) {
+      console.warn("⚠ No se encontraron sensores de Temperatura o Humedad");
+    }
+
+    const initialSensorData = filteredSensors.map((sensor) => {
+      let icon = sensor.nombre_sensor === "Sensor de Humedad" ? icons.humedad : icons.temperatura;
+      return {
+        id: sensor.id,
+        nombre: sensor.nombre_sensor,
+        valor: "Esperando datos...",
+        icon,
+      };
+    });
+
+    console.log("Datos iniciales de sensores:", initialSensorData); // Depuración
+    setSensorDisplayData(initialSensorData);
+  }, [sensors]);
+
+  // Conexión al WebSocket
+  useEffect(() => {
+    const ws = new WebSocket("ws://192.168.100.115:8000/ws/api/mide/");
+
+    ws.onopen = () => {
+      console.log("✅ Conectado al WebSocket");
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log("📡 Datos recibidos del WebSocket:", data);
+
+        if (!data.fk_id_sensor || !data.valor_medicion || !data.fecha_medicion) return;
+
+        setRealTimeData((prev) => ({
+          ...prev,
+          [data.fk_id_sensor]: {
+            valor: data.valor_medicion,
+            fecha: data.fecha_medicion,
+          },
+        }));
+
+        setSensorDisplayData((prev) =>
+          prev.map((sensor) => {
+            if (data.fk_id_sensor === sensor.id) {
+              let formattedValue = data.valor_medicion;
+              if (sensor.nombre === "Sensor de Temperatura") {
+                formattedValue = `${data.valor_medicion}°C`;
+              } else if (sensor.nombre === "Sensor de Humedad") {
+                formattedValue = `${data.valor_medicion}%`;
+              }
+              console.log(`Actualizando sensor ${sensor.nombre} con valor ${formattedValue}`); // Depuración
+              return { ...sensor, valor: formattedValue };
+            }
+            return sensor;
+          })
+        );
+
+        setChartsData((prev) => {
+          const sensorId = data.fk_id_sensor;
+          const fechaLegible = new Date(data.fecha_medicion).toLocaleTimeString();
+          const newDataPoint = {
+            fecha: fechaLegible,
+            valor: data.valor_medicion,
+          };
+
+          if (sensorId === 1 || sensorId === 2) {
+            const updatedData = [...(prev[sensorId] || []), newDataPoint];
+            if (updatedData.length > 50) updatedData.shift();
+            return { ...prev, [sensorId]: updatedData };
+          }
+          return prev;
+        });
+      } catch (error) {
+        console.error("⚠ Error al procesar datos del WebSocket:", error);
+      }
+    };
+
+    ws.onclose = () => {
+      console.log("⚠ Desconectado del WebSocket");
+    };
+
+    ws.onerror = (error) => {
+      console.error("⚠ Error en WebSocket:", error);
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, []);
+
+  // Preparar datos iniciales para gráficos
+  useEffect(() => {
+    if (!sensors?.length || !sensorData?.length) {
+      console.warn("⚠ No se recibieron datos de sensores o mediciones");
+      return;
+    }
+
+    const groupedData: { [key: number]: any[] } = {};
+    sensorData.forEach((reading) => {
+      const sensor = sensors.find((s) => s.id === reading.fk_id_sensor);
+      if (sensor && (sensor.nombre_sensor === "Sensor de Temperatura" || sensor.nombre_sensor === "Sensor de Humedad")) {
+        if (!groupedData[reading.fk_id_sensor]) {
+          groupedData[reading.fk_id_sensor] = [];
+        }
+        const fechaLegible = new Date(reading.fecha_medicion).toLocaleTimeString();
+        groupedData[reading.fk_id_sensor].push({
+          fecha: fechaLegible,
+          valor: reading.valor_medicion,
+          sensor: sensor.nombre_sensor,
+        });
+      }
+    });
+    console.log("Datos agrupados para gráficos:", groupedData); // Depuración
+    setChartsData(groupedData);
+  }, [sensorData, sensors]);
 
   const getSensorName = (sensorId: number) => {
     const sensor = sensors.find((s) => s.id === sensorId);
     return sensor ? sensor.nombre_sensor : "Sensor Desconocido";
   };
 
-  // Para los gráficos en el carrusel
+  return (
+    <div
+      className="p-6 min-h-screen"
+      style={{
+        backgroundImage: "url('https://images.unsplash.com/photo-1500595046743-ee5a024c7ac8?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        {sensorDisplayData.map((sensor) => (
+          <Link
+            to={`/historical/${sensor.id}`}
+            key={sensor.id}
+            className="bg-white shadow-md rounded-xl p-4 flex flex-col items-center cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+          >
+            <span className="text-3xl mb-1">{sensor.icon}</span>
+            <h3 className="text-sm font-semibold text-gray-800">{sensor.nombre}</h3>
+            <p className="text-lg font-bold text-blue-700">{sensor.valor}</p>
+          </Link>
+        ))}
+      </div>
+
+      <div className="bg-white shadow-md rounded-2xl p-6">
+        <h2 className="text-xl font-semibold text-gray-800 mb-4">📊 Gráficos de Sensores</h2>
+        {Object.keys(chartsData).length > 0 ? (
+          <Carousel>
+            <CarouselContent>
+              {Object.keys(chartsData).map((sensorId) => (
+                <CarouselItem key={sensorId}>
+                  <h3 className="text-lg font-semibold text-center mb-4">
+                    {getSensorName(Number(sensorId))}
+                  </h3>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={chartsData[Number(sensorId)] || []}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="fecha" />
+                      <YAxis />
+                      <Tooltip />
+                      <Line type="monotone" dataKey="valor" stroke="#8884d8" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious />
+            <CarouselNext />
+          </Carousel>
+        ) : (
+          <p className="text-gray-500">No hay datos para mostrar gráficos</p>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const HistoricalDataPage = () => {
+  const { sensorData, sensors } = useMide();
+  const { sensorId } = useParams();
+  const selectedSensor = Number(sensorId);
+  const [filterType, setFilterType] = useState<"day" | "week" | "month" | "year">("day");
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [filteredData, setFilteredData] = useState<any[]>([]);
+  const [chartsData, setChartsData] = useState<any[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [showFilters, setShowFilters] = useState(true);
+  const itemsPerPage = 4;
+  const maxPages = 3;
+  const maxItems = itemsPerPage * maxPages;
+  const navigate = useNavigate();
+
+  const getSensorName = (sensorId: number) => {
+    const sensor = sensors.find((s) => s.id === sensorId);
+    return sensor ? sensor.nombre_sensor : "Sensor Desconocido";
+  };
+
   useEffect(() => {
-    console.log("📊 Sensores obtenidos:", sensors);
-    console.log("📡 Datos de medición recibidos:", sensorData);
-
-    if (!sensors || sensors.length === 0) {
-      console.warn("⚠ No se recibieron datos de sensores");
-      return;
-    }
-    if (!sensorData || sensorData.length === 0) {
-      console.warn("⚠ No se recibieron datos de mediciones");
+    if (!sensors?.length || !sensorData?.length || !selectedSensor) {
+      setChartsData([]);
       return;
     }
 
-    const groupedData: { [key: number]: any[] } = {};
-    sensorData.forEach((reading) => {
-      if (!groupedData[reading.fk_id_sensor]) {
-        groupedData[reading.fk_id_sensor] = [];
-      }
-      const fechaLegible = new Date(reading.fecha_medicion).toLocaleTimeString();
-      groupedData[reading.fk_id_sensor].push({
-        fecha: fechaLegible,
+    const chartData = sensorData
+      .filter((reading) => reading.fk_id_sensor === selectedSensor)
+      .map((reading) => ({
+        fecha: new Date(reading.fecha_medicion).toLocaleTimeString(),
         valor: reading.valor_medicion,
-        sensor: getSensorName(reading.fk_id_sensor),
-      });
-    });
-    setChartsData(groupedData);
-  }, [sensorData, sensors]);
+      }));
+    setChartsData(chartData);
+  }, [sensorData, sensors, selectedSensor]);
 
-  // Para los datos históricos filtrados
   useEffect(() => {
-    if (!sensorData || sensorData.length === 0 || !selectedSensorForHistory || !selectedDate) {
+    if (!sensorData?.length || !selectedSensor || !selectedDate) {
       setFilteredData([]);
-      setCurrentPage(1); // Resetear la página al cambiar los filtros
+      setCurrentPage(1);
       return;
     }
 
     const filterData = () => {
       const filtered = sensorData
-        .filter((reading) => reading.fk_id_sensor === selectedSensorForHistory)
+        .filter((reading) => reading.fk_id_sensor === selectedSensor)
         .filter((reading) => {
           const readingDate = new Date(reading.fecha_medicion);
-          if (isNaN(readingDate.getTime())) {
-            console.error("❌ Fecha inválida:", reading.fecha_medicion);
-            return false;
-          }
+          if (isNaN(readingDate.getTime())) return false;
           if (filterType === "day") {
             return (
               readingDate.getDate() === selectedDate.getDate() &&
@@ -108,153 +290,51 @@ const HomePage = () => {
           }
           return true;
         })
-        .sort((a, b) => new Date(b.fecha_medicion).getTime() - new Date(a.fecha_medicion).getTime()) // Ordenar por fecha descendente (más reciente primero)
-        .slice(0, maxItems) // Limitar a un máximo de 12 elementos
+        .sort((a, b) => new Date(b.fecha_medicion).getTime() - new Date(a.fecha_medicion).getTime())
+        .slice(0, maxItems)
         .map((reading) => ({
           fecha: new Date(reading.fecha_medicion).toLocaleString(),
           valor: reading.valor_medicion,
         }));
 
       setFilteredData(filtered);
-      setCurrentPage(1); // Resetear la página al cambiar los filtros
+      setCurrentPage(1);
     };
 
     filterData();
-  }, [sensorData, selectedSensorForHistory, filterType, selectedDate]);
+  }, [sensorData, selectedSensor, filterType, selectedDate]);
 
-  // Calcular los datos a mostrar en la página actual
   const totalPages = Math.min(Math.ceil(filteredData.length / itemsPerPage), maxPages);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedData = filteredData.slice(startIndex, endIndex);
 
   return (
-    <div className="p-6">
-      {/* Sensores Activos */}
-      <div className="bg-white shadow-md rounded-lg p-6 mb-6">
-        <h2 className="text-xl font-semibold text-green-700 mb-4">📡 Sensores Activos</h2>
-        {sensors.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {sensors.map((sensor) => (
-              <div
-                key={sensor.id}
-                className="border rounded-lg p-4 flex justify-between items-center"
-              >
-                <div>
-                  <p className="font-semibold">{sensor.nombre_sensor}</p>
-                  <p className="text-green-600">Activo</p>
-                </div>
-                <div className="flex space-x-2">
-                  <Button
-                    onClick={() => setSelectedSensorForChart(sensor.id)}
-                    className="bg-green-600 text-white"
-                  >
-                    Ver Detalles
-                  </Button>
-                  <Button
-                    onClick={() => setSelectedSensorForHistory(sensor.id)}
-                    className="bg-blue-600 text-white"
-                  >
-                    Datos Históricos
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-gray-500">No hay sensores activos</p>
-        )}
-      </div>
+    <div className="p-6 bg-white min-h-screen">
+      <div className="flex flex-col space-y-6 pb-20">
+        <div>
+          <Button
+            onClick={() => navigate("/principal")}
+            className="bg-gray-600 text-white flex items-center space-x-2"
+          >
+            <span>⬅</span>
+            <span>Regresar</span>
+          </Button>
+        </div>
 
-      {/* Últimas Mediciones */}
-      <div className="bg-white shadow-md rounded-lg p-6 mb-6">
-        <h2 className="text-xl font-semibold text-green-700 mb-4">🌡 Últimas Mediciones</h2>
-        {sensorData.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {sensors.map((sensor) => {
-              const latestReading = sensorData
-                .filter((r) => r.fk_id_sensor === sensor.id)
-                .slice(-1)[0];
-              return (
-                <div key={sensor.id} className="border rounded-lg p-4">
-                  <p className="font-semibold">{sensor.nombre_sensor}</p>
-                  <p className="text-blue-600 font-medium">
-                    {latestReading?.valor_medicion ?? "--"}{" "}
-                    {sensor.nombre_sensor.includes("Temperatura") ? "°C" : "%"}
-                  </p>
-                  <p className="text-gray-500 text-sm">
-                    {latestReading ? new Date(latestReading.fecha_medicion).toLocaleTimeString() : "--"}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <p className="text-gray-500">No hay mediciones disponibles</p>
-        )}
-      </div>
+        <h1 className="text-2xl font-bold text-gray-800">
+          Datos Históricos de {getSensorName(selectedSensor)}
+        </h1>
 
-      {/* Gráficos en Carrusel */}
-      <div className="bg-white shadow-md rounded-lg p-6 mb-6">
-        <h2 className="text-xl font-semibold text-green-700 mb-4">📊 Gráficos de Sensores y Mediciones</h2>
-        {Object.keys(chartsData).length > 0 ? (
-          <Carousel>
-            <CarouselContent>
-              {Object.keys(chartsData).map((sensorId) => (
-                <CarouselItem key={sensorId}>
-                  <h3 className="text-lg font-semibold text-center mb-4">
-                    {getSensorName(Number(sensorId))}
-                  </h3>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={chartsData[Number(sensorId)]}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="fecha" />
-                      <YAxis />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="valor" stroke="#8884d8" />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious />
-            <CarouselNext />
-          </Carousel>
-        ) : (
-          <p className="text-gray-500">No hay datos para mostrar gráficos</p>
-        )}
-      </div>
-
-      {/* Modal para gráficos */}
-      {selectedSensorForChart && (
-        <Dialog open={!!selectedSensorForChart} onOpenChange={() => setSelectedSensorForChart(null)}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Gráfico de {getSensorName(selectedSensorForChart)}</DialogTitle>
-            </DialogHeader>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={chartsData[selectedSensorForChart] || []}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="fecha" />
-                <YAxis />
-                <Tooltip />
-                <Line type="monotone" dataKey="valor" stroke="#8884d8" />
-              </LineChart>
-            </ResponsiveContainer>
-          </DialogContent>
-        </Dialog>
-      )}
-
-      {/* Modal para datos históricos */}
-      {selectedSensorForHistory && (
-        <Dialog open={!!selectedSensorForHistory} onOpenChange={() => setSelectedSensorForHistory(null)}>
-          <DialogContent className="max-w-4xl">
-            <DialogHeader>
-              <DialogTitle>Datos Históricos de {getSensorName(selectedSensorForHistory)}</DialogTitle>
-            </DialogHeader>
-
-            {/* Filtros */}
-            <div className="flex space-x-4 mb-6">
+        <div>
+          <Button
+            onClick={() => setShowFilters(!showFilters)}
+            className="bg-blue-600 text-white mb-4"
+          >
+            {showFilters ? "Ocultar Filtros" : "Mostrar Filtros"}
+          </Button>
+          {showFilters && (
+            <div className="flex space-x-4">
               <Select onValueChange={(value) => setFilterType(value as "day" | "week" | "month" | "year")}>
                 <SelectTrigger className="w-[150px]">
                   <SelectValue placeholder="Filtrar por" />
@@ -274,241 +354,74 @@ const HomePage = () => {
                 className="rounded-md border"
               />
             </div>
-
-            {/* Tabla de datos históricos con paginación */}
-            {filteredData.length > 0 ? (
-              <div>
-                <div className="overflow-x-auto">
-                  <table className="min-w-full border-collapse">
-                    <thead>
-                      <tr>
-                        <th className="border-b p-4 text-left text-gray-700">Fecha</th>
-                        <th className="border-b p-4 text-left text-gray-700">Valor</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {paginatedData.map((data, index) => (
-                        <tr key={index} className="border-b">
-                          <td className="p-4">{data.fecha}</td>
-                          <td className="p-4">{data.valor}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Controles de paginación */}
-                <div className="flex justify-between items-center mt-4">
-                  <Button
-                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
-                    className="bg-gray-600 text-white"
-                  >
-                    Anterior
-                  </Button>
-                  <p className="text-gray-600">
-                    Página {currentPage} de {totalPages}
-                  </p>
-                  <Button
-                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                    disabled={currentPage === totalPages}
-                    className="bg-gray-600 text-white"
-                  >
-                    Siguiente
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <p className="text-gray-500">No hay datos disponibles para los filtros seleccionados.</p>
-            )}
-          </DialogContent>
-        </Dialog>
-      )}
-    </div>
-  );
-};
-
-const HistoricalDataPage = () => {
-  const { sensorData, sensors } = useMide();
-  const [selectedSensor, setSelectedSensor] = useState<number | null>(null);
-  const [filterType, setFilterType] = useState<"day" | "week" | "month" | "year">("day");
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [filteredData, setFilteredData] = useState<any[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 4; // Solo 4 filas por página
-  const maxPages = 3; // Máximo 3 páginas
-  const maxItems = itemsPerPage * maxPages; // Máximo 12 elementos (4 filas x 3 páginas)
-
-  
-
-  useEffect(() => {
-    console.log("📡 Datos de medición recibidos en HistoricalDataPage:", sensorData);
-    console.log("📊 Sensores obtenidos en HistoricalDataPage:", sensors);
-    console.log("📅 Fecha seleccionada:", selectedDate);
-    console.log("📌 Tipo de filtro:", filterType);
-    console.log("📌 Sensor seleccionado:", selectedSensor);
-
-    if (!sensorData || sensorData.length === 0 || !selectedSensor || !selectedDate) {
-      console.warn("⚠ Faltan datos para filtrar:", { sensorData, selectedSensor, selectedDate });
-      setFilteredData([]);
-      setCurrentPage(1);
-      return;
-    }
-
-    const filterData = () => {
-      const filtered = sensorData
-        .filter((reading) => reading.fk_id_sensor === selectedSensor)
-        .filter((reading) => {
-          const readingDate = new Date(reading.fecha_medicion);
-          if (isNaN(readingDate.getTime())) {
-            console.error("❌ Fecha inválida:", reading.fecha_medicion);
-            return false;
-          }
-          if (filterType === "day") {
-            return (
-              readingDate.getDate() === selectedDate.getDate() &&
-              readingDate.getMonth() === selectedDate.getMonth() &&
-              readingDate.getFullYear() === selectedDate.getFullYear()
-            );
-          } else if (filterType === "week") {
-            const startOfWeek = new Date(selectedDate);
-            startOfWeek.setDate(selectedDate.getDate() - selectedDate.getDay());
-            const endOfWeek = new Date(startOfWeek);
-            endOfWeek.setDate(startOfWeek.getDate() + 6);
-            return readingDate >= startOfWeek && readingDate <= endOfWeek;
-          } else if (filterType === "month") {
-            return (
-              readingDate.getMonth() === selectedDate.getMonth() &&
-              readingDate.getFullYear() === selectedDate.getFullYear()
-            );
-          } else if (filterType === "year") {
-            return readingDate.getFullYear() === selectedDate.getFullYear();
-          }
-          return true;
-        })
-        .sort((a, b) => new Date(b.fecha_medicion).getTime() - new Date(a.fecha_medicion).getTime()) // Ordenar por fecha descendente (más reciente primero)
-        .slice(0, maxItems) // Limitar a un máximo de 12 elementos
-        .map((reading) => ({
-          fecha: new Date(reading.fecha_medicion).toLocaleString(),
-          valor: reading.valor_medicion,
-        }));
-
-      console.log("📊 Datos filtrados:", filtered);
-      setFilteredData(filtered);
-      setCurrentPage(1);
-    };
-
-    filterData();
-  }, [sensorData, selectedSensor, filterType, selectedDate]);
-
-  // Calcular los datos a mostrar en la página actual
-  const totalPages = Math.min(Math.ceil(filteredData.length / itemsPerPage), maxPages);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedData = filteredData.slice(startIndex, endIndex);
-
-  return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold text-green-700 mb-6">Datos Históricos</h1>
-
-      {/* Filtros */}
-      <div className="flex space-x-4 mb-6">
-        <Select onValueChange={(value) => setSelectedSensor(Number(value))}>
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Seleccionar sensor" />
-          </SelectTrigger>
-          <SelectContent>
-            {sensors.map((sensor) => (
-              <SelectItem key={sensor.id} value={sensor.id.toString()}>
-                {sensor.nombre_sensor}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select onValueChange={(value) => setFilterType(value as "day" | "week" | "month" | "year")}>
-          <SelectTrigger className="w-[150px]">
-            <SelectValue placeholder="Filtrar por" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="day">Día</SelectItem>
-            <SelectItem value="week">Semana</SelectItem>
-            <SelectItem value="month">Mes</SelectItem>
-            <SelectItem value="year">Año</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Calendar
-          mode="single"
-          selected={selectedDate}
-          onSelect={setSelectedDate}
-          className="rounded-md border"
-        />
-      </div>
-
-      {/* Gráfico */}
-      <div className="bg-white shadow-md rounded-lg p-6 mb-6">
-        <h2 className="text-xl font-semibold text-green-700 mb-4">📊 Gráficos de Sensores y Mediciones</h2>
-        {filteredData.length > 0 ? (
-          <ResponsiveContainer width="100%" height={400}>
-            <LineChart data={filteredData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="fecha" />
-              <YAxis />
-              <Tooltip />
-              <Line type="monotone" dataKey="valor" stroke="#8884d8" />
-            </LineChart>
-          </ResponsiveContainer>
-        ) : (
-          <p className="text-gray-500">No hay datos disponibles para los filtros seleccionados.</p>
-        )}
-      </div>
-
-      {/* Lista de datos históricos con paginación */}
-      {filteredData.length > 0 && (
-        <div className="bg-white shadow-md rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-green-700 mb-4">Lista de Mediciones</h2>
-          <div className="overflow-x-auto">
-            <table className="min-w-full border-collapse">
-              <thead>
-                <tr>
-                  <th className="border-b p-4 text-left text-gray-700">Fecha</th>
-                  <th className="border-b p-4 text-left text-gray-700">Valor</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paginatedData.map((data, index) => (
-                  <tr key={index} className="border-b">
-                    <td className="p-4">{data.fecha}</td>
-                    <td className="p-4">{data.valor}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Controles de paginación */}
-          <div className="flex justify-between items-center mt-4">
-            <Button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="bg-gray-600 text-white"
-            >
-              Anterior
-            </Button>
-            <p className="text-gray-600">
-              Página {currentPage} de {totalPages}
-            </p>
-            <Button
-              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
-              className="bg-gray-600 text-white"
-            >
-              Siguiente
-            </Button>
-          </div>
+          )}
         </div>
-      )}
+
+        <div className="bg-white shadow-md rounded-2xl p-6">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">📋 Datos Históricos</h2>
+          {filteredData.length > 0 ? (
+            <div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full border-collapse">
+                  <thead>
+                    <tr>
+                      <th className="border-b p-4 text-left text-gray-700">Fecha</th>
+                      <th className="border-b p-4 text-left text-gray-700">Valor</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginatedData.map((data, index) => (
+                      <tr key={index} className="border-b">
+                        <td className="p-4">{data.fecha}</td>
+                        <td className="p-4">{data.valor}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="flex justify-between items-center mt-4">
+                <Button
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="bg-gray-600 text-white"
+                >
+                  Anterior
+                </Button>
+                <p className="text-gray-600">
+                  Página {currentPage} de {totalPages}
+                </p>
+                <Button
+                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="bg-gray-600 text-white"
+                >
+                  Siguiente
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <p className="text-gray-500">No hay datos disponibles para los filtros seleccionados.</p>
+          )}
+        </div>
+
+        <div className="bg-white shadow-md rounded-2xl p-6">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">📊 Gráfico del Sensor</h2>
+          {chartsData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={chartsData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="fecha" />
+                <YAxis />
+                <Tooltip />
+                <Line type="monotone" dataKey="valor" stroke="#8884d8" />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-gray-500">No hay datos para mostrar el gráfico</p>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
