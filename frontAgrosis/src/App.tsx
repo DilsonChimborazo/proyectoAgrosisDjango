@@ -5,7 +5,8 @@ import './styles/globals.css';
 
 import Login from "./components/usuarios/InicioSesion";
 import Principal from "./components/globales/Principal";
-import {HomePage, HistoricalDataPage } from "./pages/HomePage";
+import  {HomePage}  from "./pages/HomePage"; // Importación corregida
+import HistoricalDataPage from "./pages/HistoricalDataPage"
 import UsersPage from "./pages/usuarios/UsersPage";
 import CalendarPage from "./pages/trazabilidad/CalendarPage";
 import IOtPage from "./pages/iot/IotPage";
@@ -31,7 +32,7 @@ import VentaPage from "./pages/finanzas/venta/VentaPage";
 import CrearVentaPage from "./pages/finanzas/venta/CrearVentaPage";
 import CrearInsumos from "./components/inventario/insumos/CrearInsumos";
 import CrearHerramientas from "./components/inventario/herramientas/CrearHerramientas";
-import CrearAsignacion  from "./components/trazabilidad/actividad/CrearAsignacion";
+import CrearAsignacion from "./components/trazabilidad/actividad/CrearAsignacion";
 import CrearCultivo from "./components/trazabilidad/cultivos/CrearCultivos";
 import CrearResiduo from "./components/trazabilidad/residuos/CrearResiduo";
 import CrearPea from "./components/trazabilidad/peas/CrearPea";
@@ -39,7 +40,7 @@ import CrearControlFitosanitario from "./components/trazabilidad/control/CrearCo
 import ActualizarCultivo from "./components/trazabilidad/cultivos/ActualizarCultivo";
 import EditarResiduo from "./components/trazabilidad/residuos/ActualizarResiduo";
 import ActualizarPea from "./components/trazabilidad/peas/ActualizarPea";
-import ActualizarControlFitosanitario from "./components/trazabilidad/control/ActualizarControlFitosanitario"
+import ActualizarControlFitosanitario from "./components/trazabilidad/control/ActualizarControlFitosanitario";
 import CrearProduccionPage from "./pages/finanzas/produccion/CrearProduccionPage";
 import ActualizarProduccionPage from "./pages/finanzas/produccion/ActualizarProduccionPage";
 import CrearEras from "./components/iot/eras/CrearEras";
@@ -48,15 +49,14 @@ import CrearLote from "./components/iot/lotes/CrearLote";
 import EditarLote from "./components/iot/lotes/EditarLote";
 import EditarSensor from "./components/iot/sensores/EditarSensores";
 import ActualizarHerramientas from "./components/inventario/herramientas/ActualizarHerramientas";
-import CrearCalendarioLunar from "./components/trazabilidad/calendarioLunar/CrearCalendarioLunar"
+import CrearCalendarioLunar from "./components/trazabilidad/calendarioLunar/CrearCalendarioLunar";
 import CrearEspecie from "./components/trazabilidad/especie/CrearEspecie";
 import CrearSemillero from "./components/trazabilidad/semillero/CrearSemillero";
 import ActualizarCalendarioLunar from "./components/trazabilidad/calendarioLunar/ActualizarCalendario";
-import ActualizarEspecie from "./components/trazabilidad/especie/ActualizarEspecie"
-import ActualizarSemillero from "./components/trazabilidad/semillero/ActualizarSemillero"
+import ActualizarEspecie from "./components/trazabilidad/especie/ActualizarEspecie";
+import ActualizarSemillero from "./components/trazabilidad/semillero/ActualizarSemillero";
 import ActualizarVentaPage from "./pages/finanzas/venta/ActualizarVentaPage";
 import ActualizarInsumo from "./components/inventario/insumos/ActualizarInsumos";
-
 
 const queryClient = new QueryClient();
 
@@ -74,10 +74,9 @@ function App() {
           <Route path="/crearUsuarios" element={<Principal><CrearUsuario /></Principal>} />
           <Route path="/editarUsuario/:id" element={<Principal><ActualizarUsuario/></Principal>} />
 
-
-
           {/* Rutas módulo IOT */}
           <Route path="/iot" element={<Principal><IOtPage /></Principal>} />
+          <Route path="/iot/principal" element={<Principal><HomePage /></Principal>} />
           <Route path="/crear-sensor" element={<Principal><CrearSensor /></Principal>} />
           <Route path="/EditarSensor/:id" element={<Principal><EditarSensor /></Principal>} />
           <Route path="/lotes" element={<Principal><LotesPage /></Principal>} />
@@ -86,7 +85,7 @@ function App() {
           <Route path="/eras" element={<Principal><ErasPage /></Principal>} />
           <Route path="/crear-eras" element={<Principal><CrearEras /></Principal>} />
           <Route path="/EditarEras/:id" element={<Principal><EditarEras /></Principal>} />
-          <Route path="/historical/:sensorId" element={<Principal><HistoricalDataPage /></Principal>}/>
+          <Route path="/historical/:sensorId" element={<Principal><HistoricalDataPage /></Principal>} />
           
           {/* Rutas módulo inventario */}
           <Route path="/herramientas" element={<Principal><HerramientasPage /></Principal>} />
@@ -116,8 +115,6 @@ function App() {
           <Route path="/CrearEspecie" element={<Principal><CrearEspecie/></Principal>}/>
           <Route path="/CrearSemillero" element={<Principal><CrearSemillero/></Principal>}/>
 
-
-
           <Route path="/actualizarCalendarioLunar/:id" element={<Principal><ActualizarCalendarioLunar/></Principal>}/>
           <Route path="/actualizarEspecie/:id" element={<Principal><ActualizarEspecie/></Principal>}/>
           <Route path="/actualizarSemillero/:id" element={<Principal><ActualizarSemillero/></Principal>}/>
@@ -139,9 +136,8 @@ function App() {
           {/* Ruta por defecto para manejar errores 404 */}
           <Route path="*" element={<h1>404 - Página no encontrada</h1>} />
         </Routes>
-    </QueryClientProvider>
-  </HeroUIProvider>
-
+      </QueryClientProvider>
+    </HeroUIProvider>
   );
 }
 
