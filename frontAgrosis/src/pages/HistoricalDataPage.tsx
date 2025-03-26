@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useMide } from "../hooks/iot/mide/useMide";
+import { useMideBySensorId, Mide, Sensor } from "../hooks/iot/mide/useMideBySensorId";
 import {
   LineChart,
   Line,
@@ -19,91 +19,76 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useNavigate, useParams } from "react-router-dom";
-import Tabla from "../components/globales/Tabla"; // Importamos el componente Tabla
+import Tabla from "../components/globales/Tabla";
+
+// Interfaces para tipado
+interface ChartDataPoint {
+  fecha: string;
+  valor: number;
+}
+
+interface TableData {
+  id: number;
+  fecha: string;
+  valor: number;
+  unidad: string;
+}
 
 const HistoricalDataPage = () => {
-  const { sensorData, sensors } = useMide();
   const { sensorId } = useParams();
   const selectedSensor = Number(sensorId);
+  const { readings: sensorReadings, sensor, isLoading, error } = useMideBySensorId(selectedSensor);
   const [filterType, setFilterType] = useState<"day" | "week" | "month" | "year">("day");
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [filteredData, setFilteredData] = useState<any[]>([]);
-  const [chartsData, setChartsData] = useState<any[]>([]);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined); // Sin fecha inicial
+  const [filteredData, setFilteredData] = useState<TableData[]>([]);
+  const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
   const [showFilters, setShowFilters] = useState(true);
   const navigate = useNavigate();
 
-  // Obtener el nombre del sensor
-  const getSensorName = (sensorId: number) => {
-    const sensor = sensors.find((s) => s.id === sensorId);
+  // Obtener nombre del sensor
+  const getSensorName = () => {
     return sensor ? sensor.nombre_sensor : "Sensor Desconocido";
   };
 
-  // Obtener la unidad de medida del sensor
-  const getSensorUnit = (sensorId: number) => {
-    const sensor = sensors.find((s) => s.id === sensorId);
-    switch (sensor?.tipo_sensor.toLowerCase()) {
-      case "temperatura":
-        return "°C";
-      case "humedad":
-        return "%";
-      case "luz":
-        return "lux";
-      case "viento":
-        return "m/s";
-      case "presion":
-        return "hPa";
-      case "aire":
-        return "ppm";
-      default:
-        return "";
-    }
+  // Obtener unidad del sensor
+  const getSensorUnit = () => {
+    return sensor?.unidad_medida || "";
   };
 
-  // Procesar datos históricos y en tiempo real
+  // Filtrar datos históricos y preparar datos para tabla y gráfico
   useEffect(() => {
-    console.log("📊 sensorData recibido en HistoricalDataPage:", sensorData);
-    console.log("📊 Sensor seleccionado (ID):", selectedSensor);
+    // Depuración: Verificar datos de entrada
+    console.log("sensorReadings:", sensorReadings);
+    console.log("selectedSensor:", selectedSensor);
+    console.log("sensor:", sensor);
 
-    if (!sensorData?.length || !selectedSensor) {
-      console.log("⚠ No hay datos o sensor seleccionado:", { sensorData, selectedSensor });
+    if (!sensorReadings?.length || !selectedSensor) {
+      console.log("No hay datos o sensor no válido");
       setFilteredData([]);
-      setChartsData([]);
+      setChartData([]);
       return;
     }
 
-    // Procesar datos para gráficos y tabla
-    const sensorReadings = sensorData
-      .filter((reading) => {
-        const matchesSensor = reading.fk_id_sensor === selectedSensor;
-        if (!matchesSensor) {
-          console.log(`⚠ Dato descartado (no coincide con el sensor ${selectedSensor}):`, reading);
-        }
-        return matchesSensor;
-      })
-      .map((reading) => {
+    // Transformar las lecturas en el formato necesario
+    const formattedReadings = sensorReadings
+      .map((reading: Mide) => {
         const fecha = new Date(reading.fecha_medicion);
-        console.log(`📅 Procesando fecha para dato: ${reading.fecha_medicion} -> ${fecha.toISOString()}`);
         return {
-          id: `${reading.fk_id_sensor}-${reading.fecha_medicion}`, // ID único para la tabla
+          id: reading.id,
           fecha: fecha.toLocaleString(),
-          fechaRaw: fecha,
           valor: Number(reading.valor_medicion),
-          unidad: getSensorUnit(selectedSensor),
+          unidad: getSensorUnit(),
         };
       })
-      .sort((a, b) => a.fechaRaw.getTime() - b.fechaRaw.getTime());
+      .sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
 
-    console.log("📊 Datos procesados para el sensor:", sensorReadings);
+    console.log("formattedReadings:", formattedReadings);
 
-    // Datos para el gráfico (mostrar todos los datos en tiempo real)
-    setChartsData(sensorReadings);
-
-    // Filtrar datos para la tabla según el tipo de filtro y la fecha seleccionada
-    let filtered = sensorReadings;
+    // Aplicar filtros de fecha solo si hay una fecha seleccionada
+    let filtered = formattedReadings;
     if (selectedDate) {
-      filtered = sensorReadings.filter((reading) => {
-        const readingDate = reading.fechaRaw;
-        console.log(`📅 Filtrando dato: ${readingDate.toISOString()} (filtro: ${selectedDate.toISOString()})`);
+      filtered = formattedReadings.filter((reading) => {
+        const readingDate = new Date(reading.fecha);
         if (filterType === "day") {
           return (
             readingDate.getDate() === selectedDate.getDate() &&
@@ -128,30 +113,29 @@ const HistoricalDataPage = () => {
       });
     }
 
-    console.log("📊 Datos filtrados para la tabla:", filtered);
+    console.log("filtered:", filtered);
+
+    // Preparar datos para la tabla
     setFilteredData(filtered);
-  }, [sensorData, selectedSensor, filterType, selectedDate]);
 
-  // Funciones para las acciones de la tabla
-  const handleRowClick = (row: any) => {
-    console.log("Ver detalles de la fila:", row);
-    // Aquí puedes implementar una acción, como mostrar más detalles en un modal
-  };
+    // Preparar datos para el gráfico
+    const chartFormattedData = filtered.map((reading) => ({
+      fecha: new Date(reading.fecha).toLocaleTimeString(),
+      valor: reading.valor,
+    }));
+    setChartData(chartFormattedData);
 
-  const handleUpdate = (row: any) => {
-    console.log("Actualizar fila:", row);
-    // Aquí puedes implementar una acción para actualizar el dato
-  };
+    console.log("chartData:", chartFormattedData);
+  }, [sensorReadings, selectedSensor, filterType, selectedDate, sensor]);
 
-  const handleCreate = () => {
-    console.log("Crear nuevo dato");
-    // Aquí puedes implementar una acción para crear un nuevo dato
-  };
+  // Manejo de errores y carga
+  if (isLoading) return <p className="text-center text-gray-500">Cargando datos...</p>;
+  if (error) return <p className="text-center text-red-500">Error al cargar los datos: {error.message}</p>;
+  if (!sensor) return <p className="text-center text-red-500">Sensor no encontrado</p>;
 
   return (
     <div className="p-6 bg-white min-h-screen">
       <div className="flex flex-col space-y-6 pb-20">
-        {/* Botón de regreso */}
         <span
           onClick={() => navigate("/principal")}
           className="text-green-600 text-2xl cursor-pointer"
@@ -159,80 +143,76 @@ const HistoricalDataPage = () => {
           ⬅
         </span>
 
-        {/* Título de la página */}
         <h1 className="text-2xl font-bold text-green-600">
-          Datos Históricos de {getSensorName(selectedSensor)}
+          Datos Históricos de {getSensorName()}
         </h1>
 
-        {/* Filtros de fecha */}
-        <div>
-          <Button
-            onClick={() => setShowFilters(!showFilters)}
-            className="bg-green-600 text-white mb-4"
-          >
-            {showFilters ? "Ocultar Filtros" : "Mostrar Filtros"}
-          </Button>
-          {showFilters && (
-            <div className="flex space-x-4">
-              <Select
-                onValueChange={(value) => setFilterType(value as "day" | "week" | "month" | "year")}
-              >
-                <SelectTrigger className="w-[150px] border-green-600">
-                  <SelectValue placeholder="Filtrar por" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="day">Día</SelectItem>
-                  <SelectItem value="week">Semana</SelectItem>
-                  <SelectItem value="month">Mes</SelectItem>
-                  <SelectItem value="year">Año</SelectItem>
-                </SelectContent>
-              </Select>
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={setSelectedDate}
-                className="rounded-md border-green-600"
-              />
-            </div>
-          )}
+        <div className="flex">
+          <div className="w-1/4 p-6">
+            <Button
+              onClick={() => setShowFilters(!showFilters)}
+              className="bg-green-600 text-white mb-4"
+            >
+              {showFilters ? "Ocultar Filtros" : "Mostrar Filtros"}
+            </Button>
+            {showFilters && (
+              <div className="flex flex-col space-y-4">
+                <Select
+                  onValueChange={(value) =>
+                    setFilterType(value as "day" | "week" | "month" | "year")
+                  }
+                >
+                  <SelectTrigger className="w-[150px] border-green-600">
+                    <SelectValue placeholder="Filtrar por" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="day">Día</SelectItem>
+                    <SelectItem value="week">Semana</SelectItem>
+                    <SelectItem value="month">Mes</SelectItem>
+                    <SelectItem value="year">Año</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  className="rounded-md border-green-600"
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="w-3/4 bg-white shadow-md rounded-2xl p-6 flex flex-col items-center">
+            <h2 className="text-xl font-semibold text-green-600 mb-4">📊 Gráfico del Sensor</h2>
+            {chartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="fecha" />
+                  <YAxis unit={getSensorUnit()} />
+                  <Tooltip formatter={(value) => `${value} ${getSensorUnit()}`} />
+                  <Line type="monotone" dataKey="valor" stroke="#22c55e" />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="text-gray-500">No hay datos para mostrar el gráfico</p>
+            )}
+          </div>
         </div>
 
-        {/* Tabla de datos históricos usando el componente Tabla */}
+        {/* Tabla de datos históricos */}
         <div className="bg-white shadow-md rounded-2xl p-6">
           <h2 className="text-xl font-semibold text-green-600 mb-4">📋 Datos Históricos</h2>
           <Tabla
             title="Mediciones Históricas"
-            headers={["Fecha", "Valor", "Unidad"]}
-            data={filteredData.map((data) => ({
-              id: data.id,
-              fecha: data.fecha,
-              valor: data.valor,
-              unidad: data.unidad,
-            }))}
-            onClickAction={handleRowClick}
-            onUpdate={handleUpdate}
-            onCreate={handleCreate}
+            headers={["ID", "Fecha", "Valor", "Unidad"]}
+            data={filteredData}
+            onClickAction={(row) => console.log("Ver detalles de:", row)}
+            onUpdate={(row) => console.log("Actualizar:", row)}
+            onCreate={() => console.log("Crear nuevo dato")}
             rowsPerPage={10}
             createButtonTitle="Crear Medición"
           />
-        </div>
-
-        {/* Gráfico en tiempo real */}
-        <div className="bg-white shadow-md rounded-2xl p-6">
-          <h2 className="text-xl font-semibold text-green-600 mb-4">📊 Gráfico del Sensor</h2>
-          {chartsData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={chartsData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="fecha" />
-                <YAxis unit={getSensorUnit(selectedSensor)} />
-                <Tooltip formatter={(value) => `${value} ${getSensorUnit(selectedSensor)}`} />
-                <Line type="monotone" dataKey="valor" stroke="#22c55e" />
-              </LineChart>
-            </ResponsiveContainer>
-          ) : (
-            <p className="text-gray-500">No hay datos para mostrar el gráfico</p>
-          )}
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useMide } from "../hooks/iot/mide/useMide";
 import {
   LineChart,
@@ -9,8 +9,43 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+} from "@/components/ui/carousel";
 import { Link } from "react-router-dom";
+
+// Interfaces para tipado
+interface Sensor {
+  id: number;
+  nombre_sensor: string;
+  tipo_sensor: string;
+  unidad_medida: string;
+  descripcion: string;
+  medida_minima: number;
+  medida_maxima: number;
+}
+
+interface SensorDisplayData {
+  id: number;
+  nombre: string;
+  valor: string;
+  icon: string;
+}
+
+interface ChartDataPoint {
+  fecha: string;
+  valor: number;
+  sensor?: string;
+}
+
+interface RealTimeData {
+  valor: number;
+  fecha: string;
+}
 
 // Íconos para los sensores
 const icons: { [key: string]: string } = {
@@ -19,207 +54,206 @@ const icons: { [key: string]: string } = {
   luz: "💡",
   viento: "💨",
   presion: "🌬️",
-  aire: "🌫️", // Añadimos un ícono para el sensor de calidad del aire
+  aire: "🌫️",
   default: "📏",
+};
+
+// Función para formatear valores según el tipo de sensor
+const formatSensorValue = (value: number, tipoSensor: string): string => {
+  switch (tipoSensor.toLowerCase()) {
+    case "temperatura": return `${value}°C`;
+    case "humedad": return `${value}%`;
+    case "luz": return `${value} lux`;
+    case "viento": return `${value} m/s`;
+    case "presion": return `${value} hPa`;
+    case "calidad_aire": return `${value} ppm`;
+    default: return value.toString();
+  }
 };
 
 const HomePage = () => {
   const { sensorData, sensors } = useMide();
-  const [chartsData, setChartsData] = useState<{ [key: number]: any[] }>({});
-  const [realTimeData, setRealTimeData] = useState<{ [key: number]: { valor: number; fecha: string } }>({});
-  const [sensorDisplayData, setSensorDisplayData] = useState<any[]>([]);
+  const [chartsData, setChartsData] = useState<{ [key: number]: ChartDataPoint[] }>({});
+  const [realTimeData, setRealTimeData] = useState<{ [key: number]: RealTimeData }>({});
+  const [sensorDisplayData, setSensorDisplayData] = useState<SensorDisplayData[]>([]);
 
-  // WebSocket para recibir nuevos sensores
+  // Cargar datos del localStorage
+  const loadChartsDataFromStorage = useCallback(() => {
+    const storedData = localStorage.getItem("chartsData");
+    const ahora = new Date().getTime();
+    const veinticuatroHoras = 24 * 60 * 60 * 1000;
+
+    if (storedData) {
+      const parsedData = JSON.parse(storedData);
+      if (parsedData.timestamp && ahora - parsedData.timestamp < veinticuatroHoras) {
+        setChartsData(parsedData.data);
+        return true;
+      } else {
+        localStorage.removeItem("chartsData");
+      }
+    }
+    return false;
+  }, []);
+
+  const saveChartsDataToStorage = useCallback((data: { [key: number]: ChartDataPoint[] }) => {
+    const paquete = { data, timestamp: new Date().getTime() };
+    localStorage.setItem("chartsData", JSON.stringify(paquete));
+  }, []);
+
+  const loadRealTimeDataFromStorage = useCallback(() => {
+    const storedData = localStorage.getItem("realTimeData");
+    const ahora = new Date().getTime();
+    const veinticuatroHoras = 24 * 60 * 60 * 1000;
+
+    if (storedData) {
+      const parsedData = JSON.parse(storedData);
+      if (parsedData.timestamp && ahora - parsedData.timestamp < veinticuatroHoras) {
+        setRealTimeData(parsedData.data);
+        return parsedData.data;
+      } else {
+        localStorage.removeItem("realTimeData");
+      }
+    }
+    return null;
+  }, []);
+
+  const saveRealTimeDataToStorage = useCallback((data: { [key: number]: RealTimeData }) => {
+    const paquete = { data, timestamp: new Date().getTime() };
+    localStorage.setItem("realTimeData", JSON.stringify(paquete));
+  }, []);
+
+  // WebSocket para sensores
   useEffect(() => {
-    const wsSensors = new WebSocket("ws://192.168.100.115:8000/ws/api/sensores/");
-
-    wsSensors.onopen = () => {
-      console.log("✅ Conectado al WebSocket de sensores");
-    };
-
+    const wsSensors = new WebSocket("ws://127.0.0.1:8000/ws/api/sensores/");
+    wsSensors.onopen = () => console.log("✅ Conectado al WebSocket de sensores");
     wsSensors.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        console.log("📡 Nuevo sensor recibido del WebSocket:", data);
+        if (!data?.id || !data?.nombre_sensor) return;
 
-        if (data.id && data.nombre_sensor) {
-          const newSensor = {
-            id: data.id,
-            nombre_sensor: data.nombre_sensor,
-            tipo_sensor: data.tipo_sensor,
-            unidad_medida: data.unidad_medida,
-            descripcion: data.descripcion,
-            medida_minima: data.medida_minima,
-            medida_maxima: data.medida_maxima,
-          };
-
-          setSensorDisplayData((prev) => {
-            if (prev.some((sensor) => sensor.id === newSensor.id)) {
-              console.log(`Sensor ${newSensor.nombre_sensor} ya existe en sensorDisplayData`);
-              return prev;
-            }
-
-            const icon = icons[newSensor.tipo_sensor.toLowerCase()] || icons.default;
-            console.log(`Añadiendo sensor ${newSensor.nombre_sensor} con ícono ${icon}`);
-            return [
-              ...prev,
-              {
-                id: newSensor.id,
-                nombre: newSensor.nombre_sensor,
-                valor: "Esperando datos...",
-                icon,
-              },
-            ];
-          });
-        }
+        const newSensor: Sensor = {
+          id: data.id,
+          nombre_sensor: data.nombre_sensor,
+          tipo_sensor: data.tipo_sensor,
+          unidad_medida: data.unidad_medida,
+          descripcion: data.descripcion,
+          medida_minima: data.medida_minima,
+          medida_maxima: data.medida_maxima,
+        };
+        setSensorDisplayData((prev) => {
+          if (prev.some((sensor) => sensor.id === newSensor.id)) return prev;
+          const icon = icons[newSensor.tipo_sensor.toLowerCase()] || icons.default;
+          return [...prev, { id: newSensor.id, nombre: newSensor.nombre_sensor, valor: "Esperando datos...", icon }];
+        });
       } catch (error) {
         console.error("⚠ Error al procesar datos del WebSocket de sensores:", error);
       }
     };
+    wsSensors.onclose = () => console.log("⚠ Desconectado del WebSocket de sensores");
+    wsSensors.onerror = (error) => console.error("⚠ Error en WebSocket de sensores:", error);
 
-    wsSensors.onclose = () => {
-      console.log("⚠ Desconectado del WebSocket de sensores");
-    };
-
-    wsSensors.onerror = (error) => {
-      console.error("⚠ Error en WebSocket de sensores:", error);
-    };
-
-    return () => {
-      wsSensors.close();
-    };
+    return () => wsSensors.close();
   }, []);
 
-  // Cargar los sensores iniciales desde el backend
+  // Inicializar sensorDisplayData
   useEffect(() => {
     if (!sensors || sensors.length === 0) {
-      console.warn("⚠ No se recibieron sensores del backend");
       setSensorDisplayData([]);
       return;
     }
 
-    console.log("Sensores recibidos:", sensors);
-
+    const storedRealTimeData = loadRealTimeDataFromStorage() || {};
     const initialSensorData = sensors.map((sensor) => {
-      const icon = icons[sensor.tipo_sensor.toLowerCase()] || icons.default;
-      console.log(`Cargando sensor ${sensor.nombre_sensor} con ícono ${icon}`);
+      const realTimeEntry = storedRealTimeData[sensor.id];
+      const valor = realTimeEntry ? formatSensorValue(realTimeEntry.valor, sensor.tipo_sensor) : "Esperando datos...";
       return {
         id: sensor.id,
         nombre: sensor.nombre_sensor,
-        valor: "Esperando datos...",
-        icon,
+        valor,
+        icon: icons[sensor.tipo_sensor.toLowerCase()] || icons.default,
       };
     });
-
-    console.log("Datos iniciales de sensores:", initialSensorData);
     setSensorDisplayData(initialSensorData);
-  }, [sensors]);
+  }, [sensors, loadRealTimeDataFromStorage]);
 
-  // Conexión al WebSocket de mediciones
+  // Actualizar sensorDisplayData con realTimeData
   useEffect(() => {
-    const ws = new WebSocket("ws://192.168.100.115:8000/ws/api/mide/");
+    if (!sensors || sensors.length === 0 || Object.keys(realTimeData).length === 0) return;
 
-    ws.onopen = () => {
-      console.log("✅ Conectado al WebSocket de mediciones");
-    };
+    setSensorDisplayData((prev) =>
+      prev.map((sensor) => {
+        const realTimeEntry = realTimeData[sensor.id];
+        if (realTimeEntry) {
+          const sensorInfo = sensors.find((s) => s.id === sensor.id);
+          const formattedValue = sensorInfo
+            ? formatSensorValue(realTimeEntry.valor, sensorInfo.tipo_sensor)
+            : realTimeEntry.valor.toString();
+          return { ...sensor, valor: formattedValue };
+        }
+        return sensor;
+      })
+    );
+  }, [realTimeData, sensors]);
 
+  // WebSocket para mediciones
+  useEffect(() => {
+    const ws = new WebSocket("ws://127.0.0.1:8000/ws/api/mide/");
+    ws.onopen = () => console.log("✅ Conectado al WebSocket de mediciones");
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        console.log("📡 Datos recibidos del WebSocket de mediciones:", data);
+        if (!data?.fk_id_sensor || !data?.valor_medicion || !data?.fecha_medicion) return;
 
-        if (!data.fk_id_sensor || !data.valor_medicion || !data.fecha_medicion) return;
+        const sensorId = data.fk_id_sensor;
+        const fechaLegible = new Date(data.fecha_medicion).toLocaleTimeString();
 
-        setRealTimeData((prev) => ({
-          ...prev,
-          [data.fk_id_sensor]: {
-            valor: data.valor_medicion,
-            fecha: data.fecha_medicion,
-          },
-        }));
-
-        setSensorDisplayData((prev) =>
-          prev.map((sensor) => {
-            if (data.fk_id_sensor === sensor.id) {
-              let formattedValue = data.valor_medicion;
-              const sensorInfo = sensors.find((s) => s.id === sensor.id);
-              if (sensorInfo) {
-                if (sensorInfo.tipo_sensor.toLowerCase() === "temperatura") {
-                  formattedValue = `${data.valor_medicion}°C`;
-                } else if (sensorInfo.tipo_sensor.toLowerCase() === "humedad") {
-                  formattedValue = `${data.valor_medicion}%`;
-                } else if (sensorInfo.tipo_sensor.toLowerCase() === "luz") {
-                  formattedValue = `${data.valor_medicion} lux`;
-                } else if (sensorInfo.tipo_sensor.toLowerCase() === "viento") {
-                  formattedValue = `${data.valor_medicion} m/s`;
-                } else if (sensorInfo.tipo_sensor.toLowerCase() === "presion") {
-                  formattedValue = `${data.valor_medicion} hPa`;
-                } else if (sensorInfo.tipo_sensor.toLowerCase() === "calidad_aire") {
-                  formattedValue = `${data.valor_medicion} ppm`; // Formato para sensor de calidad del aire (CO2)
-                }
-              }
-              console.log(`Actualizando sensor ${sensor.nombre} con valor ${formattedValue}`);
-              return { ...sensor, valor: formattedValue };
-            }
-            return sensor;
-          })
-        );
+        setRealTimeData((prev) => {
+          const newData = { ...prev, [sensorId]: { valor: data.valor_medicion, fecha: data.fecha_medicion } };
+          saveRealTimeDataToStorage(newData);
+          return newData;
+        });
 
         setChartsData((prev) => {
-          const sensorId = data.fk_id_sensor;
-          const fechaLegible = new Date(data.fecha_medicion).toLocaleTimeString();
-          const newDataPoint = {
-            fecha: fechaLegible,
-            valor: data.valor_medicion,
-          };
-
-          const updatedData = [...(prev[sensorId] || []), newDataPoint];
-          if (updatedData.length > 50) updatedData.shift();
-          return { ...prev, [sensorId]: updatedData };
+          const newDataPoint: ChartDataPoint = { fecha: fechaLegible, valor: data.valor_medicion };
+          const updatedData = [...(prev[sensorId] || []), newDataPoint].slice(-50); // Limitar a 50 puntos
+          const newChartsData = { ...prev, [sensorId]: updatedData };
+          saveChartsDataToStorage(newChartsData);
+          return newChartsData;
         });
       } catch (error) {
         console.error("⚠ Error al procesar datos del WebSocket de mediciones:", error);
       }
     };
+    ws.onclose = () => console.log("⚠ Desconectado del WebSocket de mediciones");
+    ws.onerror = (error) => console.error("⚠ Error en WebSocket de mediciones:", error);
 
-    ws.onclose = () => {
-      console.log("⚠ Desconectado del WebSocket de mediciones");
-    };
+    return () => ws.close();
+  }, [saveRealTimeDataToStorage, saveChartsDataToStorage]);
 
-    ws.onerror = (error) => {
-      console.error("⚠ Error en WebSocket de mediciones:", error);
-    };
-
-    return () => {
-      ws.close();
-    };
-  }, [sensors]);
-
-  // Preparar datos iniciales para gráficos
-  useEffect(() => {
-    if (!sensors?.length || !sensorData?.length) {
-      console.warn("⚠ No se recibieron datos de sensores o mediciones");
-      return;
-    }
-
-    const groupedData: { [key: number]: any[] } = {};
+  // Agrupar datos para gráficos
+  const groupedData = useMemo(() => {
+    if (!sensors?.length || !sensorData?.length) return {};
+    const data: { [key: number]: ChartDataPoint[] } = {};
     sensorData.forEach((reading) => {
       const sensor = sensors.find((s) => s.id === reading.fk_id_sensor);
       if (sensor) {
-        if (!groupedData[reading.fk_id_sensor]) {
-          groupedData[reading.fk_id_sensor] = [];
-        }
+        if (!data[reading.fk_id_sensor]) data[reading.fk_id_sensor] = [];
         const fechaLegible = new Date(reading.fecha_medicion).toLocaleTimeString();
-        groupedData[reading.fk_id_sensor].push({
+        data[reading.fk_id_sensor].push({
           fecha: fechaLegible,
           valor: reading.valor_medicion,
           sensor: sensor.nombre_sensor,
         });
       }
     });
-    console.log("Datos agrupados para gráficos:", groupedData);
-    setChartsData(groupedData);
+    return data;
   }, [sensorData, sensors]);
+
+  useEffect(() => {
+    if (loadChartsDataFromStorage()) return;
+    setChartsData(groupedData);
+    saveChartsDataToStorage(groupedData);
+  }, [groupedData, loadChartsDataFromStorage, saveChartsDataToStorage]);
 
   const getSensorName = (sensorId: number) => {
     const sensor = sensors.find((s) => s.id === sensorId);
@@ -244,7 +278,7 @@ const HomePage = () => {
           >
             <span className="text-3xl mb-1">{sensor.icon}</span>
             <h3 className="text-sm font-semibold text-gray-800">{sensor.nombre}</h3>
-            <span className="bg-green-500 text-white text-xs font-semibold px-2 py-1 rounded-full mt-1 mb-2">
+            <span className="text-green-700 text-xs font-semibold px-2 py-1 rounded-full mt-1 mb-2">
               Activo
             </span>
             <p className="text-lg font-bold text-blue-700">{sensor.valor}</p>

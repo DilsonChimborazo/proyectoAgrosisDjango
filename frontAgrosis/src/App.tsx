@@ -5,7 +5,7 @@ import './styles/globals.css';
 
 import Login from "./components/usuarios/InicioSesion";
 import Principal from "./components/globales/Principal";
-import  {HomePage}  from "./pages/HomePage"; // Importación corregida
+import  {HomePage}  from "./pages/HomePage"; 
 import HistoricalDataPage from "./pages/HistoricalDataPage"
 import UsersPage from "./pages/usuarios/UsersPage";
 import CalendarPage from "./pages/trazabilidad/CalendarPage";
@@ -57,6 +57,7 @@ import ActualizarEspecie from "./components/trazabilidad/especie/ActualizarEspec
 import ActualizarSemillero from "./components/trazabilidad/semillero/ActualizarSemillero";
 import ActualizarVentaPage from "./pages/finanzas/venta/ActualizarVentaPage";
 import ActualizarInsumo from "./components/inventario/insumos/ActualizarInsumos";
+import Mapa from "./components/trazabilidad/mapa/Mapa";
 
 const queryClient = new QueryClient();
 
@@ -73,6 +74,7 @@ function App() {
           <Route path="/usuarios" element={<Principal><UsersPage /></Principal>} />
           <Route path="/crearUsuarios" element={<Principal><CrearUsuario /></Principal>} />
           <Route path="/editarUsuario/:id" element={<Principal><ActualizarUsuario/></Principal>} />
+          <Route path="/mapa" element={<Principal><Mapa /></Principal>} />
 
           {/* Rutas módulo IOT */}
           <Route path="/iot" element={<Principal><IOtPage /></Principal>} />

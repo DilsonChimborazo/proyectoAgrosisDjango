@@ -41,7 +41,7 @@ export interface Sensor {
     descripcion: string;
   }
 
-const fetchSensores = async (): Promise<Mide[]> => {
+const Mide = async (): Promise<Mide[]> => {
     try {
         const { data } = await axios.get(`${apiUrl}mide/`);
         return data;
@@ -51,10 +51,10 @@ const fetchSensores = async (): Promise<Mide[]> => {
     }
 };
 
-export const useSensores = () => {
+export const useMide = () => {
     return useQuery<Mide[], Error>({
         queryKey: ['mide'],
-        queryFn: fetchSensores,
+        queryFn: Mide,
         staleTime: 1000 * 60 * 10,
     });
 };
