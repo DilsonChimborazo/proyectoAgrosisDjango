@@ -30,7 +30,7 @@ Envía un objeto JSON con los siguientes campos:
 
 | Campo           | Tipo   | Requerido | Descripción                |
 |----------------|--------|-----------|-----------------------------|
-| identificacion | string | ✅       | Identificación del usuario  |
+| identificacion | integer| ✅       | Identificación del usuario  |
 
 ## **Respuesta**
 
