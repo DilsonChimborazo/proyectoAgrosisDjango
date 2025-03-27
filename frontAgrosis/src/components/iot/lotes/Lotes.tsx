@@ -25,10 +25,13 @@ const Lotes = () => {
     navigate(`/Editarlote/${residuo.id}`);
   };
 
-  const headers = ['ID', 'Nombre', 'Dimensión', 'Ubicación', 'Estado'];
+  const headers = ['ID', 'Nombre', 'Dimencion', 'fk id ubicacion', 'Estado'];
 
   const handleRowClick = (lote: object) => {
     openModalHandler(lote);
+  };
+  const handleCreate = () => {
+    navigate("/Crear-lote");
   };
 
   if (isLoading) return <div>Cargando lotes...</div>;
@@ -40,7 +43,7 @@ const Lotes = () => {
     id: lote.id,
     nombre: lote.nombre_lote,
     dimencion: lote.dimencion,
-    ubicacion: lote.fk_id_ubicacion 
+    fk_id_ubicacion: lote.fk_id_ubicacion 
       ? `${lote.fk_id_ubicacion.latitud}, ${lote.fk_id_ubicacion.longitud}` 
       : 'Sin ubicación',
     estado: lote.estado,
@@ -48,18 +51,14 @@ const Lotes = () => {
 
   return (
     <div className="overflow-x-auto  rounded-lg">
-      <Button
-        text="Crear lotes" 
-        onClick={() => navigate("/Crear-lote")} 
-        variant="green" 
-      />
-
       <Tabla
         title="Lotes"
         headers={headers}
         data={mappedLotes}
         onClickAction={handleRowClick}
         onUpdate={handleUpdate}
+        onCreate={handleCreate}
+        createButtonTitle="Crear"
       />
       {selectedLote && (
         <VentanaModal

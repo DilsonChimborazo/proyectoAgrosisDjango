@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useSensores } from '../../../hooks/iot/sensores/useSensores';
 import VentanaModal from '../../globales/VentanasModales';
 import Tabla from '../../globales/Tabla';
-import Button from "@/components/globales/Button";
 import { useNavigate } from "react-router-dom";
 
 const Sensores = () => {
@@ -27,6 +26,10 @@ const Sensores = () => {
     navigate(`/EditarSensor/${residuo.id}`);
   };
 
+  const handleCreate = () => {
+    navigate("/Crear-Sensor");
+  };
+
   // Si los datos aún están cargando
   if (isLoading) return <div className="text-center text-gray-500">Cargando...</div>;
 
@@ -40,19 +43,14 @@ const Sensores = () => {
     tipo: sensor.tipo_sensor,
     unidad: sensor.unidad_medida,
     descripción: sensor.descripcion,
-    min: sensor.medida_minima,
-    max: sensor.medida_maxima,
+    medida_minima: sensor.medida_minima,
+    medida_maxima: sensor.medida_maxima,
   }));
 
-  const headers = ['ID', 'Nombre', 'Tipo', 'Unidad', 'Descripción', 'Mínimo', 'Máximo'];
+  const headers = ['ID', 'Nombre', 'Tipo', 'Unidad', 'Descripción', 'medida minima', 'medida maxima'];
 
   return (
     <div className="mx-auto p-4">
-      <Button 
-        text="Crear Sensor" 
-        onClick={() => navigate("/Crear-Sensor")} 
-        variant="green" 
-      />
 
       <Tabla
         title="Lista de Sensores"
@@ -60,6 +58,8 @@ const Sensores = () => {
         data={tablaData}
         onClickAction={openModal}
         onUpdate={handleUpdate}
+        onCreate={handleCreate}
+        createButtonTitle="Crear"
       />
 
       {selectedSensor && (

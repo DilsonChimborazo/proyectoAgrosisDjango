@@ -2,13 +2,17 @@ import { Eras } from '@/hooks/iot/eras/useCrearEras';
 import { useCrearEras } from '../../../hooks/iot/eras/useCrearEras';
 import Formulario from '../../globales/Formulario';
 import { useNavigate } from 'react-router-dom';
+import { useLotes } from '@/hooks/iot/lote/useLotes';
 
 const CrearEras = () => {
     const mutation = useCrearEras();
     const navigate = useNavigate();
+    const { data: lotes = [] } = useLotes();  // Esta hook debe traer todos los lotes
     
     const formFields = [
-        { id: 'fk_id_lote', label: 'Lote', type: 'number' },
+        { id: 'fk_id_lote', label: 'Lote', type: 'select', 
+            options: lotes.map(lote => ({ value: lote.id, label: lote.nombre_lote }))  // Transformar los lotes a un array de objetos para el select
+        },
         { id: 'descripcion', label: 'Descripción', type: 'text' },
     ];
     
@@ -29,7 +33,7 @@ const CrearEras = () => {
     return (
         <div className="p-10">
             <Formulario 
-                fields={formFields} 
+                fields = {formFields} 
                 onSubmit={handleSubmit} 
                 isError={mutation.isError} 
                 isSuccess={mutation.isSuccess}
