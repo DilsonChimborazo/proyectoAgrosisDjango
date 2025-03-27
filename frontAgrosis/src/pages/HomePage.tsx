@@ -124,7 +124,7 @@ const HomePage = () => {
 
   // WebSocket para sensores
   useEffect(() => {
-    const wsSensors = new WebSocket("ws://127.0.0.1:8000/ws/api/sensores/");
+    const wsSensors = new WebSocket("ws://192.168.0.113:8000/ws/api/sensores/");
     wsSensors.onopen = () => console.log("✅ Conectado al WebSocket de sensores");
     wsSensors.onmessage = (event) => {
       try {

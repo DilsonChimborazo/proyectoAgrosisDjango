@@ -135,7 +135,7 @@ const HistoricalDataPage = () => {
 
   // WebSocket para datos en tiempo real
   useEffect(() => {
-    const ws = new WebSocket("ws://127.0.0.1:8000/ws/api/mide/");
+    const ws = new WebSocket("ws://192.168.0.113:8000/ws/api/mide/");
     ws.onopen = () => console.log("✅ Conectado al WebSocket de mediciones");
     ws.onmessage = (event) => {
       try {
