@@ -6,7 +6,9 @@ description: "Obtener los sensores registrados en el sistema"
 
 ## Descripción:
 Solicitud utilizada para obtener los sensores que estan registrados dentro del sistema.
+
 ---
+
 
 
 ## Metodo: 
@@ -55,7 +57,7 @@ Si las credenciales son correctas, recibirás un código **201** con la siguient
 
 
 ### **Códigos de respuesta**
-- **201**:  Autenticación exitosa, devuelve el array de los sensores registrados.
+- **201**: Devuelve el array de los sensores registrados.
 - **400**: Credenciales incorrectas.
 - **500**: Error del servidor.
 

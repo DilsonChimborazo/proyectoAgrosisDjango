@@ -47,7 +47,7 @@ Si las credenciales son correctas, recibirás un código **201** con la siguient
 
 
 ### **Códigos de respuesta**
-- **201**: Autenticación exitosa, devuelve el array de la ubicacion registrada con su ID.
+- **201**: Devuelve el array de la ubicacion registrada con su ID.
 - **400**: Credenciales incorrectas.
 - **500**: Error del servidor.
 
