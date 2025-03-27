@@ -23,13 +23,13 @@ import Tabla from "../components/globales/Tabla";
 
 // Interfaces para tipado
 interface ChartDataPoint {
-  fecha: string;
+  fecha: string; // Fecha completa (día, mes, año, hora)
   valor: number;
 }
 
 interface TableData {
   id: number;
-  fecha: string;
+  fecha: string; // Fecha completa (día, mes, año, hora)
   valor: number;
   unidad: string;
 }
@@ -55,27 +55,32 @@ const HistoricalDataPage = () => {
     return sensor?.unidad_medida || "";
   };
 
-  // Filtrar datos históricos y preparar datos para tabla y gráfico
-  useEffect(() => {
-    // Depuración: Verificar datos de entrada
-    console.log("sensorReadings:", sensorReadings);
-    console.log("selectedSensor:", selectedSensor);
-    console.log("sensor:", sensor);
+  // Función para parsear fechas de manera segura
+  const parseDate = (dateString: string): Date => {
+    const parsedDate = new Date(dateString);
+    if (isNaN(parsedDate.getTime())) {
+      console.error(`Fecha inválida: ${dateString}`);
+      return new Date(); // Fallback a la fecha actual si falla el parseo
+    }
+    return parsedDate;
+  };
 
+  // Cargar datos históricos y preparar datos para tabla y gráfico
+  useEffect(() => {
     if (!sensorReadings?.length || !selectedSensor) {
-      console.log("No hay datos o sensor no válido");
+      console.log("No hay datos históricos o sensor no válido");
       setFilteredData([]);
       setChartData([]);
       return;
     }
 
-    // Transformar las lecturas en el formato necesario
+    // Transformar las lecturas históricas en el formato necesario
     const formattedReadings = sensorReadings
       .map((reading: Mide) => {
-        const fecha = new Date(reading.fecha_medicion);
+        const fecha = parseDate(reading.fecha_medicion);
         return {
           id: reading.id,
-          fecha: fecha.toLocaleString(),
+          fecha: fecha.toLocaleString(), // Fecha completa (día, mes, año, hora)
           valor: Number(reading.valor_medicion),
           unidad: getSensorUnit(),
         };
@@ -88,7 +93,7 @@ const HistoricalDataPage = () => {
     let filtered = formattedReadings;
     if (selectedDate) {
       filtered = formattedReadings.filter((reading) => {
-        const readingDate = new Date(reading.fecha);
+        const readingDate = parseDate(reading.fecha);
         if (filterType === "day") {
           return (
             readingDate.getDate() === selectedDate.getDate() &&
@@ -120,13 +125,89 @@ const HistoricalDataPage = () => {
 
     // Preparar datos para el gráfico
     const chartFormattedData = filtered.map((reading) => ({
-      fecha: new Date(reading.fecha).toLocaleTimeString(),
+      fecha: parseDate(reading.fecha).toLocaleString(), // Fecha completa en el gráfico
       valor: reading.valor,
     }));
     setChartData(chartFormattedData);
 
     console.log("chartData:", chartFormattedData);
   }, [sensorReadings, selectedSensor, filterType, selectedDate, sensor]);
+
+  // WebSocket para datos en tiempo real
+  useEffect(() => {
+    const ws = new WebSocket("ws://127.0.0.1:8000/ws/api/mide/");
+    ws.onopen = () => console.log("✅ Conectado al WebSocket de mediciones");
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log("📡 Dato recibido del WebSocket:", data);
+
+        // Solo procesar datos del sensor seleccionado
+        if (data.fk_id_sensor === selectedSensor) {
+          const fecha = parseDate(data.fecha_medicion);
+          const newReading: TableData = {
+            id: data.id || Date.now(), // Fallback para el ID si no viene en el mensaje
+            fecha: fecha.toLocaleString(),
+            valor: Number(data.valor_medicion),
+            unidad: getSensorUnit(),
+          };
+
+          // Actualizar datos históricos (para la tabla y el filtrador)
+          setFilteredData((prev) => {
+            const updated = [...prev, newReading].sort(
+              (a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime()
+            );
+            // Aplicar filtro de fecha si está activo
+            if (selectedDate) {
+              return updated.filter((reading) => {
+                const readingDate = parseDate(reading.fecha);
+                if (filterType === "day") {
+                  return (
+                    readingDate.getDate() === selectedDate.getDate() &&
+                    readingDate.getMonth() === selectedDate.getMonth() &&
+                    readingDate.getFullYear() === selectedDate.getFullYear()
+                  );
+                } else if (filterType === "week") {
+                  const startOfWeek = new Date(selectedDate);
+                  startOfWeek.setDate(selectedDate.getDate() - selectedDate.getDay());
+                  const endOfWeek = new Date(startOfWeek);
+                  endOfWeek.setDate(startOfWeek.getDate() + 6);
+                  return readingDate >= startOfWeek && readingDate <= endOfWeek;
+                } else if (filterType === "month") {
+                  return (
+                    readingDate.getMonth() === selectedDate.getMonth() &&
+                    readingDate.getFullYear() === selectedDate.getFullYear()
+                  );
+                } else if (filterType === "year") {
+                  return readingDate.getFullYear() === selectedDate.getFullYear();
+                }
+                return true;
+              });
+            }
+            return updated;
+          });
+
+          // Actualizar datos del gráfico
+          setChartData((prev) => {
+            const updatedChartData = [
+              ...prev,
+              {
+                fecha: fecha.toLocaleString(),
+                valor: Number(data.valor_medicion),
+              },
+            ].sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
+            return updatedChartData;
+          });
+        }
+      } catch (error) {
+        console.error("⚠ Error al procesar datos del WebSocket:", error);
+      }
+    };
+    ws.onclose = () => console.log("⚠ Desconectado del WebSocket de mediciones");
+    ws.onerror = (error) => console.error("⚠ Error en WebSocket de mediciones:", error);
+
+    return () => ws.close();
+  }, [selectedSensor, filterType, selectedDate]);
 
   // Manejo de errores y carga
   if (isLoading) return <p className="text-center text-gray-500">Cargando datos...</p>;
@@ -188,14 +269,27 @@ const HistoricalDataPage = () => {
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="fecha" />
+                  <XAxis
+                    dataKey="fecha"
+                    tickFormatter={(fecha) => new Date(fecha).toLocaleString()}
+                    angle={-45}
+                    textAnchor="end"
+                    height={70}
+                  />
                   <YAxis unit={getSensorUnit()} />
-                  <Tooltip formatter={(value) => `${value} ${getSensorUnit()}`} />
+                  <Tooltip
+                    formatter={(value) => `${value} ${getSensorUnit()}`}
+                    labelFormatter={(label) => new Date(label).toLocaleString()}
+                  />
                   <Line type="monotone" dataKey="valor" stroke="#22c55e" />
                 </LineChart>
               </ResponsiveContainer>
             ) : (
-              <p className="text-gray-500">No hay datos para mostrar el gráfico</p>
+              <p className="text-gray-500">
+                {selectedDate
+                  ? "No hay datos para la fecha seleccionada"
+                  : "No hay datos para mostrar el gráfico"}
+              </p>
             )}
           </div>
         </div>
