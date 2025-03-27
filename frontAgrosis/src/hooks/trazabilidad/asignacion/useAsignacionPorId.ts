@@ -3,7 +3,7 @@ import axios from "axios";
 
 const apiUrl = import.meta.env.VITE_API_URL; 
 
-export const useAsignacionPorId = (id: string | undefined) => {
+export const useAsignacionporId = (id: string | undefined) => {
     return useQuery({
         queryKey: ["sensores", id],
         queryFn: async () => {

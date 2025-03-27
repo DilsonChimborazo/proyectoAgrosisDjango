@@ -58,6 +58,7 @@ import ActualizarSemillero from "./components/trazabilidad/semillero/ActualizarS
 import ActualizarVentaPage from "./pages/finanzas/venta/ActualizarVentaPage";
 import ActualizarInsumo from "./components/inventario/insumos/ActualizarInsumos";
 import Mapa from "./components/trazabilidad/mapa/Mapa";
+import ActualizarAsignacion from "./components/trazabilidad/actividad/ActualizarAsignacion";
 
 const queryClient = new QueryClient();
 
@@ -126,6 +127,7 @@ function App() {
           <Route path="/residuos/editar/:id" element={<Principal><EditarResiduo /></Principal>} />
           <Route path="/pea/editar/:id" element={<Principal><ActualizarPea /></Principal>} />
           <Route path="/controlfitosanitario/editar/:id" element={<Principal><ActualizarControlFitosanitario /></Principal>} />
+          <Route path="/actualizarasignacion/:id" element={<Principal><ActualizarAsignacion /></Principal>} />
           
           {/* Rutas módulo finanzas */}
           <Route path="/produccion" element={<Principal><ProduccionPage /></Principal>} />
