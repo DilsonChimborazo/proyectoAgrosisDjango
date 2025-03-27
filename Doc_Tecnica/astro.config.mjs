@@ -40,6 +40,17 @@ export default defineConfig({
                     ],
 				},
 				{
+					label: 'Venta',
+					items: [
+						{ label: 'Creacion de venta', slug: 'venta/crearventa' },
+						{ label: 'Obtener venta', slug: 'venta/obtenerventa'},
+						{ label: 'Actuallizar venta', slug: 'venta/actualizarventa'},
+						{ label: 'Obtener venta por identificacion', slug: 'venta/obtenerventabyid'},
+						{ label: 'Actualizar venta por campo especifico', slug: 'venta/patchventa'},
+						{ label: 'Eliminar venta', slug: 'venta/deleteventa'},
+                    ],
+				},
+				{
 					label: 'Reference',
 					autogenerate: { directory: 'reference' },
 				},
