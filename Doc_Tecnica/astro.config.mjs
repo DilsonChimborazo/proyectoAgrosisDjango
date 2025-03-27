@@ -29,6 +29,17 @@ export default defineConfig({
                     ],
 				},
 				{
+					label: 'Produccion',
+					items: [
+						{ label: 'Creacion de produccion', slug: 'produccion/crearproduccion' },
+						{ label: 'Obtener produccion', slug: 'produccion/obtenerproduccion'},
+						{ label: 'Actuallizar produccion', slug: 'produccion/actualizarproduccion'},
+						{ label: 'Obtener produccion por identificacion', slug: 'produccion/obtenerproduccionbyid'},
+						{ label: 'Actualizar produccion por campo especifico', slug: 'produccion/patchproduccion'},
+						{ label: 'Eliminar produccion', slug: 'produccion/deleteproduccion'},
+                    ],
+				},
+				{
 					label: 'Reference',
 					autogenerate: { directory: 'reference' },
 				},
