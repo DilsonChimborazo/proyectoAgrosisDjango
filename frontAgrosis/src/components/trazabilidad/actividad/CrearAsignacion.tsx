@@ -1,55 +1,63 @@
 import { Asignacion } from '@/hooks/trazabilidad/asignacion/useCrearAsignacion';
 import { useCrearAsignacion } from '../../../hooks/trazabilidad/asignacion/useCrearAsignacion';
 import Formulario from '../../globales/Formulario';
-import { useUsuarios } from '@/hooks/usuarios/useUsuarios';
 import { useNavigate } from 'react-router-dom';
 
-
 const CrearAsignacion = () => {
-const mutation = useCrearAsignacion()
-const navigate = useNavigate();
-const { data: usuarios = [] } = useUsuarios();
-const formFields = [
-    { id: 'fecha', label: 'Fecha', type: 'Date' },
-    { id: 'observaciones', label: 'Observaciones ', type: 'text' },
-    { id: 'fk_id_actividad', label: 'Actividad ', type: 'number' },
-    { 
-        id: "id_identificacion", 
-        label: "Usuario", 
-        type: "select", 
-        options: usuarios?.map((usr) => ({ value: usr.id, label: usr.nombre })) || [] 
+  const mutation = useCrearAsignacion(); // Hook para manejar la mutación de creación
+  const navigate = useNavigate();
+   // Lista de usuarios disponible
+
+  // Definición de los campos del formulario
+  const formFields = [
+    { id: 'fecha', label: 'Fecha', type: 'date' }, // Corregido el tipo de dato
+    { id: 'observaciones', label: 'Observaciones', type: 'text' },
+    { id: 'fk_id_actividad', label: 'Actividad', type: 'number' },
+    {
+      id: 'id_identificacion',
+      label: 'Usuario',
+      type: 'select',
     },
+  ];
 
-];
-
-const handleSubmit = (formData: { [key: string]: string }) => {
-
+  // Manejo del envío del formulario
+  const handleSubmit = (formData: { [key: string]: string }) => {
     if (!formData.fecha || !formData.observaciones || !formData.fk_id_actividad || !formData.id_identificacion) {
-        console.log('Campos faltantes');
-        return;
+      console.error('❌ Campos faltantes. Verifica todos los campos.');
+      return;
     }
 
     const newAsignacion: Asignacion = {
-        fecha: new Date(formData.fecha).toISOString().split('T')[0],
-        observaciones: formData.observaciones,
-        fk_id_actividad: parseInt(formData.fk_id_actividad),
-        id_identificacion: parseInt(formData.id_identificacion),
+      fecha: new Date(formData.fecha).toISOString().split('T')[0], // Convertir a formato ISO
+      observaciones: formData.observaciones,
+      fk_id_actividad: parseInt(formData.fk_id_actividad),
+      id_identificacion: parseInt(formData.id_identificacion),
     };
-    mutation.mutate(newAsignacion);
-    navigate('/actividad');
-};
 
+    console.log('🟢 Enviando nueva asignación:', newAsignacion);
 
-return (
+    mutation.mutate(newAsignacion, {
+      onSuccess: () => {
+        console.log('✅ Asignación creada exitosamente. Redirigiendo...');
+        navigate('/actividad'); // Redirigir al listado de actividades
+      },
+      onError: (error) => {
+        console.error('❌ Error al crear la asignación:', error);
+      },
+    });
+  };
+
+  return (
     <div className="max-w-4xl mx-auto p-4">
-        <Formulario 
-        fields={formFields} 
-        onSubmit={handleSubmit} 
-        isError={mutation.isError} 
-        isSuccess={mutation.isSuccess}
-        title="Crear Asignacion"  />
+      <Formulario
+        fields={formFields} // Campos del formulario
+        onSubmit={handleSubmit} // Función de envío
+        isError={mutation.isError} // Indicador de error
+        isSuccess={mutation.isSuccess} // Indicador de éxito
+        title="Crear Asignación" // Título del formulario
+      />
     </div>
-    );
+  );
 };
 
 export default CrearAsignacion;
