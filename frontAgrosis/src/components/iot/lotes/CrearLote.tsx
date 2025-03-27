@@ -25,9 +25,9 @@ const CrearLote = () => {
       options: Array.isArray(ubicaciones)
         ? ubicaciones.map((ubicacion: Ubicacion) => ({
             value: ubicacion.id.toString(), // Convertimos a string para el select
-            label: `${ubicacion.id}`, // Mostramos latitud y longitud
+            label: `Ubicacion: ${ubicacion.id} \nLatitud: ${ubicacion.latitud} \nLongitud: ${ubicacion.longitud}`, // Usamos \n para saltos de línea// Mostramos latitud y longitud
           }))
-        : [], // Si no es un arreglo, devolvemos un arreglo vacío
+        : [], 
     },
     { id: "dimencion", label: "Dimensión", type: "number" },
     { id: "nombre_lote", label: "Nombre del Lote", type: "text" },
