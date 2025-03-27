@@ -8,7 +8,7 @@ export interface Especie {
   nombre_comun: string;
   nombre_cientifico: string;
   descripcion: string;
-  fk_id_tipo_cultivo: number;
+  fk_id_tipo_cultivo: string;
 }
 
 export const useCrearEspecie = () => {
