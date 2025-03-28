@@ -51,7 +51,7 @@ const VentaComponent = () => {
   const headers = ["ID Venta", "Cantidad", "Precio Unitario", "Total Venta", "Fecha Venta", "Cantidad Produccion", "Fecha Produccion",];
 
   return (
-    <div className="">
+    <div className="mx-auto p-4">
       <Tabla 
         title="Lista de Ventas" 
         headers={headers} 
