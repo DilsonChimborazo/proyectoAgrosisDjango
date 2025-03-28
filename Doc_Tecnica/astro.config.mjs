@@ -18,6 +18,13 @@ export default defineConfig({
 					],
 				},
 				{
+					label: 'recuperacioncontrasena',
+					items: [
+						{ label: 'Resetar contrasena', slug: 'recuperacioncontrasena/resetearcontrasena'},
+						{ label: 'Solicitar recuperacion', slug: 'recuperacioncontrasena/solicitarrecuperacion'}
+					]
+				},
+				{
 					label: 'usuarios',
 					items: [
                         { label: 'Creacion de Usuarios', slug: 'usuarios/crearusuario' },
@@ -115,6 +122,17 @@ export default defineConfig({
 						{ label: 'Obtener sensores por identificacion', slug: 'sensores/obtenersensoresbyid'},
 						{ label: 'Actualizar sensores por campo especifico', slug: 'sensores/patchsensores'},
 						{ label: 'Eliminar sensores', slug: 'sensores/deletesensores'},
+                    ],
+				},
+				{
+					label: 'rol',
+					items: [
+                        { label: 'Creacion de roles', slug: 'rol/crearrol' },
+						{ label: 'Obtener roles', slug: 'rol/obtenerrol'},
+						{ label: 'Actualizar rol', slug: 'rol/actualizarrol'},
+						{ label: 'Obtener rol por id', slug: 'rol/obtenerrolbyid'},
+						{ label: 'Actualizar rol por campo especifico', slug: 'rol/patchrolbyid'},
+						{ label: 'Eliminar rol', slug: 'rol/deleterol'},
                     ],
 				},
 				{

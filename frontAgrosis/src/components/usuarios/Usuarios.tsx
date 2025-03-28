@@ -42,7 +42,7 @@ const Usuarios = () => {
     setIsModalOpen(false);
   }, []);
 
-  const headers = ["ID", "Identificación", "Nombre", "Apellido", "Email", "Rol"];
+  const headers = ["ID", "identificacion", "Nombre", "Apellido", "Email", "Rol"];
 
   return (
     <div className="overflow-x-auto rounded-lg p-4">

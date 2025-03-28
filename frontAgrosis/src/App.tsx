@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HeroUIProvider } from "@heroui/system";
 import './styles/globals.css'; 
 
+import RegisterForm from "./components/usuarios/Register";
 import Login from "./components/usuarios/InicioSesion";
 import Principal from "./components/globales/Principal";
 import  {HomePage}  from "./pages/HomePage"; 
@@ -67,6 +68,9 @@ function App() {
     <HeroUIProvider>
       <QueryClientProvider client={queryClient}>
         <Routes>
+
+          <Route path="/" element={<Login />} />
+          <Route path="/register" element={<RegisterForm/>} />
           <Route path="/solicitarRecuperacion" element={<SolicitarRecuperacion />} />
           <Route path="/resetearContrasena" element={<ResetearContrasena />} />
           <Route path="/" element={<Login />} />
