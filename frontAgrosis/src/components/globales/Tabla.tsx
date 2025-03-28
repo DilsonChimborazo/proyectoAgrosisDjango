@@ -136,9 +136,9 @@ const Tabla = <T extends { [key: string]: any }>({
 
   return (
     // Contenedor principal de la tabla con bordes redondeados
-    <div className="rounded-3xl mt-5 py-2 bg-white">
+    <div className="rounded-3xl m-5  bg-white">
       {/* Sección superior con el título, búsqueda y botones */}
-      <div className="flex flex-col sm:flex-row justify-between items-center bg-gray-50 px-8 py-4 rounded-t-xl gap-2">
+      <div className="flex flex-col sm:flex-row justify-between items-center px-8 py-4 rounded-t-xl p-5">
         {/* Título de la tabla */}
         <h2 className="text-lg sm:text-xl font-semibold text-gray-900 uppercase">{title}</h2>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
@@ -154,7 +154,7 @@ const Tabla = <T extends { [key: string]: any }>({
           <Dropdown>
             <DropdownTrigger>
               <HerouiButton
-                className="flex items-center  bg-green-700 text-white rounded-2xl p-6 uppercase"
+                className="flex items-center  border focus:ring-2 focus:ring-green-500 rounded-2xl p-6 uppercase"
               >
                 columnas
                 <ChevronDown size={18} /> {/* Ícono de flecha hacia abajo */}
@@ -182,7 +182,7 @@ const Tabla = <T extends { [key: string]: any }>({
           <HerouiButton
             title={createButtonTitle}
             onClick={onCreate} // Ejecutamos la función onCreate al hacer clic
-            className="bg-green-700 text-white hover:bg-green-800 uppercase text-center p-6 rounded-2xl"
+            className="border hover:bg-green-700 hover:text-white uppercase text-center p-6 rounded-2xl"
           >
             <Plus size={18} /> {/* Ícono de "+" */}
             {createButtonTitle}

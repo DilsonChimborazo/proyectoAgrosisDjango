@@ -61,7 +61,7 @@ const menuItems = [
 
 export default function Principal({ children }: LayoutProps) {
   const [usuario, setUsuario] = useState<{ nombre: string; apellido: string } | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(false); // Cambiado a false para que el sidebar esté inactivo por defecto
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Sidebar inicialmente cerrado
   const [active, setActive] = useState<string>("");
   const [openMenus, setOpenMenus] = useState<{ [key: string]: boolean }>({});
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -96,6 +96,7 @@ export default function Principal({ children }: LayoutProps) {
 
   return (
     <div className="flex h-screen w-full overflow-x-hidden bg-fixed bg-cover bg-center" style={{ backgroundImage: "url('/fondo.jpg')" }}>
+      {/* Sidebar */}
       <div
         className={`bg-white p-2 sm:p-4 flex flex-col w-48 sm:w-64 h-full fixed top-0 left-0 z-50 border-t-4 border-r-4 rounded-tr-3xl transition-all duration-300 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-48 sm:-translate-x-64"
@@ -166,6 +167,7 @@ export default function Principal({ children }: LayoutProps) {
         </div>
       </div>
 
+      {/* Contenido Principal */}
       <div className={`flex flex-col transition-all duration-300 w-full ${sidebarOpen ? "pl-48 sm:pl-64" : "pl-0"}`}>
         <div
           className="fixed top-0 left-0 w-full bg-green-700 text-white p-2 sm:p-4 flex justify-between items-center z-40 transition-all duration-300"
@@ -177,7 +179,7 @@ export default function Principal({ children }: LayoutProps) {
             </Button>
             <form onSubmit={handleSearchSubmit}>
               <Input
-                className="w-48 sm:w-64 ml-2 border  rounded-md"
+                className="w-48 sm:w-64 ml-2 border rounded-md"
                 endContent={<Search size={20} className="ml-2" />}
                 placeholder="Buscar..."
                 value={searchQuery}
@@ -193,39 +195,12 @@ export default function Principal({ children }: LayoutProps) {
               className="text-white cursor-pointer hover:text-yellow-100 text-sm sm:text-base"
               onClick={() => navigate("/usuarios")}
             >
-              {usuario
-                ? `${usuario?.nombre || "Nombre no disponible"} ${usuario?.apellido || "Apellido no disponible"}`
-                : "Usuario no identificado"}
+              {usuario ? `${usuario?.nombre || "Nombre no disponible"} ${usuario?.apellido || "Apellido no disponible"}` : "Usuario no identificado"}
             </span>
           </div>
         </div>
 
-        <div className="mt-12 sm:mt-16 p-2 sm:p-6 relative min-h-screen">
-          {/* Imagen de fondo con opacidad solo para la imagen */}
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage: "url('/fondo.jpg')",
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              filter: "brightness(50%)",
-              zIndex: 0,
-            }}
-          ></div>
-
-          {/* Contenido sin opacidad */}
-          <div className="relative z-10">{children}</div>
-        </div>
-
-        <div
-          className={`fixed bottom-0 left-0 bg-green-700 text-white p-2 z-30 transition-all duration-300 ${
-            sidebarOpen ? "pl-48 sm:pl-64" : "pl-0"
-          }`} // Añadí padding dinámico para el footer
-          style={{ width: sidebarOpen ? "calc(100% - 12rem)" : "100%", left: sidebarOpen ? "12rem" : "0" }} // Ajusté el ancho y la posición
-        >
-          <p className="text-center w-full text-xs sm:text-sm">Agrosoft © 2025 Todos los derechos reservados.</p>
-          <p className="text-center w-full text-xs sm:text-sm">Centro de Gestion y Desarrollo Surcolombiano</p>
-        </div>
+        <div className="mt-12 sm:mt-16 p-2 sm:p-6 relative min-h-screen">{children}</div>
       </div>
     </div>
   );
