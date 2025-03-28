@@ -8,8 +8,9 @@ module.exports = {
 	theme: {
 	  extend: {
 		borderRadius: {
-			medium: "8px",
-		  	DEFAULT: "var(--radius)",
+		  medium: "8px",
+		  large: "1.5rem", // Added the large border radius
+		  DEFAULT: "var(--radius)",
 		},
 		colors: {
 		  background: "hsl(var(--background))",
@@ -60,3 +61,4 @@ module.exports = {
 	  require("tailwindcss-animate"),
 	],
   };
+  
