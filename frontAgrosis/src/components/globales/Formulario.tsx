@@ -6,8 +6,10 @@ interface FormField {
     id: string;
     label: string;
     type: string;
-    options?: { value: string | number; label: string}[]; 
+    options?: { value: string | number; label: string }[];
+
     value?: string;
+    
 }
 
 interface FormProps {

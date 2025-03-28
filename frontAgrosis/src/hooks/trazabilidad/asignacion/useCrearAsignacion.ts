@@ -6,8 +6,8 @@ const apiUrl = import.meta.env.VITE_API_URL;
 export interface Asignacion {
     fecha: String;
     observaciones: string;
-    fk_id_actividad: number;
-    id_identificacion: number;
+    fk_id_actividad: string;
+    id_identificacion: string;
 
 }
 
