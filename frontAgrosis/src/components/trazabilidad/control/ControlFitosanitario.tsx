@@ -30,6 +30,10 @@ const ControlFitosanitario = () => {
     navigate(`/controlfitosanitario/editar/${residuo.id}`);
   };
 
+  const handleCreate = () => {
+    navigate("/crearcontrolfitosanitario");
+  };
+
   if (isLoading) return <div>Cargando Controles Fitosanitarios...</div>;
   if (error instanceof Error) return <div>Error al cargar los controles: {error.message}</div>;
 
@@ -44,18 +48,19 @@ const ControlFitosanitario = () => {
 
   }));
 
-  const headers = ['ID', 'Fecha de Control', 'Descripción', 'Cultivo', 'PEA'];
+  const headers = ['ID', 'Fecha Control', 'Descripcion', 'Cultivo', 'Pea'];
 
   return (
     <div className="overflow-x-auto  rounded-lg">
-      <Button text="Crear Control Fitosanitario" className='mx-2' onClick={() => navigate("/crearcontrolfitosanitario")} variant="green" />
 
       <Tabla
         title="Lista de Controles Fitosanitarios"
-        headers={headers}
+        headers={[...headers]}
         data={mappedControles}
         onClickAction={handleRowClick}
-        onUpdate={handleUpdate}
+        onUpdate={handleUpdate} 
+        onCreate={handleCreate}
+        createButtonTitle="Crear"
       />
 
       {selectedControl && (
