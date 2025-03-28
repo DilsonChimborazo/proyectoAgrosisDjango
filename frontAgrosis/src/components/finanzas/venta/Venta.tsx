@@ -16,6 +16,10 @@ const VentaComponent = () => {
     setIsModalOpen(true);
   };
 
+  const handleRowClick = (venta: { id_venta: number }) => {
+    openModalHandler(venta);
+  };
+
   const closeModal = () => {
     setSelectedVenta(null);
     setIsModalOpen(false);
@@ -23,6 +27,10 @@ const VentaComponent = () => {
 
   const handleUpdate = (cultivo: { id_venta: number }) => {
     navigate(`/actualizarventa/${cultivo.id_venta}`);
+  };
+
+  const handleCreate = () => {
+    navigate("/Registrar-Producción");
   };
 
   if (isLoading) return <div className="text-center text-gray-500">Cargando ventas...</div>;
@@ -54,8 +62,10 @@ const VentaComponent = () => {
         title="Lista de Ventas" 
         headers={headers} 
         data={mappedVentas} 
-        onClickAction={openModalHandler} 
+        onClickAction={handleRowClick} 
         onUpdate={handleUpdate}
+        onCreate={handleCreate}
+        createButtonTitle="Crear"
       />
 
       {selectedVenta && (
