@@ -48,7 +48,7 @@ const VentaComponent = () => {
     fecha_produccion: venta.fk_id_produccion?.fecha ?? "No disponible",
   }));
 
-  const headers = ["ID Venta", "Cantidad Vendida", "Precio Unitario", "Total Venta", "Fecha Venta", "Cantidad Producción", "Fecha Producción",];
+  const headers = ["ID Venta", "Cantidad", "Precio Unitario", "Total Venta", "Fecha Venta", "Cantidad Produccion", "Fecha Produccion",];
 
   return (
     <div className="mx-auto p-4">

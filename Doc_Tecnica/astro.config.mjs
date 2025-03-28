@@ -6,9 +6,9 @@ import starlight from '@astrojs/starlight';
 export default defineConfig({
 	integrations: [
 		starlight({
-			title: 'Documentacion',
+			title: 'Documentacion Agrosoft',
 			social: {
-				github: 'https://github.com/withastro/starlight',
+				github: 'https://github.com/DilsonChimborazo/proyectoAgrosisDjango',
 			},
 			sidebar: [
 				{

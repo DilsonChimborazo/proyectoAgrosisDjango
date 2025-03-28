@@ -79,15 +79,14 @@ const ProduccionComponent = () => {
   // Mapeo de los datos para la tabla
   const produccionList: Produccion[] = Array.isArray(producciones) ? producciones : [];
   const mappedProducciones = produccionList.map((produccion) => ({
-    id_producción: produccion.id_produccion,
+    id_produccion: produccion.id_produccion,
     cantidad_producción: produccion.cantidad_produccion ?? null,
     fecha_producción: produccion.fecha ?? "No disponible",
     nombre_cultivo: produccion.fk_id?.nombre_cultivo ?? "No disponible",
     fecha_plantación: produccion.fk_id?.fecha_plantacion ?? "No disponible"
   }));
 
-
-  const headers = ["ID Produccion", "Cantidad Produccion", "Fecha Produccion", "Nombre Cultivo", "Fecha Plantacion"];
+  const headers = ["ID Produccion", "Cantidad Producción", "Fecha Producción", "Nombre Cultivo", "Fecha Plantación"];
 
 
   return (
