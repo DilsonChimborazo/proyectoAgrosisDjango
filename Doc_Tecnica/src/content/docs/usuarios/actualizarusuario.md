@@ -1,11 +1,11 @@
 ---
-title: "Actulaizar usuarios"
-description: "Actualiza los datos de los usuarios ya registrados en el sistema."
+title: "Actulaizar usuario"
+description:  "Actualiza los datos de los usuarios ya registrados en el sistema."
 ---
 
 
 ## Descripción:
-Solicitud utilizada la actualizacion de los datos de un usuario ya registrado previamente.
+Solicitud utilizada para la actualización de los datos de un usuario ya registrado previamente.
 
 ---
 
@@ -21,7 +21,7 @@ Solicitud utilizada la actualizacion de los datos de un usuario ya registrado pr
 
 ### **Endpoint**
 ```
-http://127.0.0.1:8000/api/usuario/{identificacion}
+http://127.0.0.1:8000/api/usuario/{id}
 ```
 
 ### **Cuerpo de la solicitud**
@@ -29,23 +29,23 @@ Envía un objeto JSON con los siguientes campos:
 
 ```json
 {
-    "identificacion": "1234567891",
-    "nombre": "Dilson",
-    "apellido": "Chimborazo",
-    "email": "Dilson@gmail.com",
-    "password": "123456.",
-    "fk_id_rol": 1
+    "id": 1,
+    "nombre": "Producto Ejemplo",
+    "tipo": "Alimento",
+    "precio_unidad": 12.50,
+    "cantidad": 100,
+    "unidad_medida": "kg"
 }
 ```
 
 | Campo           | Tipo   | Requerido | Descripción                |
 |----------------|--------|-----------|-----------------------------|
-| identificacion | string | ✅       | Identificación del usuario  |
+| id             | number | ✅       | Identificación del usuario  |
 | nombre         | string | ✅       | Nombre del usuario      |
-| apellido       | string | ✅       | Apellido del usuario      |
-| email          | string | ✅       | Email del usuario      |
-| password       | string | ✅       | Contraseña del usuario      |
-| fk_id_rol      | integer| ✅       | Rol asignado del usuario      |
+| tipo           | string | ✅       | Apellido del usuario      |
+| precio_unidad  | number | ✅       | Email del usuario      |
+| cantidad       | number | ✅       | Contraseña del usuario      |
+| unidad_medida  | integer| ✅       | Rol asignado del usuario      |
 
 ## **Respuesta**
 
@@ -53,24 +53,24 @@ Si las credenciales son correctas, recibirás un código **201** con la siguient
 
 ```json
 {
-    "identificacion": "1234567891",
-    "nombre": "Dilson",
-    "apellido": "Chimborazo",
-    "email": "Dilson@gmail.com",
-    "password": "123456.",
-    "fk_id_rol": "Aprendiz"
+    "id": 1,
+    "nombre": "Producto Ejemplo",
+    "tipo": "Alimento",
+    "precio_unidad": 12.50,
+    "cantidad": 100,
+    "unidad_medida": "kg"
 }
 ```
 
 :::markdown
 | Campo           | Tipo   | Descripción                |
 |----------------|--------|-----------------------------|
-| identificacion | string | Identificación del usuario  |
+| id             | string | Identificación del usuario  |
 | nombre         | string | Nombre del usuario      |
-| apellido       | string | Apellido del usuario      |
-| email          | string | Email del usuario      |
-| password       | string | Contraseña del usuario      |
-| fk_id_rol      | integer| Rol asignado del usuario      |
+| tipo           | string | Apellido del usuario      |
+| precio_unidad  | string | Email del usuario      |
+| cantidad       | string | Contraseña del usuario      |
+| unidad_medida  | integer| Rol asignado del usuario      |
 :::
 
 
@@ -81,8 +81,7 @@ Si las credenciales son correctas, recibirás un código **201** con la siguient
 
 ---
 
-📄 **Nota:** Los usuarios deben ser creados por un administrados o instructor, los aprendices no se les permite
-registar usuarios en el sistema.
+📄 **Nota:** Solo los administradores o usuarios autorizados pueden actualizar los datos del producto en el sistema.
 
 
 
