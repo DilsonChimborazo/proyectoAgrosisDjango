@@ -15,6 +15,10 @@ const VentaComponent = () => {
     setIsModalOpen(true);
   };
 
+  const handleRowClick = (venta: { id_venta: number }) => {
+    openModalHandler(venta);
+  };
+
   const closeModal = () => {
     setSelectedVenta(null);
     setIsModalOpen(false);
@@ -26,6 +30,7 @@ const VentaComponent = () => {
 
   const handleCreate = () => {
     navigate("/Registrar-Venta");
+
   };
 
   if (isLoading) return <div className="text-center text-gray-500">Cargando ventas...</div>;
@@ -47,12 +52,11 @@ const VentaComponent = () => {
 
   return (
     <div className="mx-auto p-4">
-
-      <Tabla
-        title="Lista de Ventas"
-        headers={headers}
-        data={mappedVentas}
-        onClickAction={openModalHandler}
+      <Tabla 
+        title="Lista de Ventas" 
+        headers={headers} 
+        data={mappedVentas} 
+        onClickAction={handleRowClick} 
         onUpdate={handleUpdate}
         onCreate={handleCreate}
         createButtonTitle="Crear"

@@ -62,6 +62,3 @@ Si las credenciales son correctas, recibirás un código **201** con la siguient
 
 📄 **Nota:** Los usuarios deben ser creados por un administrados o instructor, los aprendices no se les permite
 registar usuarios en el sistema.
-
-
-

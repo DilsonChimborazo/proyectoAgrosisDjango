@@ -86,7 +86,9 @@ const ProduccionComponent = () => {
     fecha_plantación: produccion.fk_id?.fecha_plantacion ?? "No disponible"
   }));
 
-  const headers = ["ID Producción", "Cantidad Producción", "Fecha Producción", "Nombre Cultivo", "Fecha Plantación"];
+
+  const headers = ["ID Produccion", "Cantidad Produccion", "Fecha Produccion", "Nombre Cultivo", "Fecha Plantacion"];
+
 
   return (
     <div className="mx-auto p-4">
