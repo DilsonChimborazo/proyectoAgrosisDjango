@@ -15,6 +15,16 @@ Solicitud utilizada para obtener la información de un cultivo específico regis
  GET
 ```
 ---
+## **Cabecera de la solicitud**
+Incluye los siguientes encabezados en la solicitud:
+```
+Content-Type: application/json
+Authorization: Bearer "tu_token_aquí"
+```
+|Encabezado	Requerido | Descripción  |
+|-------------------- |--------------|
+|Content-Type	      |✅	Indica que el cuerpo de la solicitud es JSON.
+|Authorization        |❌	Token de autenticación si es necesario.
 
 
 # **Solicitud**
@@ -44,12 +54,11 @@ Si las credenciales son correctas, recibirás un código **201** con la siguient
 :::markdown
 | Campo           | Tipo   | Descripción                |
 |----------------|--------|-----------------------------|
-| nombre_cultivo | string | Identificación del usuario  |
-| fecha_plantacion| string | 2024-03-26     |
-| descripcion    | string | Cultivo de maíz amarillo|
-| fk_id_especie  | string | Cereal  |
-| fk_id_semillero| string | ISemillero Norte   |
-:::
+| nombre_cultivo | string | Nombre del cultivo      |
+| fecha_plantacion| string | Fecha de plantación (YYYY-MM-DD)|
+| descripcion    | string | Descripcion del cultivo|
+| fk_id_especie  | integer | Especie del cultivo|
+| fk_id_semillero| integer | Semillero del cual proviene la semilla plantada    |
 
 
 ### **Códigos de respuesta**
@@ -60,4 +69,3 @@ Si las credenciales son correctas, recibirás un código **201** con la siguient
 ---
 
 📄 **Nota:** Solo los administradores o encargados pueden consultar cultivos. Los usuarios sin permisos adecuados no podrán realizar esta acción.
-

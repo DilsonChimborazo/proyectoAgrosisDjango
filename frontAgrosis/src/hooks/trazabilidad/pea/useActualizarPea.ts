@@ -6,6 +6,7 @@ export interface Pea {
     id: number;
     nombre_pea: string;
     descripcion: string;
+    tipo_pea: string;
 }
 
 export const useActualizarPea = () => {

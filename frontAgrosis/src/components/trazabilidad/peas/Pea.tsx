@@ -38,9 +38,10 @@ const Pea = () => {
   const mappedPeas = peasList.map(pea => ({
     id: pea.id,
     nombre_pea: pea.nombre_pea,
-    descripcion: pea.descripcion
+    descripcion: pea.descripcion,
+    tipo_pea: pea.tipo_pea,
   }));
-  const headers = ['ID', 'Nombre Pea', 'Descripcion'];
+  const headers = ['ID', 'Nombre Pea', 'Descripcion', 'Tipo Pea'];
 
 
   return (
