@@ -192,7 +192,7 @@ const Tabla = <T extends { [key: string]: any }>({
 
       {/* Mostramos un mensaje si no hay resultados */}
       {sortedData.length === 0 ? (
-        <div className="text-center text-red-500 bg-white p-4">
+        <div className="text-center rounded-2xl text-red-500 bg-white m-4">
           No se encontraron resultados.
         </div>
       ) : (
@@ -279,12 +279,12 @@ const Tabla = <T extends { [key: string]: any }>({
       {/* Paginación (solo se muestra si hay datos) */}
       {sortedData.length > 0 && (
         <div className="flex justify-center p-5 rounded-b-xl bg-gray-50">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 ">
             {/* Botón para ir a la primera página */}
             <button
               onClick={handleFirstPage}
               disabled={currentPage === 1} // Deshabilitado si estamos en la primera página
-              className={`p-2 rounded-full ${
+              className={`p-2 rounded-full  ${
                 currentPage === 1
                   ? "text-gray-400 cursor-not-allowed"
                   : "text-gray-700 hover:bg-gray-200"
@@ -301,7 +301,7 @@ const Tabla = <T extends { [key: string]: any }>({
               page={currentPage}
               total={totalPages}
               onChange={(page) => setCurrentPage(page)} // Actualizamos la página actual
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 overflow-hidden"
             />
 
             {/* Botón para ir a la última página */}

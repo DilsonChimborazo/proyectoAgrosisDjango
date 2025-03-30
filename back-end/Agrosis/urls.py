@@ -82,8 +82,8 @@ urlpatterns = [
     #USUARIO
     path('api/', include(routerUsuario.urls)),
     path('api/', include(routerRol.urls)),
-    path("solicitar-recuperacion/", solicitar_recuperacion, name="solicitar_recuperacion"),
-    path("resetear-contrasena/", resetear_contraseña, name="resetear_contraseña"),
+    path("api/solicitar-recuperacion/", solicitar_recuperacion, name="solicitar_recuperacion"),
+    path("api/resetear-contrasena/", resetear_contraseña, name="resetear_contraseña"),
     path('api/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('api/redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     path('api/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),

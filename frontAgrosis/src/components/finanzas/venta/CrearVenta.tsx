@@ -2,14 +2,18 @@ import { NuevaVenta } from '@/hooks/finanzas/venta/useCrearVenta';
 import { useCrearVenta } from '../../../hooks/finanzas/venta/useCrearVenta';
 import Formulario from '../../globales/Formulario';
 import { useNavigate } from 'react-router-dom';
+import { useCultivo } from '@/hooks/trazabilidad/cultivo/useCultivo';
 
 
 const CrearVenta = () => {
     const mutation = useCrearVenta();
     const navigate = useNavigate();
+    const { data: cultivo = [] } = useCultivo();
 
     const formFields = [
-        { id: 'fk_id_produccion', label: 'ID Producción', type: 'number' },
+        { id: 'fk_id', label: 'Cultivo', type: 'select', 
+            options: cultivo.map(cultivo => ({ value: cultivo.id, label: cultivo.nombre_cultivo }))  // Transformar los lotes a un array de objetos para el select
+        },
         { id: 'cantidad', label: 'Cantidad', type: 'number' },
         { id: 'precio_unidad', label: 'Precio por Unidad', type: 'number' },
         { id: 'fecha', label: 'Fecha', type: 'date' },

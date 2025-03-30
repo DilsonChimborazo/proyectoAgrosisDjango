@@ -1,7 +1,7 @@
 import { ReactNode, useState, useEffect } from "react";
 import { Button, Input } from "@heroui/react";
 import { Menu, Search, Bell as Notification, ChevronDown, ChevronUp } from "lucide-react";
-import { Home, User, Calendar, Map, Leaf, DollarSign, Bug, LogOut, Clipboard, Cpu } from "lucide-react";
+import { Home, User, Calendar, Map, Leaf, DollarSign, Bug, LogOut, Clipboard, Cpu, Copyright } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
 interface LayoutProps {
@@ -95,7 +95,12 @@ export default function Principal({ children }: LayoutProps) {
   };
 
   return (
-    <div className="flex h-screen w-full overflow-x-hidden bg-fixed bg-cover bg-center" style={{ backgroundImage: "url('/fondo.jpg')" }}>
+    <div className="relative flex h-screen w-full overflow-x-hidden">
+    {/* Imagen de fondo con opacidad */}
+    <div className="absolute inset-0">
+      <img src="/fondo.jpg" alt="Fondo" className="w-full h-full object-cover" />
+      <div className="absolute inset-0 bg-black opacity-50"></div>
+    </div>
       {/* Sidebar */}
       <div
         className={`bg-white p-2 sm:p-4 flex flex-col w-48 sm:w-64 h-full fixed top-0 left-0 z-50 border-t-4 border-r-4 rounded-tr-3xl transition-all duration-300 ${
@@ -197,10 +202,27 @@ export default function Principal({ children }: LayoutProps) {
             >
               {usuario ? `${usuario?.nombre || "Nombre no disponible"} ${usuario?.apellido || "Apellido no disponible"}` : "Usuario no identificado"}
             </span>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 px-4 py-2  hover:bg-green-800 hover:rounded-full text-white"
+            >
+              <LogOut size={18} />
+            </button>
           </div>
+
         </div>
 
         <div className="mt-12 sm:mt-16 p-2 sm:p-6 relative min-h-screen">{children}</div>
+        <div
+            className={`fixed bottom-0 left-0 w-full bg-green-700 text-white p-2 sm:p-4 flex flex-col justify-center items-center z-30 transition-all duration-300 ${
+              sidebarOpen ? "pl-48 sm:pl-64" : "pl-0"
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              Centro de Gestión y Desarrollo Sostenible Surcolombiano <Copyright size={18} />
+            </div>
+            <div>Regional Pitalito-Huila</div>
+          </div>
       </div>
     </div>
   );

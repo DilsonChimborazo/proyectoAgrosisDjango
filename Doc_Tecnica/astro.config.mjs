@@ -178,7 +178,7 @@ export default defineConfig({
 						{ label: 'Actuallizar insumos', slug: 'insumos/actualizarinsumo'},
 						{ label: 'Obtener insumos por identificacion', slug: 'insumos/obtenerinsumobyid'},
 						{ label: 'Actualizar insumos por campo especifico', slug: 'insumos/patchinsumo'},
-						{ label: 'Eliminar insumos', slug: 'insumos/deleteherramienta'},
+						{ label: 'Eliminar insumos', slug: 'insumos/deleteinsumo'},
                     ],
 				},
 
