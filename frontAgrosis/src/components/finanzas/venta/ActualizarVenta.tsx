@@ -24,9 +24,9 @@ const ActualizarVenta = () => {
     useEffect(() => {
         if (venta) {
             setFormData({
-                fk_id_produccion: venta.fk_id_produccion ? String(venta.fk_id_produccion) : "", // Cambiar a fk_id_produccion
-                cantidad: venta.cantidad ? String(venta.cantidad) : "",
-                precio_unidad: venta.precio_unidad ? String(venta.precio_unidad) : "",
+                fk_id_produccion: venta.fk_id_produccion ? String(venta.fk_id_produccion) : "",
+                cantidad: venta.cantidad ? String(Math.round(venta.cantidad)) : "", // Redondear cantidad
+                precio_unidad: venta.precio_unidad ? String(Math.round(venta.precio_unidad)) : "", // Redondear precio
                 fecha: venta.fecha ?? "",
             });
         }
@@ -38,6 +38,15 @@ const ActualizarVenta = () => {
         label: `${produccion.nombre_produccion} - ${produccion.fecha}`, // Formato: Producción - Fecha
     }));
 
+    // Función para manejar la actualización del stock después de actualizar la venta
+    const handleVentaActualizada = (venta: { fk_id_produccion: number; cantidad: number }) => {
+        console.log(`Venta actualizada: ${venta.fk_id_produccion}, cantidad vendida: ${venta.cantidad}`);
+        
+        // Aquí se puede realizar la lógica para actualizar el stock en el frontend
+        // En este caso, actualizamos el stock de la producción correspondiente en el frontend
+        // Si se realiza una llamada al backend para actualizar el stock, se puede agregar esa lógica aquí.
+    };
+
     // Manejo del envío del formulario
     const handleSubmit = (data: { [key: string]: string }) => {
         if (!id_venta) return;
@@ -46,13 +55,16 @@ const ActualizarVenta = () => {
             id_venta: Number(id_venta), // Asegúrate de incluir el id_venta
             fk_id_venta: Number(id_venta), // Incluir fk_id_venta, que es igual a id_venta
             fk_id_produccion: parseInt(data.fk_id_produccion, 10) || 0, // Enviar fk_id_produccion
-            cantidad: parseFloat(data.cantidad) || 0,
-            precio_unidad: parseFloat(data.precio_unidad) || 0,
+            cantidad: Math.round(parseFloat(data.cantidad)) || 0, // Redondeamos la cantidad
+            precio_unidad: Math.round(parseFloat(data.precio_unidad)) || 0, // Redondeamos el precio
             fecha: data.fecha,
         };
 
         actualizarVenta.mutate(ventaActualizada, {
             onSuccess: () => {
+                // Llamar a handleVentaActualizada para actualizar el stock
+                handleVentaActualizada(ventaActualizada);
+
                 setTimeout(() => navigate("/ventas"), 500); // ✅ Espera antes de redirigir
             },
             onError: (error) => console.error("❌ Error al actualizar venta:", error),

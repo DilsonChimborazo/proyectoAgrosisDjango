@@ -18,7 +18,7 @@ const CrearProduccion = () => {
         const nuevaProduccion: Produccion = {
             fk_id: formData.fk_id ? parseInt(formData.fk_id, 10) : null,
             nombre_produccion: formData.nombre_produccion,
-            cantidad_produccion: parseFloat(formData.cantidad_produccion),
+            cantidad_produccion: Math.round(parseFloat(formData.cantidad_produccion)), // Redondear a número entero
             fecha: formData.fecha,
         };
 
