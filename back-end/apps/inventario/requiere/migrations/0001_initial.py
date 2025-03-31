@@ -10,7 +10,6 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('asignacion_actividades', '__first__'),
-        ('herramientas', '0001_initial'),
     ]
 
     operations = [
