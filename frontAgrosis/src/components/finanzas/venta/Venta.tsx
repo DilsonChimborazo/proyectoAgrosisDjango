@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useVenta } from '../../../hooks/finanzas/venta/useVenta'; // Ajusta la ruta según tu estructura
+import { useVenta } from '../../../hooks/finanzas/venta/useVenta'; 
 import Tabla from '../../globales/Tabla';
 import VentanaModal from '../../globales/VentanasModales';
 import { useNavigate } from "react-router-dom";
@@ -36,19 +36,21 @@ const VentaComponent = () => {
   if (isLoading) return <div className="text-center text-gray-500">Cargando ventas...</div>;
   if (error) return <div className="text-center text-red-500">Error al cargar los datos: {error.message}</div>;
 
-  // Mapeo de los datos para la tabla
   const ventasList = Array.isArray(ventas) ? ventas : [];
   const mappedVentas = ventasList.map((venta) => ({
     id_venta: venta.id_venta,
-    cantidad: venta.cantidad,
+    cantidad_vendida: venta.cantidad,
     precio_unitario: venta.precio_unidad,
     total_venta: venta.cantidad * venta.precio_unidad,
     fecha_venta: venta.fecha,
-    cantidad_produccion: venta.fk_id_produccion?.cantidad_produccion ?? "No disponible",
-    fecha_produccion: venta.fk_id_produccion?.fecha ?? "No disponible",
+    cantidad_producción: venta.fk_id_produccion?.cantidad_produccion ?? "No disponible",
+    fecha_producción: venta.fk_id_produccion?.fecha ?? "No disponible",
+    nombre_produccion: venta.fk_id_produccion?.nombre_produccion ?? "No disponible",
   }));
 
-  const headers = ["ID Venta", "Cantidad", "Precio Unitario", "Total Venta", "Fecha Venta", "Cantidad Produccion", "Fecha Produccion",];
+
+  const headers = ["ID Venta", "Cantidad Vendida", "Precio Unitario", "Total Venta", "Fecha Venta", "Cantidad Producción", "Fecha Producción", "Nombre Produccion" ];
+
 
   return (
     <div className="mx-auto p-4">
