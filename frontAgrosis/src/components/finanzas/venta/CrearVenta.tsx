@@ -2,51 +2,69 @@ import { NuevaVenta } from '@/hooks/finanzas/venta/useCrearVenta';
 import { useCrearVenta } from '../../../hooks/finanzas/venta/useCrearVenta';
 import Formulario from '../../globales/Formulario';
 import { useNavigate } from 'react-router-dom';
-import { useCultivo } from '@/hooks/trazabilidad/cultivo/useCultivo';
-
+import { useProduccion } from '@/hooks/finanzas/produccion/useProduccion';
 
 const CrearVenta = () => {
-    const mutation = useCrearVenta();
-    const navigate = useNavigate();
-    const { data: cultivo = [] } = useCultivo();
+  const mutation = useCrearVenta();
+  const navigate = useNavigate();
+  const { data: producciones = [], isLoading: isLoadingProducciones } = useProduccion();
 
-    const formFields = [
-        { id: 'fk_id', label: 'Cultivo', type: 'select', 
-            options: cultivo.map(cultivo => ({ value: cultivo.id, label: cultivo.nombre_cultivo }))  // Transformar los lotes a un array de objetos para el select
-        },
-        { id: 'cantidad', label: 'Cantidad', type: 'number' },
-        { id: 'precio_unidad', label: 'Precio por Unidad', type: 'number' },
-        { id: 'fecha', label: 'Fecha', type: 'date' },
-    ];
+  // Opciones de Producciones
+  const produccionOptions = producciones.map((produccion) => ({
+    value: String(produccion.id_produccion), // ✅ Convertir a string
+    label: `${produccion.nombre_produccion} - ${produccion.fecha}`, // Formato: Producción - Fecha
+  }));
 
-    const handleSubmit = (formData: { [key: string]: string }) => {
-        const cantidad = parseFloat(formData.cantidad);
-        const precio_unidad = parseFloat(formData.precio_unidad);
+  // Definición de los campos del formulario
+  const formFields = [
+    { id: 'fk_id_produccion', label: 'Producción', type: 'select', options: produccionOptions },
+    { id: 'cantidad', label: 'Cantidad', type: 'number' },
+    { id: 'precio_unidad', label: 'Precio por Unidad', type: 'number' },
+    { id: 'fecha', label: 'Fecha', type: 'date' },
+  ];
 
-        const nuevaVenta: NuevaVenta = {
-            fk_id_produccion: formData.fk_id_produccion ? parseInt(formData.fk_id_produccion) : null,
-            cantidad,
-            precio_unidad,
-            total_venta: cantidad * precio_unidad, 
-            fecha: formData.fecha,
-        };
+  const handleSubmit = (formData: { [key: string]: string }) => {
+    if (!formData.fk_id_produccion || !formData.cantidad || !formData.precio_unidad || !formData.fecha) {
+      console.error("❌ Todos los campos son obligatorios");
+      return;
+    }
 
-        mutation.mutate(nuevaVenta);
-        navigate("/ventas"); 
-        console.log(nuevaVenta);
+    const nuevaVenta: NuevaVenta = {
+      fk_id_produccion: Number(formData.fk_id_produccion), // Convertir a número
+      cantidad: parseFloat(formData.cantidad),
+      precio_unidad: parseFloat(formData.precio_unidad),
+      total_venta: parseFloat(formData.cantidad) * parseFloat(formData.precio_unidad), 
+      fecha: formData.fecha,
     };
 
-    return (
-        <div className="p-10">
-            <Formulario 
-                fields={formFields} 
-                onSubmit={handleSubmit} 
-                isError={mutation.isError} 
-                isSuccess={mutation.isSuccess}
-                title="Crear Venta"  
-            />
-        </div>
-    );
+    console.log("🚀 Enviando venta al backend:", nuevaVenta);
+
+    mutation.mutate(nuevaVenta, {
+      onSuccess: () => {
+        console.log("✅ Venta creada exitosamente");
+        navigate("/ventas"); // Redirigir a la lista de ventas
+      },
+      onError: (error) => {
+        console.error("❌ Error al crear la venta:", error);
+      },
+    });
+  };
+
+  if (isLoadingProducciones) {
+    return <div className="text-center text-gray-500">Cargando producciones...</div>;
+  }
+
+  return (
+    <div className="max-w-4xl mx-auto p-4">
+      <Formulario 
+        fields={formFields} 
+        onSubmit={handleSubmit} 
+        isError={mutation.isError} 
+        isSuccess={mutation.isSuccess}
+        title="Registrar Nueva Venta"  
+      />
+    </div>
+  );
 };
 
 export default CrearVenta;
