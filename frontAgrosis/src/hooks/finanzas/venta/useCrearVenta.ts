@@ -4,7 +4,7 @@ import axios from "axios";
 const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface NuevaVenta {
-  fk_id_produccion: number | null;
+  fk_id_produccion: number;
   cantidad: number;
   precio_unidad: number;
   total_venta: number;

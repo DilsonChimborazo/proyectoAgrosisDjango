@@ -37,19 +37,30 @@ const VentaComponent = () => {
   if (error) return <div className="text-center text-red-500">Error al cargar los datos: {error.message}</div>;
 
   const ventasList = Array.isArray(ventas) ? ventas : [];
-  const mappedVentas = ventasList.map((venta) => ({
-    id_venta: venta.id_venta,
-    cantidad_vendida: venta.cantidad,
-    precio_unitario: venta.precio_unidad,
-    total_venta: venta.cantidad * venta.precio_unidad,
-    fecha_venta: venta.fecha,
-    cantidad_producción: venta.fk_id_produccion?.cantidad_produccion ?? "No disponible",
-    fecha_producción: venta.fk_id_produccion?.fecha ?? "No disponible",
-    nombre_produccion: venta.fk_id_produccion?.nombre_produccion ?? "No disponible",
-  }));
+  const mappedVentas = ventasList.map((venta) => {
+    // Asegurarse de que cantidad_produccion sea un número válido
+    const cantidadProduccion = venta.fk_id_produccion?.cantidad_produccion ?? 0;
+    const cantidadVendida = venta.cantidad ?? 0;
 
 
-  const headers = ["ID Venta", "Cantidad Vendida", "Precio Unitario", "Total Venta", "Fecha Venta", "Cantidad Producción", "Fecha Producción", "Nombre Produccion" ];
+    // Calcular el stock disponible con una verificación adicional
+    const stock = cantidadProduccion > cantidadVendida ? cantidadProduccion - cantidadVendida : 0;
+
+    return {
+      id_venta: venta.id_venta,
+      cantidad_vendida: venta.cantidad,
+      precio_unitario: venta.precio_unidad,
+      total_venta: venta.cantidad * venta.precio_unidad,
+      fecha_venta: venta.fecha,
+      cantidad_producción: cantidadProduccion,
+      fecha_producción: venta.fk_id_produccion?.fecha ?? "No disponible",
+      nombre_produccion: venta.fk_id_produccion?.nombre_produccion ?? "No disponible",
+      stock,
+    };
+  });
+
+  const headers = ["ID Venta", "Cantidad Vendida", "Precio Unitario", "Total Venta", "Fecha Venta", "Cantidad Producción", "Fecha Producción", "Nombre Produccion", "Stock"];
+
 
 
   return (
