@@ -1,78 +1,92 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useInsumo } from "../../../hooks/inventario/insumos/useInsumo";
 import { useActualizarInsumo } from "../../../hooks/inventario/insumos/useActualizarInsumos";
 import Formulario from "../../globales/Formulario";
-import { useNavigate } from "react-router-dom";
-import { useInsumo} from "../../../hooks/inventario/insumos/useInsumo";
-
 
 const ActualizarInsumo = () => {
-    const { data: insumos, isLoading, error } = useInsumo();
-    const mutation = useActualizarInsumo();
-    const [selectedInsumo, setSelectedInsumo] = useState<any | null>(null);
-    const navigate = useNavigate();
+  const { id } = useParams(); 
+  const { data: insumo, isLoading, error } = useInsumo(id); 
+  const actualizarInsumo = useActualizarInsumo(); 
+  const navigate = useNavigate();
 
-    if (isLoading) return <div>Cargando insumos...</div>;
-    if (error instanceof Error) return <div>Error al cargar los insumos: {error.message}</div>;
+ 
+  const [formData, setFormData] = useState<{ [key: string]: string }>({
+    nombre: "",
+    tipo: "",
+    precio_unidad: "",
+    cantidad: "",
+    unidad_medida: "",
+  });
 
-    const formFields = [
-        { id: "nombre", label: "Nombre", type: "text" },
-        { id: "tipo", label: "Tipo", type: "text" },
-        { id: "precio_unidad", label: "Precio por Unidad", type: "number" },
-        { id: "cantidad", label: "Cantidad", type: "number" },
-        { id: "unidad_medida", label: "Unidad de Medida", type: "text" },
-    ];
+ 
+  useEffect(() => {
+    if (insumo && Object.keys(insumo).length > 0) {
+      console.log("🔄 Actualizando formulario con:", insumo);
 
-    const handleSubmit = (formData: { [key: string]: string }) => {
-        if (!selectedInsumo) return;
+      setFormData({
+        nombre: insumo.nombre || "",
+        tipo: insumo.tipo || "",
+        precio_unidad: insumo.precio_unidad?.toString() || "",
+        cantidad: insumo.cantidad?.toString() || "",
+        unidad_medida: insumo.unidad_medida || "",
+      });
+    }
+  }, [insumo]);
 
-        const updatedInsumo = {
-            ...selectedInsumo,
-            ...formData,
-            precio_unidad: parseFloat(formData.precio_unidad),
-            cantidad: parseInt(formData.cantidad, 10),
-        };
+ 
+  const formFields = [
+    { id: "nombre", label: "Nombre", type: "text" },
+    { id: "tipo", label: "Tipo", type: "text" },
+    { id: "precio_unidad", label: "Precio por Unidad", type: "number" },
+    { id: "cantidad", label: "Cantidad", type: "number" },
+    { id: "unidad_medida", label: "Unidad de Medida", type: "text" },
+  ];
 
-        mutation.mutate(updatedInsumo);
-        navigate("/insumos");
+ 
+  const handleSubmit = (data: { [key: string]: string }) => {
+    if (!id) return;
+
+    const insumoActualizado = {
+      id: Number(id), 
+      nombre: data.nombre || "",
+      tipo: data.tipo || "",
+      precio_unidad: parseFloat(data.precio_unidad) || 0, 
+      cantidad: parseInt(data.cantidad, 10) || 0, 
+      unidad_medida: data.unidad_medida || "",
     };
 
-    return (
-        <div className="p-10">
-            <select
-                className="border p-2 mb-4 w-full"
-                onChange={(e) => {
-                    const insumo = insumos?.find((i: any) => i.id_insumo === Number(e.target.value));
-                    setSelectedInsumo(insumo || null);
-                }}
-            >
-                <option value="">Selecciona un insumo</option>
-                {insumos?.map((i: any) => (
-                    <option key={i.id_insumo} value={i.id_insumo}>
-                        {i.nombre}
-                    </option>
-                ))}
-            </select>
+    console.log("🚀 Enviando datos al backend:", insumoActualizado); 
 
-            {selectedInsumo && (
-                <Formulario
-                    fields={formFields}
-                    onSubmit={handleSubmit}
-                    isError={mutation.isError}
-                    isSuccess={mutation.isSuccess}
-                    title="Actualizar Insumo"
-                    initialValues={selectedInsumo}
-                />
-            )}
+    actualizarInsumo.mutate(insumoActualizado, {
+      onSuccess: () => {
+        console.log("✅ Insumo actualizado correctamente");
+        navigate("/insumos"); 
+      },
+      onError: (error) => {
+        console.error("❌ Error al actualizar el insumo:", error);
+      },
+    });
+  };
 
-            {/* Botón para regresar a la lista de insumos */}
-            <button 
-                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                onClick={() => navigate('/insumos')}
-            >
-                Volver a Insumos
-            </button>
-        </div>
-    );
+  if (isLoading) return <div className="text-gray-500">Cargando datos...</div>;
+  if (error) return <div className="text-red-500">Error al cargar el insumo</div>;
+
+  console.log("📌 Estado actual de formData:", formData);
+
+  return (
+    <div className="max-w-4xl mx-auto p-4">
+      <Formulario
+        fields={formFields}
+        onSubmit={handleSubmit}
+        isError={actualizarInsumo.isError}
+        isSuccess={actualizarInsumo.isSuccess}
+        title="Actualizar Insumo"
+        initialValues={formData}
+        key={JSON.stringify(formData)} 
+      />
+    </div>
+  );
 };
 
 export default ActualizarInsumo;
