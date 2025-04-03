@@ -19,11 +19,15 @@ class EscribirProgramacionSerializer(ModelSerializer):
         fields = '__all__'
 
 
+from rest_framework import serializers
+
 class ReporteTiemposSerializer(serializers.Serializer):
-    actividad = serializers.CharField(source='fk_id_asignacionActividades__fk_id_actividad__nombre_actividad')
-    tiempo_total_minutos = serializers.SerializerMethodField()
+    actividad = serializers.CharField(source='fk_id_asignacion_actividad__fk_id_actividad__nombre_actividad')
+    tiempo_total_minutos = serializers.IntegerField(source='tiempo_total')  # No necesita conversión
     veces_realizada = serializers.IntegerField()
     
-    def get_tiempo_total_minutos(self, obj):
-        # Convertir DurationField a minutos
-        return obj['tiempo_total'].total_seconds() / 60
+    # Campos dinámicos para cada día del mes (day_1, day_2, ..., day_31)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for day in range(1, 32):
+            self.fields[f'day_{day}'] = serializers.IntegerField(default=0)
