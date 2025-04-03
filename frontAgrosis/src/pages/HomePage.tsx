@@ -124,7 +124,7 @@ const HomePage = () => {
 
   // WebSocket para sensores
   useEffect(() => {
-    const wsSensors = new WebSocket("ws://192.168.0.113:8000/ws/api/sensores/");
+    const wsSensors = new WebSocket("ws://192.168.0.112:8000/ws/api/sensores/");
     wsSensors.onopen = () => console.log("✅ Conectado al WebSocket de sensores");
     wsSensors.onmessage = (event) => {
       try {
@@ -197,7 +197,7 @@ const HomePage = () => {
 
   // WebSocket para mediciones
   useEffect(() => {
-    const ws = new WebSocket("ws://127.0.0.1:8000/ws/api/mide/");
+    const ws = new WebSocket("ws://192.168.0.112:8000/ws/api/mide/");
     ws.onopen = () => console.log("✅ Conectado al WebSocket de mediciones");
     ws.onmessage = (event) => {
       try {
@@ -302,7 +302,7 @@ const HomePage = () => {
                       <XAxis dataKey="fecha" />
                       <YAxis />
                       <Tooltip />
-                      <Line type="monotone" dataKey="valor" stroke="#8884d8" />
+                      <Line type="linear" dataKey="valor" stroke="#8884d8" />
                     </LineChart>
                   </ResponsiveContainer>
                 </CarouselItem>

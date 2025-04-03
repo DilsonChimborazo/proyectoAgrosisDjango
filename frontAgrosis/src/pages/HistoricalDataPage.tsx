@@ -304,7 +304,6 @@ const HistoricalDataPage = () => {
             onClickAction={(row) => console.log("Ver detalles de:", row)}
             onUpdate={(row) => console.log("Actualizar:", row)}
             onCreate={() => console.log("Crear nuevo dato")}
-            rowsPerPage={10}
             createButtonTitle="Crear Medición"
           />
         </div>
