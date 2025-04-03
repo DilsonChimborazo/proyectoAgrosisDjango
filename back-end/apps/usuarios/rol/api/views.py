@@ -6,4 +6,4 @@ from rest_framework.permissions import IsAuthenticated
 class RolViewSet(ModelViewSet):
     queryset = Rol.objects.all()
     serializer_class = RolSerializer
-    permission_classes = [IsAuthenticated]
+    
