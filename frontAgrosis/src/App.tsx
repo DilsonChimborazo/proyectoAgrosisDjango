@@ -63,6 +63,7 @@ import ActualizarAsignacion from "./components/trazabilidad/actividad/Actualizar
 import ListarHerramientas from "./components/inventario/herramientas/ListarHerramientas";
 import ListarInsumos from "./components/inventario/insumos/Insumos";
 import ActualizarInsumos from "./components/inventario/insumos/ActualizarInsumos";
+import RegistroDiario from "./pages/finanzas/consultas/RegistroDiario";
 
 
 
@@ -150,6 +151,8 @@ function App() {
           <Route path="/registrar-venta" element={<Principal><CrearVentaPage /></Principal>} />
           <Route path="/actualizarproduccion/:id_produccion" element={<Principal><ActualizarProduccionPage /></Principal>} />
           <Route path="/actualizarventa/:id_venta" element={<Principal><ActualizarVentaPage /></Principal>} />
+
+          <Route path="/diario" element={<Principal><RegistroDiario /></Principal>} />
 
           {/* Ruta por defecto para manejar errores 404 */}
           <Route path="*" element={<h1>404 - Página no encontrada</h1>} />
