@@ -5,7 +5,7 @@ from apps.finanzas.produccion.models import Produccion
 class Venta(models.Model):
     id_venta = models.AutoField(primary_key=True)  
     precio_unidad = models.DecimalField(max_digits=10, decimal_places=2)  
-    cantidad = models.IntegerField()  
+    cantidad = models.IntegerField()
     fecha = models.DateField()  
     fk_id_produccion = models.ForeignKey(Produccion, on_delete=models.SET_NULL, null=True) 
 

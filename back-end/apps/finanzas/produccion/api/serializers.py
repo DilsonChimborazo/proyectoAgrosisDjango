@@ -3,7 +3,7 @@ from apps.finanzas.produccion.models import Produccion
 from apps.trazabilidad.cultivo.api.serializers import LeerCultivoSerializer
 
 class ProduccionSerializer(ModelSerializer):
-    fk_id = LeerCultivoSerializer()
+    fk_id_cultivo = LeerCultivoSerializer()
     class Meta:
         model = Produccion
         fields = '__all__'  
