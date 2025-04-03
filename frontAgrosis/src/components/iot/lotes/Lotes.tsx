@@ -1,12 +1,13 @@
-import { useState } from 'react';
-import { useLotes } from '../../../hooks/iot/lote/useLotes';
-import Tabla from '../../globales/Tabla';
-import VentanaModal from '../../globales/VentanasModales';
-import Button from "@/components/globales/Button";
+import { useState } from "react";
+import { useLotes } from "../../../hooks/iot/lote/useLotes";
+import useLotesActivos from "../../../hooks/iot/lote/useLotesActivos"; // Importa el hook para generar PDF
+import Tabla from "../../globales/Tabla";
+import VentanaModal from "../../globales/VentanasModales";
 import { useNavigate } from "react-router-dom";
 
 const Lotes = () => {
   const { data: lotes, isLoading, error } = useLotes();
+  const { generarPDF } = useLotesActivos(); // Hook para generar PDF
   const [selectedLote, setSelectedLote] = useState<object | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
@@ -21,15 +22,16 @@ const Lotes = () => {
     setIsModalOpen(false);
   };
 
-  const handleUpdate = (residuo: { id: number }) => {
-    navigate(`/Editarlote/${residuo.id}`);
+  const handleUpdate = (lote: { id: number }) => {
+    navigate(`/Editarlote/${lote.id}`);
   };
 
-  const headers = ['ID', 'Nombre', 'Dimencion', 'fk id ubicacion', 'Estado'];
+  const headers = ["ID", "Nombre", "dimencion", "ubicacion", "Estado"];
 
   const handleRowClick = (lote: object) => {
     openModalHandler(lote);
   };
+  
   const handleCreate = () => {
     navigate("/Crear-lote");
   };
@@ -39,18 +41,28 @@ const Lotes = () => {
 
   const lotesList = Array.isArray(lotes) ? lotes : [];
 
-  const mappedLotes = lotesList.map(lote => ({
+  const mappedLotes = lotesList.map((lote) => ({
     id: lote.id,
     nombre: lote.nombre_lote,
     dimencion: lote.dimencion,
-    fk_id_ubicacion: lote.fk_id_ubicacion 
-      ? `${lote.fk_id_ubicacion.latitud}, ${lote.fk_id_ubicacion.longitud}` 
-      : 'Sin ubicación',
+    ubicacion: lote.fk_id_ubicacion
+      ? `${lote.fk_id_ubicacion.latitud}, ${lote.fk_id_ubicacion.longitud}`
+      : "Sin ubicación",
     estado: lote.estado,
   }));
 
   return (
-    <div className="overflow-x-auto  rounded-lg">
+    <div className="overflow-x-auto rounded-lg">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-bold">Lotes</h2>
+        <button 
+          className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+          onClick={generarPDF}
+        >
+          Descargar PDF
+        </button>
+      </div>
+      
       <Tabla
         title="Lotes"
         headers={headers}
@@ -60,12 +72,13 @@ const Lotes = () => {
         onCreate={handleCreate}
         createButtonTitle="Crear"
       />
+      
       {selectedLote && (
         <VentanaModal
           isOpen={isModalOpen}
           onClose={closeModal}
           titulo="Detalles del Lote"
-          contenido={selectedLote} 
+          contenido={selectedLote}
         />
       )}
     </div>
