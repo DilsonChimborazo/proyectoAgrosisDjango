@@ -56,6 +56,7 @@ import ActualizarEspecie from "./components/trazabilidad/especie/ActualizarEspec
 import ActualizarSemillero from "./components/trazabilidad/semillero/ActualizarSemillero"
 import ActualizarVentaPage from "./pages/finanzas/venta/ActualizarVentaPage";
 import ActualizarInsumo from "./components/inventario/insumos/ActualizarInsumos";
+import RegistroDiario from "./pages/finanzas/consultas/RegistroDiario";
 
 
 const queryClient = new QueryClient();
@@ -134,6 +135,8 @@ function App() {
           <Route path="/registrar-venta" element={<Principal><CrearVentaPage /></Principal>} />
           <Route path="/actualizarproduccion/:id_produccion" element={<Principal><ActualizarProduccionPage /></Principal>} />
           <Route path="/actualizarventa/:id_venta" element={<Principal><ActualizarVentaPage /></Principal>} />
+
+          <Route path="/diario" element={<Principal><RegistroDiario /></Principal>} />
 
           {/* Ruta por defecto para manejar errores 404 */}
           <Route path="*" element={<h1>404 - Página no encontrada</h1>} />
