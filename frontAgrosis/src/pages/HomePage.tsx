@@ -250,6 +250,7 @@ const HomePage = () => {
   // WebSocket para sensores
   useEffect(() => {
     const wsSensors = new WebSocket(`${wsUrl}sensores/`);
+
     wsSensors.onopen = () => console.log("✅ Conectado al WebSocket de sensores");
     wsSensors.onmessage = (event) => {
       try {
@@ -321,6 +322,7 @@ const HomePage = () => {
   // WebSocket para mediciones
   useEffect(() => {
     const ws = new WebSocket(`${wsUrl}mide/`);
+
     ws.onopen = () => console.log("✅ Conectado al WebSocket de mediciones");
     ws.onmessage = (event) => {
       try {
@@ -630,7 +632,6 @@ const HomePage = () => {
           );
         })}
       </div>
-
       {/* Sección de Gráficos */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         {/* Gráfico de Líneas (Valores de Sensores a lo Largo del Tiempo) */}

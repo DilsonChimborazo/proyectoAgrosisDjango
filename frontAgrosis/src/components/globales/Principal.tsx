@@ -99,10 +99,11 @@ export default function Principal({ children }: LayoutProps) {
   return (
     <div className="relative flex h-screen w-full overflow-x-hidden">
     {/* Imagen de fondo con opacidad */}
-    <div className="absolute inset-0">
-      <img src="/fondo.jpg" alt="Fondo" className="w-full h-full object-cover" />
-      <div className="absolute inset-0 bg-black opacity-50"></div>
+    <div className="absolute inset-0 w-full min-h-screen">
+      <img src="/fondo.jpg" alt="Fondo" className="w-full min-h-screen object-cover" />
+      <div className="absolute inset-0 bg-black opacity-50 w-full min-h-[140vh]"></div>
     </div>
+
       {/* Sidebar */}
       <div
         className={`bg-white p-2 overflow-auto sm:p-4 flex flex-col w-48 sm:w-64 h-full fixed top-0 left-0 z-50 border-t-4 border-r-4 rounded-tr-3xl rounded-br-3xl transition-all duration-300 ${
