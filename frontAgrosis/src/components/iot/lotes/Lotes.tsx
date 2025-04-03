@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { useLotes } from "../../../hooks/iot/lote/useLotes";
 import PdfLotesActivos from '@/components/iot/lotes/PdfLotesActivos';
+
 import Tabla from "../../globales/Tabla";
 import VentanaModal from "../../globales/VentanasModales";
 import { useNavigate } from "react-router-dom";
 
 const Lotes = () => {
   const { data: lotes, isLoading, error } = useLotes();
+  const { generarPDF } = useLotesActivos(); // Hook para generar PDF
   const [selectedLote, setSelectedLote] = useState<object | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
@@ -30,7 +32,6 @@ const Lotes = () => {
   const handleRowClick = (lote: object) => {
     openModalHandler(lote);
   };
-
   const handleCreate = () => {
     navigate("/Crear-lote");
   };
@@ -53,6 +54,16 @@ const Lotes = () => {
   return (
     <div className="overflow-x-auto rounded-lg">
 
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-bold">Lotes</h2>
+        <button 
+          className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+          onClick={generarPDF}
+        >
+          Descargar PDF
+        </button>
+      </div>
+      
       <Tabla
         title="Lotes"
         headers={headers}
