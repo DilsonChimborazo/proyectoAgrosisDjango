@@ -250,7 +250,6 @@ const HomePage = () => {
   // WebSocket para sensores
   useEffect(() => {
     const wsSensors = new WebSocket(`${wsUrl}sensores/`);
-
     wsSensors.onopen = () => console.log("✅ Conectado al WebSocket de sensores");
     wsSensors.onmessage = (event) => {
       try {
@@ -322,7 +321,6 @@ const HomePage = () => {
   // WebSocket para mediciones
   useEffect(() => {
     const ws = new WebSocket(`${wsUrl}mide/`);
-
     ws.onopen = () => console.log("✅ Conectado al WebSocket de mediciones");
     ws.onmessage = (event) => {
       try {
@@ -396,7 +394,6 @@ const HomePage = () => {
     const sensorInfo = sensors.find((s) => s.id === sensorId);
     const realTimeEntry = realTimeData[sensorId];
     if (!sensorInfo || !realTimeEntry) return null;
-
     const value = realTimeEntry.valor;
     const min = sensorInfo.medida_minima || 0;
     const max = sensorInfo.medida_maxima || 100;
