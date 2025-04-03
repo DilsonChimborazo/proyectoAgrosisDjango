@@ -149,7 +149,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'agrosis',  
         'USER': 'postgres',                
-        'PASSWORD': 'adso2024',      
+        'PASSWORD': '1234',      
         'HOST': 'localhost',                  
         'PORT': '5432',  
         'OPTIONS': {
