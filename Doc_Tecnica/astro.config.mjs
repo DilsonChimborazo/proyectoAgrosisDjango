@@ -239,7 +239,19 @@ integrations: [
         {
           label: 'Documentacion de Usuario',
           items: [
-			{ label: 'Planteamiento del Problema', slug: 'usuario/problematica/planteamiento'},
+			{
+				label: 'Planteamiento del problema',
+				items: [
+					{ label: 'Planteamiento del Problema', slug: 'usuario/problematica/planteamiento'},
+				],
+			},
+			{
+				label: 'Requerimientos',
+				items: [
+					{ label: 'Especificación de Requerimientos de Software', slug: 'usuario/problematica/requerimientos'},
+				],
+			},
+			
           ]
         },
       ]
