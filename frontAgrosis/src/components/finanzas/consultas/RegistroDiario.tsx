@@ -21,31 +21,38 @@ const TablaProgramacion = () => {
   return (
     <Card className="p-6 shadow-2xl rounded-3xl bg-white border border-gray-200">
       <CardContent>
-        <h2 className="text-3xl font-bold text-green-700 text-center mb-6 uppercase tracking-wide">Registro Diario de Campo (Agrícola)</h2>
-        <div className="flex justify-center gap-6 mb-6">
-          <Select onValueChange={(value) => setYear(Number(value))} value={year.toString()}>
-            <SelectTrigger className="w-28 bg-green-700 text-white font-semibold rounded-xl px-3 py-2 shadow-md hover:bg-green-800 transition-all">
-              <SelectValue placeholder="Año" />
-            </SelectTrigger>
-            <SelectContent>
-              {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map(y => (
-                <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        {/* Título y Selectores */}
+        <div className="flex justify-between items-center flex-wrap gap-4 mb-6">
+          <h2 className="text-2xl font-bold text-black uppercase tracking-wide">
+            Registro Diario de Campo (Agrícola)
+          </h2>
 
-          <Select onValueChange={(value) => setMonth(Number(value))} value={month.toString()}>
-            <SelectTrigger className="w-32 bg-green-700 text-white font-semibold rounded-xl px-3 py-2 shadow-md hover:bg-green-800 transition-all">
-              <SelectValue placeholder="Mes" />
-            </SelectTrigger>
-            <SelectContent>
-              {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
-                <SelectItem key={m} value={m.toString()}>{format(new Date(2023, m - 1, 1), 'MMMM')}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex gap-4">
+            <Select onValueChange={(value) => setYear(Number(value))} value={year.toString()}>
+              <SelectTrigger className="w-28 bg-green-800 text-white font-semibold rounded-xl px-3 py-2 shadow-md hover:bg-green-800 transition-all">
+                <SelectValue placeholder="Año" />
+              </SelectTrigger>
+              <SelectContent>
+                {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map(y => (
+                  <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select onValueChange={(value) => setMonth(Number(value))} value={month.toString()}>
+              <SelectTrigger className="w-32 bg-green-800 text-white font-semibold rounded-xl px-3 py-2 shadow-md hover:bg-green-800 transition-all">
+                <SelectValue placeholder="Mes" />
+              </SelectTrigger>
+              <SelectContent>
+                {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+                  <SelectItem key={m} value={m.toString()}>{format(new Date(2023, m - 1, 1), 'MMMM')}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
+        {/* Tabla */}
         {isLoading ? (
           <Skeleton className="h-48 w-full rounded-lg" />
         ) : error ? (
@@ -53,7 +60,7 @@ const TablaProgramacion = () => {
         ) : (
           <div className="overflow-x-auto">
             <Table className="w-full border border-gray-300 rounded-xl overflow-hidden">
-              <TableHeader className="bg-green-700 text-white">
+              <TableHeader className="bg-green-800 text-white">
                 <TableRow>
                   <TableHead className="text-center px-4 py-3 font-bold text-white">Actividad</TableHead>
                   {days.map(day => (
@@ -74,9 +81,9 @@ const TablaProgramacion = () => {
                     <TableCell className="font-bold bg-green-800 text-white text-center px-4 py-2 border border-gray-300">{row.total}</TableCell>
                   </TableRow>
                 ))}
-                
+
                 {/* Fila de Total General */}
-                <TableRow className="bg-green-700 text-white font-bold">
+                <TableRow className="bg-green-800 text-white font-bold hover:bg-green-800">
                   <TableCell className="text-right px-4 py-2 border border-gray-300" colSpan={days.length + 1}>Total General:</TableCell>
                   <TableCell className="text-center px-4 py-2 border border-gray-300">{totalGeneral}</TableCell>
                 </TableRow>
