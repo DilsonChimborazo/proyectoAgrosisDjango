@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useLotes } from '../../../hooks/iot/lote/useLotes';
 import Tabla from '../../globales/Tabla';
 import VentanaModal from '../../globales/VentanasModales';
-import Button from "@/components/globales/Button";
 import { useNavigate } from "react-router-dom";
 
 const Lotes = () => {

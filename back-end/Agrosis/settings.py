@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_yasg',
     'channels',
+    'django_filters',
     
     #usuario
     'rest_framework_simplejwt',

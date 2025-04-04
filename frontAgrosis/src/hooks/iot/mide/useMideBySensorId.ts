@@ -39,7 +39,7 @@ export const useMideBySensorId = (sensorId: number): MideBySensorIdResponse => {
 
       try {
         // Obtener las lecturas del sensor por su ID
-        const readingsResponse = await fetch(`http://127.0.0.1:8000/api/mide/?fk_id_sensor=${sensorId}`);
+        const readingsResponse = await fetch(`http://192.168.101.6:8000/api/mide/por-sensor/${sensorId}`);
         if (!readingsResponse.ok) {
           throw new Error("Error al obtener las lecturas del sensor");
         }
@@ -47,7 +47,7 @@ export const useMideBySensorId = (sensorId: number): MideBySensorIdResponse => {
         setReadings(readingsData);
 
         // Obtener los detalles del sensor
-        const sensorResponse = await fetch(`http://127.0.0.1:8000/api/sensores/${sensorId}/`);
+        const sensorResponse = await fetch(`http://192.168.101.6:8000/api/sensores/${sensorId}/`);
         if (!sensorResponse.ok) {
           throw new Error("Error al obtener los detalles del sensor");
         }
