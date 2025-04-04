@@ -4,8 +4,8 @@ from apps.trazabilidad.actividad.api.serializers import LeerActividadSerializer
 from apps.usuarios.usuario.api.serializer import LeerUsuarioSerializer
 
 class LeerAsignacion_actividadesSerializer(ModelSerializer):
-    fk_id_actividad = LeerActividadSerializer()
-    id_identificacion = LeerUsuarioSerializer()
+    fk_id_actividad = LeerActividadSerializer
+    id_identificacion = LeerUsuarioSerializer
     
     class Meta:
         model = Asignacion_actividades
