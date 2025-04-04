@@ -64,6 +64,7 @@ import ListarHerramientas from "./components/inventario/herramientas/ListarHerra
 import ListarInsumos from "./components/inventario/insumos/Insumos";
 import ActualizarInsumos from "./components/inventario/insumos/ActualizarInsumos";
 import RegistroDiario from "./pages/finanzas/consultas/RegistroDiario";
+import ReporteInsumosPage from "./pages/finanzas/consultas/ReporteInsumosPage";
 
 
 
@@ -153,6 +154,7 @@ function App() {
           <Route path="/actualizarventa/:id_venta" element={<Principal><ActualizarVentaPage /></Principal>} />
 
           <Route path="/diario" element={<Principal><RegistroDiario /></Principal>} />
+          <Route path="/insumo-egresos" element={<Principal><ReporteInsumosPage /></Principal>} />
 
           {/* Ruta por defecto para manejar errores 404 */}
           <Route path="*" element={<h1>404 - Página no encontrada</h1>} />
