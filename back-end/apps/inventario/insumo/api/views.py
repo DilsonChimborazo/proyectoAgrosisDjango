@@ -2,46 +2,85 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import Sum, F
 from apps.inventario.insumo.models import Insumo
-from apps.inventario.insumo.api.serializers import InsumoSerializer, ReporteEgresosSerializer
+from apps.inventario.insumo.api.serializers import InsumoSerializer
 from apps.trazabilidad.actividad.models import Actividad
 from apps.inventario.utiliza.models import Utiliza
-from django.db.models import Prefetch
 from apps.trazabilidad.asignacion_actividades.models import Asignacion_actividades
+from apps.trazabilidad.control_fitosanitario.models import Control_fitosanitario
+from apps.inventario.control_usa_insumo.models import ControlUsaInsumo
 
 class InsumoViewSet(ModelViewSet):
-    permissions_clases = [IsAuthenticatedOrReadOnly]
     queryset = Insumo.objects.all()
+    permission_classes = [IsAuthenticatedOrReadOnly]
     serializer_class = InsumoSerializer
-
+    
     @action(detail=False, methods=['get'], url_path='reporte-egresos')
     def reporte_egresos(self, request):
         """
-        Endpoint para generar reporte de egresos por insumos agrupados por actividad
+        Endpoint para generar reporte de egresos por insumos agrupados por actividad y control fitosanitario.
         """
-        # Prefetch optimizado para las relaciones
-        actividades = Actividad.objects.prefetch_related(
-            Prefetch(
-                'asignacion_actividades_set',
-                queryset=Asignacion_actividades.objects.prefetch_related(
-                    Prefetch(
-                        'utiliza_set',
-                        queryset=Utiliza.objects.select_related('fk_id_insumo')
-                    )
-                )
-            )
-        ).all()
+        reporte = []
+        total_general = 0
 
-        serializer = ReporteEgresosSerializer(actividades, many=True)
-        
-        # Calcular total general
-        total_general = sum(
-            item['costo_total'] for item in serializer.data
-        )
-        
+        # -------------------- EGRESOS POR ACTIVIDADES --------------------
+        actividades = Actividad.objects.prefetch_related('asignaciones__utiliza_set__fk_id_insumo').all()
+
+        for actividad in actividades:
+            asignaciones = actividad.asignaciones.all()
+            insumos_por_actividad = {}
+
+            for asignacion in asignaciones:
+                for uso in asignacion.utiliza_set.all():
+                    insumo = uso.fk_id_insumo
+                    if insumo.nombre not in insumos_por_actividad:
+                        insumos_por_actividad[insumo.nombre] = {
+                            "cantidad": 0,
+                            "costo_total": 0
+                        }
+                    insumos_por_actividad[insumo.nombre]["cantidad"] += uso.cantidad
+                    insumos_por_actividad[insumo.nombre]["costo_total"] += insumo.precio_unidad * uso.cantidad
+                    
+            costo_total_actividad = sum(i["costo_total"] for i in insumos_por_actividad.values())
+            total_general += costo_total_actividad
+
+            reporte.append({
+                "tipo": "Actividad",
+                "nombre": actividad.nombre_actividad,
+                "insumos": ", ".join(insumos_por_actividad.keys()) if insumos_por_actividad else "-",
+                "costos": " + ".join(str(i["costo_total"]) for i in insumos_por_actividad.values()) if insumos_por_actividad else "-",
+                "total": costo_total_actividad
+            })
+
+        # -------------------- EGRESOS POR CONTROL FITOSANITARIO --------------------
+        controles = Control_fitosanitario.objects.prefetch_related('controlusainsumo_set__fk_id_insumo').all()
+
+        for control in controles:
+            insumos_por_control = {}
+
+            for uso in control.controlusainsumo_set.all():
+                insumo = uso.fk_id_insumo
+                if insumo.nombre not in insumos_por_control:
+                    insumos_por_control[insumo.nombre] = {
+                        "cantidad": 0,
+                        "costo_total": 0
+                    }
+                insumos_por_control[insumo.nombre]["cantidad"] += uso.cantidad
+                insumos_por_control[insumo.nombre]["costo_total"] += insumo.precio_unidad * uso.cantidad
+
+            costo_total_control = sum(i["costo_total"] for i in insumos_por_control.values())
+            total_general += costo_total_control
+
+            reporte.append({
+                "tipo": "Control Fitosanitario",
+                "nombre": control.descripcion,  # Se usa la descripción en lugar de nombre_fitosanitario
+                "insumos": ", ".join(insumos_por_control.keys()) if insumos_por_control else "-",
+                "costos": " + ".join(str(i["costo_total"]) for i in insumos_por_control.values()) if insumos_por_control else "-",
+                "total": costo_total_control
+            })
+
         return Response({
-            'reporte': serializer.data,
-            'total_general': total_general,
-            'estructura': "ACTIVIDADES | EGRESOS POR INSUMOS | TOTAL"
+            "reporte": reporte,
+            "total_general": total_general,
+            "estructura": "TIPO | NOMBRE | EGRESOS POR INSUMOS | TOTAL"
         })

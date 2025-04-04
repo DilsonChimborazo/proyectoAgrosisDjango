@@ -10,7 +10,7 @@ import json
 class Asignacion_actividades(models.Model):
     fecha = models.DateField()
     observaciones = models.TextField() 
-    fk_id_actividad = models.ForeignKey(Actividad, on_delete=models.SET_NULL, null=True)
+    fk_id_actividad = models.ForeignKey(Actividad, on_delete=models.SET_NULL, null=True, related_name="asignaciones" )
     id_identificacion = models.ForeignKey(Usuarios, on_delete=models.SET_NULL, null=True)
     
     def __str__(self): 
