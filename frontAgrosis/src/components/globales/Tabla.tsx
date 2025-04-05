@@ -18,6 +18,7 @@ interface TablaProps<T> {
   onCreate: () => void; // Función que se ejecuta al hacer clic en el botón de crear
   rowsPerPage?: number; // Número de filas por página (opcional, por defecto 5)
   createButtonTitle?: string; // Título del botón de crear (opcional, por defecto vacío)
+  extraButton?: React.ReactNode; // boton para descargas de pdf
 }
 
 // Componente Tabla, que es genérico para manejar diferentes tipos de datos
@@ -30,6 +31,7 @@ const Tabla = <T extends { [key: string]: any }>({
   onCreate,
   rowsPerPage = 5, // Valor por defecto de filas por página
   createButtonTitle = "", // Valor por defecto del título del botón de crear
+  extraButton, // Boton para descraga de pdf 
 }: TablaProps<T>) => {
   // Estados para manejar la paginación, filtros, ordenamiento y columnas visibles
   const [currentPage, setCurrentPage] = useState(1); // Página actual de la paginación
@@ -187,6 +189,9 @@ const Tabla = <T extends { [key: string]: any }>({
             <Plus size={18} /> {/* Ícono de "+" */}
             {createButtonTitle}
           </HerouiButton>
+          {/* Botón extra como el de PDF */}
+          {extraButton && <div>{extraButton}</div>}
+          
         </div>
       </div>
 

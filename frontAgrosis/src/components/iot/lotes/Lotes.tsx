@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { useLotes } from '../../../hooks/iot/lote/useLotes';
-import Tabla from '../../globales/Tabla';
-import VentanaModal from '../../globales/VentanasModales';
+import { useState } from "react";
+import { useLotes } from "../../../hooks/iot/lote/useLotes";
+import PdfLotesActivos from '@/components/iot/lotes/PdfLotesActivos';
+import Tabla from "../../globales/Tabla";
+import VentanaModal from "../../globales/VentanasModales";
 import { useNavigate } from "react-router-dom";
 
 const Lotes = () => {
@@ -20,15 +21,16 @@ const Lotes = () => {
     setIsModalOpen(false);
   };
 
-  const handleUpdate = (residuo: { id: number }) => {
-    navigate(`/Editarlote/${residuo.id}`);
+  const handleUpdate = (lote: { id: number }) => {
+    navigate(`/Editarlote/${lote.id}`);
   };
 
-  const headers = ['ID', 'Nombre', 'Dimencion', 'fk id ubicacion', 'Estado'];
+  const headers = ["ID", "Nombre", "dimencion", "ubicacion", "Estado"];
 
   const handleRowClick = (lote: object) => {
     openModalHandler(lote);
   };
+
   const handleCreate = () => {
     navigate("/Crear-lote");
   };
@@ -38,18 +40,19 @@ const Lotes = () => {
 
   const lotesList = Array.isArray(lotes) ? lotes : [];
 
-  const mappedLotes = lotesList.map(lote => ({
+  const mappedLotes = lotesList.map((lote) => ({
     id: lote.id,
     nombre: lote.nombre_lote,
     dimencion: lote.dimencion,
-    fk_id_ubicacion: lote.fk_id_ubicacion 
-      ? `${lote.fk_id_ubicacion.latitud}, ${lote.fk_id_ubicacion.longitud}` 
-      : 'Sin ubicación',
+    ubicacion: lote.fk_id_ubicacion
+      ? `${lote.fk_id_ubicacion.latitud}, ${lote.fk_id_ubicacion.longitud}`
+      : "Sin ubicación",
     estado: lote.estado,
   }));
 
   return (
-    <div className="overflow-x-auto  rounded-lg">
+    <div className="overflow-x-auto rounded-lg">
+
       <Tabla
         title="Lotes"
         headers={headers}
@@ -58,13 +61,15 @@ const Lotes = () => {
         onUpdate={handleUpdate}
         onCreate={handleCreate}
         createButtonTitle="Crear"
+        extraButton={<PdfLotesActivos/>}
       />
+
       {selectedLote && (
         <VentanaModal
           isOpen={isModalOpen}
           onClose={closeModal}
           titulo="Detalles del Lote"
-          contenido={selectedLote} 
+          contenido={selectedLote}
         />
       )}
     </div>
