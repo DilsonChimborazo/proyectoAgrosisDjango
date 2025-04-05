@@ -6,6 +6,10 @@ export default defineConfig({
 integrations: [
     starlight({
     title: 'Documentacion Agrosoft',
+	customCss: [
+		// Ruta relativa a tu archivo CSS personalizado
+		'./src/styles/custom.css',
+	],
     social: {
         github: 'https://github.com/DilsonChimborazo/proyectoAgrosisDjango',
     },
@@ -13,6 +17,7 @@ integrations: [
         // Documentación Técnica
         {
         label: 'Documentacion Tecnica',
+		collapsed: true, 
         items: [
 			{
 				label: 'Autenticacion',
@@ -238,6 +243,7 @@ integrations: [
         //  Documentación de Usuario
         {
           label: 'Documentacion de Usuario',
+		  collapsed: true, 
           items: [
 			{
 				label: 'Planteamiento del problema',
