@@ -19,6 +19,7 @@ interface TablaProps<T> {
   rowsPerPage?: number; // Número de filas por página (opcional, por defecto 5)
   createButtonTitle?: string; // Título del botón de crear (opcional, por defecto vacío)
   extraButton?: React.ReactNode; // boton para descargas de pdf
+  hiddenColumnsByDefault?: string[]; // Columnas que estarán ocultas por defecto
 }
 
 // Componente Tabla, que es genérico para manejar diferentes tipos de datos
@@ -31,7 +32,8 @@ const Tabla = <T extends { [key: string]: any }>({
   onCreate,
   rowsPerPage = 5, // Valor por defecto de filas por página
   createButtonTitle = "", // Valor por defecto del título del botón de crear
-  extraButton, // Boton para descraga de pdf 
+  extraButton, // Boton para descarga de pdf 
+  hiddenColumnsByDefault = ['id'], // Columnas ocultas por defecto
 }: TablaProps<T>) => {
   // Estados para manejar la paginación, filtros, ordenamiento y columnas visibles
   const [currentPage, setCurrentPage] = useState(1); // Página actual de la paginación
@@ -39,7 +41,9 @@ const Tabla = <T extends { [key: string]: any }>({
   const [sortColumn, setSortColumn] = useState<string | null>(null); // Columna por la que se ordena
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc"); // Dirección del ordenamiento (ascendente o descendente)
   const [visibleColumns, setVisibleColumns] = useState<string[]>(
-    headers.map((header) => header.toLowerCase().replace(/\s+/g, "_")) // Inicializamos las columnas visibles con las claves de los encabezados
+    headers
+      .map((header) => header.toLowerCase().replace(/\s+/g, "_"))
+      .filter(key => !hiddenColumnsByDefault.includes(key.toLowerCase())) // Excluye columnas ocultas por defecto
   );
 
   // Creamos las columnas dinámicamente a partir de los encabezados
@@ -117,11 +121,6 @@ const Tabla = <T extends { [key: string]: any }>({
       setSortDirection("asc");
     }
   };
-
-  // Funciones para ir a la primera y última página
-  const handleFirstPage = () => setCurrentPage(1);
-  const handleLastPage = () => setCurrentPage(totalPages);
-
   // Función para alternar la visibilidad de una columna
   const toggleColumn = (columnKey: string) => {
     setVisibleColumns((prev) =>
@@ -138,7 +137,7 @@ const Tabla = <T extends { [key: string]: any }>({
 
   return (
     // Contenedor principal de la tabla con bordes redondeados
-    <div className="rounded-3xl m-5  bg-white">
+    <div className="rounded-3xl m-5 bg-white">
       {/* Sección superior con el título, búsqueda y botones */}
       <div className="flex flex-col sm:flex-row justify-between items-center px-8 py-4 rounded-t-xl p-5">
         {/* Título de la tabla */}
@@ -150,13 +149,13 @@ const Tabla = <T extends { [key: string]: any }>({
             placeholder="Buscar..."
             value={filter}
             onChange={(e) => setFilter(e.target.value)} // Actualizamos el filtro al escribir
-            className="border rounded-2xl p-2 focus:outline-none focus:ring-2 focus:ring-green-500 w-full sm:w-64"
+            className="border shadow-md rounded-2xl p-2 focus:outline-none focus:ring-2 focus:ring-green-500 w-full sm:w-64"
           />
           {/* Dropdown para seleccionar columnas visibles */}
           <Dropdown>
             <DropdownTrigger>
               <HerouiButton
-                className="flex items-center  border focus:ring-2 focus:ring-green-500 rounded-2xl p-6 uppercase"
+                className="flex items-center bg-white hover:bg-green-700 hover:text-white rounded-2xl p-6 shadow-md uppercase"
               >
                 columnas
                 <ChevronDown size={18} /> {/* Ícono de flecha hacia abajo */}
@@ -184,14 +183,13 @@ const Tabla = <T extends { [key: string]: any }>({
           <HerouiButton
             title={createButtonTitle}
             onClick={onCreate} // Ejecutamos la función onCreate al hacer clic
-            className="border hover:bg-green-700 hover:text-white uppercase text-center p-6 rounded-2xl"
+            className="bg-white hover:bg-green-700 hover:text-white uppercase text-center p-6 rounded-2xl shadow-md"
           >
             <Plus size={18} /> {/* Ícono de "+" */}
             {createButtonTitle}
           </HerouiButton>
           {/* Botón extra como el de PDF */}
           {extraButton && <div>{extraButton}</div>}
-          
         </div>
       </div>
 
@@ -251,12 +249,12 @@ const Tabla = <T extends { [key: string]: any }>({
                       <DropdownTrigger>
                         <HerouiButton
                           variant="bordered"
-                          className="p-2 rounded-full hover:bg-gray-200"
+                          className="p-2 rounded-full "
                         >
                           <MoreVertical size={18} /> {/* Ícono de más opciones */}
                         </HerouiButton>
                       </DropdownTrigger>
-                      <DropdownMenu aria-label="Acciones" className="bg-white">
+                      <DropdownMenu aria-label="Acciones" className="bg-white text-white">
                         <DropdownItem
                           key="details"
                           onClick={() => onClickAction(row)} // Ejecutamos onClickAction al hacer clic
@@ -284,19 +282,7 @@ const Tabla = <T extends { [key: string]: any }>({
       {/* Paginación (solo se muestra si hay datos) */}
       {sortedData.length > 0 && (
         <div className="flex justify-center p-5 rounded-b-xl bg-gray-50">
-          <div className="flex items-center gap-2 ">
-            {/* Botón para ir a la primera página */}
-            <button
-              onClick={handleFirstPage}
-              disabled={currentPage === 1} // Deshabilitado si estamos en la primera página
-              className={`p-2 rounded-full  ${
-                currentPage === 1
-                  ? "text-gray-400 cursor-not-allowed"
-                  : "text-gray-700 hover:bg-gray-200"
-              } transition duration-200`}
-            >
-            </button>
-
+          <div className="flex items-center gap-2">
             {/* Componente de paginación */}
             <Pagination
               isCompact
@@ -308,18 +294,6 @@ const Tabla = <T extends { [key: string]: any }>({
               onChange={(page) => setCurrentPage(page)} // Actualizamos la página actual
               className="flex items-center gap-2 overflow-hidden"
             />
-
-            {/* Botón para ir a la última página */}
-            <button
-              onClick={handleLastPage}
-              disabled={currentPage === totalPages} // Deshabilitado si estamos en la última página
-              className={`p-2 rounded-full ${
-                currentPage === totalPages
-                  ? "text-gray-400 cursor-not-allowed"
-                  : "text-gray-700 hover:bg-gray-200"
-              } transition duration-200`}
-            >
-            </button>
           </div>
         </div>
       )}

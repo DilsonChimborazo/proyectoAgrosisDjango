@@ -61,7 +61,7 @@ const menuItems = [
 
 export default function Principal({ children }: LayoutProps) {
   const [usuario, setUsuario] = useState<{ nombre: string; apellido: string } | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(false); // Sidebar inicialmente cerrado
+  const [sidebarOpen, setSidebarOpen] = useState(false); 
   const [active, setActive] = useState<string>("");
   const [openMenus, setOpenMenus] = useState<{ [key: string]: boolean }>({});
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -82,6 +82,7 @@ export default function Principal({ children }: LayoutProps) {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     localStorage.removeItem("refreshToken");
+    alert("Sesión finalizada. Por favor, vuelve a iniciar sesión."); 
     navigate("/");
   };
 
