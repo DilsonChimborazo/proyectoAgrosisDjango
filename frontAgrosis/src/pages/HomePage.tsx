@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/carousel";
 import { Link } from "react-router-dom";
 
+const wsUrl = import.meta.env.VITE_WS_URL;
+
 // Interfaces para tipado
 interface Sensor {
   id: number;
@@ -124,7 +126,7 @@ const HomePage = () => {
 
   // WebSocket para sensores
   useEffect(() => {
-    const wsSensors = new WebSocket("ws://192.168.101.6:8000/ws/api/sensores/");
+    const wsSensors = new WebSocket(`${wsUrl}/sensores`);
     wsSensors.onopen = () => console.log("✅ Conectado al WebSocket de sensores");
     wsSensors.onmessage = (event) => {
       try {
@@ -197,7 +199,7 @@ const HomePage = () => {
 
   // WebSocket para mediciones
   useEffect(() => {
-    const ws = new WebSocket("ws://192.168.101.6:8000/ws/api/mide/");
+    const ws = new WebSocket(`${wsUrl}/mide`);
     ws.onopen = () => console.log("✅ Conectado al WebSocket de mediciones");
     ws.onmessage = (event) => {
       try {
@@ -261,15 +263,8 @@ const HomePage = () => {
   };
 
   return (
-    <div
-      className="p-6 min-h-screen"
-      style={{
-        backgroundImage: "url('https://images.unsplash.com/photo-1500595046743-ee5a024c7ac8?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80')",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
-    >
-      <div className="grid grid-cols-2 gap-4 mb-6">
+    <div className="p-6">
+      <div className="grid grid-cols-5 gap-4 mb-6">
         {sensorDisplayData.map((sensor) => (
           <Link
             to={`/historical/${sensor.id}`}

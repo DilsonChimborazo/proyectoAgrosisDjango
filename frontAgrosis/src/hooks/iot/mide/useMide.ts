@@ -1,10 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
-const WS_URL = "ws://192.168.101.6:8000/ws/api/mide/";
-const WS_SENSORES_URL = "ws://192.168.101.6:8000/ws/api/sensores/";
-const API_SENSORES = "http://192.168.101.6:8000/api/sensores/";
-const API_MEDICIONES = "http://192.168.101.6:8000/api/mide/";
-const API_CREATE_SENSOR = "http://192.168.101.6:8000/api/sensores/";
+const apiUrl = import.meta.env.VITE_API_URL;
+const wsUrl = import.meta.env.VITE_WS_URL;
+
+const WS_URL = `${wsUrl}/mide`;
+const WS_SENSORES_URL = `${wsUrl}/sensores`;
+const API_SENSORES = `${apiUrl}sensores/`;
+const API_MEDICIONES = `${apiUrl}mide/`;
+const API_CREATE_SENSOR = `${apiUrl}sensores/`;
 
 export interface Sensor {
   id: number;

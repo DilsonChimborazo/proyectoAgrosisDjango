@@ -1,7 +1,8 @@
-// hooks/iot/mide/useMideBySensorId.ts
 import { useState, useEffect } from "react";
 
-// Interfaces para tipado (reutilizamos las mismas que en useMide)
+const apiUrl = import.meta.env.VITE_API_URL;
+
+// Interfaces
 export interface Mide {
   id: number;
   fk_id_sensor: number;
@@ -20,50 +21,52 @@ export interface Sensor {
 }
 
 interface MideBySensorIdResponse {
-  readings: Mide[];
+  data: Mide[];
   sensor: Sensor | null;
   isLoading: boolean;
   error: Error | null;
 }
 
 export const useMideBySensorId = (sensorId: number): MideBySensorIdResponse => {
-  const [readings, setReadings] = useState<Mide[]>([]);
+  const [data, setData] = useState<Mide[]>([]);
   const [sensor, setSensor] = useState<Sensor | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
+    if (!sensorId) return;
+
     const fetchData = async () => {
       setIsLoading(true);
       setError(null);
-
+    
       try {
-        // Obtener las lecturas del sensor por su ID
-        const readingsResponse = await fetch(`http://192.168.101.6:8000/api/mide/por-sensor/${sensorId}`);
-        if (!readingsResponse.ok) {
-          throw new Error("Error al obtener las lecturas del sensor");
+        const readingsRes = await fetch(`${apiUrl}mide/por-sensor/${sensorId}`);
+        if (!readingsRes.ok) {
+          throw new Error("No se pudieron obtener las lecturas del sensor.");
         }
-        const readingsData: Mide[] = await readingsResponse.json();
-        setReadings(readingsData);
-
-        // Obtener los detalles del sensor
-        const sensorResponse = await fetch(`http://192.168.101.6:8000/api/sensores/${sensorId}/`);
-        if (!sensorResponse.ok) {
-          throw new Error("Error al obtener los detalles del sensor");
+        const readingsData = await readingsRes.json();
+        setData(readingsData.data);
+    
+        const sensorRes = await fetch(`${apiUrl}sensores/${sensorId}/`);
+        if (!sensorRes.ok) {
+          throw new Error("No se pudieron obtener los detalles del sensor.");
         }
-        const sensorData: Sensor = await sensorResponse.json();
+        const sensorData: Sensor = await sensorRes.json();
         setSensor(sensorData);
       } catch (err) {
-        setError(err instanceof Error ? err : new Error("Error desconocido"));
+        const customError = err instanceof Error ? err : new Error("Error desconocido");
+        setError(customError);
+        setData([]);
+        setSensor(null);
       } finally {
         setIsLoading(false);
       }
     };
+    
 
-    if (sensorId) {
-      fetchData();
-    }
+    fetchData();
   }, [sensorId]);
 
-  return { readings, sensor, isLoading, error };
+  return { data, sensor, isLoading, error };
 };
