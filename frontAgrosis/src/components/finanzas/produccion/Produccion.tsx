@@ -91,7 +91,6 @@ const ProduccionComponent = () => {
 
   return (
     <div className="mx-auto p-4">
-
       <Tabla 
         title="Lista de Producciones" 
         headers={headers} 
