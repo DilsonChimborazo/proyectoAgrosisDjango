@@ -72,7 +72,6 @@ const ActualizarProduccion = () => {
             )}
         </div>
     );
-
 };
 
 export default ActualizarProduccion;

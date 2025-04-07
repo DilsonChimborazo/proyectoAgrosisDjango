@@ -7,6 +7,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import Button from '@/components/globales/Button';
 
+
 const VentaComponent = () => {
   const navigate = useNavigate();
   const { data: ventas, isLoading, error } = useVenta();
@@ -33,7 +34,6 @@ const VentaComponent = () => {
 
   const handleCreate = () => {
     navigate("/Registrar-Venta");
-
   };
 
   if (isLoading) return <div className="text-center text-gray-500">Cargando ventas...</div>;
@@ -43,10 +43,6 @@ const VentaComponent = () => {
   const mappedVentas = ventasList.map((venta) => {
     const cantidadProduccion = venta.fk_id_produccion?.cantidad_produccion ?? 0;
     const cantidadVendida = venta.cantidad ?? 0;
-
-
-    // Calcular el stock disponible con una verificación adicional
-
     const stock = cantidadProduccion > cantidadVendida ? cantidadProduccion - cantidadVendida : 0;
 
     return {
@@ -115,11 +111,8 @@ const VentaComponent = () => {
     doc.save("producto_mas_vendido.pdf");
   };
 
-
-
   return (
     <div className="mx-auto p-4">
-
       <div className="flex gap-4 my-4">
         <Button 
           text="Registrar Venta" 

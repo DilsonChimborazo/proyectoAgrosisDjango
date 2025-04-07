@@ -68,6 +68,7 @@ import ReporteInsumosPage from "./pages/finanzas/consultas/ReporteInsumosPage";
 
 
 
+
 const queryClient = new QueryClient();
 
 function App() {
