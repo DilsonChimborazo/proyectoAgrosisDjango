@@ -5,10 +5,9 @@ from rest_framework.response import Response
 from apps.inventario.insumo.models import Insumo
 from apps.inventario.insumo.api.serializers import InsumoSerializer
 from apps.trazabilidad.actividad.models import Actividad
-from apps.inventario.utiliza.models import Utiliza
 from apps.trazabilidad.asignacion_actividades.models import Asignacion_actividades
 from apps.trazabilidad.control_fitosanitario.models import Control_fitosanitario
-from apps.inventario.control_usa_insumo.models import ControlUsaInsumo
+
 
 class InsumoViewSet(ModelViewSet):
     queryset = Insumo.objects.all()

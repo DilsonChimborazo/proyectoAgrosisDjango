@@ -77,18 +77,15 @@ INSTALLED_APPS = [
     'apps.trazabilidad.actividad',
     'apps.trazabilidad.control_fitosanitario',
     'apps.trazabilidad.cultivo',
-    'apps.trazabilidad.desarrollan',
     'apps.trazabilidad.pea',
     'apps.trazabilidad.plantacion',
     'apps.trazabilidad.residuos',
     'apps.trazabilidad.tipo_residuos',
 
     #Inventario
-    'apps.inventario.control_usa_insumo',
     'apps.inventario.herramientas',
     'apps.inventario.insumo',
-    'apps.inventario.requiere',
-    'apps.inventario.utiliza',
+
 ]
 
 

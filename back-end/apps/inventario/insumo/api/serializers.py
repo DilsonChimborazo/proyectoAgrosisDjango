@@ -2,7 +2,6 @@ from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
 from apps.inventario.insumo.models import Insumo
 from apps.trazabilidad.actividad.models import Actividad
-from apps.inventario.utiliza.models import Utiliza
 from django.db.models import Sum, F
 
 class InsumoSerializer(ModelSerializer):

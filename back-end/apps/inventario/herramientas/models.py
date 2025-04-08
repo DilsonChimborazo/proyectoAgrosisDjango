@@ -8,8 +8,8 @@ class Herramientas (models.Model):
         ('En reparación', 'En reparación')
     ]
     nombre_h = models.CharField(max_length=500)
-    fecha_prestamo = models.DateTimeField(max_length=200)
+    stock = models.IntegerField()
     estado = models.CharField(max_length=50 ,choices=estado, null=True)
 
-    def __str__(self):
-        return self.nombre_h  
+    def _str_(self):
+        return self.nombre_h

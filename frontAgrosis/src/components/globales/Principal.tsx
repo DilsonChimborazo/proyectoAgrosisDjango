@@ -206,7 +206,7 @@ export default function Principal({ children }: LayoutProps) {
             </span>
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-2  hover:bg-green-800 hover:rounded-full text-white"
+              className="flex items-center gap-2 px-4 py-2  hover:text-red-500 text-white"
             >
               <LogOut size={18} />
             </button>

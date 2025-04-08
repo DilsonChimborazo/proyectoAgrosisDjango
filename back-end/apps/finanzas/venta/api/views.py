@@ -9,7 +9,6 @@ from apps.finanzas.venta.api.serializers import leerVentaSerializer, escribirVen
 from django.db.models import Prefetch
 from decimal import Decimal, ROUND_HALF_UP
 from apps.trazabilidad.programacion.models import Programacion
-from apps.inventario.control_usa_insumo.models import ControlUsaInsumo
 
 class VentaViewSet(ModelViewSet):
     queryset = Venta.objects.all().order_by('-fecha')
