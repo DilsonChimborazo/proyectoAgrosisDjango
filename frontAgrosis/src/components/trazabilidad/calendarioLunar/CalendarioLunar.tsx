@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { useCalendarioLunar } from "../../../hooks/trazabilidad/calendarioLunar/useCalendarioLunar";
+import { useCalendarioLunar } from "../../../hooks/trazabilidad/calendarioLunar/useCalendarioLunar"; // Hook para cargar los calendarios existentes
+import useCalendarioActivos from "../../../hooks/trazabilidad/calendarioLunar/useCalendariosActivos"; // Hook para generar el PDF
 import VentanaModal from "../../globales/VentanasModales";
 import Tabla from "../../globales/Tabla";
 import { useNavigate } from "react-router-dom";
 
 const CalendariosLunares = () => {
   const { data: calendarios, error, isLoading } = useCalendarioLunar();
+  const { generarPDF } = useCalendarioActivos(); // Función del hook para generar el PDF
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCalendario, setSelectedCalendario] = useState<any>(null);
 
@@ -25,6 +27,10 @@ const CalendariosLunares = () => {
 
   // Navegar a la página para actualizar un calendario lunar
   const handleUpdate = (calendario: { id: number }) => {
+    if (!calendario.id) {
+      console.error("El ID del calendario no está definido.");
+      return;
+    }
     navigate(`/actualizarcalendariolunar/${calendario.id}`);
   };
 
@@ -47,6 +53,7 @@ const CalendariosLunares = () => {
       </div>
     );
 
+  // Mapeo de datos para la tabla
   const tablaData = (calendarios ?? []).map((calendario) => ({
     id: calendario.id,
     fecha: calendario.fecha
@@ -56,14 +63,24 @@ const CalendariosLunares = () => {
           day: "numeric",
         })
       : "Sin fecha",
-      descripcion_evento: calendario.descripcion_evento || "N/A",
+    descripcion_evento: calendario.descripcion_evento || "N/A",
     evento: calendario.evento || "Sin evento",
   }));
 
   const headers = ["ID", "Fecha", "Descripcion Evento", "Evento"];
 
   return (
-    <div className="">
+    <div className="overflow-x-auto rounded-lg">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-bold">Calendarios Lunares</h2>
+        <button
+          className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+          onClick={generarPDF} // Llama al hook para generar el PDF
+        >
+          Descargar PDF
+        </button>
+      </div>
+
       <Tabla
         title="Lista de Calendarios Lunares"
         headers={headers}
