@@ -14,6 +14,16 @@ Solicitud utilizada para el resgistro de un nuevo residuo.
  POST
 ```
 ---
+## **Cabecera de la solicitud**
+Incluye los siguientes encabezados en la solicitud:
+```
+Content-Type: application/json
+Authorization: Bearer "tu_token_aquí"
+```
+|Encabezado	Requerido | Descripción  |
+|-------------------- |--------------|
+|Content-Type	      |✅	Indica que el cuerpo de la solicitud es JSON.
+|Authorization        |❌	Token de autenticación si es necesario.
 
 
 # **Solicitud**

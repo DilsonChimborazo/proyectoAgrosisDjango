@@ -15,6 +15,16 @@ Solicitud utilizada para la eliminación de una pea específica registrado en el
  DELETE
 ```
 ---
+## **Cabecera de la solicitud**
+Incluye los siguientes encabezados en la solicitud:
+```
+Content-Type: application/json
+Authorization: Bearer "tu_token_aquí"
+```
+|Encabezado	Requerido | Descripción  |
+|-------------------- |--------------|
+|Content-Type	      |✅	Indica que el cuerpo de la solicitud es JSON.
+|Authorization        |❌	Token de autenticación si es necesario.
 
 
 # **Solicitud**
@@ -51,6 +61,3 @@ Si las credenciales son correctas, recibirás un código **201** con la siguient
 ---
 
 📄 **Nota:** Solo los administradores o encargados pueden eliminar una pea. Los usuarios sin permisos adecuados no podrán realizar esta acción.
-
-
-

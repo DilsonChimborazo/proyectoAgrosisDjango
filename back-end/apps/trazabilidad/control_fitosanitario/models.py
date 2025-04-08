@@ -1,12 +1,23 @@
 from django.db import models
-from apps.trazabilidad.desarrollan.models import Desarrollan
-
+from apps.trazabilidad.cultivo.models import Cultivo
+from apps.trazabilidad.pea.models import Pea
 
 # Create your models here.
 class Control_fitosanitario(models.Model):
+    TIPOS_CONTROL = [
+        ('Control Biológico', 'Control Biológico'),
+        ('Control Físico', 'Control Físico'),
+        ('Control Químico', 'Control Químico'),
+        ('Control Cultural', 'Control Cultural'),
+        ('Control Genético ', 'Control Genético')
+    ]
     fecha_control = models.DateField()
     descripcion = models.CharField(max_length=300)
-    fk_id_desarrollan = models.ForeignKey(Desarrollan, on_delete=models.SET_NULL, null=True)  
+    tipo_control = models.CharField(max_length=20, choices=TIPOS_CONTROL, default='Control Biológico')
+    fk_id_cultivo = models.ForeignKey(Cultivo, on_delete=models.SET_NULL, null=True)
+    fk_id_pea = models.ForeignKey(Pea, on_delete=models.SET_NULL, null=True)
     def __str__(self):
-        return self.fecha_control.strftime('%Y-%m-%d') 
+
+         return f"Cultivo: {self.fk_id_cultivo.nombre_cultivo} pea: {self.fk_id_pea}" 
+
     

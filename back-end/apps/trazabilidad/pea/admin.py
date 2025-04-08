@@ -3,4 +3,4 @@ from apps.trazabilidad.pea.models import Pea
 
 @admin.register(Pea)
 class PeaAdmin(admin.ModelAdmin):
-    list_display = ('nombre_pea', 'descripcion') 
+    list_display = ('nombre_pea', 'descripcion', 'tipo_pea') 

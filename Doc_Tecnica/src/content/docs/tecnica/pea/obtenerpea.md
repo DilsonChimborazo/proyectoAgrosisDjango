@@ -14,6 +14,16 @@ Solicitud utilizada para obtener los peade previamente registrados.
  GET
 ```
 ---
+## **Cabecera de la solicitud**
+Incluye los siguientes encabezados en la solicitud:
+```
+Content-Type: application/json
+Authorization: Bearer "tu_token_aquí"
+```
+|Encabezado	Requerido | Descripción  |
+|-------------------- |--------------|
+|Content-Type	      |✅	Indica que el cuerpo de la solicitud es JSON.
+|Authorization        |❌	Token de autenticación si es necesario.
 
 
 # **Solicitud**
@@ -33,15 +43,17 @@ Si las credenciales son correctas, recibirás un código **201** con la siguient
 {
     "id": 1,
     "nombre_pea": "plaga",
-    "descripcion": "Descripción actualizada del Pea"
+    "descripcion": "Descripción actualizada del Pea",
+    "tipo_pea": "Plaga"
 }
 ```
 
 :::markdown
 | Campo           | Tipo   | Descripción                |
 |----------------|--------|-----------------------------|
-| nombre_pea     | string | plaga               |
-| descripcion    | string | Descripción actualizada del Pea |
+| nombre_pea     | string | Nombre del pea(plaga/enfermedad/arvense) |
+| descripcion    | string | Descripcion de la pea(plaga/enfermedad/arvense) |
+| tipo_pea       | string | Tipo de pea (plaga/enfermedad/arvense)  |
 :::
 
 

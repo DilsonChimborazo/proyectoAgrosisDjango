@@ -6,19 +6,16 @@ const apiUrl = import.meta.env.VITE_API_URL;
 export interface ControlFitosanitario {
     fecha_control: string;
     descripcion: string;
-    fk_id_desarrollan: number;
-}
-
-export interface Desarrollan {
-    id: number;
-    fk_id_cultivo: Cultivo | null;
-    fk_id_pea: Pea | null;
+    tipo_control: string;
+    fk_id_cultivo: number;
+    fk_id_pea: number;
 }
 
 export interface Pea {
     id: number;
     nombre_pea: string;
     descripcion: string;
+    tipo_pea: string;
 }
 
 export interface Cultivo {

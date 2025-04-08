@@ -6,6 +6,7 @@ const apiUrl = import.meta.env.VITE_API_URL;
 export interface Pea {
     nombre_pea: string;
     descripcion: string;
+    tipo_pea: string;
 }
 
 // Hook personalizado para crear un nuevo PEA
