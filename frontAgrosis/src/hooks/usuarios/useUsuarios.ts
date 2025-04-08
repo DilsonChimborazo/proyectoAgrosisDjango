@@ -15,6 +15,7 @@ export interface Usuario {
   email: string;
   nombre: string;
   apellido: string;
+  is_active: boolean;
   fk_id_rol: Rol | null; 
 }
 

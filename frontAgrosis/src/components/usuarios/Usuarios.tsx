@@ -6,7 +6,7 @@ import VentanaModal from "../globales/VentanasModales";
 
 const Usuarios = () => {
   const navigate = useNavigate();
-  const { data: usuarios, isLoading, error } = useUsuarios();
+  const { data: usuarios, isLoading, error, refetch } = useUsuarios();
   const [selectedUser, setSelectedUser] = useState<Record<string, any> | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [esAdministrador, setEsAdministrador] = useState(false);
@@ -31,7 +31,7 @@ const Usuarios = () => {
   const handleCreate = () => {
     if (esAdministrador) {
       navigate("/crearUsuarios");
-    }else {
+    } else {
       setMensaje("No tienes permisos para crear usuarios.");
       setTimeout(() => setMensaje(null), 3000);
     }
@@ -42,11 +42,36 @@ const Usuarios = () => {
     setIsModalOpen(false);
   }, []);
 
-  const headers = ["ID", "identificacion", "Nombre", "Apellido", "Email", "Rol"];
+  const handleToggleEstado = async (usuario: any) => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const accion = usuario.is_active ? "desactivar" : "activar";
+
+    try {
+      const response = await fetch(`http://localhost:8000/api/usuario/${usuario.id}/${accion}/`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) throw new Error("Error al cambiar estado");
+
+      setMensaje(`Usuario ${accion === "activar" ? "activado" : "desactivado"} exitosamente`);
+      refetch(); // refrescar lista
+      setTimeout(() => setMensaje(null), 3000);
+    } catch (err) {
+      setMensaje("No se pudo actualizar el estado del usuario");
+      setTimeout(() => setMensaje(null), 3000);
+    }
+  };
+
+  const headers = ["ID", "identificacion", "Nombre", "Apellido", "Email", "Rol", "Estado"];
 
   return (
     <div className="overflow-x-auto rounded-lg p-4">
-
       {mensaje && (
         <div className="mb-2 p-2 bg-red-500 text-white text-center rounded-md">
           {mensaje}
@@ -76,6 +101,26 @@ const Usuarios = () => {
             apellido: usuario.apellido,
             email: usuario.email,
             rol: usuario.fk_id_rol?.rol || "Sin rol asignado",
+            estado: esAdministrador ? (
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={usuario.is_active}
+                  onChange={() => handleToggleEstado(usuario)}
+                  className="sr-only"
+                />
+                <div className={`w-11 h-6 rounded-full transition-colors duration-300 ${usuario.is_active ? 'bg-green-500' : 'bg-gray-300'}`}>
+                  <div
+                    className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300
+                    ${usuario.is_active ? 'translate-x-6' : 'translate-x-1'} mt-0.5 ml-0.5`}
+                  ></div>
+                </div>
+              </label>
+            ) : (
+              <span className="text-sm text-gray-500">
+                {usuario.is_active ? "Activo" : "Inactivo"}
+              </span>
+            ),
           }))}
           onClickAction={openModalHandler}
           onUpdate={handleUpdate}
