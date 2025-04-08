@@ -5,7 +5,7 @@ const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface Herramientas {
     nombre_h: string;
-    fecha_prestamo: string | null;
+    stock: number;
     estado: string;
 }
 

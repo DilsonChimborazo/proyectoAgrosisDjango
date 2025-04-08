@@ -1,90 +1,93 @@
-import { useState } from "react";
-
-import { useHerramientas } from "../../../hooks/inventario/herramientas/useHerramientas";
+import { useState, useEffect } from "react";
 import { useActualizarHerramientas } from "../../../hooks/inventario/herramientas/useActualizarHerramientas";
+import { useHerramientaPorId } from "../../../hooks/inventario/herramientas/useHerramientaPorId";
 import Formulario from "../../globales/Formulario";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
-
-const ActualizarHerramientas = () => {
-    const { data: herramientas, isLoading, error } = useHerramientas();
-    const mutation = useActualizarHerramientas();
-    const [selectedHerramienta, setSelectedHerramienta] = useState<any | null>(null);
+const ActualizarHerramienta = () => {
+    const { id } = useParams();
     const navigate = useNavigate();
 
-    if (isLoading) return <div>Cargando herramientas...</div>;
-    if (error instanceof Error) return <div>Error al cargar herramientas: {error.message}</div>;
+    if (!id) {
+        console.error("❌ Error: ID no válido");
+        return <div className="text-red-500">Error: ID no válido</div>;
+    }
 
-    const formFields = [
-        { id: "nombre_h", label: "Nombre", type: "text" },
-        { id: "estado", label: "Estado", type: "text" },
-        { id: "fecha_prestamo", label: "Fecha de Préstamo", type: "date" },
-    ];
+    const { data: herramienta, isLoading, error } = useHerramientaPorId(id);
+    const actualizarHerramienta = useActualizarHerramientas();
 
-    const handleSubmit = (formData: { [key: string]: string }) => {
-        if (!selectedHerramienta) {
-            console.error("No se ha seleccionado ninguna herramienta");
+    const [formData, setFormData] = useState({
+        nombre_h: "",
+        estado: "",
+        stock: "",
+    });
+
+    useEffect(() => {
+        if (herramienta) {
+            setFormData({
+                nombre_h: herramienta.nombre_h || "",
+                estado: herramienta.estado || "",
+                stock: herramienta.stock?.toString() || "0",
+            });
+        }
+    }, [herramienta]);
+
+    const handleSubmit = (data: { [key: string]: string }) => {
+        if (!id) return;
+
+        const herramientaActualizada = {
+            id: Number(id),
+            nombre_h: data.nombre_h.trim(),
+            estado: data.estado.trim(),
+            stock: parseInt(data.stock, 10),
+        };
+
+        if (
+            !herramientaActualizada.nombre_h ||
+            !herramientaActualizada.estado ||
+            isNaN(herramientaActualizada.stock)
+        ) {
+            console.error("⚠️ Datos inválidos. No se enviará la actualización.");
             return;
         }
 
-        const herramientaActualizada = {
-            ...selectedHerramienta, // Mantiene los valores previos
-            ...formData, // Reemplaza los nuevos datos
-
-
-        };
-
-        mutation.mutate(herramientaActualizada);
+        actualizarHerramienta.mutate(herramientaActualizada, {
+            onSuccess: () => {
+                console.log("✅ Herramienta actualizada correctamente");
+                navigate("/herramientas");
+            },
+        });
     };
 
+    if (isLoading) return <div className="text-gray-500">Cargando datos...</div>;
+    if (error) return <div className="text-red-500">Error al cargar la herramienta</div>;
+
     return (
-        <div className="p-10">
-            <h2 className="text-xl font-bold mb-4">Actualizar Herramienta</h2>
-
-            {/* Selector de herramienta */}
-            <select
-                className="border p-2 mb-4 w-full"
-                onChange={(e) => {
-                    const herramienta = herramientas?.find(
-                        (h: any) => h.id_herramientas === Number(e.target.value)
-                    );
-                    setSelectedHerramienta(herramienta || null);
-
-                }}
-            >
-                <option value="">Selecciona una herramienta</option>
-                {Array.isArray(herramientas) &&
-                    herramientas.map((h: any) => (
-                        <option key={h.id_herramientas} value={h.id_herramientas}>
-                            {h.nombre_h}
-                        </option>
-                    ))}
-            </select>
-
-            {/* Formulario de actualización */}
-
-            {selectedHerramienta && (
-                <>
-                    <Formulario
-                        fields={formFields}
-                        onSubmit={handleSubmit}
-                        isError={mutation.isError}
-                        isSuccess={mutation.isSuccess}
-                        title="Actualizar Herramienta"
-                        initialValues={selectedHerramienta}
-                    />
-
-                    {/* Botón para regresar a la lista de herramientas */}
-                    <button 
-                        className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                        onClick={() => navigate('/herramientas')}
-                    >
-                        Volver a Herramientas
-                    </button>
-                </>
-            )}
+        <div className="max-w-4xl mx-auto p-4">
+            <Formulario
+                fields={[
+                    { id: "nombre_h", label: "Nombre", type: "text" },
+                    {
+                        id: "estado",
+                        label: "Estado",
+                        type: "select",
+                        options: [
+                            { value: "Disponible", label: "Disponible" },
+                            { value: "Prestado", label: "Prestado" },
+                            { value: "En_reparacion", label: "En reparación" },
+                        ],
+                    },
+                    { id: "stock", label: "Stock", type: "number" },
+                ]}
+                onSubmit={handleSubmit}
+                initialValues={formData}
+                isError={actualizarHerramienta.isError}
+                isSuccess={actualizarHerramienta.isSuccess}
+                title="Actualizar Herramienta"
+                key={JSON.stringify(formData)} // Para que se reinicie el formulario al cambiar los datos
+            />
         </div>
     );
 };
 
-export default ActualizarHerramientas;
+export default ActualizarHerramienta;

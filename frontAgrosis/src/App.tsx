@@ -107,7 +107,7 @@ function App() {
           {/* Rutas módulo inventario */}
           <Route path="/herramientas" element={<Principal><HerramientasPage /></Principal>} />
           <Route path="/CrearHerramientas" element={<Principal><CrearHerramientas /></Principal>} />
-          <Route path="/ActualizarHerramienta" element={<Principal><ActualizarHerramientas /></Principal>} />
+          <Route path="/ActualizarHerramienta/:id" element={<Principal><ActualizarHerramientas /></Principal>} />
           <Route path="/insumos" element={<Principal><InsumoPage /></Principal>} />
           <Route path="/CrearInsumos" element={<Principal><CrearInsumos /></Principal>} />
           <Route path="/ActualizarInsumos/:id" element={<Principal><ActualizarInsumos /></Principal>} />
