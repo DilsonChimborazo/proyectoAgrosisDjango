@@ -57,15 +57,15 @@ import ActualizarCalendarioLunar from "./components/trazabilidad/calendarioLunar
 import ActualizarEspecie from "./components/trazabilidad/especie/ActualizarEspecie";
 import ActualizarSemillero from "./components/trazabilidad/semillero/ActualizarSemillero";
 import ActualizarVentaPage from "./pages/finanzas/venta/ActualizarVentaPage";
-import ActualizarInsumo from "./components/inventario/insumos/ActualizarInsumos";
+import ActualizarInsumos from "./components/inventario/insumos/ActualizarInsumos";
 import Mapa from "./components/trazabilidad/mapa/Mapa";
 import ActualizarAsignacion from "./components/trazabilidad/actividad/ActualizarAsignacion";
 import ListarHerramientas from "./components/inventario/herramientas/ListarHerramientas";
 import ListarInsumos from "./components/inventario/insumos/Insumos";
-import ActualizarInsumos from "./components/inventario/insumos/ActualizarInsumos";
 import RegistroDiario from "./pages/finanzas/consultas/RegistroDiario";
 import ReporteInsumosPage from "./pages/finanzas/consultas/ReporteInsumosPage";
 import ReportesPage from "./components/reportes/Reportes";
+
 
 
 
@@ -110,10 +110,10 @@ function App() {
           <Route path="/ActualizarHerramienta" element={<Principal><ActualizarHerramientas /></Principal>} />
           <Route path="/insumos" element={<Principal><InsumoPage /></Principal>} />
           <Route path="/CrearInsumos" element={<Principal><CrearInsumos /></Principal>} />
-          <Route path="/ActualizarInsumos" element={<Principal><ActualizarInsumos /></Principal>} />
+          <Route path="/ActualizarInsumos/:id" element={<Principal><ActualizarInsumos /></Principal>} />
           <Route path="/herramientas" element={<Principal><ListarHerramientas /></Principal>} />
           <Route path="/insumos" element={<Principal><ListarInsumos /></Principal>} />
-          <Route path="/insumos" element={<Principal><ActualizarInsumo /></Principal>} />
+
 
 
           

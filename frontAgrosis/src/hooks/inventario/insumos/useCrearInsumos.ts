@@ -7,11 +7,11 @@ export interface Insumo {
     nombre: string;
     tipo: string;
     precio_unidad: number;
-    cantidad: number;
+    stock: number;
     unidad_medida: string;
 }
 
-export const useCrearInsumos = () => {
+export const useCrearInsumo = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
@@ -20,22 +20,26 @@ export const useCrearInsumos = () => {
             if (!token) {
                 throw new Error("No se ha encontrado un token de autenticación");
             }
+
             const { data } = await axios.post(
                 `${apiUrl}insumo/`,
                 nuevoInsumo,
                 {
                     headers: {
-                        Authorization: `Bearer ${token}`, 
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
                     },
                 }
             );
+
             return data;
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["insumos"] });
+            console.log("✅ Insumo creado con éxito");
+            queryClient.invalidateQueries({ queryKey: ["insumo"] });
         },
         onError: (error: any) => {
-            console.error("Error al crear el insumo:", error.message);
+            console.error("❌ Error al crear el insumo:", error.response?.data || error.message);
         },
     });
 };

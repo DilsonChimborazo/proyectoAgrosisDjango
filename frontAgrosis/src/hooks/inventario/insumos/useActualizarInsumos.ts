@@ -4,32 +4,60 @@ import axios from "axios";
 const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface Insumo {
-    id_insumo: number;
+    id: number;
     nombre: string;
     tipo: string;
     precio_unidad: number;
-    cantidad: number;
+    stock: number;
     unidad_medida: string;
 }
 
-const actualizarInsumo = async (insumo: Insumo) => {
-    try {
-        const { data } = await axios.put(`${apiUrl}/insumos/${insumo.id_insumo}`, insumo);
-        return data;
-    } catch (error) {
-        console.error("Error al actualizar el insumo:", error);
-        throw new Error("No se pudo actualizar el insumo");
-    }
-};
-
-export const useActualizarInsumo = () => {
+export const useActualizarInsumos = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: actualizarInsumo,
+        mutationFn: async (eraActualizada: Insumo) => {
+            const { id, ...datos } = eraActualizada;
+
+            // Validar antes de enviar
+            if (
+                !datos.nombre.trim() ||
+                !datos.tipo.trim() ||
+                !datos.unidad_medida.trim() ||
+                datos.precio_unidad < 0 ||
+                datos.stock < 0
+            ) {
+                throw new Error("⚠️ Datos inválidos. Verifica los campos del insumo.");
+            }
+
+            console.log("📝 Enviando datos para actualizar:", datos);
+
+            // Obtener token de localStorage o de donde lo estés guardando
+            const token = localStorage.getItem("token");
+
+            if (!token) {
+                throw new Error("⚠️ Token de autenticación no encontrado.");
+            }
+
+            try {
+                const { data } = await axios.put(`${apiUrl}insumo/${id}/`, datos, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`,
+                    },
+                });
+                return data;
+            } catch (error: any) {
+                console.error("❌ Error en la solicitud:", error.response?.data || error.message);
+                throw error;
+            }
+        },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["insumos"] });
+            console.log("✅ Insumo actualizado con éxito");
+            queryClient.invalidateQueries({ queryKey: ["insumo"] });
+        },
+        onError: (error) => {
+            console.error("❌ Error al actualizar el insumo:", error);
         },
     });
 };
-
