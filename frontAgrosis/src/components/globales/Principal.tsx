@@ -57,6 +57,7 @@ const menuItems = [
     ],
   },
   { name: "IoT", icon: <Cpu size={18} />, path: "/iot" },
+  { name: "Reportes", icon: <Cpu size={18} />, path: "/reportes" },
 ];
 
 export default function Principal({ children }: LayoutProps) {

@@ -65,6 +65,7 @@ import ListarInsumos from "./components/inventario/insumos/Insumos";
 import ActualizarInsumos from "./components/inventario/insumos/ActualizarInsumos";
 import RegistroDiario from "./pages/finanzas/consultas/RegistroDiario";
 import ReporteInsumosPage from "./pages/finanzas/consultas/ReporteInsumosPage";
+import ReportesPage from "./components/reportes/Reportes";
 
 
 
@@ -78,6 +79,7 @@ function App() {
         <Routes>
 
           <Route path="/" element={<Login />} />
+          <Route path="/reportes" element={<Principal><ReportesPage /></Principal>} />
           <Route path="/register" element={<RegisterForm/>} />
           <Route path="/solicitarRecuperacion" element={<SolicitarRecuperacion />} />
           <Route path="/resetearContrasena" element={<ResetearContrasena />} />
