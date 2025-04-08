@@ -142,6 +142,7 @@ const HistoricalDataTable = () => {
             alert("No puedes crear mediciones");
           }}
           createButtonTitle="Nuevo Registro"
+
           />
         </div>
       </div>
