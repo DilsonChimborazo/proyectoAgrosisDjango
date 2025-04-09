@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import Tabla from "@/components/globales/Tabla"; 
+import Tabla from "@/components/globales/Tabla";
+import DescargarTablaPDF from "@/components/globales/DescargarTablaPDF";
 
 interface HerramientaReporte {
   estado: string;
@@ -21,41 +22,58 @@ interface Props {
 }
 
 const ReporteHerramientas = ({ data, loading, error }: Props) => {
-  const reporte: HerramientaReporte[] = useMemo(() => {
-    return data?.reporte_por_estado || [];
+  const reporte = useMemo(() => {
+    return data?.reporte_por_estado ?? [];
   }, [data]);
 
   const resumen = data?.resumen_general;
 
-  const handleClickAction = (row: HerramientaReporte) => {
-    console.log("click row:", row);
-  };
-
-  const handleUpdate = (row: HerramientaReporte) => {
-    console.log("update row:", row);
-  };
-
-  const handleCreate = () => {
-    console.log("crear no disponible");
-  };
+  const columnasPDF = ["Estado", "Cantidad", "Stock Total"];
+  const datosPDF = useMemo(() => {
+    const baseData = reporte.map(item => [
+      item.estado,
+      item.cantidad,
+      item.stock_total
+    ]);
+    
+    if (resumen) {
+      return [
+        ...baseData,
+        ["TOTAL HERRAMIENTAS", resumen.total_herramientas, ""],
+        ["TOTAL STOCK", "", resumen.total_stock],
+        ["ESTADOS DISPONIBLES", resumen.estados_disponibles?.join(", ") || "N/A", ""]
+      ];
+    }
+    return baseData;
+  }, [reporte, resumen]);
 
   if (loading) return <div className="p-4">Cargando reporte...</div>;
   if (error)
     return (
-      <div className="text-red-500 p-4">Error al cargar el reporte</div>
+      <div className="text-red-500 p-4">
+        Error al cargar el reporte: {error.message || String(error)}
+      </div>
     );
 
   return (
     <div className="p-4">
-      <Tabla<HerramientaReporte>
-        title="📊 Reporte de Herramientas por Estado"
-        headers={["Estado", "Cantidad", "Stock Total"]}
+      <h2 className="text-xl font-semibold">📊 Reporte de Herramientas por Estado</h2>
+      <Tabla
+        title=""
+        headers={columnasPDF}
         data={reporte}
-        onClickAction={handleClickAction}
-        onUpdate={handleUpdate}
-        onCreate={handleCreate}
-        createButtonTitle=""
+        onClickAction={(row) => console.log('Detalle:', row)}
+        onUpdate={(row) => console.log('Actualizar:', row)}
+        onCreate={() => console.log('Crear nuevo')}
         hiddenColumnsByDefault={[]}
+        extraButton={
+          <DescargarTablaPDF
+            nombreArchivo="reporte_herramientas.pdf"
+            columnas={columnasPDF}
+            datos={datosPDF}
+            titulo="Reporte de Herramientas por Estado"
+          />
+        }
       />
 
       {resumen && (

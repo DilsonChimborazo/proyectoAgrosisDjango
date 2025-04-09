@@ -30,7 +30,7 @@ const Tabla = <T extends { [key: string]: any }>({
   onUpdate,
   onCreate,
   rowsPerPageOptions = [5, 10, 20, 50], // Opciones por defecto
-  createButtonTitle = "",
+  createButtonTitle = "Crear +",
   extraButton,
   hiddenColumnsByDefault = ['id'],
 }: TablaProps<T>) => {
