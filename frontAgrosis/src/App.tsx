@@ -6,8 +6,8 @@ import './styles/globals.css';
 import RegisterForm from "./components/usuarios/Register";
 import Login from "./components/usuarios/InicioSesion";
 import Principal from "./components/globales/Principal";
-import  {HomePage}  from "./pages/HomePage"; 
-import HistoricalDataPage from "./pages/HistoricalDataPage"
+import { HomePage } from "./pages/HomePage"; 
+import HistoricalDataPage from "./pages/HistoricalDataPage";
 import UsersPage from "./pages/usuarios/UsersPage";
 import CalendarPage from "./pages/trazabilidad/CalendarPage";
 import IOtPage from "./pages/iot/IotPage";
@@ -65,10 +65,8 @@ import ListarInsumos from "./components/inventario/insumos/Insumos";
 import RegistroDiario from "./pages/finanzas/consultas/RegistroDiario";
 import ReporteInsumosPage from "./pages/finanzas/consultas/ReporteInsumosPage";
 import ReportesPage from "./components/reportes/Reportes";
-
-
-
-
+import ReporteControlFitosanitario from "./components/reportes/ReportesControl";
+import ReporteResiduos from "./components/reportes/ReporteResiduo";
 
 const queryClient = new QueryClient();
 
@@ -77,13 +75,11 @@ function App() {
     <HeroUIProvider>
       <QueryClientProvider client={queryClient}>
         <Routes>
-
           <Route path="/" element={<Login />} />
           <Route path="/reportes" element={<Principal><ReportesPage /></Principal>} />
           <Route path="/register" element={<RegisterForm/>} />
           <Route path="/solicitarRecuperacion" element={<SolicitarRecuperacion />} />
           <Route path="/resetearContrasena" element={<ResetearContrasena />} />
-          <Route path="/" element={<Login />} />
           <Route path="/Home" element={<Principal><HomePage /></Principal>} />
           <Route path="/principal" element={<Principal><HomePage /></Principal>} />
           <Route path="/usuarios" element={<Principal><UsersPage /></Principal>} />
@@ -114,9 +110,6 @@ function App() {
           <Route path="/herramientas" element={<Principal><ListarHerramientas /></Principal>} />
           <Route path="/insumos" element={<Principal><ListarInsumos /></Principal>} />
 
-
-
-          
           {/* Rutas módulo trazabilidad */}
           <Route path="/actividad" element={<Principal><CalendarPage /></Principal>} />
           <Route path="/cultivo" element={<Principal><CultivosPage /></Principal>} />
@@ -136,7 +129,7 @@ function App() {
           <Route path="/CrearCultivo" element={<Principal><CrearCultivo/></Principal>}/>
           <Route path="/CrearEspecie" element={<Principal><CrearEspecie/></Principal>}/>
           <Route path="/CrearSemillero" element={<Principal><CrearSemillero/></Principal>}/>
-
+          
           <Route path="/actualizarCalendarioLunar/:id" element={<Principal><ActualizarCalendarioLunar/></Principal>}/>
           <Route path="/actualizarEspecie/:id" element={<Principal><ActualizarEspecie/></Principal>}/>
           <Route path="/actualizarSemillero/:id" element={<Principal><ActualizarSemillero/></Principal>}/>
@@ -147,6 +140,9 @@ function App() {
           <Route path="/pea/editar/:id" element={<Principal><ActualizarPea /></Principal>} />
           <Route path="/controlfitosanitario/editar/:id" element={<Principal><ActualizarControlFitosanitario /></Principal>} />
           <Route path="/actualizarasignacion/:id" element={<Principal><ActualizarAsignacion /></Principal>} />
+
+          <Route path="/reportes/control-fitosanitario" element={<Principal><ReporteControlFitosanitario /></Principal>} /> 
+          <Route path="/reportes/residuos" element={<Principal><ReporteResiduos /></Principal>} />
           
           {/* Rutas módulo finanzas */}
           <Route path="/produccion" element={<Principal><ProduccionPage /></Principal>} />

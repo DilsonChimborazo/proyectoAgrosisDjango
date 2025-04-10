@@ -3,14 +3,17 @@ import Formulario from '../../globales/Formulario';
 import { useNavigate } from 'react-router-dom';
 import { useCultivo } from '@/hooks/trazabilidad/cultivo/useCultivo';
 import { usePea } from '@/hooks/trazabilidad/pea/usePea';
+import { useInsumo } from '../../../hooks/inventario/insumos/useInsumo';
 
 const CrearControlFitosanitario = () => {
   const mutation = useCrearControlFitosanitario();
   const navigate = useNavigate();
   const { data: cultivos = [], isLoading: isLoadingCultivos } = useCultivo();
   const { data: peas = [], isLoading: isLoadingPeas } = usePea();
+  const { data: insumos = [], isLoading: isLoadingInsumos } = useInsumo();
 
-  // Opciones de tipo de control
+  
+ // Opciones de tipo de control
   const tipoControlOptions = [
     { value: 'Control Biológico', label: 'Control Biológico' },
     { value: 'Control Físico', label: 'Control Físico' },
@@ -21,14 +24,20 @@ const CrearControlFitosanitario = () => {
 
   // Opciones de cultivos
   const cultivoOptions = cultivos.map((cultivo) => ({
-    value: String(cultivo.id), // ✅ Convertir a string
+    value: String(cultivo.id),
     label: cultivo.nombre_cultivo,
   }));
 
   // Opciones de PEAs
   const peaOptions = peas.map((pea) => ({
-    value: String(pea.id), // ✅ Convertir a string
+    value: String(pea.id),
     label: pea.nombre_pea,
+  }));
+
+  // Opciones de insumos
+  const insumoOptions = insumos.map((insumo) => ({
+    value: String(insumo.id),
+    label: insumo.nombre,
   }));
 
   // Definición de los campos del formulario
@@ -38,20 +47,33 @@ const CrearControlFitosanitario = () => {
     { id: 'tipo_control', label: 'Tipo de Control', type: 'select', options: tipoControlOptions },
     { id: 'fk_id_cultivo', label: 'Cultivo', type: 'select', options: cultivoOptions },
     { id: 'fk_id_pea', label: 'PEA', type: 'select', options: peaOptions },
+    { id: 'fk_id_insumo', label: 'Insumo', type: 'select', options: insumoOptions },
+    { id: 'cantidad_insumo', label: 'Cantidad de Insumo', type: 'number' },
   ];
 
-  const handleSubmit = (formData: { [key: string]: string }) => {
-    if (!formData.fecha_control || !formData.descripcion || !formData.tipo_control || !formData.fk_id_cultivo || !formData.fk_id_pea) {
+  // Este es el que se usa para enviar el formulario principal de control
+  const handleControlSubmit = (formData: { [key: string]: string }) => {
+    if (
+      !formData.fecha_control ||
+      !formData.descripcion ||
+      !formData.tipo_control ||
+      !formData.fk_id_cultivo ||
+      !formData.fk_id_pea ||
+      !formData.fk_id_insumo ||
+      !formData.cantidad_insumo
+    ) {
       console.error("❌ Todos los campos son obligatorios");
       return;
     }
 
     const nuevoControl = {
-      fecha_control: new Date(formData.fecha_control).toISOString().split('T')[0], // Formato YYYY-MM-DD
+      fecha_control: new Date(formData.fecha_control).toISOString().split('T')[0],
       descripcion: formData.descripcion.trim(),
       tipo_control: formData.tipo_control,
       fk_id_cultivo: Number(formData.fk_id_cultivo),
       fk_id_pea: Number(formData.fk_id_pea),
+      fk_id_insumo: Number(formData.fk_id_insumo),
+      cantidad_insumo: Number(formData.cantidad_insumo),
     };
 
     console.log("🚀 Enviando control fitosanitario al backend:", nuevoControl);
@@ -67,18 +89,18 @@ const CrearControlFitosanitario = () => {
     });
   };
 
-  if (isLoadingCultivos || isLoadingPeas) {
+  if (isLoadingCultivos || isLoadingPeas || isLoadingInsumos) {
     return <div className="text-center text-gray-500">Cargando datos...</div>;
   }
 
   return (
     <div className="max-w-4xl mx-auto p-4">
       <Formulario 
-        fields={formFields} 
-        onSubmit={handleSubmit} 
-        isError={mutation.isError} 
+        fields={formFields}
+        onSubmit={handleControlSubmit} // 👈 Aquí se usa el nombre corregido
+        isError={mutation.isError}
         isSuccess={mutation.isSuccess}
-        title="Registrar Nuevo Control Fitosanitario"  
+        title="Registrar Nuevo Control Fitosanitario"
       />
     </div>
   );
