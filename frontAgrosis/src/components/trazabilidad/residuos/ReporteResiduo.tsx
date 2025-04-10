@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
-import { useReporteResiduos } from '../../hooks/reportes/useReporteResiduos';
-import Tabla from '../../components/globales/Tabla';
-import DescargarTablaPDF from '../../components/globales/DescargarTablaPDF';
+import { useReporteResiduos } from '../../../hooks/trazabilidad/residuo/useReporteResiduos';
+import Tabla from '../../globales/Tabla';
+import DescargarTablaPDF from '../../globales/DescargarTablaPDF';
 
 const ReporteResiduos = () => {
   const { data: residuos, isLoading, isError } = useReporteResiduos();

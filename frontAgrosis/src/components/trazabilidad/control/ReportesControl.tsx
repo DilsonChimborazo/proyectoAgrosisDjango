@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
-import { useReporteControles } from '../../hooks/reportes/useReporteControl';
-import Tabla from '../../components/globales/Tabla';
-import DescargarTablaPDF from '../../components/globales/DescargarTablaPDF';
+import { useReporteControles } from '../../../hooks/trazabilidad/control/useReporteControl';
+import Tabla from '../../globales/Tabla';
+import DescargarTablaPDF from '../../globales/DescargarTablaPDF';
 
 const ReporteControlFitosanitario = () => {
   const { data: controles, isLoading, isError } = useReporteControles();

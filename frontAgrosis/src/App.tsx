@@ -65,8 +65,8 @@ import ListarInsumos from "./components/inventario/insumos/Insumos";
 import RegistroDiario from "./pages/finanzas/consultas/RegistroDiario";
 import ReporteInsumosPage from "./pages/finanzas/consultas/ReporteInsumosPage";
 import ReportesPage from "./components/reportes/Reportes";
-import ReporteControlFitosanitario from "./components/reportes/ReportesControl";
-import ReporteResiduos from "./components/reportes/ReporteResiduo";
+import ReporteControlFitosanitario from "./components/trazabilidad/control/ReportesControl";
+import ReporteResiduos from "./components/trazabilidad/residuos/ReporteResiduo";
 
 const queryClient = new QueryClient();
 
