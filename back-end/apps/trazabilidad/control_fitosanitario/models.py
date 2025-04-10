@@ -18,6 +18,7 @@ class Control_fitosanitario(models.Model):
     fk_id_cultivo = models.ForeignKey(Cultivo, on_delete=models.SET_NULL, null=True)
     fk_id_pea = models.ForeignKey(Pea, on_delete=models.SET_NULL, null=True)
     fk_id_insumo = models.ForeignKey(Insumo, on_delete=models.SET_NULL, null=True)
+    cantidad_insumo = models.IntegerField()
     
     def __str__(self):
         return f"Cultivo: {self.fk_id_cultivo.nombre_cultivo} pea: {self.fk_id_pea}" 

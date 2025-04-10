@@ -10,6 +10,8 @@ export interface ControlFitosanitario {
     tipo_control: string;
     fk_id_cultivo: Cultivo;
     fk_id_pea: Pea;
+    fk_id_insumo: Insumo;
+    cantidad_insumo: number;
 }
 
 export interface Pea {
@@ -24,6 +26,15 @@ export interface Cultivo {
     nombre_cultivo: string;
     fecha_plantacion: string;
     descripcion: string;
+}
+
+export interface Insumo {
+    id: number;
+    nombre: string;
+    tipo: string;
+    precio_unidad: number;
+    stock: number;
+    unidad_medida: string;  
 }
 
 const fetchControlFitosanitario = async (): Promise<ControlFitosanitario[]> => {
