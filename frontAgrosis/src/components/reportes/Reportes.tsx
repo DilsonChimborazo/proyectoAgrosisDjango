@@ -5,6 +5,8 @@ import useLotesActivos from '@/hooks/iot/lote/useLotesActivos';
 import { useReporteHerramientas } from '@/hooks/inventario/herramientas/useReporteHerramientas';
 import ReporteHerramientas from '@/components/inventario/herramientas/ReporteHerramientas';
 import Tabla from '@/components/globales/Tabla';
+import ReporteInsumosBajoStock from '../inventario/insumos/ReporteInsumo';
+import { useReporteInsumos } from '@/hooks/inventario/insumos/useReporteInsumos';
 
 // Definición de tipos
 type Modulo = {
@@ -41,6 +43,8 @@ const Reportes = () => {
   );
   const { lotes, loading: loadingLotes, error: errorLotes } = useLotesActivos();
   const { data: herramientas, isLoading: loadingHerramientas, error: errorHerramientas } = useReporteHerramientas();
+  const { data: insumosBajoStock, isLoading: loadingInsumos, error: errorInsumos } = useReporteInsumos();
+  
   // Configuración de módulos y reportes disponibles
   const modulos: Modulo[] = [
     {
@@ -86,6 +90,18 @@ const Reportes = () => {
             loading={loadingHerramientas} 
             error={errorHerramientas} 
           />
+        },
+        {
+          id: 'insumos',
+          nombre: 'Reporte de Insumos Bajo Stock',
+          requiereFechas: false,
+          componente: (
+            <ReporteInsumosBajoStock
+              data={insumosBajoStock}
+              loading={loadingInsumos}
+              error={errorInsumos}
+            />
+          )
         }
       ]
     }
@@ -107,7 +123,7 @@ const Reportes = () => {
   };
 
   return (
-    <div className="flex p-4 max-w-6xl mx-auto gap-6">
+    <div className="flex p-4  gap-6">
       {/* Panel izquierdo (1/4) - Selectores */}
       <div className="w-1/4 bg-white rounded-lg shadow-md p-6">
         <h1 className="text-2xl font-bold text-center text-green-700 mb-8">Sistema de Reportes</h1>

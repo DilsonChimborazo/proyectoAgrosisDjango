@@ -49,7 +49,6 @@ from apps.trazabilidad.tipo_cultivo.api.router import routerTipo_cultivo
 #rutas de finanzas
 from apps.finanzas.produccion.api.router import router_produccion
 from apps.finanzas.venta.api.router import router_venta
-from apps.inventario.insumo.api.webhooks import webhook_reporte_egresos
 
 #rutas de inventario
 from apps.inventario.herramientas.api.routers import router_herramientas
@@ -97,7 +96,7 @@ urlpatterns = [
     #FINANZAS
     path('api/', include(router_produccion.urls)),
     path('api/', include(router_venta.urls)),
-    path('api/webhook-reporte-egresos/', webhook_reporte_egresos, name='webhook-reporte-egresos'),
+
 
     #TRAZABILIDAD
     path('api/', include(router_actividad.urls)),
