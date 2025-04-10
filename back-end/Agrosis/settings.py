@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'apps.usuarios.usuario',
     'apps.usuarios.rol',
+    'apps.usuarios.ficha',
 
     #apps de iot 
     'apps.iot.sensores',
@@ -148,9 +149,9 @@ CHANNEL_LAYERS = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'agrosis',  
+        'NAME': 'agrosis_django',  
         'USER': 'postgres',                
-        'PASSWORD': 'adso2024',      
+        'PASSWORD': '28782We',      
         'HOST': 'localhost',                  
         'PORT': '5432',  
         'OPTIONS': {

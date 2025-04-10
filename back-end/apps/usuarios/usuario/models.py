@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from apps.usuarios.rol.models import Rol
+from apps.usuarios.ficha.models import Ficha
 
 class UsuarioManager(BaseUserManager):
     def create_user(self, identificacion, email, password=None, **extra_fields):
@@ -34,6 +35,7 @@ class Usuarios(AbstractUser):
     nombre = models.CharField(max_length=30)
     apellido = models.CharField(max_length=30)
     fk_id_rol = models.ForeignKey(Rol, on_delete=models.SET_NULL, null=True, blank=True)
+    ficha = models.ForeignKey(Ficha, on_delete=models.SET_NULL, null=True, blank=True)
     is_active = models.BooleanField(default=True)
 
     USERNAME_FIELD = 'identificacion'  
@@ -42,4 +44,4 @@ class Usuarios(AbstractUser):
     objects = UsuarioManager()  
 
     def __str__(self):
-        return f"{self.nombre} {self.apellido} - {self.fk_id_rol}"
+        return f"{self.nombre} {self.apellido} - {self.fk_id_rol} - {self.fk_id_ficha}"

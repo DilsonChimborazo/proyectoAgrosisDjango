@@ -7,8 +7,7 @@
     --sl-text-secondary: hsl(240 5% 45%);
     
     /* Fondo contenido */
-    --sl-content-bg-light: hsla(0, 4%, 86%, 0.9); /* Blanco con transparencia */
-    --sl-content-bg-dark: hsla(0, 0%, 53%, 0.9); /* Negro azulado */
+    
   }
   
   /* Modo claro (default) */

@@ -5,10 +5,10 @@ class IsUsuarioReadOnly(BasePermission):
         user_role = getattr(request.user.fk_id_rol, 'rol', None) 
         
         permisos_por_rol = {
-            "administrador": ["GET", "POST", "PUT", "DELETE"],
-            "instructor": ["GET", "POST", "PUT", "DELETE"],
-            "pasante": ["GET", "POST", "PUT"],
-            "aprendiz": ["GET", "POST", "PUT"]
+            "Administrador": ["GET", "POST", "PUT", "DELETE"],
+            "Instructor": ["GET", "POST", "PUT", "DELETE"],
+            "Pasante": ["GET", "POST", "PUT"],
+            "Aprendiz": ["GET", "POST", "PUT"]
         }
 
         return request.method in permisos_por_rol.get(user_role, [])
