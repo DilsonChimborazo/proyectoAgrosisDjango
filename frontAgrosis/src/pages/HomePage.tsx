@@ -28,7 +28,6 @@ const styles = `
     background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
     margin: 0;
     padding: 0;
-    font-family: 'Inter', sans-serif;
   }
   .dashboard-container {
     padding: 2rem;
@@ -152,7 +151,7 @@ interface RealTimeData {
 }
 
 const icons: { [key: string]: string } = {
-  temperatura: "🔥",
+  temperatura: "🌡️",
   humedad: "💦",
   luz: "✨",
   viento: "🌪️",
@@ -436,7 +435,7 @@ const HomePage = () => {
   };
 
   return (
-    <div className="">
+    <div className="p-5">
       {/* Tarjetas de Sensores */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mb-6">
         {sensorDisplayData.map((sensor, index) => {
