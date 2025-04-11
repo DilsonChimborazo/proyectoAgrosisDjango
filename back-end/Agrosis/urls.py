@@ -22,6 +22,7 @@ from django.urls import path,include
 #rutas de usuario
 from apps.usuarios.usuario.api.router import routerUsuario
 from apps.usuarios.rol.api.router import routerRol
+from apps.usuarios.ficha.api.router import routerFicha
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -79,6 +80,7 @@ urlpatterns = [
     #USUARIO
     path('api/', include(routerUsuario.urls)),
     path('api/', include(routerRol.urls)),
+    path('api/', include(routerFicha.urls)),
     path("api/solicitar-recuperacion/", solicitar_recuperacion, name="solicitar_recuperacion"),
     path("api/resetear-contrasena/", resetear_contraseña, name="resetear_contraseña"),
     path('api/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
@@ -93,7 +95,7 @@ urlpatterns = [
     path('api/', include(router_Sensores.urls)),
     path('api/', include(router_Ubicacion.urls)),
     
-    #FINANZAS
+    #FINANZASS
     path('api/', include(router_produccion.urls)),
     path('api/', include(router_venta.urls)),
 

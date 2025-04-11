@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'apps.usuarios.usuario',
     'apps.usuarios.rol',
+    'apps.usuarios.ficha',
 
     #apps de iot 
     'apps.iot.sensores',

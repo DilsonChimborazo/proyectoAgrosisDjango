@@ -20,6 +20,8 @@ interface TablaProps<T> {
   createButtonTitle?: string;
   extraButton?: React.ReactNode;
   hiddenColumnsByDefault?: string[];
+  irFichaButtonTitle?: string;
+
 }
 
 const Tabla = <T extends { [key: string]: any }>({

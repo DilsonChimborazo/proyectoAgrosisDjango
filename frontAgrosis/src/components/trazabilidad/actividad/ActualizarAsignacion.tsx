@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAsignacionporId } from "../../../hooks/trazabilidad/asignacion/useAsignacionPorId";
 import { useEditarAsignacion } from "../../../hooks/trazabilidad/asignacion/useEditarAsignacion";
-import { useUsuarios } from "@/hooks/usuarios/useUsuarios";
+import { useUsuarios } from "@/hooks/usuarios/usuario/useUsuarios";
 import Formulario from "../../globales/Formulario";
 
 const ActualizarAsignacion = () => {
