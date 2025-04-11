@@ -65,8 +65,6 @@ import ListarInsumos from "./components/inventario/insumos/Insumos";
 import RegistroDiario from "./pages/finanzas/consultas/RegistroDiario";
 import ReporteInsumosPage from "./pages/finanzas/consultas/ReporteInsumosPage";
 import ReportesPage from "./components/reportes/Reportes";
-import ReporteControlFitosanitario from "./components/trazabilidad/control/ReportesControl";
-import ReporteResiduos from "./components/trazabilidad/residuos/ReporteResiduo";
 
 const queryClient = new QueryClient();
 
@@ -140,9 +138,6 @@ function App() {
           <Route path="/pea/editar/:id" element={<Principal><ActualizarPea /></Principal>} />
           <Route path="/controlfitosanitario/editar/:id" element={<Principal><ActualizarControlFitosanitario /></Principal>} />
           <Route path="/actualizarasignacion/:id" element={<Principal><ActualizarAsignacion /></Principal>} />
-
-          <Route path="/reportes/control-fitosanitario" element={<Principal><ReporteControlFitosanitario /></Principal>} /> 
-          <Route path="/reportes/residuos" element={<Principal><ReporteResiduos /></Principal>} />
           
           {/* Rutas módulo finanzas */}
           <Route path="/produccion" element={<Principal><ProduccionPage /></Principal>} />

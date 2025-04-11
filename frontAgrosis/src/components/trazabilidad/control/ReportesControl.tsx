@@ -44,7 +44,6 @@ const ReporteControlFitosanitario = () => {
             columnas={columnasPDF}
             datos={datosPDF}
             titulo="Reporte de Controles Fitosanitarios"
-            className="bg-green-600 hover:bg-green-700 text-white"
           />
         }
       />

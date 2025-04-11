@@ -3,12 +3,15 @@ import { useReporteEgresos } from '@/hooks/finanzas/consultas/useReporteInsumos'
 import { useReporteProgramacion } from '@/hooks/finanzas/consultas/useRegistroDiarioWebHook';
 import useLotesActivos from '@/hooks/iot/lote/useLotesActivos';
 import { useReporteHerramientas } from '@/hooks/inventario/herramientas/useReporteHerramientas';
+import { useReporteInsumos } from '@/hooks/inventario/insumos/useReporteInsumos';
+import { useReporteControles } from '@/hooks/trazabilidad/control/useReporteControl';
 import ReporteHerramientas from '@/components/inventario/herramientas/ReporteHerramientas';
 import Tabla from '@/components/globales/Tabla';
 import ReporteInsumosBajoStock from '../inventario/insumos/ReporteInsumo';
-import { useReporteInsumos } from '@/hooks/inventario/insumos/useReporteInsumos';
+import ReportesControl from '@/components/trazabilidad/control/ReportesControl';
+import { useReporteResiduos } from '@/hooks/trazabilidad/residuo/useReporteResiduos';
+import ReporteResiduos from '../trazabilidad/residuos/ReporteResiduo';
 
-// Definición de tipos
 type Modulo = {
   id: string;
   nombre: string;
@@ -29,10 +32,10 @@ const Reportes = () => {
   
   // Estados para fechas
   const [fechaInicio, setFechaInicio] = useState<string>(
-    new Date(new Date().setDate(1)).toISOString().split('T')[0] // Primer día del mes actual
+    new Date(new Date().setDate(1)).toISOString().split('T')[0]
   );
   const [fechaFin, setFechaFin] = useState<string>(
-    new Date().toISOString().split('T')[0] // Hoy
+    new Date().toISOString().split('T')[0]
   );
 
   // Obtener datos de los hooks
@@ -44,6 +47,8 @@ const Reportes = () => {
   const { lotes, loading: loadingLotes, error: errorLotes } = useLotesActivos();
   const { data: herramientas, isLoading: loadingHerramientas, error: errorHerramientas } = useReporteHerramientas();
   const { data: insumosBajoStock, isLoading: loadingInsumos, error: errorInsumos } = useReporteInsumos();
+  const { data: controles, isLoading: loadingControles, error: errorControles } = useReporteControles();
+  const { data: residuos, isLoading, isError } = useReporteResiduos();
   
   // Configuración de módulos y reportes disponibles
   const modulos: Modulo[] = [
@@ -78,6 +83,32 @@ const Reportes = () => {
       ]
     },
     {
+      id: 'trazabilidad',
+      nombre: 'Trazabilidad',
+      reportes: [
+        {
+          id: 'controles-fitosanitarios',
+          nombre: 'Controles Fitosanitarios',
+          requiereFechas: false,
+          componente: <ReportesControl 
+                        data={residuos} 
+                        loading={loadingControles} 
+                        error={errorControles} 
+                      />
+        },
+        {
+          id: 'Residuos',
+          nombre: 'Reporte Residuos',
+          requiereFechas: false,
+          componente: <ReporteResiduos 
+                        data={controles} 
+                        loading={isLoading} 
+                        error={isError} 
+                      />
+        }
+      ]
+    },
+    {
       id: 'inventario',
       nombre: 'Inventario',
       reportes: [
@@ -86,22 +117,20 @@ const Reportes = () => {
           nombre: 'Reporte de Herramientas',
           requiereFechas: false,
           componente: <ReporteHerramientas 
-            data={herramientas} 
-            loading={loadingHerramientas} 
-            error={errorHerramientas} 
-          />
+                        data={herramientas} 
+                        loading={loadingHerramientas} 
+                        error={errorHerramientas} 
+                      />
         },
         {
           id: 'insumos',
           nombre: 'Reporte de Insumos Bajo Stock',
           requiereFechas: false,
-          componente: (
-            <ReporteInsumosBajoStock
-              data={insumosBajoStock}
-              loading={loadingInsumos}
-              error={errorInsumos}
-            />
-          )
+          componente: <ReporteInsumosBajoStock
+                        data={insumosBajoStock}
+                        loading={loadingInsumos}
+                        error={errorInsumos}
+                      />
         }
       ]
     }
@@ -123,7 +152,7 @@ const Reportes = () => {
   };
 
   return (
-    <div className="flex p-4  gap-6">
+    <div className="flex p-4 gap-6">
       {/* Panel izquierdo (1/4) - Selectores */}
       <div className="w-1/4 bg-white rounded-lg shadow-md p-6">
         <h1 className="text-2xl font-bold text-center text-green-700 mb-8">Sistema de Reportes</h1>
