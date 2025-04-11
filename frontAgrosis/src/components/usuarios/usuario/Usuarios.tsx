@@ -1,8 +1,8 @@
 import { useState, useCallback, useEffect } from "react";
-import { useUsuarios } from "../../hooks/usuarios/useUsuarios";
+import { useUsuarios } from "@/hooks/usuarios/usuario/useUsuarios"; 
 import { useNavigate } from "react-router-dom";
-import Tabla from "../globales/Tabla";
-import VentanaModal from "../globales/VentanasModales";
+import Tabla from "@/components/globales/Tabla";
+import VentanaModal from "@/components/globales/VentanasModales";
 
 const Usuarios = () => {
   const navigate = useNavigate();
@@ -68,7 +68,7 @@ const Usuarios = () => {
     }
   };
 
-  const headers = ["ID", "identificacion", "Nombre", "Apellido", "Email", "Rol", "Estado"];
+  const headers = ["ID", "identificacion", "Nombre", "Apellido", "Email", "Rol", 'Ficha', "Estado"];
 
   return (
     <div className="overflow-x-auto rounded-lg p-4">
@@ -77,6 +77,15 @@ const Usuarios = () => {
           {mensaje}
         </div>
       )}
+
+      <div className="mb-4 text-right">
+            <button
+              onClick={() => navigate("/fichas")}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md shadow"
+            >
+              Fichas de formacion
+            </button>
+      </div>
 
       {isLoading && <div className="text-center text-gray-500">Cargando usuarios...</div>}
 
@@ -101,6 +110,8 @@ const Usuarios = () => {
             apellido: usuario.apellido,
             email: usuario.email,
             rol: usuario.fk_id_rol?.rol || "Sin rol asignado",
+            ficha: usuario.ficha?.numero_ficha || "Sin ficha asignada",
+
             estado: esAdministrador ? (
               <label className="relative inline-flex items-center cursor-pointer">
                 <input

@@ -3,8 +3,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HeroUIProvider } from "@heroui/system";
 import './styles/globals.css'; 
 
-import RegisterForm from "./components/usuarios/Register";
-import Login from "./components/usuarios/InicioSesion";
+import RegisterForm from "./components/usuarios/usuario/Register";
+import Login from "./components/usuarios/usuario/InicioSesion";
 import Principal from "./components/globales/Principal";
 import  {HomePage}  from "./pages/HomePage"; 
 import HistoricalDataPage from "./pages/HistoricalDataPage"
@@ -14,10 +14,13 @@ import IOtPage from "./pages/iot/IotPage";
 import CrearSensor from "./components/iot/sensores/CrearSensor";
 import LotesPage from "./pages/iot/LotesPage";
 import ErasPage from "./pages/iot/ErasPage";
-import CrearUsuario from "./components/usuarios/crearUsuario";
-import ActualizarUsuario from "./components/usuarios/UpdateUsuario";
-import SolicitarRecuperacion from "./components/usuarios/SolicitarRecuperacion";
-import ResetearContrasena from "./components/usuarios/ResetearContrasena";
+
+import Fichas from "./components/usuarios/ficha/Ficha";
+import CrearFicha from "./components/usuarios/ficha/crearFicha";
+import CrearUsuario from "./components/usuarios/usuario/crearUsuario";
+import ActualizarUsuario from "./components/usuarios/usuario/UpdateUsuario";
+import SolicitarRecuperacion from "./components/usuarios/recuperaciones/SolicitarRecuperacion";
+import ResetearContrasena from "./components/usuarios/recuperaciones/ResetearContrasena";
 import HerramientasPage from "./pages/inventario/HerramientaPage";
 import InsumoPage from "./pages/inventario/InsumoPage";
 import EspeciePage from "./pages/trazabilidad/EspeciePage";
@@ -81,6 +84,8 @@ function App() {
           <Route path="/" element={<Login />} />
           <Route path="/Home" element={<Principal><HomePage /></Principal>} />
           <Route path="/principal" element={<Principal><HomePage /></Principal>} />
+          <Route path="/fichas" element={<Principal><Fichas/></Principal>} />
+          <Route path="/crearFicha" element={<Principal><CrearFicha/></Principal>} />
           <Route path="/usuarios" element={<Principal><UsersPage /></Principal>} />
           <Route path="/crearUsuarios" element={<Principal><CrearUsuario /></Principal>} />
           <Route path="/editarUsuario/:id" element={<Principal><ActualizarUsuario/></Principal>} />

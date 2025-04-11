@@ -1,6 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
+interface Ficha {
+    id: number;
+    numero_ficha: number;
+}
+
 interface Rol {
     id: number;
     nombre: string;
@@ -14,6 +19,7 @@ interface Usuario {
     apellido: string;
     password?: string;
     fk_id_rol: Rol; 
+    ficha: Ficha; 
 }
 
 const apiUrl = import.meta.env.VITE_API_URL;

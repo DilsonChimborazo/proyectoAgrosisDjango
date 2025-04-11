@@ -1,13 +1,16 @@
-import { Usuario } from '@/hooks/usuarios/useCreateUsuarios';
-import { useCreateUsuarios } from '@/hooks/usuarios/useCreateUsuarios';
-import Formulario from '../globales/Formulario';
-import { useRoles } from '@/hooks/usuarios/useRol';
+import { Usuario } from '@/hooks/usuarios/usuario/useCreateUsuarios';
+import { useCreateUsuarios } from '@/hooks/usuarios/usuario/useCreateUsuarios';
+import Formulario from '@/components/globales/Formulario';
+import { useRoles } from '@/hooks/usuarios/rol/useRol';
 import { useNavigate } from 'react-router-dom';
+import { UseFicha } from '@/hooks/usuarios/ficha/useFicha';
+
 
 const CrearUsuario = () => {
     const mutation = useCreateUsuarios();
     const navigate = useNavigate();
     const { data: roles = [] } = useRoles();
+    const { data: fichas = [] } = UseFicha();
 
     const formFields = [
         { id: 'identificacion', label: 'Identificación', type: 'text' }, 
@@ -20,19 +23,26 @@ const CrearUsuario = () => {
             label: "Rol", 
             type: "select", 
             options: Array.isArray(roles) ? roles.map((rol) => ({ value: String(rol.id), label: rol.rol })) : []
+        },
+        { 
+            id: "ficha", 
+            label: "Ficha", 
+            type: "select", 
+            options: Array.isArray(fichas) ? fichas.map((numero_ficha) => ({ value: Number(numero_ficha.id), label: numero_ficha.numero_ficha })) : []
         }
     ];
 
     const handleSubmit = (formData: { [key: string]: string }) => {
-        if (!formData.identificacion || !formData.email || !formData.nombre || !formData.apellido || !formData.password || !formData.fk_id_rol) {
+        if (!formData.identificacion || !formData.email || !formData.nombre || !formData.apellido || !formData.password || !formData.fk_id_rol || !formData.fk_id_ficha) {
             console.error('Campos faltantes');
             return;
         }
 
         const identificacion = parseInt(formData.identificacion, 10);
         const fk_id_rol = parseInt(formData.fk_id_rol, 10);
+        const ficha = parseInt(formData.ficha, 10);
 
-        if (isNaN(identificacion) || isNaN(fk_id_rol)) {
+        if (isNaN(identificacion) || isNaN(fk_id_rol) || isNaN(ficha)) {
             console.error('Identificación o rol inválido');
             return;
         }
@@ -43,7 +53,8 @@ const CrearUsuario = () => {
             nombre: formData.nombre,
             apellido: formData.apellido,
             password: formData.password,
-            fk_id_rol
+            fk_id_rol,
+            ficha,
         };
 
         mutation.mutate(newUsuario, {

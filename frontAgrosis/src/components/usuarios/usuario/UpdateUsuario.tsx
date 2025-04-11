@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { useActualizarUsuario } from "@/hooks/usuarios/useUpdateUsuarios";
+import { useActualizarUsuario } from "@/hooks/usuarios/usuario/useUpdateUsuarios";
 import { useNavigate, useParams } from "react-router-dom";
-import { useUsuarioPorId } from "@/hooks/usuarios/useIdUsuarios";
-import Formulario from "../globales/Formulario";
-import { Usuario } from "@/hooks/usuarios/useCreateUsuarios"; 
-import { useRoles } from "@/hooks/usuarios/useRol";
+import { useUsuarioPorId } from "@/hooks/usuarios/usuario/useIdUsuarios";
+import Formulario from "@/components/globales/Formulario";
+import { Usuario } from "@/hooks/usuarios/usuario/useCreateUsuarios"; 
+import { useRoles } from "@/hooks/usuarios/rol/useRol";
+import { UseFicha } from "@/hooks/usuarios/ficha/useFicha";
 
 const ActualizarUsuario = () => {
     const { id } = useParams(); 
@@ -12,6 +13,7 @@ const ActualizarUsuario = () => {
     const actualizarUsuario = useActualizarUsuario();
     const navigate = useNavigate();
     const { data: roles = [] } = useRoles(); 
+    const { data: fichas = [] } = UseFicha(); 
     
     const [formData, setFormData] = useState<Partial<Usuario>>({
         identificacion: 0,
@@ -19,6 +21,7 @@ const ActualizarUsuario = () => {
         nombre: "",
         apellido: "",
         fk_id_rol: 0,
+        ficha: 0,
     });
 
     useEffect(() => {
@@ -31,6 +34,7 @@ const ActualizarUsuario = () => {
                 nombre: usuario.nombre ?? "",
                 apellido: usuario.apellido ?? "",
                 fk_id_rol: usuario.fk_id_rol?.id ?? 0, 
+                ficha: usuario.ficha?.id ?? 0, 
             });
         }
     }, [usuario]);
@@ -91,7 +95,17 @@ const ActualizarUsuario = () => {
                         options: Array.isArray(roles) 
                             ? roles.map((rol) => ({ value: String(rol.id), label: rol.rol }))
                             : []
-                    }
+                    },
+                    { 
+                        id: "ficha", 
+                        label: "Ficha", 
+                        type: "select",
+                        options: Array.isArray(fichas)
+                            ? fichas.map((ficha) =>({ value: Number(ficha.id), label: ficha.numero_ficha}))
+                            :[]
+                            
+                            
+                    },
                 ]} 
                 onSubmit={handleSubmit} 
                 isError={actualizarUsuario.isError} 

@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useRecuperarContrasena } from "../../hooks/usuarios/useRecuperarContrasena";
-import logoAgrosis from "../../../public/logo_proyecto-removebg-preview.png";
+import { useRecuperarContrasena } from "@/hooks/usuarios/recuperaciones/useRecuperarContrasena";
+import logoAgrosis from "../../../../public/logo_proyecto-removebg-preview.png";
 
 const SolicitarRecuperacion = () => {
   const [email, setEmail] = useState("");

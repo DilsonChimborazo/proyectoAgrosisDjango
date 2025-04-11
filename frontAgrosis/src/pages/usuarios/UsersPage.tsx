@@ -1,5 +1,5 @@
 
-import Usuarios from '../../components/usuarios/Usuarios';
+import Usuarios from "@/components/usuarios/usuario/Usuarios";
 
 const UsersPage = () => {
   return (

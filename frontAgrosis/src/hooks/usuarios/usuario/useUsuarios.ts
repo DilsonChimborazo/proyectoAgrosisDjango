@@ -3,6 +3,15 @@ import axios from 'axios';
 
 const apiUrl = import.meta.env.VITE_API_URL; // Verifica que esta variable esté configurada en tu entorno
 
+export interface Ficha {
+  id: number;
+  numero_ficha: number;
+  nombre_ficha: string;
+  abreviacion: string;
+  fecha_inicio: string;
+  fecha_salida: string;
+  is_active: boolean;
+}
 // Interfaces
 export interface Rol {
   id: number;
@@ -17,6 +26,7 @@ export interface Usuario {
   apellido: string;
   is_active: boolean;
   fk_id_rol: Rol | null; 
+  ficha: Ficha | null;
 }
 
 // Función para obtener usuarios

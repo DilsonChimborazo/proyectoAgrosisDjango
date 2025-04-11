@@ -18,6 +18,7 @@ interface TablaProps<T> {
   onCreate: () => void; // Función que se ejecuta al hacer clic en el botón de crear
   rowsPerPage?: number; // Número de filas por página (opcional, por defecto 5)
   createButtonTitle?: string; // Título del botón de crear (opcional, por defecto vacío)
+  irFichaButtonTitle?: string;
 }
 
 // Componente Tabla, que es genérico para manejar diferentes tipos de datos

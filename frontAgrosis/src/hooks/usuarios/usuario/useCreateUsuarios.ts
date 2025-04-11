@@ -11,6 +11,7 @@ const apiUrl = import.meta.env.VITE_API_URL;
     apellido: string;
     password: string;
     fk_id_rol: number;
+    ficha: number;
 }
 
 export const useCreateUsuarios = () =>{

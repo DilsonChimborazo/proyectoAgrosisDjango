@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useResetearContrasena } from "../../hooks/usuarios/useResetearContrasena";
+import { useResetearContrasena } from "@/hooks/usuarios/recuperaciones/useResetearContrasena";
 import { useSearchParams, useNavigate } from "react-router-dom";
 
 const ResetearContrasena = () => {

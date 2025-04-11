@@ -2,10 +2,10 @@ import { useState } from "react";
 import axios from "axios";
 import { Eye, EyeOff, Facebook, MessageCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useCustomForm } from "../../hooks/validaciones/useCustomForm"; // Ajusta la ruta
-import { registroSchema, RegistroData } from "../../hooks/validaciones/useSchemas"; // Ajusta la ruta
-import logoAgrosis from "../../../public/logo_proyecto-removebg-preview.png";
-import logoSena from "../../../public/logoSena.png";
+import { useCustomForm } from "@/hooks/validaciones/useCustomForm";
+import { registroSchema, RegistroData } from "@/hooks/validaciones/useSchemas"; 
+import logoAgrosis from "../../../../public/logo_proyecto-removebg-preview.png";
+import logoSena from "../../../../public/logoSena.png";
 
 export default function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);

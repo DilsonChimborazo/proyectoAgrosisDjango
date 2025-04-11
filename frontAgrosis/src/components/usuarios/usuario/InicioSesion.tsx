@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Eye, EyeOff, Facebook, MessageCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useCustomForm } from "../../hooks/validaciones/useCustomForm";
-import { loginSchema, LoginData } from "../../hooks/validaciones/useSchemas";
-import logoAgrosis from "../../../public/logo_proyecto-removebg-preview.png";
-import logoSena from "../../../public/logoSena.png";
+import { useCustomForm } from "@/hooks/validaciones/useCustomForm";
+import { loginSchema, LoginData } from "@/hooks/validaciones/useSchemas"; 
+import logoAgrosis from "../../../../public/logo_proyecto-removebg-preview.png";
+import logoSena from "../../../../public/logoSena.png";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
