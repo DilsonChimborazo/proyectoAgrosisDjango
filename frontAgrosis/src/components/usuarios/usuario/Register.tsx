@@ -81,8 +81,8 @@ export default function RegisterForm() {
       <img src="/fondo.jpg" alt="Fondo" className="absolute inset-0 w-full object-cobver z-0" />
       <div className="absolute inset-0 bg-black opacity-70 z-10"></div>
       <div className="relative z-20 flex h-full w-full items-center justify-center ">
-        <div className="flex w-3/5 h-4/5 backdrop-blur-md bg-white/10 border border-white/20 text-white shadow-2xl rounded-3xl overflow-hidden">
-          <div className="w-1/2 flex flex-col justify-center p-8 ">
+        <div className="flex flex-col md:flex-row w-11/12 md:w-3/5 h-auto md:h-4/5 backdrop-blur-md bg-white/10 border border-white/20 text-white shadow-2xl rounded-3xl overflow-hidden">
+          <div className="w-full md:w-1/2 flex flex-col justify-center p-8">
             <div className="flex items-center justify-center space-x-4 mb-4">
               <img src={logoSena} alt="SENA" className="w-12" />
               <h2 className="text-2xl font-bold text-gray-300">AGROSIS</h2>
@@ -189,9 +189,9 @@ export default function RegisterForm() {
             </form>
           </div>
 
-          <div className="w-[1px] bg-white/30 h-4/5 self-center"></div>
+          <div className="hidden md:block w-[1px] bg-white/30 h-4/5 self-center"></div>
 
-          <div className="w-1/2 flex flex-col items-center justify-center p-6">
+          <div className="w-full md:w-1/2 flex flex-col items-center justify-center p-6">
             <img src={logoAgrosis} alt="AgroSIS" className="w-48 mb-4" />
             <div className="flex space-x-4 mt-4">
               <a
