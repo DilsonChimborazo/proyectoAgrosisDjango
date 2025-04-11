@@ -33,7 +33,7 @@ const CrearUsuario = () => {
     ];
 
     const handleSubmit = (formData: { [key: string]: string }) => {
-        if (!formData.identificacion || !formData.email || !formData.nombre || !formData.apellido || !formData.password || !formData.fk_id_rol || !formData.fk_id_ficha) {
+        if (!formData.identificacion || !formData.email || !formData.nombre || !formData.apellido || !formData.password || !formData.fk_id_rol || !formData.ficha) {
             console.error('Campos faltantes');
             return;
         }
