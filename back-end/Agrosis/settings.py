@@ -86,6 +86,9 @@ INSTALLED_APPS = [
     #Inventario
     'apps.inventario.herramientas',
     'apps.inventario.insumo',
+    'apps.inventario.bodega',
+    'apps.inventario.bodega',
+    
 
 ]
 

@@ -54,6 +54,8 @@ from apps.finanzas.venta.api.router import router_venta
 #rutas de inventario
 from apps.inventario.herramientas.api.routers import router_herramientas
 from apps.inventario.insumo.api.routers import router_insumo
+from apps.inventario.bodega.api.routers import routerBodega
+from apps.inventario.unidadMedida.api.routers import routerUnidadMedida
 
 
 #rutas de IoT
@@ -120,4 +122,6 @@ urlpatterns = [
     #INVENTARIO
     path('api/', include(router_herramientas.urls)),
     path('api/', include(router_insumo.urls)),
+    path('api/', include(routerBodega.urls)),
+    path('api/', include(routerUnidadMedida.urls)),
 ]
