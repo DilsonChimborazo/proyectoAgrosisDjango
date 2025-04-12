@@ -398,7 +398,6 @@ const HomePage = () => {
     const min = sensorInfo.medida_minima || 0;
     const max = sensorInfo.medida_maxima || 100;
     const normalizedValue = Math.min(100, Math.max(0, ((value - min) / (max - min)) * 100));
-
     return { normalizedValue, value };
   };
 
