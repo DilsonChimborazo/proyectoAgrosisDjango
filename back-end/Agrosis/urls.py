@@ -50,6 +50,11 @@ from apps.trazabilidad.tipo_cultivo.api.router import routerTipo_cultivo
 #rutas de finanzas
 from apps.finanzas.produccion.api.router import router_produccion
 from apps.finanzas.venta.api.router import router_venta
+from apps.finanzas.salario.api.router import router_salario
+from apps.finanzas.nomina.api.router import router_nomina
+
+
+
 
 #rutas de inventario
 from apps.inventario.herramientas.api.routers import router_herramientas
@@ -100,6 +105,9 @@ urlpatterns = [
     #FINANZASS
     path('api/', include(router_produccion.urls)),
     path('api/', include(router_venta.urls)),
+    path('api/', include(router_nomina.urls)),
+    path('api/', include(router_salario.urls)),
+
 
 
     #TRAZABILIDAD
