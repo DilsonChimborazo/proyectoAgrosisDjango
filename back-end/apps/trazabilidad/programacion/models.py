@@ -15,7 +15,7 @@ class Programacion(models.Model):
     duracion = models.DurationField()
     fk_id_asignacionActividades = models.ForeignKey(Asignacion_actividades, on_delete=models.SET_NULL, null=True)
     cantidad_insumo = models.IntegerField()
-    img = models.CharField(max_length=255)
+    img = models.ImageField(upload_to='imagenes/')
     fk_unidad_medida = models.ForeignKey(UnidadMedida, on_delete=models.SET_NULL, null=True)
     
     def __str__(self): 

@@ -37,6 +37,7 @@ class Usuarios(AbstractUser):
     fk_id_rol = models.ForeignKey(Rol, on_delete=models.SET_NULL, null=True, blank=True)
     ficha = models.ForeignKey(Ficha, on_delete=models.SET_NULL, null=True, blank=True)
     is_active = models.BooleanField(default=True)
+    img = models.ImageField(upload_to='imagenes/')
 
     USERNAME_FIELD = 'identificacion'  
     REQUIRED_FIELDS = ['email', 'nombre', 'apellido']  
@@ -44,4 +45,4 @@ class Usuarios(AbstractUser):
     objects = UsuarioManager()  
 
     def __str__(self):
-        return f"{self.nombre} {self.apellido} - {self.fk_id_rol} - {self.fk_id_ficha}"
+        return f"{self.nombre} {self.apellido} - {self.fk_id_rol} - {self.ficha}"

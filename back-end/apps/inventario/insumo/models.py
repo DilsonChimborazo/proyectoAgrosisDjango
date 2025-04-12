@@ -9,7 +9,7 @@ class Insumo (models.Model):
     cantidad = models.IntegerField ()
     fk_unidad_medida = models.ForeignKey(UnidadMedida, on_delete=models.SET_NULL, null=True)
     fecha_vencimiento = models.DateField()
-    img = models.CharField(max_length=255)
+    img = models.ImageField(upload_to='imagenes/')
 
     def _str_(self):
         return self.nombre
