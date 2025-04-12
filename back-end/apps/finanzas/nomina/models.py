@@ -1,5 +1,5 @@
 from django.db import models
-from apps.finanzas.nomina.models import Salario 
+from apps.finanzas.salario.models import Salario 
 from apps.trazabilidad.programacion.models import Programacion 
 
 

@@ -1,7 +1,6 @@
 from rest_framework.serializers import ModelSerializer
 from apps.finanzas.nomina.models import Nomina
-from apps.finanzas.salario.models import Salario
-from apps.finanzas.nomina.api.serializers import LeerSalarioSerializer  
+from apps.finanzas.salario.api.serializers import LeerSalarioSerializer  
 
 class LeerNominaSerializer(ModelSerializer):
     fk_id_salario = LeerSalarioSerializer()

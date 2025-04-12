@@ -1,5 +1,5 @@
 from rest_framework.serializers import ModelSerializer
-from apps.finanzas.nomina.models import Salario  # Ajusta el import según tu estructura
+from apps.finanzas.salario.models import Salario  
 
 class LeerSalarioSerializer(ModelSerializer):
     class Meta:

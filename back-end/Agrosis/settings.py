@@ -58,7 +58,6 @@ INSTALLED_APPS = [
     'apps.iot.mide',
     'apps.iot.lote',
     'apps.iot.eras',
-    'apps.iot.ubicacion',
 
     #Trazabilidad 1 Pacho
     'apps.trazabilidad.realiza',
@@ -89,7 +88,7 @@ INSTALLED_APPS = [
     'apps.inventario.herramientas',
     'apps.inventario.insumo',
     'apps.inventario.bodega',
-    'apps.inventario.bodega',
+    'apps.inventario.unidadMedida',
     
 
 ]
