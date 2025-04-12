@@ -72,6 +72,8 @@ INSTALLED_APPS = [
     #FINANZAS
     'apps.finanzas.produccion',
     'apps.finanzas.venta',
+    'apps.finanzas.salario',
+    'apps.finanzas.nomina',
     
     #Trazabilidad 2 xiomara
     'apps.trazabilidad.actividad',
