@@ -6,7 +6,7 @@ from apps.trazabilidad.tipo_residuos.models import Tipo_residuos
 # Create your models here.
 
 class Residuos(models.Model):
-    nombre_residuo = models.CharField(max_length=100)
+    nombre = models.CharField(max_length=100)
     fecha = models.DateField()
     descripcion = models.CharField(max_length=300)
     fk_id_cultivo = models.ForeignKey(Cultivo, on_delete=models.SET_NULL, null=True)

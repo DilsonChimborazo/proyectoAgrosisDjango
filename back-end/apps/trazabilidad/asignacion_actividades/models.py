@@ -1,5 +1,5 @@
 from django.db import models
-from apps.trazabilidad.actividad.models import Actividad
+from apps.trazabilidad.realiza.models import Realiza
 from apps.usuarios.usuario.models import Usuarios
 from apps.inventario.insumo.models import Insumo
 from apps.inventario.herramientas.models import Herramientas
@@ -10,12 +10,17 @@ import json
 
 # Create your models here.
 class Asignacion_actividades(models.Model):
-    fecha = models.DateField()
+    ESTADOS = [
+        ('Pendiente', 'Pendiente'),
+        ('Completada', 'Completada'),
+        ('Cancelada', 'Cancelada'),
+        ('Reprogramada', 'Reprogramada'),
+    ]
+    estado = models.CharField(max_length=20, choices=ESTADOS, default='Pendiente')
+    fecha_programada = models.DateField()
     observaciones = models.TextField() 
-    fk_id_actividad = models.ForeignKey(Actividad, on_delete=models.SET_NULL, null=True, related_name="asignaciones" )
-    id_identificacion = models.ForeignKey(Usuarios, on_delete=models.SET_NULL, null=True)
-    fk_id_insumo = models.ForeignKey(Insumo, on_delete=models.SET_NULL, null=True)
-    fk_id_herramienta = models.ForeignKey(Herramientas, on_delete=models.SET_NULL, null=True)
+    fk_id_realiza = models.ForeignKey(Realiza, on_delete=models.SET_NULL, null=True)
+    fk_identificacion = models.ForeignKey(Usuarios, on_delete=models.SET_NULL, null=True)
     
     def _str_(self): 
         return f'{self.fk_id_actividad} - {self.id_identificacion}'
