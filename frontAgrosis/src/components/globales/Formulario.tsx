@@ -8,6 +8,9 @@ interface FormField {
     options?: { value: string | number; label: string }[];
     value?: string;
     onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    hasExtraButton?: boolean;
+    extraButtonText?: string;
+    onExtraButtonClick?: () => void;
 }
 
 interface FormProps {
@@ -18,8 +21,8 @@ interface FormProps {
     title: string;
     initialValues?: { [key: string]: string | File };
     multipart?: boolean;
-    onExtraButtonClick?: () => void; // Añadido para el botón extra
-    extraButtonTitle?: string; // Título del botón extra
+    onExtraButtonClick?: () => void;
+    extraButtonTitle?: string;
 }
 
 const Formulario: React.FC<FormProps> = ({
@@ -31,7 +34,7 @@ const Formulario: React.FC<FormProps> = ({
     initialValues,
     multipart,
     onExtraButtonClick,
-    extraButtonTitle = 'Botón Extra', // Valor por defecto
+    extraButtonTitle = 'Botón Extra',
 }) => {
     const [formData, setFormData] = React.useState<{ [key: string]: string | File }>(
         initialValues || {}
@@ -64,19 +67,30 @@ const Formulario: React.FC<FormProps> = ({
                     </label>
 
                     {field.type === 'select' ? (
-                        <select
-                            id={field.id}
-                            className="w-full p-2 border border-gray-300 rounded"
-                            onChange={(e) => handleChange(field.id, e.target.value)}
-                            value={formData[field.id] as string || ''}
-                        >
-                            <option value="">Seleccione una opción</option>
-                            {field.options?.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </select>
+                        <div>
+                            <select
+                                id={field.id}
+                                className="w-full p-2 border border-gray-300 rounded"
+                                onChange={(e) => handleChange(field.id, e.target.value)}
+                                value={formData[field.id] as string || ''}
+                            >
+                                <option value="">Seleccione una opción</option>
+                                {field.options?.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </select>
+                            {field.hasExtraButton && (
+                                <button
+                                    type="button"
+                                    className="mt-2 text-sm text-blue-600 hover:text-blue-800 underline"
+                                    onClick={field.onExtraButtonClick}
+                                >
+                                    {field.extraButtonText || 'Agregar nueva opción'}
+                                </button>
+                            )}
+                        </div>
                     ) : field.type === 'file' ? (
                         <input
                             type="file"
@@ -118,9 +132,10 @@ const Formulario: React.FC<FormProps> = ({
             )}
             <div className="flex justify-center items-center mt-8">
                 <Button text="registrar" className="mx-2" variant="success" onClick={() => {}} />
+                
                 {onExtraButtonClick && (
                     <Button
-                        text={extraButtonTitle} // Cambié 'title' por 'text'
+                        text={extraButtonTitle}
                         className="mx-2"
                         variant="success"
                         onClick={onExtraButtonClick}

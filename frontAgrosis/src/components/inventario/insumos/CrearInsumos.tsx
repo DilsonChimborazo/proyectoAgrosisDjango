@@ -4,13 +4,16 @@ import { useCrearInsumo } from "@/hooks/inventario/insumos/useCrearInsumos";
 import { useCrearBodega } from "@/hooks/inventario/bodega/useCrearBodega";
 import { UnidadMedida } from "@/hooks/inventario/insumos/useInsumo";
 import { useMedidas } from "@/hooks/inventario/unidadMedida/useMedidad";
-import { button } from "@heroui/theme";
 
 const CrearInsumos = ({ onSuccess }: { onSuccess?: () => void }) => {
   const mutation = useCrearInsumo();
   const { mutate } = useCrearBodega();
   const navigate = useNavigate();
   const { data: unidades = [] } = useMedidas();
+
+  const handleNavigateToCreateMedida = () => {
+    navigate("/unidad");
+  };
 
   const formFields = [
     { id: "nombre", label: "Nombre del Insumo", type: "text" },
@@ -25,6 +28,9 @@ const CrearInsumos = ({ onSuccess }: { onSuccess?: () => void }) => {
         value: u.id.toString(),
         label: `${u.nombre_medida} (${u.abreviatura})`,
       })),
+      hasExtraButton: true,
+      extraButtonText: "Crear nueva unidad de medida",
+      onExtraButtonClick: handleNavigateToCreateMedida,
     },
     { id: "fecha_vencimiento", label: "Fecha de Vencimiento", type: "date" },
     { id: "img", label: "Imagen", type: "file" },
@@ -92,6 +98,7 @@ const CrearInsumos = ({ onSuccess }: { onSuccess?: () => void }) => {
         title="Crear Insumo"
         multipart
       />
+
       {mutation.isError && (
         <div className="text-red-500 mt-2">Hubo un error al crear el insumo. Intenta nuevamente.</div>
       )}
