@@ -32,7 +32,6 @@ export const useCrearInsumo = () => {
 
       const { data } = await axios.post(`${apiUrl}insumo/`, nuevoInsumo, {
         headers: {
-          // ❌ NO establecer "Content-Type": multipart/form-data
           Authorization: `Bearer ${token}`,
         },
       });

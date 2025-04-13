@@ -4,6 +4,7 @@ import { useCrearInsumo } from "@/hooks/inventario/insumos/useCrearInsumos";
 import { useCrearBodega } from "@/hooks/inventario/bodega/useCrearBodega";
 import { UnidadMedida } from "@/hooks/inventario/insumos/useInsumo";
 import { useMedidas } from "@/hooks/inventario/unidadMedida/useMedidad";
+import { button } from "@heroui/theme";
 
 const CrearInsumos = ({ onSuccess }: { onSuccess?: () => void }) => {
   const mutation = useCrearInsumo();
@@ -57,7 +58,7 @@ const CrearInsumos = ({ onSuccess }: { onSuccess?: () => void }) => {
         console.log("✅ Insumo creado exitosamente:", data);
 
         const movimientoEntrada = {
-          fk_id_insumo: data.data.id,
+          fk_id_insumo: data.data,
           cantidad: formData.cantidad,
           movimiento: "Entrada",
           fecha: new Date().toISOString(),

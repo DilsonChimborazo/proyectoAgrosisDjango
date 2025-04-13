@@ -68,6 +68,7 @@ import RegistroDiario from "./pages/finanzas/consultas/RegistroDiario";
 import ReporteInsumosPage from "./pages/finanzas/consultas/ReporteInsumosPage";
 import ReportesPage from "./components/reportes/Reportes";
 import BodegaPage from "./pages/inventario/BodegaPage";
+import UnidadMedida from "./components/inventario/unidadMedida/UnidadMedida";
 
 
 const queryClient = new QueryClient();
@@ -113,6 +114,7 @@ function App() {
           <Route path="/herramientas" element={<Principal><ListarHerramientas /></Principal>} />
           <Route path="/insumos" element={<Principal><ListarInsumos /></Principal>} />
           <Route path="/bodega" element={<Principal><BodegaPage /></Principal>} />
+          <Route path="/unidad" element={<Principal><UnidadMedida /></Principal>} />
 
           {/* Rutas módulo trazabilidad */}
           <Route path="/actividad" element={<Principal><CalendarPage /></Principal>} />

@@ -18,6 +18,8 @@ interface FormProps {
     title: string;
     initialValues?: { [key: string]: string | File };
     multipart?: boolean;
+    onExtraButtonClick?: () => void; // Añadido para el botón extra
+    extraButtonTitle?: string; // Título del botón extra
 }
 
 const Formulario: React.FC<FormProps> = ({
@@ -28,6 +30,8 @@ const Formulario: React.FC<FormProps> = ({
     title,
     initialValues,
     multipart,
+    onExtraButtonClick,
+    extraButtonTitle = 'Botón Extra', // Valor por defecto
 }) => {
     const [formData, setFormData] = React.useState<{ [key: string]: string | File }>(
         initialValues || {}
@@ -113,7 +117,15 @@ const Formulario: React.FC<FormProps> = ({
                 </div>
             )}
             <div className="flex justify-center items-center mt-8">
-                <Button text="Registrar" className="mx-2" variant="success" />
+                <Button text="registrar" className="mx-2" variant="success" onClick={() => {}} />
+                {onExtraButtonClick && (
+                    <Button
+                        text={extraButtonTitle} // Cambié 'title' por 'text'
+                        className="mx-2"
+                        variant="success"
+                        onClick={onExtraButtonClick}
+                    />
+                )}
             </div>
         </form>
     );
