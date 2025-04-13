@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
-const apiUrl = import.meta.env.VITE_API_URL; 
+const apiUrl = import.meta.env.VITE_API_URL;
 
 export const useHerramientaPorId = (id: string | undefined) => {
     return useQuery({
@@ -11,10 +11,14 @@ export const useHerramientaPorId = (id: string | undefined) => {
                 console.error("❌ Error: ID no proporcionado");
                 throw new Error("ID no proporcionado");
             }
-            const { data } = await axios.get(`${apiUrl}herramientas/${id}`);
-            console.log("📋 Datos de la Pea obtenidos:", data);
-            return data;
+            try {
+                const { data } = await axios.get(`${apiUrl}herramientas/${id}`);
+                return data;
+            } catch (error) {
+                console.error("❌ Error al obtener la herramienta:", error);
+                throw new Error("Error al obtener la herramienta");
+            }
         },
-        enabled: !!id,
+        enabled: !!id, // Solo ejecuta la consulta si 'id' es válido (no undefined)
     });
 };

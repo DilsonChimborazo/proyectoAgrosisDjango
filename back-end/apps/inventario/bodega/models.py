@@ -12,6 +12,8 @@ class Bodega(models.Model):
     fk_id_herramientas = models.ForeignKey(Herramientas, on_delete=models.SET_NULL, null=True)
     fk_id_insumo = models.ForeignKey(Insumo, on_delete=models.SET_NULL, null=True)
     fk_id_asignacion = models.ForeignKey(Asignacion_actividades, on_delete=models.SET_NULL, null=True)
+    cantidad = models.PositiveIntegerField(default=1)
+    fecha = models.DateTimeField(auto_now_add=True)
     movimiento =  models.CharField(max_length=20, choices=movimientos, default='Entrada')
 
     def __str__(self):

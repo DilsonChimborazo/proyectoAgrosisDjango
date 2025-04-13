@@ -3,13 +3,21 @@ import axios from 'axios';
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
+export interface UnidadMedida{
+    id:number
+    nombre_medida:string
+    abreviatura: string
+}
+
 export interface Insumo{
-    id: number;
-    nombre: string;
-    tipo: string;
-    precio_unidad: number;
-    stock: number;
-    unidad_medida: string;
+    id: number
+    nombre: string
+    tipo: string
+    precio_unidad: number
+    cantidad: number
+    fecha_vencimiento: string
+    img: string 
+    fk_unidad_medida: UnidadMedida
 }
 
 const fetch = async (): Promise<Insumo[]> => {

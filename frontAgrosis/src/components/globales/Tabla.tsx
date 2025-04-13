@@ -31,7 +31,7 @@ const Tabla = <T extends { [key: string]: any }>({
   onClickAction,
   onUpdate,
   onCreate,
-  rowsPerPageOptions = [5, 10, 20, 50], // Opciones por defecto
+  rowsPerPageOptions = [5, 10, 20, 50], 
   createButtonTitle = "Crear +",
   extraButton,
   hiddenColumnsByDefault = ['id'],
@@ -45,7 +45,7 @@ const Tabla = <T extends { [key: string]: any }>({
       .map((header) => header.toLowerCase().replace(/\s+/g, "_"))
       .filter(key => !hiddenColumnsByDefault.includes(key.toLowerCase()))
   );
-  const [rowsPerPage, setRowsPerPage] = useState(rowsPerPageOptions[0]); // Estado para filas por página
+  const [rowsPerPage, setRowsPerPage] = useState(rowsPerPageOptions[0]); 
 
   const columns: Column[] = useMemo(() => {
     return headers.map((header) => ({
@@ -161,7 +161,7 @@ const Tabla = <T extends { [key: string]: any }>({
           {/* Selector de filas por página */}
           <select
             aria-label="Filas por página"
-            className="flex items-center bg-transparent border-2 font-semibold text-green-700 border-green-700 hover:bg-green-700 hover:text-white p-2 rounded-xl shadow-md"
+            className="flex items-center  border-2 font-semibold text-green-700 border-green-700 hover:bg-green-700 hover:text-white p-2 rounded-xl shadow-md"
             onChange={(e) => handleRowsPerPageChange(e.target.value)}
             value={rowsPerPage}
           >

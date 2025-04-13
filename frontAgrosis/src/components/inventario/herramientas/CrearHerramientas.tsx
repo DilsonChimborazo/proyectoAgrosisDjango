@@ -1,54 +1,81 @@
-import { Herramientas } from '@/hooks/inventario/herramientas/useCrearHerramientas';
-import { useCrearHerramientas } from '@/hooks/inventario/herramientas/useCrearHerramientas';
-import Formulario from '../../globales/Formulario';
-import { useNavigate } from 'react-router-dom';
+import { useCrearHerramientas } from "@/hooks/inventario/herramientas/useCrearHerramientas";
+import { useNavigate } from "react-router-dom";
+import Formulario from "../../globales/Formulario";
+import { useCrearBodega } from "@/hooks/inventario/bodega/useCrearBodega";  
 
-const CrearHerramientas = () => {
+const CrearHerramientas = ({ onSuccess }: { onSuccess?: () => void }) => {
     const mutation = useCrearHerramientas();
+    const { mutate } = useCrearBodega();  
     const navigate = useNavigate();
 
     const formFields = [
-        { id: 'nombre_h', label: 'Nombre', type: 'text' },
+        { id: "nombre_h", label: "Nombre", type: "text" },
         {
-            id: 'estado',
-            label: 'Estado',
-            type: 'select',
-            options: [
-                { value: 'Prestado', label: 'Prestado' },
-                { value: 'En_reparacion', label: 'En reparación' },
-                { value: 'Disponible', label: 'Disponible' }
+            id: "estado", label: "Estado", type: "select", options: [
+                { value: "Prestado", label: "Prestado" },
+                { value: "En_reparacion", label: "En reparación" },
+                { value: "Disponible", label: "Disponible" },
             ]
         },
-        { id: 'stock', label: 'Stock', type: 'number' },
+        { id: "cantidad", label: "Cantidad", type: "number" },
     ];
 
-    const handleSubmit = (formData: { [key: string]: string }) => {
-        const nuevaHerramienta: Herramientas = {
+    const handleSubmit = (formData: any) => {
+        const nuevaHerramienta = {
             nombre_h: formData.nombre_h,
             estado: formData.estado,
-            stock: Number(formData.stock), // Asegurar que sea número
+            cantidad: Number(formData.cantidad),
         };
 
+        // Primero creamos la herramienta
         mutation.mutate(nuevaHerramienta, {
-            onSuccess: () => {
+            onSuccess: (data) => {
                 console.log("Herramienta creada exitosamente:", nuevaHerramienta);
-                navigate('/herramientas');
+
+                // Crear movimiento de entrada en la bodega después de la creación de la herramienta
+                const movimientoEntrada = {
+                    fk_id_herramientas: data.data.id, // Usamos el ID de la herramienta creada
+                    cantidad: nuevaHerramienta.cantidad,
+                    movimiento: 'Entrada', // Movimiento tipo entrada
+                    fecha: new Date().toISOString(),
+                    fk_id_asignacion: null,  // O el ID de la asignación correspondiente si lo tienes
+                    fk_id_insumo: null,  // Si también trabajas con insumos, usa el ID del insumo
+                };
+
+                // Registrar el movimiento de entrada en la bodega
+                mutate(movimientoEntrada, {
+                    onSuccess: () => {
+                        if (onSuccess) {
+                            onSuccess(); 
+                        }
+                        navigate("/bodega"); // Redirigir a la página de bodega
+                    },
+                    onError: (error) => {
+                        console.error("Error al registrar el movimiento en la bodega:", error?.response?.data || error?.message);
+                    },
+                });
             },
             onError: (error) => {
-                console.error("Error al crear la herramienta:", error.response?.data || error.message);
+                console.error("Error al crear la herramienta:", error?.response?.data || error?.message);
             },
         });
     };
 
     return (
-        <div className="p-10">
-            <Formulario 
-                fields={formFields} 
-                onSubmit={handleSubmit} 
-                isError={mutation.isError} 
+        <div className="container">
+            <Formulario
+                fields={formFields}
+                onSubmit={handleSubmit}
+                isError={mutation.isError}
                 isSuccess={mutation.isSuccess}
-                title="Crear Herramienta"  
+                title="Crear Herramienta"
             />
+            {mutation.isError && (
+                <div className="text-red-500 mt-2">Hubo un error al crear la herramienta. Intenta nuevamente.</div>
+            )}
+            {mutation.isSuccess && (
+                <div className="text-green-500 mt-2">Herramienta creada exitosamente!</div>
+            )}
         </div>
     );
 };

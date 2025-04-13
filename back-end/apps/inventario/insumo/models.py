@@ -11,5 +11,5 @@ class Insumo (models.Model):
     fecha_vencimiento = models.DateField()
     img = models.ImageField(upload_to='imagenes/')
 
-    def _str_(self):
+    def __str__(self):
         return self.nombre

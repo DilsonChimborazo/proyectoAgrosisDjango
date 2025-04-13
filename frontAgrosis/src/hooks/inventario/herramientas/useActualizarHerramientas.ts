@@ -6,7 +6,7 @@ const apiUrl = import.meta.env.VITE_API_URL;
 export interface Herramientas {
     id: number;
     nombre_h: string;
-    stock: number;
+    cantidad: number;
     estado: string;
 }
 
@@ -21,7 +21,7 @@ export const useActualizarHerramientas = () => {
             if (
                 !datos.nombre_h.trim() ||
                 !datos.estado.trim() ||
-                datos.stock < 0
+                datos.cantidad < 0
             ) {
                 throw new Error("⚠️ Datos inválidos. Verifica los campos de la herramienta.");
             }

@@ -52,7 +52,6 @@ import EditarEras from "./components/iot/eras/EditarEras";
 import CrearLote from "./components/iot/lotes/CrearLote";
 import EditarLote from "./components/iot/lotes/EditarLote";
 import EditarSensor from "./components/iot/sensores/EditarSensores";
-import ActualizarHerramientas from "./components/inventario/herramientas/ActualizarHerramientas";
 import CrearCalendarioLunar from "./components/trazabilidad/calendarioLunar/CrearCalendarioLunar";
 import CrearEspecie from "./components/trazabilidad/especie/CrearEspecie";
 import CrearSemillero from "./components/trazabilidad/semillero/CrearSemillero";
@@ -68,6 +67,8 @@ import ListarInsumos from "./components/inventario/insumos/Insumos";
 import RegistroDiario from "./pages/finanzas/consultas/RegistroDiario";
 import ReporteInsumosPage from "./pages/finanzas/consultas/ReporteInsumosPage";
 import ReportesPage from "./components/reportes/Reportes";
+import BodegaPage from "./pages/inventario/BodegaPage";
+
 
 const queryClient = new QueryClient();
 
@@ -106,12 +107,12 @@ function App() {
           {/* Rutas módulo inventario */}
           <Route path="/herramientas" element={<Principal><HerramientasPage /></Principal>} />
           <Route path="/CrearHerramientas" element={<Principal><CrearHerramientas /></Principal>} />
-          <Route path="/ActualizarHerramienta/:id" element={<Principal><ActualizarHerramientas /></Principal>} />
           <Route path="/insumos" element={<Principal><InsumoPage /></Principal>} />
           <Route path="/CrearInsumos" element={<Principal><CrearInsumos /></Principal>} />
           <Route path="/ActualizarInsumos/:id" element={<Principal><ActualizarInsumos /></Principal>} />
           <Route path="/herramientas" element={<Principal><ListarHerramientas /></Principal>} />
           <Route path="/insumos" element={<Principal><ListarInsumos /></Principal>} />
+          <Route path="/bodega" element={<Principal><BodegaPage /></Principal>} />
 
           {/* Rutas módulo trazabilidad */}
           <Route path="/actividad" element={<Principal><CalendarPage /></Principal>} />

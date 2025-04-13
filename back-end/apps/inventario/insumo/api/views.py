@@ -8,9 +8,9 @@ from apps.inventario.insumo.api.serializers import InsumoSerializer
 
 
 class InsumoViewSet(ModelViewSet):
+    serializer_class = InsumoSerializer
     queryset = Insumo.objects.all()
     permission_classes = [IsAuthenticatedOrReadOnly]
-    serializer_class = InsumoSerializer
 
     @action(detail=False, methods=['get'], url_path='reporteBajoStock')
     def bajo_stock(self, request):

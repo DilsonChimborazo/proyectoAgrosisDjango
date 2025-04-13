@@ -54,6 +54,7 @@ const menuItems = [
     submenu: [
       { name: "Insumos", path: "/insumos" },
       { name: "Herramientas", path: "/herramientas" },
+      { name: "Bodega", path: "/bodega" },
     ],
   },
   { name: "IoT", icon: <Cpu size={18} />, path: "/iot" },

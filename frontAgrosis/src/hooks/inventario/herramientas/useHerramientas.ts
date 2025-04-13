@@ -5,8 +5,8 @@
 
     export interface Herramientas{
         id: number;
-        nombre_h: Text;
-        stock: Date;
+        nombre_h: string;
+        cantidad: number;
         estado: string;
 
     }
