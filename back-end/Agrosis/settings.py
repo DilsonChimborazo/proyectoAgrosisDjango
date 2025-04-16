@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_yasg',
     'channels',
+    'django_filters',
     
     #usuario
     'rest_framework_simplejwt',
@@ -76,18 +77,15 @@ INSTALLED_APPS = [
     'apps.trazabilidad.actividad',
     'apps.trazabilidad.control_fitosanitario',
     'apps.trazabilidad.cultivo',
-    'apps.trazabilidad.desarrollan',
     'apps.trazabilidad.pea',
     'apps.trazabilidad.plantacion',
     'apps.trazabilidad.residuos',
     'apps.trazabilidad.tipo_residuos',
 
     #Inventario
-    'apps.inventario.control_usa_insumo',
     'apps.inventario.herramientas',
     'apps.inventario.insumo',
-    'apps.inventario.requiere',
-    'apps.inventario.utiliza',
+
 ]
 
 
@@ -149,7 +147,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'agrosis',  
         'USER': 'postgres',                
-        'PASSWORD': 'adso2024',          
+        'PASSWORD': 'adso2024',      
         'HOST': 'localhost',                  
         'PORT': '5432',  
         'OPTIONS': {
@@ -216,8 +214,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'samboniwilson09@gmail.com'
-EMAIL_HOST_PASSWORD = 'efyk evjb qksn fkki'  
+EMAIL_HOST_USER = 'agrosofSena@gmail.com'
+EMAIL_HOST_PASSWORD = 'epcv duva nhwm hzlj'  
 
 FRONTEND_URL = "http://localhost:5173"
 

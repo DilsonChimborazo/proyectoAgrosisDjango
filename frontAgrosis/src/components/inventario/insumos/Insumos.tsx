@@ -4,7 +4,6 @@ import { Insumo } from '../../../hooks/inventario/insumos/useInsumo';
 import Tabla from '../../globales/Tabla';
 import VentanaModal from '../../globales/VentanasModales';
 import { useNavigate } from 'react-router-dom';
-import Button from "@/components/globales/Button";
 
 const Insumos = () => {
   const { data: insumo, isLoading, error } = useInsumo();
@@ -28,14 +27,18 @@ const Insumos = () => {
     setIsModalOpen(false);
   };
 
-  const headers = ["ID", "Nombre", "Tipo", "Precio Unidad", "Cantidad", "Unidad de Medida"];
+  const headers = ["ID", "Nombre", "Tipo", "Precio Unidad", "stock", "Unidad Medida"];
 
   const handleRowClick = (insumo: Insumo) => {
     openModalHandler(insumo);
   };
 
-  const handleUpdate = (residuo: { id: number }) => {
-    navigate(`/ActualizarInsumos/${residuo.id}`);
+  const handleUpdate = (insumo: { id: number }) => {
+    navigate(`/ActualizarInsumos/${insumo.id}`);
+    };
+
+    const handleCreate = () => {
+      navigate("/CrearInsumos");
     };
 
 
@@ -43,30 +46,29 @@ const Insumos = () => {
   if (error instanceof Error) return <div className="text-red-500">Error al cargar los insumos: {error.message}</div>;
 
   const InsumoList = Array.isArray(insumo) ? insumo : [];
-
+  
   const mappedInsumo = Array.isArray(InsumoList)?InsumoList.map(insumo => ({
     id: insumo.id,
     nombre: insumo.nombre,
     tipo: insumo.tipo,
     precio_unidad: insumo.precio_unidad,
-    cantidad: insumo.cantidad,
+    stock: insumo.stock,
     unidad_medida: insumo.unidad_medida,
   }))
   : []; 
 
+  console.log("mappedInsumo:", mappedInsumo, Array.isArray(mappedInsumo));
+
   return (
     <div className="mx-auto p-4">
-      <Button
-        text="Crear insumos" 
-        onClick={() => navigate("/CrearInsumos")} 
-        variant="green" 
-      />
       <Tabla
         title="Insumos"
         headers={headers}
         data={mappedInsumo}
         onClickAction={handleRowClick}
         onUpdate={handleUpdate}
+        onCreate={handleCreate}
+        createButtonTitle="Crear"
       />
       {selectedInsumo && (
         <VentanaModal

@@ -35,7 +35,6 @@ from apps.trazabilidad.cultivo.api.router import router_cultivo
 from apps.trazabilidad.residuos.api.router import router_residuos
 from apps.trazabilidad.tipo_residuos.api.router import router_tipo_residuos
 from apps.trazabilidad.control_fitosanitario.api.router import router_control_fitosanitario
-from apps.trazabilidad.desarrollan.api.router import router_desarrollan
 from apps.trazabilidad.plantacion.api.router import router_plantacion
 from apps.trazabilidad.pea.api.router import router_pea
 from apps.trazabilidad.asignacion_actividades.api.router import routerAsignacion_actividades
@@ -50,13 +49,12 @@ from apps.trazabilidad.tipo_cultivo.api.router import routerTipo_cultivo
 #rutas de finanzas
 from apps.finanzas.produccion.api.router import router_produccion
 from apps.finanzas.venta.api.router import router_venta
+from apps.inventario.insumo.api.webhooks import webhook_reporte_egresos
 
 #rutas de inventario
-from apps.inventario.control_usa_insumo.api.routers import router_usa
 from apps.inventario.herramientas.api.routers import router_herramientas
 from apps.inventario.insumo.api.routers import router_insumo
-from apps.inventario.requiere.api.routers import router_requiere
-from apps.inventario.utiliza.api.routers import router_utiliza
+
 
 #rutas de IoT
 from apps.iot.eras.api.router import router_Eras
@@ -82,8 +80,8 @@ urlpatterns = [
     #USUARIO
     path('api/', include(routerUsuario.urls)),
     path('api/', include(routerRol.urls)),
-    path("solicitar-recuperacion/", solicitar_recuperacion, name="solicitar_recuperacion"),
-    path("resetear-contrasena/", resetear_contraseña, name="resetear_contraseña"),
+    path("api/solicitar-recuperacion/", solicitar_recuperacion, name="solicitar_recuperacion"),
+    path("api/resetear-contrasena/", resetear_contraseña, name="resetear_contraseña"),
     path('api/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('api/redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     path('api/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
@@ -99,13 +97,13 @@ urlpatterns = [
     #FINANZAS
     path('api/', include(router_produccion.urls)),
     path('api/', include(router_venta.urls)),
+    path('api/webhook-reporte-egresos/', webhook_reporte_egresos, name='webhook-reporte-egresos'),
 
     #TRAZABILIDAD
     path('api/', include(router_actividad.urls)),
     path('api/', include(router_cultivo.urls)),
     path('api/', include(router_tipo_residuos.urls)),
     path('api/', include(router_control_fitosanitario.urls)),
-    path('api/', include(router_desarrollan.urls)),
     path('api/', include(router_plantacion.urls)),
     path('api/', include(router_pea.urls)),
     path('api/', include(router_residuos.urls)),
@@ -119,9 +117,6 @@ urlpatterns = [
     path('api/', include(routerNotificacion.urls)),
 
     #INVENTARIO
-    path('api/', include(router_usa.urls)),
     path('api/', include(router_herramientas.urls)),
     path('api/', include(router_insumo.urls)),
-    path('api/', include(router_requiere.urls)),
-    path('api/', include(router_utiliza.urls)),
 ]

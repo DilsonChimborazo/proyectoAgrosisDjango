@@ -4,9 +4,19 @@ from django.dispatch import receiver
 from channels.layers import get_channel_layer
 import json
 # Create your models here.
+from django.db import models
+
 class Sensores(models.Model):
+    TIPO_SENSOR_CHOICES = [
+        ('TEMPERATURA', 'Temperatura'),
+        ('HUMEDAD_AMBIENTAL', 'Humedad ambiental'),
+        ('ILUMINACION', 'iluminacion'),
+        ('HUMEDAD TERRENO', 'Humedad terreno'),
+        ('VELOCIDAD VIENTO', 'Velocidad viento'),
+        ('NIVEL DE PH', 'Nivel de ph'),    
+    ]
     nombre_sensor = models.CharField(max_length=50)
-    tipo_sensor = models.CharField(max_length=50)
+    tipo_sensor = models.CharField( max_length=50, choices=TIPO_SENSOR_CHOICES, unique=True)
     unidad_medida = models.CharField(max_length=50)
     descripcion = models.TextField()
     medida_minima = models.IntegerField()

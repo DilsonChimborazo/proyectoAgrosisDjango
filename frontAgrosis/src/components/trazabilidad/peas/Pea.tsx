@@ -1,9 +1,7 @@
 import { useState } from 'react';
-
 import { usePea } from '../../../hooks/trazabilidad/pea/usePea';
 import VentanaModal from '../../globales/VentanasModales';
 import Tabla from '../../globales/Tabla';
-import Button from '../../globales/Button';
 import { useNavigate } from 'react-router-dom';
 
 const Pea = () => {
@@ -28,6 +26,9 @@ const Pea = () => {
   const handleUpdate = (residuo: { id: number }) => {
     navigate(`/pea/editar/${residuo.id}`);
   };
+  const handleCreate = () => {
+    navigate("/crearpea");
+  };
 
   if (isLoading) return <div>Cargando PEA...</div>;
   if (error instanceof Error) return <div>Error al cargar los PEA: {error.message}</div>;
@@ -37,14 +38,14 @@ const Pea = () => {
   const mappedPeas = peasList.map(pea => ({
     id: pea.id,
     nombre_pea: pea.nombre_pea,
-    descripcion: pea.descripcion
+    descripcion: pea.descripcion,
+    tipo_pea: pea.tipo_pea,
   }));
-  const headers = ['ID', 'Nombre', 'Descripción'];
+  const headers = ['ID', 'Nombre Pea', 'Descripcion', 'Tipo Pea'];
 
 
   return (
     <div className="overflow-x-auto  rounded-lg">
-      <Button text="Crear PEA" className='mx-2' onClick={() => navigate("/crearpea")} variant="green" />
 
       <Tabla
         title="Lista de PEA"
@@ -52,6 +53,8 @@ const Pea = () => {
         data={mappedPeas}
         onClickAction={handleRowClick}
         onUpdate={handleUpdate}
+        onCreate={handleCreate}
+        createButtonTitle="Crear"
       />
 
       {selectedPea && (

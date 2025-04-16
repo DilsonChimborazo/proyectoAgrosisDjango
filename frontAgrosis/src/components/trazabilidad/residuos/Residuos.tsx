@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useResiduos } from '../../../hooks/trazabilidad/residuo/useResiduos';
 import VentanaModal from '../../globales/VentanasModales';
 import Tabla from '../../globales/Tabla';
-import Button from '../../globales/Button';
 import { useNavigate } from 'react-router-dom';
 
 const Residuos = () => {
@@ -27,6 +26,9 @@ const Residuos = () => {
   const handleUpdate = (residuo: { id: number }) => {
     navigate(`/residuos/editar/${residuo.id}`);
   };
+  const handleCreate = () => {
+    navigate("/crearresiduo");
+  };
 
   if (isLoading) return <div>Cargando residuos...</div>;
   if (error instanceof Error) return <div>Error al cargar los residuos: {error.message}</div>;
@@ -42,11 +44,10 @@ const Residuos = () => {
     tipo_residuo: residuo.fk_id_tipo_residuo ? residuo.fk_id_tipo_residuo.nombre_tipo_residuo : 'Sin tipo'
   }));
 
-  const headers = ['ID', 'Nombre', 'Fecha', 'Descripción', 'Cultivo', 'Tipo de Residuo'];
+  const headers = ['ID', 'Nombre residuo', 'Fecha', 'Descripcion', 'Cultivo', 'Tipo Residuo'];
 
   return (
     <div className="overflow-x-auto  rounded-lg">
-      <Button text="Crear Residuo" className='mx-2' onClick={() => navigate("/crearresiduo")} variant="green" />
 
       <Tabla
         title="Lista de Residuos"
@@ -54,6 +55,8 @@ const Residuos = () => {
         data={mappedResiduos}
         onClickAction={handleRowClick}
         onUpdate={handleUpdate} 
+        onCreate={handleCreate}
+        createButtonTitle="Crear"
       />
 
       {selectedResiduo && (

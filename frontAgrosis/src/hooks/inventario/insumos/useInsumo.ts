@@ -8,10 +8,10 @@ export interface Insumo{
     nombre: string;
     tipo: string;
     precio_unidad: number;
-    cantidad: number;
+    stock: number;
     unidad_medida: string;
-
 }
+
 const fetch = async (): Promise<Insumo[]> => {
     try {
         const { data } = await axios.get(`${apiUrl}insumo/`);

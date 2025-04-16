@@ -9,12 +9,24 @@ const CrearPea = () => {
     const formFields = [
         { id: 'nombre_pea', label: 'Nombre del PEA', type: 'text' },
         { id: 'descripcion', label: 'Descripción', type: 'text' },
+        { 
+            id: 'tipo_pea', 
+            label: 'Tipo de PEA', 
+            type: 'select', 
+            options: [
+                { value: 'Plaga', label: 'Plaga' },
+                { value: 'Enfermedad', label: 'Enfermedad' },
+                { value: 'Arvense', label: 'Arvense' }
+            ] 
+        },
     ];
+    
 
     const handleSubmit = (formData: { [key: string]: string }) => {
         const nuevoPea: Pea = {
             nombre_pea: formData.nombre_pea,
             descripcion: formData.descripcion,
+            tipo_pea: formData.tipo_pea,
         };
 
         console.log("Enviando PEA al backend:", nuevoPea);

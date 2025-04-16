@@ -1,0 +1,48 @@
+:root {
+    /* Sistema de colores base */
+    --sl-hue-accent: hsl(0, 0%, 0%); 
+    
+    /* Texto */
+    --sl-text-primary: hsl(0, 0%, 0%); /* Negro azulado */
+    --sl-text-secondary: hsl(240 5% 45%);
+    
+    /* Fondo contenido */
+    --sl-content-bg-light: hsla(0, 4%, 86%, 0.9); /* Blanco con transparencia */
+    --sl-content-bg-dark: hsla(0, 0%, 53%, 0.9); /* Negro azulado */
+  }
+  
+  /* Modo claro (default) */
+  :root,
+  [data-theme="light"] {
+    --sl-text-color: var(--sl-text-primary);
+    --sl-content-background-color: var(--sl-content-bg-light);
+
+    
+    /* Ajuste específico para tu rojo */
+    --sl-color-accent: hsl(0, 0%, 0%);
+  }
+  
+  /* Modo oscuro */
+  [data-theme="dark"] {
+    --sl-text-color: hsl(0, 0%, 100%); /* Blanco */
+    --sl-content-background-color: var(--sl-content-bg-dark);
+    --sl-color-background: hsl(251, 22%, 10%);
+    
+    /* Versión oscura de tu rojo */
+    --sl-color-accent: hsl(0, 0%, 100%);
+  }
+  
+  /* Aplicación general */
+  body {
+    color: var(--sl-text-color);
+    background-color: var(--sl-color-background);
+  }
+  
+  /* Área de contenido principal */
+  .sl-markdown-content {
+    background-color: var(--sl-content-background-color);
+    margin:0;
+    padding: 1rem;
+    border-radius: 8px;
+
+}

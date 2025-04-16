@@ -7,6 +7,7 @@ export interface Pea {
     id: number;
     nombre_pea: string;
     descripcion: string;
+    tipo_pea: string;
 }
 
 // Función para obtener la lista de Peas con manejo de errores

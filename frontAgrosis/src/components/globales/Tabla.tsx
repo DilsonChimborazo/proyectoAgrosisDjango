@@ -1,26 +1,27 @@
 import { useState, useMemo } from "react";
-import { Pagination, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Button as HerouiButton } from "@heroui/react";
-import { ChevronDown, MoreVertical, Plus } from "lucide-react";
+import { Pagination, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Button as HerouiButton,  } from "@heroui/react";
+import { ChevronDown, MoreVertical, Plus, Search, X } from "lucide-react";
 
 // Definimos la interfaz para las columnas de la tabla
 interface Column {
-  name: string; // Nombre de la columna (se muestra en el encabezado)
-  key: string; // Clave única para identificar la columna (usada para acceder a los datos)
+  name: string;
+  key: string;
 }
 
 // Definimos las propiedades que recibe el componente Tabla
 interface TablaProps<T> {
-  title: string; // Título de la tabla
-  headers: string[]; // Lista de encabezados de las columnas
-  data: T[]; // Datos que se mostrarán en la tabla
-  onClickAction: (row: T) => void; // Función que se ejecuta al hacer clic en "Ver detalles" de una fila
-  onUpdate: (row: T) => void; // Función que se ejecuta al hacer clic en "Actualizar" de una fila
-  onCreate: () => void; // Función que se ejecuta al hacer clic en el botón de crear
-  rowsPerPage?: number; // Número de filas por página (opcional, por defecto 5)
-  createButtonTitle?: string; // Título del botón de crear (opcional, por defecto vacío)
+  title: string;
+  headers: string[];
+  data: T[];
+  onClickAction: (row: T) => void;
+  onUpdate: (row: T) => void;
+  onCreate: () => void;
+  rowsPerPageOptions?: number[]; // Nueva prop para opciones de filas por página
+  createButtonTitle?: string;
+  extraButton?: React.ReactNode;
+  hiddenColumnsByDefault?: string[];
 }
 
-// Componente Tabla, que es genérico para manejar diferentes tipos de datos
 const Tabla = <T extends { [key: string]: any }>({
   title,
   headers,
@@ -28,49 +29,48 @@ const Tabla = <T extends { [key: string]: any }>({
   onClickAction,
   onUpdate,
   onCreate,
-  rowsPerPage = 5, // Valor por defecto de filas por página
-  createButtonTitle = "", // Valor por defecto del título del botón de crear
+  rowsPerPageOptions = [5, 10, 20, 50], // Opciones por defecto
+  createButtonTitle = "",
+  extraButton,
+  hiddenColumnsByDefault = ['id'],
 }: TablaProps<T>) => {
-  // Estados para manejar la paginación, filtros, ordenamiento y columnas visibles
-  const [currentPage, setCurrentPage] = useState(1); // Página actual de la paginación
-  const [filter, setFilter] = useState(""); // Filtro de búsqueda
-  const [sortColumn, setSortColumn] = useState<string | null>(null); // Columna por la que se ordena
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc"); // Dirección del ordenamiento (ascendente o descendente)
+  const [currentPage, setCurrentPage] = useState(1);
+  const [filter, setFilter] = useState("");
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [visibleColumns, setVisibleColumns] = useState<string[]>(
-    headers.map((header) => header.toLowerCase().replace(/\s+/g, "_")) // Inicializamos las columnas visibles con las claves de los encabezados
+    headers
+      .map((header) => header.toLowerCase().replace(/\s+/g, "_"))
+      .filter(key => !hiddenColumnsByDefault.includes(key.toLowerCase()))
   );
+  const [rowsPerPage, setRowsPerPage] = useState(rowsPerPageOptions[0]); // Estado para filas por página
 
-  // Creamos las columnas dinámicamente a partir de los encabezados
   const columns: Column[] = useMemo(() => {
     return headers.map((header) => ({
-      name: header, // Nombre del encabezado
-      key: header.toLowerCase().replace(/\s+/g, "_"), // Clave única en minúsculas y sin espacios
+      name: header,
+      key: header.toLowerCase().replace(/\s+/g, "_"),
     }));
   }, [headers]);
 
-  // Filtramos los datos según el valor del filtro
   const filteredData = useMemo(() => {
     return data.filter((row) =>
       Object.values(row).some((value) =>
-        value?.toString().toLowerCase().includes(filter.toLowerCase()) // Filtramos filas que contengan el texto del filtro
+        value?.toString().toLowerCase().includes(filter.toLowerCase())
       )
     );
   }, [data, filter]);
 
-  // Ordenamos los datos según la columna seleccionada y la dirección
   const sortedData = useMemo(() => {
-    if (!sortColumn) return filteredData; // Si no hay columna para ordenar, devolvemos los datos filtrados sin cambios
+    if (!sortColumn) return filteredData;
 
     return [...filteredData].sort((a, b) => {
-      const valueA = a[sortColumn]; // Valor de la columna en la fila A
-      const valueB = b[sortColumn]; // Valor de la columna en la fila B
+      const valueA = a[sortColumn];
+      const valueB = b[sortColumn];
 
-      // Manejo de valores nulos
       if (valueA == null && valueB == null) return 0;
       if (valueA == null) return sortDirection === "asc" ? 1 : -1;
       if (valueB == null) return sortDirection === "asc" ? -1 : 1;
 
-      // Ordenamiento especial para fechas
       if (sortColumn.toLowerCase().includes("fecha")) {
         const dateA = new Date(valueA);
         const dateB = new Date(valueB);
@@ -79,97 +79,114 @@ const Tabla = <T extends { [key: string]: any }>({
           : dateB.getTime() - dateA.getTime();
       }
 
-      // Ordenamiento para números
       if (!isNaN(valueA as number) && !isNaN(valueB as number)) {
         return sortDirection === "asc"
           ? Number(valueA) - Number(valueB)
           : Number(valueB) - Number(valueA);
       }
 
-      // Ordenamiento para texto
       return sortDirection === "asc"
         ? String(valueA).localeCompare(String(valueB))
         : String(valueB).localeCompare(String(valueA));
     });
   }, [filteredData, sortColumn, sortDirection]);
 
-  // Paginamos los datos ordenados
   const paginatedData = useMemo(() => {
     return sortedData.slice(
-      (currentPage - 1) * rowsPerPage, // Inicio de la página
-      currentPage * rowsPerPage // Fin de la página
+      (currentPage - 1) * rowsPerPage,
+      currentPage * rowsPerPage
     );
   }, [sortedData, currentPage, rowsPerPage]);
 
-  // Calculamos el número total de páginas
   const totalPages = Math.ceil(sortedData.length / rowsPerPage);
 
-  // Función para manejar el ordenamiento al hacer clic en un encabezado
   const handleSort = (columnKey: string) => {
     if (sortColumn === columnKey) {
-      // Si ya estamos ordenando por esta columna, cambiamos la dirección
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
-      // Si es una nueva columna, ordenamos en ascendente
       setSortColumn(columnKey);
       setSortDirection("asc");
     }
   };
 
-  // Funciones para ir a la primera y última página
-  const handleFirstPage = () => setCurrentPage(1);
-  const handleLastPage = () => setCurrentPage(totalPages);
-
-  // Función para alternar la visibilidad de una columna
   const toggleColumn = (columnKey: string) => {
     setVisibleColumns((prev) =>
       prev.includes(columnKey)
-        ? prev.filter((key) => key !== columnKey) // Si la columna está visible, la ocultamos
-        : [...prev, columnKey] // Si no está visible, la mostramos
+        ? prev.filter((key) => key !== columnKey)
+        : [...prev, columnKey]
     );
   };
 
-  // Filtramos las columnas visibles
+  const clearFilter = () => {
+    setFilter("");
+  };
+
+  const handleRowsPerPageChange = (value: string) => {
+    setRowsPerPage(Number(value));
+    setCurrentPage(1); // Resetear a la primera página cuando cambia el tamaño
+  };
+
   const visibleColumnsData = columns.filter((column) =>
     visibleColumns.includes(column.key)
   );
 
   return (
-    // Contenedor principal de la tabla con bordes redondeados
-    <div className="rounded-3xl mt-5 py-2 bg-white">
-      {/* Sección superior con el título, búsqueda y botones */}
-      <div className="flex flex-col sm:flex-row justify-between items-center bg-gray-50 px-8 py-4 rounded-t-xl gap-2">
-        {/* Título de la tabla */}
-        <h2 className="text-lg sm:text-xl font-semibold text-gray-900 uppercase">{title}</h2>
-        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          {/* Campo de búsqueda */}
-          <input
-            type="text"
-            placeholder="Buscar..."
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)} // Actualizamos el filtro al escribir
-            className="border rounded-2xl p-2 focus:outline-none focus:ring-2 focus:ring-green-500 w-full sm:w-64"
-          />
-          {/* Dropdown para seleccionar columnas visibles */}
+    <div className="rounded-3xl m-5 bg-white">
+      <h2 className="text-center text-3xl font-semibold capitalize p-3">{title}</h2>
+      <div className="flex flex-col sm:flex-row items-center justify-between px-8 py-4 rounded-t-xl gap-4">
+        <div className="relative w-full sm:w-3/4">
+          <div className="relative flex items-center w-full sm:w-2/4">
+            <Search className="absolute left-3 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Buscar..."
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              className="border shadow-md rounded-xl pl-10 pr-8 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 w-full"
+            />
+            {filter && (
+              <button
+                onClick={clearFilter}
+                className="absolute right-3 text-red-400 hover:text-gray-600"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="w-full sm:w-1/4 flex justify-end gap-2">
+          {/* Selector de filas por página */}
+          <select
+            aria-label="Filas por página"
+            className="w-24 border text-green-700 hover:bg-green-700 hover:text-white border-green-700 rounded-xl p-2 py-2"
+            onChange={(e) => handleRowsPerPageChange(e.target.value)}
+            value={rowsPerPage}
+          >
+            {rowsPerPageOptions.map((option) => (
+              <option key={option} value={option} className="bg-white text-black">
+                {option} filas
+              </option>
+            ))}
+          </select>
+
           <Dropdown>
             <DropdownTrigger>
-              <HerouiButton
-                className="flex items-center  bg-green-700 text-white rounded-2xl p-6 uppercase"
-              >
-                columnas
-                <ChevronDown size={18} /> {/* Ícono de flecha hacia abajo */}
+              <HerouiButton className="flex items-center bg-transparent border-2 font-semibold text-green-700 border-green-700 hover:bg-green-700 hover:text-white p-2 rounded-xl shadow-md">
+                Columnas
+                <ChevronDown size={18} />
               </HerouiButton>
             </DropdownTrigger>
-            <DropdownMenu aria-label="Seleccionar columnas" className="bg-white">
+            <DropdownMenu aria-label="Seleccionar columnas" className="">
               {columns.map((column) => (
                 <DropdownItem
                   key={column.key}
-                  onClick={() => toggleColumn(column.key)} // Alternamos la visibilidad de la columna
+                  onClick={() => toggleColumn(column.key)}
                   className="flex items-center"
                 >
                   <input
                     type="checkbox"
-                    checked={visibleColumns.includes(column.key)} // Marcamos si la columna está visible
+                    checked={visibleColumns.includes(column.key)}
                     onChange={() => toggleColumn(column.key)}
                     className="mr-2"
                   />
@@ -178,90 +195,86 @@ const Tabla = <T extends { [key: string]: any }>({
               ))}
             </DropdownMenu>
           </Dropdown>
-          {/* Botón para crear un nuevo elemento */}
+          
           <HerouiButton
             title={createButtonTitle}
-            onClick={onCreate} // Ejecutamos la función onCreate al hacer clic
-            className="bg-green-700 text-white hover:bg-green-800 uppercase text-center p-6 rounded-2xl"
+            onClick={onCreate}
+            className="bg-transparent border-2 border-green-700 font-semibold text-green-700 hover:bg-green-700 hover:text-white rounded-xl shadow-md flex items-center justify-between"
           >
-            <Plus size={18} /> {/* Ícono de "+" */}
             {createButtonTitle}
+            <Plus size={18} />
           </HerouiButton>
+
+          {extraButton && <div>{extraButton}</div>}
         </div>
       </div>
 
-      {/* Mostramos un mensaje si no hay resultados */}
       {sortedData.length === 0 ? (
-        <div className="text-center text-red-500 bg-white p-4">
+        <div className="text-center rounded-2xl text-red-500 bg-white m-4">
           No se encontraron resultados.
         </div>
       ) : (
-        // Contenedor de la tabla con desplazamiento horizontal si es necesario
         <div className="overflow-x-auto px-7">
           <table className="min-w-full border-separate border-spacing-y-2">
-            {/* Encabezado de la tabla */}
-            <thead>
-              <tr className="bg-green-700 text-white border-2 border-green-900">
+            <thead className="">
+              <tr className="bg-green-700 text-white font-bold ">
                 {visibleColumnsData.map((column, index) => (
                   <th
                     key={index}
-                    className={`px-8 py-5 text-xs sm:text-sm font-bold uppercase text-center cursor-pointer hover:bg-green-800 transition
-                      ${index === 0 ? "rounded-tl-2xl rounded-bl-2xl" : ""}`} // Redondeamos las esquinas izquierda solo en la primera celda
-                    onClick={() => handleSort(column.key)} // Ordenamos al hacer clic
+                    className={`px-5 text-xs sm:text-sm font-bold capitalize text-center cursor-pointer hover:bg-green-800 transition
+                      ${index === 0 ? "rounded-tl-2xl rounded-bl-2xl" : ""}`}
+                    onClick={() => handleSort(column.key)}
                   >
                     <div className="flex items-center justify-between">
                       <span>{column.name}</span>
                       {sortColumn === column.key && (
                         <span className="ml-2">
-                          {sortDirection === "asc" ? "↑" : "↓"} {/* Indicador de dirección del ordenamiento */}
+                          {sortDirection === "asc" ? "↑" : "↓"}
                         </span>
                       )}
                     </div>
                   </th>
                 ))}
-                {/* Columna de acciones con redondeo en las esquinas derecha */}
-                <th className="px-2 sm:px-6 py-5 text-sm font-bold uppercase rounded-tr-2xl rounded-br-2xl text-left truncate">
+                <th className="px-2 sm:px-6 py-5 text-sm font-bold capitalize rounded-tr-2xl rounded-br-2xl text-left truncate">
                   Acciones
                 </th>
               </tr>
             </thead>
-            {/* Cuerpo de la tabla */}
             <tbody className="px-20">
               {paginatedData.map((row, index) => (
                 <tr
-                  key={row.id || index} // Usamos el id de la fila o el índice como clave
-                  className={`${index % 2 === 0 ? "bg-gray-50" : "bg-white"} hover:bg-green-100 transition duration-300 ease-in-out`} // Alternamos colores de fondo
+                  key={row.id || index}
+                  className={`${index % 2 === 0 ? "bg-gray-50" : "bg-white"} hover:bg-green-100 transition duration-300 ease-in-out`}
                 >
                   {visibleColumnsData.map((column, cellIndex) => (
                     <td
                       key={cellIndex}
-                      className="px-8 py-3 sm:py-4 text-xs sm:text-sm text-gray-800 max-w-[100px] sm:max-w-xs truncate" // Estilo de las celdas
+                      className="px-8 py-3 sm:py-4 text-xs sm:text-sm text-gray-800 max-w-[100px] sm:max-w-xs truncate"
                     >
-                      {row[column.key] !== null && row[column.key] !== undefined ? row[column.key] : "—"} {/* Mostramos el valor o un guion si es nulo */}
+                      {row[column.key] !== null && row[column.key] !== undefined ? row[column.key] : "—"}
                     </td>
                   ))}
-                  {/* Columna de acciones con un dropdown */}
                   <td className="px-2">
                     <Dropdown>
                       <DropdownTrigger>
                         <HerouiButton
                           variant="bordered"
-                          className="p-2 rounded-full hover:bg-gray-200"
+                          className="p-2 rounded-full "
                         >
-                          <MoreVertical size={18} /> {/* Ícono de más opciones */}
+                          <MoreVertical size={18} />
                         </HerouiButton>
                       </DropdownTrigger>
-                      <DropdownMenu aria-label="Acciones" className="bg-white">
+                      <DropdownMenu aria-label="Acciones" className="bg-white text-white">
                         <DropdownItem
                           key="details"
-                          onClick={() => onClickAction(row)} // Ejecutamos onClickAction al hacer clic
+                          onClick={() => onClickAction(row)}
                           className="text-green-600"
                         >
                           Ver detalles
                         </DropdownItem>
                         <DropdownItem
                           key="update"
-                          onClick={() => onUpdate(row)} // Ejecutamos onUpdate al hacer clic
+                          onClick={() => onUpdate(row)}
                           className="text-yellow-600"
                         >
                           Actualizar
@@ -276,23 +289,9 @@ const Tabla = <T extends { [key: string]: any }>({
         </div>
       )}
 
-      {/* Paginación (solo se muestra si hay datos) */}
       {sortedData.length > 0 && (
         <div className="flex justify-center p-5 rounded-b-xl bg-gray-50">
           <div className="flex items-center gap-2">
-            {/* Botón para ir a la primera página */}
-            <button
-              onClick={handleFirstPage}
-              disabled={currentPage === 1} // Deshabilitado si estamos en la primera página
-              className={`p-2 rounded-full ${
-                currentPage === 1
-                  ? "text-gray-400 cursor-not-allowed"
-                  : "text-gray-700 hover:bg-gray-200"
-              } transition duration-200`}
-            >
-            </button>
-
-            {/* Componente de paginación */}
             <Pagination
               isCompact
               showControls
@@ -300,21 +299,9 @@ const Tabla = <T extends { [key: string]: any }>({
               color="success"
               page={currentPage}
               total={totalPages}
-              onChange={(page) => setCurrentPage(page)} // Actualizamos la página actual
-              className="flex items-center gap-2"
+              onChange={(page) => setCurrentPage(page)}
+              className="flex items-center gap-2 overflow-hidden"
             />
-
-            {/* Botón para ir a la última página */}
-            <button
-              onClick={handleLastPage}
-              disabled={currentPage === totalPages} // Deshabilitado si estamos en la última página
-              className={`p-2 rounded-full ${
-                currentPage === totalPages
-                  ? "text-gray-400 cursor-not-allowed"
-                  : "text-gray-700 hover:bg-gray-200"
-              } transition duration-200`}
-            >
-            </button>
           </div>
         </div>
       )}

@@ -7,6 +7,7 @@ interface FormField {
     label: string;
     type: string;
     options?: { value: string | number; label: string }[];
+
     value?: string;
     
 }

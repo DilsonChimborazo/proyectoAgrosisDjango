@@ -7,19 +7,16 @@ export interface ControlFitosanitario {
     id: number;
     fecha_control: string;
     descripcion: string;
-    fk_id_desarrollan: Desarrollan;
-}
-
-export interface Desarrollan {
-    id: number;
-    fk_id_cultivo: Cultivo | null;
-    fk_id_pea: Pea | null;
+    tipo_control: string;
+    fk_id_cultivo: Cultivo;
+    fk_id_pea: Pea;
 }
 
 export interface Pea {
     id: number;
     nombre_pea: string;
     descripcion: string;
+    tipo_pea: string;
 }
 
 export interface Cultivo {

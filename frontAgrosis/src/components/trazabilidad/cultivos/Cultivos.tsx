@@ -54,8 +54,8 @@ const Cultivos = () => {
   const headers = [
     "ID",
     "Nombre",
-    "Fecha de Plantación",
-    "Descripción",
+    "Fecha Plantacion",
+    "Descripcion",
     "Especie",
     "Semillero",
   ];
