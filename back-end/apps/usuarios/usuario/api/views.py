@@ -9,12 +9,10 @@ from rest_framework.response import Response
 from rest_framework import status
 
 class UsuarioViewSet(ModelViewSet):
-<<<<<<< HEAD
-    #permission_classes = [IsAuthenticated] 
-=======
-    """Maneja la creación, lectura y gestión de usuarios"""
 
->>>>>>> 76518eef6e65a65b67e087df30f10715488d071f
+    #permission_classes = [IsAuthenticated] 
+
+    """Maneja la creación, lectura y gestión de usuarios"""
     def get_queryset(self):
         """ Retorna solo el usuario autenticado, excepto para los admins que ven todos """
         if self.request.user.is_staff:  # Si es admin, puede ver todos los usuarios
