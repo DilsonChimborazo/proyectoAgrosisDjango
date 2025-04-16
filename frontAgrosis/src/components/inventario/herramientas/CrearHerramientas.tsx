@@ -19,36 +19,16 @@ const CrearHerramientas = () => {
                 { value: 'Disponible', label: 'Disponible' }
             ]
         },
-        { id: 'fecha_prestamo', label: 'Fecha de Préstamo', type: 'datetime-local' },
+        { id: 'stock', label: 'Stock', type: 'number' },
     ];
 
     const handleSubmit = (formData: { [key: string]: string }) => {
-        console.log("Valor de fecha_prestamo recibido del formulario:", formData.fecha_prestamo);
-    
-        // Validar y convertir la fecha a formato ISO-8601
-        let fecha: string | null = null;
-    
-        if (formData.fecha_prestamo) {
-            const fechaObj = new Date(formData.fecha_prestamo);
-    
-            if (isNaN(fechaObj.getTime())) {
-                console.error("Fecha no válida:", formData.fecha_prestamo);
-                alert("Por favor, introduce una fecha válida.");
-                return; // Detenemos la ejecución si la fecha es inválida
-            } else {
-                fecha = fechaObj.toISOString(); // Convertimos la fecha a ISO-8601
-                console.log("Fecha válida y convertida a ISO-8601:", fecha);
-            }
-        } else {
-            console.log("Fecha no proporcionada");
-        }
-    
         const nuevaHerramienta: Herramientas = {
-            nombre_h: formData.nombre_h, // Nombre de la herramienta
-            fecha_prestamo: fecha, // Fecha en formato ISO-8601
-            estado: formData.estado, // Estado de la herramienta
+            nombre_h: formData.nombre_h,
+            estado: formData.estado,
+            stock: Number(formData.stock), // Asegurar que sea número
         };
-    
+
         mutation.mutate(nuevaHerramienta, {
             onSuccess: () => {
                 console.log("Herramienta creada exitosamente:", nuevaHerramienta);
@@ -59,7 +39,6 @@ const CrearHerramientas = () => {
             },
         });
     };
-    
 
     return (
         <div className="p-10">

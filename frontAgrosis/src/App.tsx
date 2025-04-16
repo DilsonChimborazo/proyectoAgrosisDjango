@@ -3,21 +3,24 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HeroUIProvider } from "@heroui/system";
 import './styles/globals.css'; 
 
-import RegisterForm from "./components/usuarios/Register";
-import Login from "./components/usuarios/InicioSesion";
+import RegisterForm from "./components/usuarios/usuario/Register";
+import Login from "./components/usuarios/usuario/InicioSesion";
 import Principal from "./components/globales/Principal";
-import  {HomePage}  from "./pages/HomePage"; 
-import HistoricalDataPage from "./pages/HistoricalDataPage"
+import { HomePage } from "./pages/HomePage"; 
+import HistoricalDataPage from "./pages/HistoricalDataPage";
 import UsersPage from "./pages/usuarios/UsersPage";
 import CalendarPage from "./pages/trazabilidad/CalendarPage";
 import IOtPage from "./pages/iot/IotPage";
 import CrearSensor from "./components/iot/sensores/CrearSensor";
 import LotesPage from "./pages/iot/LotesPage";
 import ErasPage from "./pages/iot/ErasPage";
-import CrearUsuario from "./components/usuarios/crearUsuario";
-import ActualizarUsuario from "./components/usuarios/UpdateUsuario";
-import SolicitarRecuperacion from "./components/usuarios/SolicitarRecuperacion";
-import ResetearContrasena from "./components/usuarios/ResetearContrasena";
+
+import Fichas from "./components/usuarios/ficha/Ficha";
+import CrearFicha from "./components/usuarios/ficha/crearFicha";
+import CrearUsuario from "./components/usuarios/usuario/crearUsuario";
+import ActualizarUsuario from "./components/usuarios/usuario/UpdateUsuario";
+import SolicitarRecuperacion from "./components/usuarios/recuperaciones/SolicitarRecuperacion";
+import ResetearContrasena from "./components/usuarios/recuperaciones/ResetearContrasena";
 import HerramientasPage from "./pages/inventario/HerramientaPage";
 import InsumoPage from "./pages/inventario/InsumoPage";
 import EspeciePage from "./pages/trazabilidad/EspeciePage";
@@ -66,10 +69,6 @@ import RegistroDiario from "./pages/finanzas/consultas/RegistroDiario";
 import ReporteInsumosPage from "./pages/finanzas/consultas/ReporteInsumosPage";
 import ReportesPage from "./components/reportes/Reportes";
 
-
-
-
-
 const queryClient = new QueryClient();
 
 function App() {
@@ -77,15 +76,15 @@ function App() {
     <HeroUIProvider>
       <QueryClientProvider client={queryClient}>
         <Routes>
-
           <Route path="/" element={<Login />} />
           <Route path="/reportes" element={<Principal><ReportesPage /></Principal>} />
           <Route path="/register" element={<RegisterForm/>} />
           <Route path="/solicitarRecuperacion" element={<SolicitarRecuperacion />} />
           <Route path="/resetearContrasena" element={<ResetearContrasena />} />
-          <Route path="/" element={<Login />} />
           <Route path="/Home" element={<Principal><HomePage /></Principal>} />
           <Route path="/principal" element={<Principal><HomePage /></Principal>} />
+          <Route path="/fichas" element={<Principal><Fichas/></Principal>} />
+          <Route path="/crearFicha" element={<Principal><CrearFicha/></Principal>} />
           <Route path="/usuarios" element={<Principal><UsersPage /></Principal>} />
           <Route path="/crearUsuarios" element={<Principal><CrearUsuario /></Principal>} />
           <Route path="/editarUsuario/:id" element={<Principal><ActualizarUsuario/></Principal>} />
@@ -107,16 +106,13 @@ function App() {
           {/* Rutas módulo inventario */}
           <Route path="/herramientas" element={<Principal><HerramientasPage /></Principal>} />
           <Route path="/CrearHerramientas" element={<Principal><CrearHerramientas /></Principal>} />
-          <Route path="/ActualizarHerramienta" element={<Principal><ActualizarHerramientas /></Principal>} />
+          <Route path="/ActualizarHerramienta/:id" element={<Principal><ActualizarHerramientas /></Principal>} />
           <Route path="/insumos" element={<Principal><InsumoPage /></Principal>} />
           <Route path="/CrearInsumos" element={<Principal><CrearInsumos /></Principal>} />
           <Route path="/ActualizarInsumos/:id" element={<Principal><ActualizarInsumos /></Principal>} />
           <Route path="/herramientas" element={<Principal><ListarHerramientas /></Principal>} />
           <Route path="/insumos" element={<Principal><ListarInsumos /></Principal>} />
 
-
-
-          
           {/* Rutas módulo trazabilidad */}
           <Route path="/actividad" element={<Principal><CalendarPage /></Principal>} />
           <Route path="/cultivo" element={<Principal><CultivosPage /></Principal>} />
@@ -136,7 +132,7 @@ function App() {
           <Route path="/CrearCultivo" element={<Principal><CrearCultivo/></Principal>}/>
           <Route path="/CrearEspecie" element={<Principal><CrearEspecie/></Principal>}/>
           <Route path="/CrearSemillero" element={<Principal><CrearSemillero/></Principal>}/>
-
+          
           <Route path="/actualizarCalendarioLunar/:id" element={<Principal><ActualizarCalendarioLunar/></Principal>}/>
           <Route path="/actualizarEspecie/:id" element={<Principal><ActualizarEspecie/></Principal>}/>
           <Route path="/actualizarSemillero/:id" element={<Principal><ActualizarSemillero/></Principal>}/>

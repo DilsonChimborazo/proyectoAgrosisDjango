@@ -6,7 +6,7 @@
     export interface Herramientas{
         id: number;
         nombre_h: Text;
-        fecha_prestamo: Date;
+        stock: Date;
         estado: string;
 
     }

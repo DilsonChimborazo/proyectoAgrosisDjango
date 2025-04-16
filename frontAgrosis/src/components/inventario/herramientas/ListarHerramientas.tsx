@@ -38,14 +38,14 @@ const ListarHerramientas = () => {
         id: h.id,
         nombre: h.nombre_h,
         estado: h.estado,
-        fecha_prestamo: h.fecha_prestamo,
+        stock: h.stock,
     })) || [];
 
     return (
         <div >
             <Tabla
                 title="Herramientas"
-                headers={["ID", "Nombre", "Estado", "Fecha Préstamo"]}
+                headers={["ID", "Nombre", "Stock", "Estado"]}
                 data={mappedHerramientas}
                 onClickAction={handleRowClick}
                 onUpdate={handleUpdate} 

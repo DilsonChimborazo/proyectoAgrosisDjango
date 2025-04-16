@@ -71,7 +71,7 @@ const HistoricalDataTable = () => {
   }, [sensorReadings, selectedSensor, sensor, selectedDate, filterType]);
 
   return (
-    <div className="p-6 bg-white rounded-3xl">
+    <div className="mt-6 p-6 bg-white rounded-3xl ">
       <h2 className="text-xl font-semibold">
         <div className="flex justify-between items-center mb-4">
             Datos del Sensor: {sensor?.nombre_sensor}

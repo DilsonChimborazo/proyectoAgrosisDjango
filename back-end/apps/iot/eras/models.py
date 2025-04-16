@@ -9,6 +9,7 @@ import json
 class Eras(models.Model):
     descripcion = models.TextField()
     fk_id_lote = models.ForeignKey(Lote, on_delete=models.SET_NULL, null=True)
+    estado = models.BooleanField(default=True)
 
     def __str__(self):
         return f"{self.fk_id_lote.id if self.fk_id_lote else 'Sin Lote'} - {self.descripcion}"

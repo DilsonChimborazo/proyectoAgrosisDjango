@@ -12,10 +12,15 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+import os
+
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -51,13 +56,13 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'apps.usuarios.usuario',
     'apps.usuarios.rol',
+    'apps.usuarios.ficha',
 
     #apps de iot 
     'apps.iot.sensores',
     'apps.iot.mide',
     'apps.iot.lote',
     'apps.iot.eras',
-    'apps.iot.ubicacion',
 
     #Trazabilidad 1 Pacho
     'apps.trazabilidad.realiza',
@@ -72,6 +77,8 @@ INSTALLED_APPS = [
     #FINANZAS
     'apps.finanzas.produccion',
     'apps.finanzas.venta',
+    'apps.finanzas.salario',
+    'apps.finanzas.nomina',
     
     #Trazabilidad 2 xiomara
     'apps.trazabilidad.actividad',
@@ -85,6 +92,9 @@ INSTALLED_APPS = [
     #Inventario
     'apps.inventario.herramientas',
     'apps.inventario.insumo',
+    'apps.inventario.bodega',
+    'apps.inventario.unidadMedida',
+    
 
 ]
 

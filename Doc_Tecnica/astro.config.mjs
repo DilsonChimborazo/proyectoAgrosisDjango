@@ -257,7 +257,24 @@ integrations: [
 					{ label: 'Especificación de Requerimientos de Software', slug: 'usuario/problematica/requerimientos'},
 				],
 			},
-			
+			{
+				label: 'DiagramasUML',
+				items: [
+					{ label: 'Diagramacion UML del sistema', slug: 'usuario/problematica/diagramasuml'},
+				],
+			},
+			{
+				label: 'Manual configuracion ase de datos',
+				items: [
+					{ label: 'Configuracion de la base de datos', slug: 'usuario/problematica/conbasedatos'},
+				],
+			},
+			{
+				label: 'Prototipado del sistema',
+				items: [
+					{ label: 'Prototipado del sistema', slug: 'usuario/problematica/prototipado'},
+				],
+			},
           ]
         },
       ]

@@ -2,9 +2,16 @@ import { useState } from 'react';
 import { useReporteEgresos } from '@/hooks/finanzas/consultas/useReporteInsumos';
 import { useReporteProgramacion } from '@/hooks/finanzas/consultas/useRegistroDiarioWebHook';
 import useLotesActivos from '@/hooks/iot/lote/useLotesActivos';
+import { useReporteHerramientas } from '@/hooks/inventario/herramientas/useReporteHerramientas';
+import { useReporteInsumos } from '@/hooks/inventario/insumos/useReporteInsumos';
+import { useReporteControles } from '@/hooks/trazabilidad/control/useReporteControl';
+import ReporteHerramientas from '@/components/inventario/herramientas/ReporteHerramientas';
 import Tabla from '@/components/globales/Tabla';
+import ReporteInsumosBajoStock from '../inventario/insumos/ReporteInsumo';
+import ReportesControl from '@/components/trazabilidad/control/ReportesControl';
+import { useReporteResiduos } from '@/hooks/trazabilidad/residuo/useReporteResiduos';
+import ReporteResiduos from '../trazabilidad/residuos/ReporteResiduo';
 
-// Definición de tipos
 type Modulo = {
   id: string;
   nombre: string;
@@ -25,10 +32,10 @@ const Reportes = () => {
   
   // Estados para fechas
   const [fechaInicio, setFechaInicio] = useState<string>(
-    new Date(new Date().setDate(1)).toISOString().split('T')[0] // Primer día del mes actual
+    new Date(new Date().setDate(1)).toISOString().split('T')[0]
   );
   const [fechaFin, setFechaFin] = useState<string>(
-    new Date().toISOString().split('T')[0] // Hoy
+    new Date().toISOString().split('T')[0]
   );
 
   // Obtener datos de los hooks
@@ -38,7 +45,11 @@ const Reportes = () => {
     new Date(fechaInicio).getMonth() + 1
   );
   const { lotes, loading: loadingLotes, error: errorLotes } = useLotesActivos();
-
+  const { data: herramientas, isLoading: loadingHerramientas, error: errorHerramientas } = useReporteHerramientas();
+  const { data: insumosBajoStock, isLoading: loadingInsumos, error: errorInsumos } = useReporteInsumos();
+  const { data: controles, isLoading: loadingControles, error: errorControles } = useReporteControles();
+  const { data: residuos, isLoading, isError } = useReporteResiduos();
+  
   // Configuración de módulos y reportes disponibles
   const modulos: Modulo[] = [
     {
@@ -70,6 +81,58 @@ const Reportes = () => {
           componente: <ReporteLotes data={lotes} loading={loadingLotes} error={errorLotes} />
         }
       ]
+    },
+    {
+      id: 'trazabilidad',
+      nombre: 'Trazabilidad',
+      reportes: [
+        {
+          id: 'controles-fitosanitarios',
+          nombre: 'Controles Fitosanitarios',
+          requiereFechas: false,
+          componente: <ReportesControl 
+                        data={residuos} 
+                        loading={loadingControles} 
+                        error={errorControles} 
+                      />
+        },
+        {
+          id: 'Residuos',
+          nombre: 'Reporte Residuos',
+          requiereFechas: false,
+          componente: <ReporteResiduos 
+                        data={controles} 
+                        loading={isLoading} 
+                        error={isError} 
+                      />
+        }
+      ]
+    },
+    {
+      id: 'inventario',
+      nombre: 'Inventario',
+      reportes: [
+        {
+          id: 'herramientas',
+          nombre: 'Reporte de Herramientas',
+          requiereFechas: false,
+          componente: <ReporteHerramientas 
+                        data={herramientas} 
+                        loading={loadingHerramientas} 
+                        error={errorHerramientas} 
+                      />
+        },
+        {
+          id: 'insumos',
+          nombre: 'Reporte de Insumos Bajo Stock',
+          requiereFechas: false,
+          componente: <ReporteInsumosBajoStock
+                        data={insumosBajoStock}
+                        loading={loadingInsumos}
+                        error={errorInsumos}
+                      />
+        }
+      ]
     }
   ];
 
@@ -89,12 +152,11 @@ const Reportes = () => {
   };
 
   return (
-    <div className="p-4 max-w-6xl mx-auto">
-      
-      {/* Selector de módulo */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-      <h1 className="text-2xl font-bold text-center text-green-700 mb-8">Sistema de Reportes</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="flex p-4 gap-6">
+      {/* Panel izquierdo (1/4) - Selectores */}
+      <div className="w-1/4 bg-white rounded-lg shadow-md p-6">
+        <h1 className="text-2xl font-bold text-center text-green-700 mb-8">Sistema de Reportes</h1>
+        <div className="space-y-4">
           <div>
             <label htmlFor="modulo" className="block text-sm font-medium text-gray-700 mb-2">
               Módulo
@@ -113,8 +175,7 @@ const Reportes = () => {
               ))}
             </select>
           </div>
-
-          {/* Selector de reporte (solo si hay módulo seleccionado) */}
+  
           {moduloSeleccionado && (
             <div>
               <label htmlFor="reporte" className="block text-sm font-medium text-gray-700 mb-2">
@@ -136,49 +197,54 @@ const Reportes = () => {
               </select>
             </div>
           )}
+  
+          {reporteActual?.requiereFechas && (
+            <div className="pt-4">
+              <h2 className="text-xl font-semibold mb-4">Filtrar por fecha</h2>
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="fechaInicio" className="block text-sm font-medium text-gray-700 mb-2">
+                    Fecha de inicio
+                  </label>
+                  <input
+                    type="date"
+                    id="fechaInicio"
+                    value={fechaInicio}
+                    onChange={(e) => setFechaInicio(e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="fechaFin" className="block text-sm font-medium text-gray-700 mb-2">
+                    Fecha de fin
+                  </label>
+                  <input
+                    type="date"
+                    id="fechaFin"
+                    value={fechaFin}
+                    onChange={(e) => setFechaFin(e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+                    min={fechaInicio}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
-
-      {/* Filtros de fecha (solo si el reporte requiere fechas) */}
-      {reporteActual?.requiereFechas && (
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">Filtrar por fecha</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label htmlFor="fechaInicio" className="block text-sm font-medium text-gray-700 mb-2">
-                Fecha de inicio
-              </label>
-              <input
-                type="date"
-                id="fechaInicio"
-                value={fechaInicio}
-                onChange={(e) => setFechaInicio(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
-              />
-            </div>
-            <div>
-              <label htmlFor="fechaFin" className="block text-sm font-medium text-gray-700 mb-2">
-                Fecha de fin
-              </label>
-              <input
-                type="date"
-                id="fechaFin"
-                value={fechaFin}
-                onChange={(e) => setFechaFin(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
-                min={fechaInicio}
-              />
-            </div>
+  
+      {/* Panel derecho (3/4) - Contenido del reporte */}
+      <div className="w-3/4">
+        {reporteSeleccionado ? (
+          <div className="bg-white rounded-lg shadow-md p-6 h-full">
+            {reporteActual?.componente}
           </div>
-        </div>
-      )}
-
-      {/* Contenido del reporte seleccionado */}
-      {reporteSeleccionado && (
-        <div className="bg-white rounded-lg shadow-md p-6">
-          {reporteActual?.componente}
-        </div>
-      )}
+        ) : (
+          <div className="bg-white rounded-lg shadow-md p-6 h-full flex items-center justify-center">
+            <p className="text-gray-500">Seleccione un reporte para visualizar</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -18,10 +18,13 @@ from django.contrib import admin
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from django.urls import path,include
+from django.conf import settings
+from django.conf.urls.static import static
 
 #rutas de usuario
 from apps.usuarios.usuario.api.router import routerUsuario
 from apps.usuarios.rol.api.router import routerRol
+from apps.usuarios.ficha.api.router import routerFicha
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -49,11 +52,17 @@ from apps.trazabilidad.tipo_cultivo.api.router import routerTipo_cultivo
 #rutas de finanzas
 from apps.finanzas.produccion.api.router import router_produccion
 from apps.finanzas.venta.api.router import router_venta
-from apps.inventario.insumo.api.webhooks import webhook_reporte_egresos
+from apps.finanzas.salario.api.router import router_salario
+from apps.finanzas.nomina.api.router import router_nomina
+
+
+
 
 #rutas de inventario
 from apps.inventario.herramientas.api.routers import router_herramientas
 from apps.inventario.insumo.api.routers import router_insumo
+from apps.inventario.bodega.api.routers import routerBodega
+from apps.inventario.unidadMedida.api.routers import routerUnidadMedida
 
 
 #rutas de IoT
@@ -61,7 +70,7 @@ from apps.iot.eras.api.router import router_Eras
 from apps.iot.lote.api.router import router_Lote
 from apps.iot.mide.api.router import router_mide
 from apps.iot.sensores.api.router import router_Sensores
-from apps.iot.ubicacion.api.router import router_Ubicacion
+
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -80,6 +89,7 @@ urlpatterns = [
     #USUARIO
     path('api/', include(routerUsuario.urls)),
     path('api/', include(routerRol.urls)),
+    path('api/', include(routerFicha.urls)),
     path("api/solicitar-recuperacion/", solicitar_recuperacion, name="solicitar_recuperacion"),
     path("api/resetear-contrasena/", resetear_contraseña, name="resetear_contraseña"),
     path('api/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
@@ -92,12 +102,14 @@ urlpatterns = [
     path('api/', include(router_Lote.urls)),
     path('api/', include(router_mide.urls)), 
     path('api/', include(router_Sensores.urls)),
-    path('api/', include(router_Ubicacion.urls)),
     
-    #FINANZAS
+    #FINANZASS
     path('api/', include(router_produccion.urls)),
     path('api/', include(router_venta.urls)),
-    path('api/webhook-reporte-egresos/', webhook_reporte_egresos, name='webhook-reporte-egresos'),
+    path('api/', include(router_nomina.urls)),
+    path('api/', include(router_salario.urls)),
+
+
 
     #TRAZABILIDAD
     path('api/', include(router_actividad.urls)),
@@ -119,4 +131,9 @@ urlpatterns = [
     #INVENTARIO
     path('api/', include(router_herramientas.urls)),
     path('api/', include(router_insumo.urls)),
+    path('api/', include(routerBodega.urls)),
+    path('api/', include(routerUnidadMedida.urls)),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

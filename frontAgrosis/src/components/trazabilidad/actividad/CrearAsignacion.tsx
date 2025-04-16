@@ -1,7 +1,7 @@
 import { Asignacion } from '@/hooks/trazabilidad/asignacion/useCrearAsignacion';
 import { useCrearAsignacion } from '../../../hooks/trazabilidad/asignacion/useCrearAsignacion';
 import Formulario from '../../globales/Formulario';
-import { useUsuarios } from '@/hooks/usuarios/useUsuarios';
+import { useUsuarios } from '@/hooks/usuarios/usuario/useUsuarios';
 import { useAsignacion } from '@/hooks/trazabilidad/asignacion/useAsignacion'; // Hook para obtener actividades
 import { useNavigate } from 'react-router-dom';
 

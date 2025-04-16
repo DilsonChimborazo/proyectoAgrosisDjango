@@ -20,6 +20,8 @@ interface TablaProps<T> {
   createButtonTitle?: string;
   extraButton?: React.ReactNode;
   hiddenColumnsByDefault?: string[];
+  irFichaButtonTitle?: string;
+
 }
 
 const Tabla = <T extends { [key: string]: any }>({
@@ -30,7 +32,7 @@ const Tabla = <T extends { [key: string]: any }>({
   onUpdate,
   onCreate,
   rowsPerPageOptions = [5, 10, 20, 50], // Opciones por defecto
-  createButtonTitle = "",
+  createButtonTitle = "Crear +",
   extraButton,
   hiddenColumnsByDefault = ['id'],
 }: TablaProps<T>) => {
@@ -159,7 +161,7 @@ const Tabla = <T extends { [key: string]: any }>({
           {/* Selector de filas por página */}
           <select
             aria-label="Filas por página"
-            className="w-24 border text-green-700 hover:bg-green-700 hover:text-white border-green-700 rounded-xl p-2 py-2"
+            className="flex items-center bg-transparent border-2 font-semibold text-green-700 border-green-700 hover:bg-green-700 hover:text-white p-2 rounded-xl shadow-md"
             onChange={(e) => handleRowsPerPageChange(e.target.value)}
             value={rowsPerPage}
           >
@@ -296,11 +298,11 @@ const Tabla = <T extends { [key: string]: any }>({
               isCompact
               showControls
               showShadow
-              color="success"
+              color="default"
               page={currentPage}
               total={totalPages}
               onChange={(page) => setCurrentPage(page)}
-              className="flex items-center gap-2 overflow-hidden"
+              className="flex items-center gap-2 overflow-hidden "
             />
           </div>
         </div>

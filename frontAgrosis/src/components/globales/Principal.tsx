@@ -105,13 +105,24 @@ export default function Principal({ children }: LayoutProps) {
     </div>
       {/* Sidebar */}
       <div
-        className={`bg-white p-2 sm:p-4 flex flex-col w-48 sm:w-64 h-full fixed top-0 left-0 z-50 border-t-4 border-r-4 rounded-tr-3xl transition-all duration-300 ${
+        className={`bg-white p-2 overflow-auto sm:p-4 flex flex-col w-48 sm:w-64 h-full fixed top-0 left-0 z-50 border-t-4 border-r-4 rounded-tr-3xl rounded-br-3xl transition-all duration-300 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-48 sm:-translate-x-64"
         }`}
       >
-        <div className="flex justify-between items-center">
-          <img src="/logo_proyecto-removebg-preview.png" alt="logo" width={150} className="sm:w-[180px]" />
+        {/*logos del proyecto*/ }
+        <div className="flex items-center justify-center p-4 bg-white rounded-lg ">
+          <img 
+            src="/logoSena.png" 
+            alt="SENA" 
+            className="w-16 shadow-sm"
+          />       
+          <img 
+            src="/logo_proyecto-removebg-preview.png" 
+            alt="logo" 
+            className="w-32  shadow-sm"
+          />
         </div>
+
 
         <nav className="mt-4 text-center text-base sm:text-lg flex-1 overflow-y-auto z-30">
           {menuItems.map((item) => (
@@ -157,21 +168,7 @@ export default function Principal({ children }: LayoutProps) {
               )}
             </div>
           ))}
-
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-3 w-full shadow-lg p-3 sm:p-4 rounded-full transition-all duration-300 bg-white hover:bg-red-500 text-black hover:text-white mt-20 sm:mt-28"
-          >
-            <LogOut size={18} />
-            <span>Cerrar sesión</span>
-          </button>
         </nav>
-
-        <div className="mt-auto flex justify-center items-center">
-          <div className="bottom-4 left-1/2 transform -translate-x-1/2">
-            <img src="/logoSena.png" alt="SENA" className="w-12 sm:w-16" />
-          </div>
-        </div>
       </div>
 
       {/* Contenido Principal */}
@@ -186,8 +183,8 @@ export default function Principal({ children }: LayoutProps) {
             </Button>
             <form onSubmit={handleSearchSubmit}>
               <Input
-                className="w-48 sm:w-64 ml-2 border rounded-md"
-                endContent={<Search size={20} className="ml-2" />}
+                className="w-48 sm:w-64 ml-2 "
+                endContent={<Search size={20} className="ml-2 text-green-700" />}
                 placeholder="Buscar..."
                 value={searchQuery}
                 onChange={handleSearchChange}
@@ -206,25 +203,29 @@ export default function Principal({ children }: LayoutProps) {
             </span>
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-2  hover:text-red-500 text-white"
+              className="flex items-center gap-2 px-4 py-2  hover:text-yellow-100 text-white"
             >
               <LogOut size={18} />
             </button>
           </div>
 
         </div>
-
-        <div className="mt-12 sm:mt-16 p-2 sm:p-6 relative min-h-screen">{children}</div>
-        <div
-            className={`fixed bottom-0 left-0 w-full bg-green-700 text-white p-2 sm:p-4 flex flex-col justify-center items-center z-30 transition-all duration-300 ${
-              sidebarOpen ? "pl-48 sm:pl-64" : "pl-0"
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              Centro de Gestión y Desarrollo Sostenible Surcolombiano <Copyright size={18} />
-            </div>
-            <div>Regional Pitalito-Huila</div>
+        <div className="flex flex-col min-h-[calc(100vh-3rem)] mt-12 sm:mt-16m z-20">
+          <div className="flex-1 p-2 sm:p-6 overflow-auto">
+            {children}
           </div>
+          
+          {/* Footer ajustado */}
+          <footer className="fixed bottom-0 left-0 w-full bg-green-700 text-white p-2 text-center text-sm z-40">
+            <div className="flex flex-col items-center justify-center text-md">
+              <div className="flex items-center gap-1">
+                Centro de Gestión y Desarrollo Sostenible Surcolombiano <Copyright size={12} />
+              </div>
+              <div>Regional Pitalito-Huila</div>
+            </div>
+        </footer>
+        </div>
+
       </div>
     </div>
   );

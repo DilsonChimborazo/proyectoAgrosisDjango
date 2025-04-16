@@ -1,9 +1,11 @@
 from rest_framework.serializers import ModelSerializer
 from apps.usuarios.usuario.models import Usuarios
 from apps.usuarios.rol.api.serializer import RolSerializer
+from apps.usuarios.ficha.api.serializer import FichaSerializer
 
 class LeerUsuarioSerializer(ModelSerializer):
     fk_id_rol = RolSerializer()  
+    ficha = FichaSerializer()
 
     class Meta:
         model = Usuarios

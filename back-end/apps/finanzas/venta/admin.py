@@ -3,5 +3,5 @@ from apps.finanzas.venta.models import Venta
 
 @admin.register(Venta)
 class VentaAdmin(admin.ModelAdmin):
-    list_display = ('id_venta','fk_id_produccion','precio_unidad','cantidad','fecha') 
+    list_display = ('fk_id_produccion','precio_unidad','cantidad','fecha', 'fk_unidad_medida') 
     
