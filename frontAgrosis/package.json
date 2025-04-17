@@ -44,6 +44,10 @@
     "embla-carousel-react": "^8.5.2",
     "framer-motion": "11.15.0",
     "heroicons": "^2.2.0",
+<<<<<<< HEAD
+    "leaflet": "^1.9.4",
+=======
+>>>>>>> 4ad3872297161f3cf8ec2eeab878ebd56e39b973
     "jspdf": "^3.0.1",
     "jspdf-autotable": "^5.0.2",
     "leaflet": "^1.9.4",
