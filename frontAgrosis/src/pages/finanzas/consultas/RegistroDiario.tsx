@@ -1,9 +1,9 @@
-import ReporteTiemposComponent from '../../../components/finanzas/consultas/RegistroDiario';
+import BeneficioCosto from '@/components/finanzas/consultas/BeneficioCostro';
 
 const RegistroDiario = () => {
   return (
     <div>
-      <ReporteTiemposComponent />
+      <BeneficioCosto />
     </div>
   );
 };

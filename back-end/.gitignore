@@ -9,3 +9,5 @@ migrations/
 **/migrations/*.pyc
 **/migrations/__pycache__/
 
+/media/
+/staticfiles/

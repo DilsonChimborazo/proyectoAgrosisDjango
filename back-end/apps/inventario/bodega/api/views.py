@@ -4,7 +4,7 @@ from apps.inventario.bodega.models import Bodega
 from apps.inventario.bodega.api.serializers import leerBodegaSerializer, escribirBodegaSerializer
 
 class BodegaModelViewSet(ModelViewSet):
-    permissions_clases = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     queryset = Bodega.objects.all()
 
     def get_serializer_class(self):

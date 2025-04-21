@@ -4,7 +4,7 @@ from apps.trazabilidad.cultivo.api.serializers import LeerCultivoSerializer
 from apps.iot.eras.api.serializers import leerErasSerializer
 
 class LeerPlantacionSerializer(ModelSerializer):
-    fk_id_era = leerErasSerializer()
+    fk_id_eras = leerErasSerializer()
     fk_id_cultivo = LeerCultivoSerializer()
     class Meta:
         model = Plantacion

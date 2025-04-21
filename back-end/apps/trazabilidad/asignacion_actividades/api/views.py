@@ -28,12 +28,13 @@ class Asignacion_actividadesModelViewSet(ModelViewSet):
             asignacion = serializer.save()
 
             # Obtener información del usuario y actividad
-            usuario = Usuarios.objects.get(id=asignacion.id_identificacion.id)
-            actividad = Actividad.objects.get(id=asignacion.fk_id_actividad.id)
+            usuario = Usuarios.objects.get(id=asignacion.fk_identificacion.id)
+            actividad = Actividad.objects.get(id=asignacion.fk_id_realiza.fk_id_actividad.id)
+
 
             # Notificación en tiempo real con WebSockets
             mensaje = {
-                "mensaje": f"{usuario.nombre} {usuario.apellido} Se le ha asignado la actividad {actividad.nombre_actividad} para realizarse el dia {asignacion.fecha}."
+                "mensaje": f"{usuario.nombre} {usuario.apellido} Se le ha asignado la actividad {actividad.nombre_actividad} para realizarse el dia {asignacion.fecha_programada}."
             }
 
             # 🔥 Notificación en tiempo real con WebSockets

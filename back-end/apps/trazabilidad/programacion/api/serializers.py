@@ -7,7 +7,6 @@ from django.utils.dateparse import parse_duration
 
 class LeerProgramacionSerializer(ModelSerializer):
     fk_id_asignacionActividades = LeerAsignacion_actividadesSerializer()
-    fk_id_calendario = LeerCalendario_lunarSerializer()
 
     class Meta:
         model = Programacion
