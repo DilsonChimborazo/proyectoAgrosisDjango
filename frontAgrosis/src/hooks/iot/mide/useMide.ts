@@ -9,6 +9,8 @@ const API_SENSORES = `${apiUrl}sensores/`;
 const API_MEDICIONES = `${apiUrl}mide/`;
 const API_CREATE_SENSOR = `${apiUrl}sensores/`;
 
+
+
 export interface Sensor {
   id: number;
   nombre_sensor: string;

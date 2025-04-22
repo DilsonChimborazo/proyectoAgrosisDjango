@@ -394,12 +394,10 @@ const HomePage = () => {
     const sensorInfo = sensors.find((s) => s.id === sensorId);
     const realTimeEntry = realTimeData[sensorId];
     if (!sensorInfo || !realTimeEntry) return null;
-
     const value = realTimeEntry.valor;
     const min = sensorInfo.medida_minima || 0;
     const max = sensorInfo.medida_maxima || 100;
     const normalizedValue = Math.min(100, Math.max(0, ((value - min) / (max - min)) * 100));
-
     return { normalizedValue, value };
   };
 
@@ -630,7 +628,6 @@ const HomePage = () => {
           );
         })}
       </div>
-
       {/* Sección de Gráficos */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         {/* Gráfico de Líneas (Valores de Sensores a lo Largo del Tiempo) */}

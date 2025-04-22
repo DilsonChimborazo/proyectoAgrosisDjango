@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { useActualizarHerramientas } from "../../../hooks/inventario/herramientas/useActualizarHerramientas";
 import { useHerramientaPorId } from "../../../hooks/inventario/herramientas/useHerramientaPorId";
 import Formulario from "../../globales/Formulario";
+
 
 interface Props {
     id: number;  // ID de la herramienta que se actualizará
