@@ -11,8 +11,8 @@ class Programacion(models.Model):
         ('Reprogramada', 'Reprogramada'),
     ]
     estado = models.CharField(max_length=20, choices=ESTADOS, default='completada')
-    fecha_realizada = models.DateTimeField() 
-    duracion = models.DurationField()
+    fecha_realizada = models.DateField() 
+    duracion = models.IntegerField(help_text="Duración en minutos")
     fk_id_asignacionActividades = models.ForeignKey(Asignacion_actividades, on_delete=models.SET_NULL, null=True)
     cantidad_insumo = models.IntegerField()
     img = models.ImageField(upload_to='imagenes/')

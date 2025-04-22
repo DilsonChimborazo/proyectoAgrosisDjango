@@ -22,5 +22,5 @@ class Asignacion_actividades(models.Model):
     fk_id_realiza = models.ForeignKey(Realiza, on_delete=models.SET_NULL, null=True)
     fk_identificacion = models.ForeignKey(Usuarios, on_delete=models.SET_NULL, null=True)
     
-    def _str_(self): 
-        return f'{self.fk_id_actividad} - {self.id_identificacion}'
+    def __str__(self): 
+        return f'{self.fk_id_realiza} - {self.fk_identificacion}'

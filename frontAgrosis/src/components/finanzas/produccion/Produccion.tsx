@@ -12,7 +12,7 @@ const ActualizarProduccion = () => {
 
     // Estado inicial vacío
     const [formData, setFormData] = useState({
-        fk_id: "",
+        fk_id_cultivo: "",
         nombre_produccion: "",
         cantidad_produccion: "",
         fecha: "",
@@ -22,7 +22,7 @@ const ActualizarProduccion = () => {
     useEffect(() => {
         if (produccion) {
             setFormData({
-                fk_id: produccion.fk_id?.id ? String(produccion.fk_id.id) : "",
+                fk_id_cultivo: produccion.fk_id_cultivo?.id ? String(produccion.fk_id_cultivo.id) : "",
                 nombre_produccion: produccion.nombre_produccion ?? "",
                 cantidad_produccion: produccion.cantidad_produccion ? String(Math.round(produccion.cantidad_produccion)) : "",
                 fecha: produccion.fecha ?? "",
@@ -37,7 +37,7 @@ const ActualizarProduccion = () => {
         const produccionActualizada = {
             id_produccion: Number(id_produccion),
             nombre_produccion: formData.nombre_produccion || "",
-            fk_id: parseInt(data.fk_id, 10) || 0,
+            fk_id_cultivo: parseInt(data.fk_id_cultivo, 10) || 0,
             cantidad_produccion: Math.round(parseFloat(data.cantidad_produccion)), // Redondeamos la cantidad
             fecha: data.fecha,
         };
@@ -58,7 +58,7 @@ const ActualizarProduccion = () => {
             {produccion && (
                 <Formulario 
                     fields={[
-                        { id: 'fk_id', label: 'ID Cultivo', type: 'number' },
+                        { id: 'fk_id_cultivo', label: 'ID Cultivo', type: 'number' },
                         { id: 'nombre_produccion', label: 'Nombre Produccion', type: 'text' },
                         { id: 'cantidad_produccion', label: 'Cantidad de Producción', type: 'number' },
                         { id: 'fecha', label: 'Fecha', type: 'date' },

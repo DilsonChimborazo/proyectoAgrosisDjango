@@ -3,70 +3,76 @@ import Button from '../globales/Button';
 import { Plus } from 'lucide-react';
 
 interface FormField {
-    id: string;
-    label: string;
-    type: string;
-    options?: { value: string | number; label: string }[];
-    value?: string;
-    onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    hasExtraButton?: boolean;
-    extraButtonText?: string;
-    onExtraButtonClick?: () => void;
+  id: string;
+  label: string;
+  type: string;
+  options?: { value: string | number; label: string }[];
+  value?: string;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  hasExtraButton?: boolean;
+  extraButtonText?: string;
+  onExtraButtonClick?: () => void;
 }
 
 interface FormProps {
-    fields: FormField[];
-    onSubmit: (formData: { [key: string]: string | File }) => void;
-    isError?: boolean;
-    isSuccess?: boolean;
-    title: string;
-    initialValues?: { [key: string]: string | File };
-    multipart?: boolean;
-    onExtraButtonClick?: () => void;
-    extraButtonTitle?: string;
+  fields: FormField[];
+  onSubmit: (formData: { [key: string]: string | File }) => void;
+  isError?: boolean;
+  isSuccess?: boolean;
+  title: string;
+  initialValues?: { [key: string]: string | File };
+  multipart?: boolean;
+  onFieldChange?: (id: string, value: string) => void; // Prop para manejar cambios
+  onExtraButtonClick?: () => void;
+  extraButtonTitle?: string;
+  children?: React.ReactNode; // Acepta children, como el mensaje de stock
+  stockMessage?: string; // Prop para manejar el mensaje de stock
 }
 
 const Formulario: React.FC<FormProps> = ({
-    fields,
-    onSubmit,
-    isError,
-    isSuccess,
-    title,
-    initialValues,
-    multipart,
-    onExtraButtonClick,
-    extraButtonTitle = 'Botón Extra',
+  fields,
+  onSubmit,
+  isError,
+  isSuccess,
+  title,
+  initialValues,
+  multipart,
+  onFieldChange, // Aceptar prop onFieldChange
+  onExtraButtonClick,
+  extraButtonTitle = 'Botón Extra',
 }) => {
-    const [formData, setFormData] = React.useState<{ [key: string]: string | File }>(
-        initialValues || {}
+  const [formData, setFormData] = React.useState<{ [key: string]: string | File }>(
+    initialValues || {}
     );
 
-    React.useEffect(() => {
-        setFormData(initialValues || {});
-    }, [initialValues]);
+  React.useEffect(() => {
+    setFormData(initialValues || {});
+  }, [initialValues]);
 
-    const handleChange = (id: string, value: string | File) => {
-        setFormData((prev) => ({ ...prev, [id]: value }));
-    };
+  const handleChange = (id: string, value: string | File) => {
+    setFormData((prev) => ({ ...prev, [id]: value }));
+    if (onFieldChange) {
+      onFieldChange(id, value as string); // Llamar a onFieldChange cuando el campo cambia
+    }
+  };
 
-    const handleSubmit = (event: React.FormEvent) => {
-        event.preventDefault();
-        onSubmit(formData);
-    };
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    onSubmit(formData);
+  };
 
-    return (
-        <form
-            onSubmit={handleSubmit}
-            className="max-w-5xl mx-auto bg-white p-6 rounded-3xl"
-            encType={multipart ? 'multipart/form-data' : ''}
-        >
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">{title}</h2>
-            {fields.map((field) => (
-                <div key={field.id} className="mb-4">
-                    <label htmlFor={field.id} className="block mb-2 font-bold">
-                        {field.label}
-                    </label>
-
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="max-w-5xl mx-auto bg-white p-6 rounded-3xl"
+      encType={multipart ? 'multipart/form-data' : ''}
+    >
+      <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">{title}</h2>
+      {fields.map((field) => (
+        <div key={field.id} className="mb-4">
+          <label htmlFor={field.id} className="block mb-2 font-bold">
+            {field.label}
+          </label>
                     {field.type === 'select' ? (
                         <div>
                             <div className='flex'>
@@ -124,30 +130,30 @@ const Formulario: React.FC<FormProps> = ({
                 </div>
             ))}
 
-            {isError && (
-                <div className="text-red-500 mt-4 mb-4 flex justify-center items-center">
-                    Error al enviar el formulario
-                </div>
-            )}
-            {isSuccess && (
-                <div className="text-green-500 mt-4 mb-4 flex justify-center items-center">
-                    Enviado exitosamente
-                </div>
-            )}
-            <div className="flex justify-center items-center mt-8">
-                <Button text="registrar" className="mx-2" variant="success" onClick={() => {}} />
-                
-                {onExtraButtonClick && (
-                    <Button
-                        text={extraButtonTitle}
-                        className="mx-2"
-                        variant="success"
-                        onClick={onExtraButtonClick}
-                    />
-                )}
-            </div>
-        </form>
-    );
+      {isError && (
+        <div className="text-red-500 mt-4 mb-4 flex justify-center items-center">
+          Error al enviar el formulario
+        </div>
+      )}
+      {isSuccess && (
+        <div className="text-green-500 mt-4 mb-4 flex justify-center items-center">
+          Enviado exitosamente
+        </div>
+      )}
+      <div className="flex justify-center items-center mt-8">
+        <Button text="registrar" className="mx-2" variant="success" onClick={() => {}} />
+        
+        {onExtraButtonClick && (
+          <Button
+            text={extraButtonTitle}
+            className="mx-2"
+            variant="success"
+            onClick={onExtraButtonClick}
+          />
+        )}
+      </div>
+    </form>
+  );
 };
 
 export default Formulario;

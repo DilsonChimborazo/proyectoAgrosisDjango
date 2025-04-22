@@ -63,6 +63,8 @@ import BodegaPage from "./pages/inventario/BodegaPage";
 import UnidadMedida from "./components/inventario/unidadMedida/UnidadMedida";
 import TipoResiduos from "./components/trazabilidad/tiporesiduo/TipoResiduo";
 
+import StockPage from "./pages/finanzas/stock/StockPage"
+
 
 const queryClient = new QueryClient();
 
@@ -141,6 +143,7 @@ function App() {
 
           <Route path="/diario" element={<Principal><RegistroDiario /></Principal>} />
           <Route path="/insumo-egresos" element={<Principal><ReporteInsumosPage /></Principal>} />
+          <Route path="/stock" element={<Principal><StockPage /></Principal>} />
 
           {/* Ruta por defecto para manejar errores 404 */}
           <Route path="*" element={<h1>404 - Página no encontrada</h1>} />

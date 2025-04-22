@@ -2,6 +2,8 @@ from django.db import models
 from apps.inventario.herramientas.models import Herramientas
 from apps.inventario.insumo.models import Insumo
 from apps.trazabilidad.asignacion_actividades.models import Asignacion_actividades
+from apps.inventario.unidadMedida.models import UnidadMedida
+from decimal import Decimal
 
 
 class Bodega(models.Model):
@@ -15,6 +17,36 @@ class Bodega(models.Model):
     cantidad = models.PositiveIntegerField(default=1)
     fecha = models.DateTimeField(auto_now_add=True)
     movimiento =  models.CharField(max_length=20, choices=movimientos, default='Entrada')
+    fk_unidad_medida = models.ForeignKey(UnidadMedida, on_delete=models.SET_NULL, null=True)
+    
+    cantidad_en_base = models.DecimalField(
+        max_digits=20,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        help_text="Cantidad convertida a la unidad base"
+    )
+
+    costo_insumo = models.DecimalField(
+        max_digits=20,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        help_text="Costo total del insumo en base a la cantidad base y precio por base"
+    )
+
+    def save(self, *args, **kwargs):
+        # Calcular la cantidad en base si hay unidad de medida
+        if self.fk_unidad_medida:
+            self.cantidad_en_base = self.fk_unidad_medida.convertir_a_base(self.cantidad)
+
+        # Calcular el costo total del insumo usando el precio_por_base del insumo
+        if self.fk_id_insumo:
+            precio_por_base = self.fk_id_insumo.precio_por_base  # Obtener el precio directamente desde Insumo
+            if self.cantidad_en_base and precio_por_base:
+                self.costo_insumo = Decimal(self.cantidad_en_base) * precio_por_base
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.movimiento
+        return f"{self.movimiento} - {self.cantidad} {self.fk_unidad_medida} - {self.fecha}"

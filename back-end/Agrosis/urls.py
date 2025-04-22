@@ -54,6 +54,8 @@ from apps.finanzas.produccion.api.router import router_produccion
 from apps.finanzas.venta.api.router import router_venta
 from apps.finanzas.salario.api.router import router_salario
 from apps.finanzas.nomina.api.router import router_nomina
+from apps.finanzas.stock.api.router import router_stock
+from apps.finanzas.nomina.api.views import TrazabilidadCultivoAPIView
 
 
 
@@ -108,6 +110,8 @@ urlpatterns = [
     path('api/', include(router_venta.urls)),
     path('api/', include(router_nomina.urls)),
     path('api/', include(router_salario.urls)),
+    path('api/', include(router_stock.urls)),
+    path('api/finanzas/nomina/trazabilidad/<int:cultivo_id>/', TrazabilidadCultivoAPIView.as_view(), name='trazabilidad-cultivo'),
 
 
 

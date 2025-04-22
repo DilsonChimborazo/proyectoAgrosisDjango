@@ -14,14 +14,14 @@ const CrearProduccion = () => {
         { id: 'fecha', label: 'Fecha', type: 'date' },
     ];
 
-    const handleSubmit = (formData: { [key: string]: string }) => {
+    const handleSubmit = (formData: { [key: string]: string | File }) => {
         const nuevaProduccion: Produccion = {
-            fk_id: formData.fk_id ? parseInt(formData.fk_id, 10) : null,
-            nombre_produccion: formData.nombre_produccion,
-            cantidad_produccion: Math.round(parseFloat(formData.cantidad_produccion)), // Redondear a número entero
-            fecha: formData.fecha,
+            fk_id_cultivo: formData.fk_id_cultivo ? parseInt(formData.fk_id_cultivo as string, 10) : null,
+            nombre_produccion: formData.nombre_produccion as string,
+            cantidad_produccion: Math.round(parseFloat(formData.cantidad_produccion as string)),
+            fecha: formData.fecha as string,
         };
-
+    
         mutation.mutate(nuevaProduccion);
         navigate("/produccion");
     };

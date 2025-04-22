@@ -6,7 +6,7 @@ const apiUrl = import.meta.env.VITE_API_URL;
 export interface Produccion {
     id_produccion: number;
     nombre_produccion:string;
-    fk_id: number | null;
+    fk_id_cultivo: number | null;
     cantidad_produccion: number;
     fecha: string;
 }

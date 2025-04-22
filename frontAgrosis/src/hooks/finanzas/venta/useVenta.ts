@@ -15,7 +15,7 @@ export interface Especie {
   nombre_comun: string;
   nombre_cientifico: string;
   descripcion: string;
-  fk_id_tipo_cultivo: number;
+  fk_id_tipo_cultivo: TipoCultivo | null; 
 }
 
 export interface Semillero {
@@ -31,21 +31,22 @@ export interface Cultivo {
   fecha_plantacion: string;
   nombre_cultivo: string;
   descripcion: string;
-  fk_id_especie: number;
-  fk_id_semillero: number;
+  fk_id_especie: Especie | null; 
+  fk_id_semillero: Semillero | null; 
 }
 
 
 export interface Produccion {
-  id_produccion: number;
+  id: number;
   nombre_produccion: string;
-  fk_id: Cultivo 
+  fk_id: Cultivo | null; 
+  stock_disponible: number;
   cantidad_produccion: number;
   fecha: string;
 }
 
 export interface Venta {
-  id_venta: number;
+  id: number;
   fk_id_produccion: Produccion | null; 
   cantidad: number;
   precio_unidad: number;

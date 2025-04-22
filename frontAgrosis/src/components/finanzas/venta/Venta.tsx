@@ -46,7 +46,7 @@ const VentaComponent = () => {
     const stock = cantidadProduccion > cantidadVendida ? cantidadProduccion - cantidadVendida : 0;
 
     return {
-      id_venta: venta.id_venta,
+      id_venta: venta.id,
       cantidad_vendida: cantidadVendida,
       precio_unitario: venta.precio_unidad,
       total_venta: cantidadVendida * venta.precio_unidad,
@@ -59,7 +59,7 @@ const VentaComponent = () => {
   });
 
   const headers = [
-    "ID Venta", "Cantidad Vendida", "Precio Unitario", "Total Venta", "Fecha Venta",
+    "ID", "Cantidad Vendida", "Precio Unitario", "Total Venta", "Fecha Venta",
     "Cantidad Producción", "Fecha Producción", "Nombre Produccion", "Stock"
   ];
 
