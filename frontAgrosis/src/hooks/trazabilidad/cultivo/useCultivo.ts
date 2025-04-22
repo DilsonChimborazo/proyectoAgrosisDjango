@@ -14,7 +14,7 @@ export interface Cultivos{
 
 export interface Semillero {
     id: number;
-    nombre_semillero: string;
+    nombre_semilla: string;
     fecha_siembra: Date;
     fecha_estimada: Date;
     cantidad: number;

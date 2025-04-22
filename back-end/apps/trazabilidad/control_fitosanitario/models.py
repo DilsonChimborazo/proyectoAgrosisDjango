@@ -7,13 +7,14 @@ from apps.usuarios.usuario.models import Usuarios
 # Create your models here.
 class Control_fitosanitario(models.Model):
     TIPOS_CONTROL = [
-        ('Control Biológico', 'Control Biológico'),
-        ('Control Físico', 'Control Físico'),
-        ('Control Químico', 'Control Químico'),
+        ('Control Biologico', 'Control Biologico'),
+        ('Control Fisico', 'Control Fisico'),
+        ('Control Quimico', 'Control Quimico'),
         ('Control Cultural', 'Control Cultural'),
-        ('Control Genético ', 'Control Genético')
+        ('Control Genetico', 'Control Genetico')
     ]
     fecha_control = models.DateField()
+    duracion = models.IntegerField(help_text="Duración en minutos")
     descripcion = models.CharField(max_length=300)
     tipo_control = models.CharField(max_length=20, choices=TIPOS_CONTROL, default='Control Biológico')
     fk_id_cultivo = models.ForeignKey(Cultivo, on_delete=models.SET_NULL, null=True)
@@ -23,6 +24,5 @@ class Control_fitosanitario(models.Model):
     fk_identificacion = models.ForeignKey(Usuarios, on_delete=models.SET_NULL, null=True)
     img = models.ImageField(upload_to='imagenes/')
     
-    def __str__(self):
-        return f"Cultivo: {self.fk_id_cultivo.nombre_cultivo} pea: {self.fk_id_pea}" 
-
+    def _str_(self):
+        return f"Cultivo: {self.fk_id_cultivo.nombre_cultivo} pea: {self.fk_id_pea}"
