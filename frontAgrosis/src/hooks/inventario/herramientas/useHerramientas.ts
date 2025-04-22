@@ -7,7 +7,7 @@
         id: number;
         nombre_h: string;
         cantidad: number;
-        estado: string;
+        estado: 'Disponible' | 'Prestado' | 'En reparacion';
 
     }
     // Función para obtener los usuarios con manejo de errores

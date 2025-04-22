@@ -1,5 +1,6 @@
 import React from 'react';
 import Button from '../globales/Button';
+import { Plus } from 'lucide-react';
 
 interface FormField {
     id: string;
@@ -68,28 +69,31 @@ const Formulario: React.FC<FormProps> = ({
 
                     {field.type === 'select' ? (
                         <div>
-                            <select
-                                id={field.id}
-                                className="w-full p-2 border border-gray-300 rounded"
-                                onChange={(e) => handleChange(field.id, e.target.value)}
-                                value={formData[field.id] as string || ''}
-                            >
-                                <option value="">Seleccione una opción</option>
-                                {field.options?.map((option) => (
-                                    <option key={option.value} value={option.value}>
-                                        {option.label}
-                                    </option>
-                                ))}
-                            </select>
-                            {field.hasExtraButton && (
-                                <button
-                                    type="button"
-                                    className="mt-2 text-sm text-blue-600 hover:text-blue-800 underline"
-                                    onClick={field.onExtraButtonClick}
+                            <div className='flex'>
+                                <select
+                                    id={field.id}
+                                    className="w-full p-1 border border-gray-300 rounded"
+                                    onChange={(e) => handleChange(field.id, e.target.value)}
+                                    value={formData[field.id] as string || ''}
                                 >
-                                    {field.extraButtonText || 'Agregar nueva opción'}
-                                </button>
-                            )}
+                                    <option value="">Seleccione una opción</option>
+                                    {field.options?.map((option) => (
+                                        <option key={option.value} value={option.value}>
+                                            {option.label}
+                                        </option>
+                                    ))}
+                                </select>
+                                {field.hasExtraButton && (
+                                    <button
+                                        type="button"
+                                        className="bg-green-700 text-white w-9 h-8 flex items-center justify-center rounded-full mx-2 shadow-md hover:bg-green-800 hover:shadow-lg transition-all duration-300 ease-in-out"
+                                        onClick={field.onExtraButtonClick}
+                                        title="Crear unidad medida"
+                                        >
+                                        <Plus size={16} className="font-semibold" />
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     ) : field.type === 'file' ? (
                         <input

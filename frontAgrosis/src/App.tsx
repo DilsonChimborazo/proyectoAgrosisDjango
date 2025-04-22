@@ -35,7 +35,6 @@ import ProduccionPage from "./pages/finanzas/produccion/ProduccionPage";
 import VentaPage from "./pages/finanzas/venta/VentaPage";
 import CrearVentaPage from "./pages/finanzas/venta/CrearVentaPage";
 import CrearInsumos from "./components/inventario/insumos/CrearInsumos";
-import CrearHerramientas from "./components/inventario/herramientas/CrearHerramientas";
 import CrearAsignacion from "./components/trazabilidad/actividad/CrearAsignacion";
 import CrearCultivo from "./components/trazabilidad/cultivos/CrearCultivos";
 import CrearResiduo from "./components/trazabilidad/residuos/CrearResiduo";
@@ -107,7 +106,6 @@ function App() {
           
           {/* Rutas módulo inventario */}
           <Route path="/herramientas" element={<Principal><HerramientasPage /></Principal>} />
-          <Route path="/CrearHerramientas" element={<Principal><CrearHerramientas /></Principal>} />
           <Route path="/insumos" element={<Principal><InsumoPage /></Principal>} />
           <Route path="/CrearInsumos" element={<Principal><CrearInsumos /></Principal>} />
           <Route path="/ActualizarInsumos/:id" element={<Principal><ActualizarInsumos /></Principal>} />

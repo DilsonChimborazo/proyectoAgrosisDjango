@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { Pencil } from 'lucide-react';
 
 import { useBodega } from "@/hooks/inventario/bodega/useBodega";
@@ -14,6 +13,12 @@ import ActualizarHerramienta from "../herramientas/ActualizarHerramientas";
 
 import CrearInsumos from "../insumos/CrearInsumos";
 // import ActualizarInsumos from "../insumos/ActualizarInsumos";
+
+
+import RegistrarSalidaBodega from "./CrearBodega";
+import { useAsignacion } from "@/hooks/trazabilidad/asignacion/useAsignacion";
+
+
 
 const SafeImage = ({ src, alt, className, placeholderText = 'Sin imagen' }: { 
     src: string | null | undefined, 
@@ -71,13 +76,14 @@ const ListarBodega = () => {
     const { data: bodega, refetch: refetchBodega } = useBodega();  
     const { data: herramientas, refetch: refetchHerramientas } = useHerramientas();
     const { data: insumos, refetch: refetchInsumos } = useInsumo();
+    const { data: asignaciones, refetch: refetchAsignacion } = useAsignacion();
+
 
     const [selectedMovimiento, setSelectedMovimiento] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [tipoSeleccionado, setTipoSeleccionado] = useState<'Herramienta' | 'Insumo'>('Herramienta');
     const [modalContenido, setModalContenido] = useState<React.ReactNode>(null);
 
-    const navigate = useNavigate();
 
     const handleRowClick = (movimiento: any) => {
         const id = movimiento.id;
@@ -104,13 +110,20 @@ const ListarBodega = () => {
     };
 
     const handleCreate = () => {
-        navigate("/CrearMovimiento");
+        setModalContenido(<RegistrarSalidaBodega 
+            herramientas={herramientas || []}
+            insumos={insumos || []}
+            asignaciones={asignaciones || []}
+            onSuccess={handleNewEntry}
+        />);
+        setIsModalOpen(true); 
     };
 
     const handleNewEntry = () => {
         refetchHerramientas();
         refetchInsumos();
         refetchBodega();
+        refetchAsignacion();
         closeModal();
     };
 
@@ -184,10 +197,10 @@ const ListarBodega = () => {
                     {items?.map((item) => (
                         <div key={item.id} className="border shadow-lg rounded p-3 flex justify-between items-center">
                             <div className="flex items-center space-x-4">
-                                {tipoSeleccionado === 'Insumo' && (
+                                {tipoSeleccionado === 'Insumo' && 'img' in item && (
                                     <SafeImage 
                                         src={item.img}
-                                        alt={`Imagen de ${item.nombre}`}
+                                        alt={`Imagen de cada insumo`}
                                         className="w-12 h-12 object-cover rounded-full"
                                     />
                                 )}

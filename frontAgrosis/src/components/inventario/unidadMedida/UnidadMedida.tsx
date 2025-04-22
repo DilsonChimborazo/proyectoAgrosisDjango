@@ -1,10 +1,8 @@
 import { useUnidadMedida } from "@/hooks/inventario/unidadMedida/useCrearMedida";
-import { useNavigate } from "react-router-dom";
 import Formulario from "@/components/globales/Formulario";
 
 const UnidadMedida = ({ onSuccess }: { onSuccess?: () => void }) => {
     const mutation = useUnidadMedida();
-    const navigate = useNavigate();
 
     const formFields = [
         { id: "nombre_medida", label: "Nombre de la Medida", type: "text" },
@@ -21,7 +19,6 @@ const UnidadMedida = ({ onSuccess }: { onSuccess?: () => void }) => {
             onSuccess: () => {
                 console.log("Unidad de medida creada exitosamente:", nuevaUnidad);
                 if (onSuccess) onSuccess();
-                navigate("/unidad-medida"); 
             },
             onError: () => {
                 console.error("Error al crear la unidad de medida:");

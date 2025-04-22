@@ -33,7 +33,7 @@ const VentanaModal: React.FC<VentanaModalProps> = ({ isOpen, onClose, contenido,
 
   return (
     <div className="fixed inset-0 z-50 bg-gray-500 bg-opacity-70 flex justify-center items-start pt-20 overflow-auto">
-      <div className="relative bg-white p-8 rounded-xl shadow-lg w-96 max-w-lg">
+      <div className="relative bg-white p-8 rounded-xl shadow-lg w-4/12">
         <button
           className="absolute top-2 right-2 hover:bg-gray-200 rounded-full w-8 h-8 flex items-center justify-center shadow-md transition duration-200"
           onClick={onClose}

@@ -1,18 +1,28 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Formulario from "../../globales/Formulario";
+import VentanaModal from "@/components/globales/VentanasModales"; // 👈 Importar modal
 import { useCrearInsumo } from "@/hooks/inventario/insumos/useCrearInsumos";
 import { useCrearBodega } from "@/hooks/inventario/bodega/useCrearBodega";
 import { UnidadMedida } from "@/hooks/inventario/insumos/useInsumo";
 import { useMedidas } from "@/hooks/inventario/unidadMedida/useMedidad";
+import CrearUnidadMedida from "@/components/inventario/unidadMedida/UnidadMedida"; // 👈 Importar formulario
 
 const CrearInsumos = ({ onSuccess }: { onSuccess?: () => void }) => {
   const mutation = useCrearInsumo();
   const { mutate } = useCrearBodega();
   const navigate = useNavigate();
-  const { data: unidades = [] } = useMedidas();
+  const { data: unidades = [], refetch } = useMedidas();
 
-  const handleNavigateToCreateMedida = () => {
-    navigate("/unidad");
+  const [modalAbierto, setModalAbierto] = useState(false); 
+
+  const abrirModalMedida = () => {
+
+    ;setModalAbierto(true);
+  }
+  const cerrarModalMedida = () => {
+    setModalAbierto(false);
+    refetch(); 
   };
 
   const formFields = [
@@ -29,8 +39,8 @@ const CrearInsumos = ({ onSuccess }: { onSuccess?: () => void }) => {
         label: `${u.nombre_medida} (${u.abreviatura})`,
       })),
       hasExtraButton: true,
-      extraButtonText: "Crear nueva unidad de medida",
-      onExtraButtonClick: handleNavigateToCreateMedida,
+      extraButtonText: "+",
+      onExtraButtonClick: abrirModalMedida, 
     },
     { id: "fecha_vencimiento", label: "Fecha de Vencimiento", type: "date" },
     { id: "img", label: "Imagen", type: "file" },
@@ -64,7 +74,7 @@ const CrearInsumos = ({ onSuccess }: { onSuccess?: () => void }) => {
         console.log("✅ Insumo creado exitosamente:", data);
 
         const movimientoEntrada = {
-          fk_id_insumo: data.data,
+          fk_id_insumo: data.data.id,
           cantidad: formData.cantidad,
           movimiento: "Entrada",
           fecha: new Date().toISOString(),
@@ -105,6 +115,13 @@ const CrearInsumos = ({ onSuccess }: { onSuccess?: () => void }) => {
       {mutation.isSuccess && (
         <div className="text-green-500 mt-2">¡Insumo creado exitosamente!</div>
       )}
+
+      <VentanaModal
+        isOpen={modalAbierto}
+        onClose={cerrarModalMedida}
+        contenido={<CrearUnidadMedida onSuccess={cerrarModalMedida} />}
+        titulo="Crear Unidad de Medida"
+      />
     </div>
   );
 };
