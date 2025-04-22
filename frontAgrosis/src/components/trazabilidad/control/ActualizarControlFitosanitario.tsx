@@ -1,126 +1,171 @@
 import { useState, useEffect } from "react";
 import { useActualizarControlFitosanitario } from "@/hooks/trazabilidad/control/useActualizarControlFitosanitario";
-import { useNavigate, useParams } from "react-router-dom";
 import { useControlFitosanitarioPorId } from "@/hooks/trazabilidad/control/useControlFitosanitarioPorId";
 import { useCultivo } from "@/hooks/trazabilidad/cultivo/useCultivo";
 import { usePea } from "@/hooks/trazabilidad/pea/usePea";
 import { useInsumo } from "@/hooks/inventario/insumos/useInsumo";
+import { useUsuarios } from "@/hooks/usuarios/usuario/useUsuarios";
 import Formulario from "../../globales/Formulario";
 
-const ActualizarControlFitosanitario = () => {
-    const { id } = useParams();
-    const { data: control, isLoading, error } = useControlFitosanitarioPorId(id);
-    const actualizarControl = useActualizarControlFitosanitario();
-    const navigate = useNavigate();
-    const { data: cultivos = [], isLoading: isLoadingCultivos } = useCultivo();
-    const { data: peas = [], isLoading: isLoadingPeas } = usePea();
-    const { data: insumo = [], isLoading: isLoadingInsumos } = useInsumo();
+interface ActualizarControlFitosanitarioProps {
+  id: string | number;
+  onSuccess: () => void;
+}
 
-    const [formData, setFormData] = useState<{ [key: string]: string }>({
-        fecha_control: "",
-        descripcion: "",
-        tipo_control: "",
-        fk_id_cultivo: "",
-        fk_id_pea: "",
-        fk_id_insumo: "",
-        cantidad_insumo: ""
-    });
+const ActualizarControlFitosanitario = ({ id, onSuccess }: ActualizarControlFitosanitarioProps) => {
+  const { data: control, isLoading, error } = useControlFitosanitarioPorId(String(id));
+  const actualizarControl = useActualizarControlFitosanitario();
+  const { data: cultivos = [], isLoading: isLoadingCultivos } = useCultivo();
+  const { data: peas = [], isLoading: isLoadingPeas } = usePea();
+  const { data: insumos = [], isLoading: isLoadingInsumos } = useInsumo();
+  const { data: usuarios = [], isLoading: isLoadingUsuarios, error: errorUsuarios } = useUsuarios();
 
-    useEffect(() => {
-        if (control && Object.keys(control).length > 0) {
-            console.log("🔄 Cargando datos del control fitosanitario:", control);
-            setFormData({
-                fecha_control: control.fecha_control ?? "",
-                descripcion: control.descripcion ?? "",
-                tipo_control: control.tipo_control ?? "",
-                fk_id_cultivo: control.fk_id_cultivo?.id ? String(control.fk_id_cultivo.id) : "",
-                fk_id_pea: control.fk_id_pea?.id ? String(control.fk_id_pea.id) : "",
-                fk_id_insumo: control.fk_id_insumo?.id ? String(control.fk_id_insumo.id) : "",
-                cantidad_insumo: control.cantidad_insumo ?? ""
-            });
-        }
-    }, [control]);
+  const [formData, setFormData] = useState<{ [key: string]: string }>({
+    fecha_control: "",
+    duracion: "",
+    descripcion: "",
+    tipo_control: "",
+    fk_id_cultivo: "",
+    fk_id_pea: "",
+    fk_id_insumo: "",
+    cantidad_insumo: "",
+    fk_identificacion: "",
+  });
 
-    const tipoControlOptions = [
-        { value: 'Control Biológico', label: 'Control Biológico' },
-        { value: 'Control Físico', label: 'Control Físico' },
-        { value: 'Control Químico', label: 'Control Químico' },
-        { value: 'Control Cultural', label: 'Control Cultural' },
-        { value: 'Control Genético', label: 'Control Genético' },
-    ];
+  console.log("Usuarios recibidos:", usuarios);
+  if (errorUsuarios) {
+    console.error("Error al cargar usuarios:", errorUsuarios);
+  }
 
-    const cultivoOptions = cultivos.map((cultivo) => ({
-        value: String(cultivo.id),
-        label: cultivo.nombre_cultivo,
-    }));
+  useEffect(() => {
+    if (control && Object.keys(control).length > 0) {
+      setFormData({
+        fecha_control: control.fecha_control?.toString().slice(0, 10) ?? "",
+        duracion: control.duracion ? String(control.duracion) : "",
+        descripcion: control.descripcion ?? "",
+        tipo_control: control.tipo_control ?? "",
+        fk_id_cultivo: control.fk_id_cultivo?.id ? String(control.fk_id_cultivo.id) : "",
+        fk_id_pea: control.fk_id_pea?.id ? String(control.fk_id_pea.id) : "",
+        fk_id_insumo: control.fk_id_insumo?.id ? String(control.fk_id_insumo.id) : "",
+        cantidad_insumo: control.cantidad_insumo ? String(control.cantidad_insumo) : "",
+        fk_identificacion: control.fk_identificacion?.id ? String(control.fk_identificacion.id) : "",
+      });
+    }
+  }, [control]);
 
-    const peaOptions = peas.map((pea) => ({
-        value: String(pea.id),
-        label: pea.nombre_pea,
-    }));
+  const tipoControlOptions = [
+    { value: 'Control Biologico', label: 'Control Biologico' },
+    { value: 'Control Fisico', label: 'Control Fisico' },
+    { value: 'Control Quimico', label: 'Control Quimico' },
+    { value: 'Control Cultural', label: 'Control Cultural' },
+    { value: 'Control Genetico', label: 'Control Genetico' },
+  ];
 
-    const insumoOptions = insumo.map((insumo) => ({
-        value: String(insumo.id),
-        label: insumo.nombre,
-    }))
+  const cultivoOptions = cultivos.map((cultivo) => ({
+    value: String(cultivo.id),
+    label: cultivo.nombre_cultivo,
+  }));
 
-    const handleSubmit = (data: { [key: string]: string }) => {
-        if (!id) return;
+  const peaOptions = peas.map((pea) => ({
+    value: String(pea.id),
+    label: pea.nombre_pea,
+  }));
 
-        const controlActualizado = {
-            id: Number(id),
-            fecha_control: new Date(data.fecha_control).toISOString().split('T')[0],
-            descripcion: data.descripcion.trim(),
-            tipo_control: data.tipo_control,
-            fk_id_cultivo: parseInt(data.fk_id_cultivo) || 0,
-            fk_id_pea: parseInt(data.fk_id_pea) || 0,
-            fk_id_insumo: parseInt(data.fk_id_insumo) || 0,
-            cantidad_insumo: parseInt(data.cantidad_insumo) || 0,
-        };
+  const insumoOptions = insumos.map((insumo) => ({
+    value: String(insumo.id),
+    label: insumo.nombre,
+  }));
 
-        console.log("🚀 Enviando control fitosanitario actualizado al backend:", controlActualizado);
+  const usuarioOptions = usuarios.length > 0
+    ? usuarios.map((usuario) => ({
+        value: String(usuario.id),
+        label: `${usuario.identificacion} ${usuario.nombre}`,
+      }))
+    : [{ value: '', label: 'No hay usuarios disponibles' }];
 
-        actualizarControl.mutate(controlActualizado, {
-            onSuccess: () => {
-                console.log("✅ Control fitosanitario actualizado correctamente");
-                navigate("/control-fitosanitario");
-            },
-            onError: (error) => {
-                console.error("❌ Error al actualizar control fitosanitario:", error);
-            },
-        });
+  const handleSubmit = (data: { [key: string]: string | File }) => {
+    console.log("Datos del formulario recibidos:", data);
+
+    if (
+      !data.fecha_control ||
+      !data.duracion ||
+      !data.descripcion ||
+      !data.tipo_control ||
+      !data.fk_id_cultivo ||
+      !data.fk_id_pea ||
+      !data.fk_id_insumo ||
+      !data.cantidad_insumo ||
+      !data.img
+    ) {
+      console.error("Los campos obligatorios no están completos:", data);
+      return;
+    }
+
+    const controlActualizado = {
+      id: Number(id),
+      fecha_control: new Date(data.fecha_control as string).toISOString().split('T')[0],
+      duracion: parseInt(data.duracion as string) || 0,
+      descripcion: (data.descripcion as string).trim(),
+      tipo_control: data.tipo_control as string,
+      fk_id_cultivo: parseInt(data.fk_id_cultivo as string) || 0,
+      fk_id_pea: parseInt(data.fk_id_pea as string) || 0,
+      fk_id_insumo: parseInt(data.fk_id_insumo as string) || 0,
+      cantidad_insumo: parseInt(data.cantidad_insumo as string) || 0,
+      fk_identificacion: data.fk_identificacion ? parseInt(data.fk_identificacion as string) : null,
+      img: data.img as File,
     };
 
-    if (isLoading || isLoadingCultivos || isLoadingPeas || isLoadingInsumos) {
-        return <div className="text-center text-gray-500">Cargando datos...</div>;
-    }
+    console.log("Enviando control fitosanitario actualizado al backend:", controlActualizado);
 
-    if (error) {
-        return <div className="text-red-500">Error al cargar el control fitosanitario</div>;
-    }
+    actualizarControl.mutate(controlActualizado, {
+      onSuccess: () => {
+        console.log("✅ Control fitosanitario actualizado correctamente");
+        onSuccess();
+      },
+      onError: (error) => {
+        console.error("Error al actualizar control fitosanitario:", error.message);
+      },
+    });
+  };
 
-    return (
-        <div className="max-w-4xl mx-auto p-4">
-            <Formulario 
-                fields={[
-                    { id: 'fecha_control', label: 'Fecha del Control', type: 'date' },
-                    { id: 'descripcion', label: 'Descripción', type: 'text' },
-                    { id: 'tipo_control', label: 'Tipo de Control', type: 'select', options: tipoControlOptions },
-                    { id: 'fk_id_cultivo', label: 'Cultivo', type: 'select', options: cultivoOptions },
-                    { id: 'fk_id_pea', label: 'PEA', type: 'select', options: peaOptions },
-                    { id: 'fk_id_insumo', label: 'Insumo', type: 'select', options: insumoOptions },
-                    { id: 'cantidad_insumo', label: 'Cantidad insumo', type: 'number' },
-                    
-                ]}
-                onSubmit={handleSubmit}  
-                isError={actualizarControl.isError} 
-                isSuccess={actualizarControl.isSuccess}
-                title="Actualizar Control Fitosanitario"
-                initialValues={formData}  
-                key={JSON.stringify(formData)}
-            />
-        </div>
-    );
+  if (isLoading || isLoadingCultivos || isLoadingPeas || isLoadingInsumos || isLoadingUsuarios) {
+    return <div className="text-center text-gray-500">Cargando datos...</div>;
+  }
+
+  if (error) {
+    return <div className="text-red-500">Error al cargar el control fitosanitario</div>;
+  }
+
+  if (errorUsuarios) {
+    return <div className="text-red-500">Error al cargar usuarios: {errorUsuarios.message}</div>;
+  }
+
+  return (
+    <div className="max-w-4xl mx-auto p-4">
+      <Formulario 
+        fields={[
+          { id: 'fecha_control', label: 'Fecha del Control', type: 'date' },
+          { id: 'duracion', label: 'Duración (minutos)', type: 'number'},
+          { id: 'descripcion', label: 'Descripción', type: 'text' },
+          { id: 'tipo_control', label: 'Tipo de Control', type: 'select', options: tipoControlOptions},
+          { id: 'fk_id_cultivo', label: 'Cultivo', type: 'select', options: cultivoOptions},
+          { id: 'fk_id_pea', label: 'PEA', type: 'select', options: peaOptions},
+          { id: 'fk_id_insumo', label: 'Insumo', type: 'select', options: insumoOptions},
+          { id: 'cantidad_insumo', label: 'Cantidad Insumo', type: 'number'},
+          { id: 'fk_identificacion', label: 'Usuario', type: 'select', options: usuarioOptions },
+          { id: 'img', label: 'Imagen', type: 'file', accept: 'image/*'},
+        ]}
+        onSubmit={handleSubmit}  
+        isError={actualizarControl.isError} 
+        errorMessage={actualizarControl.error?.message}
+        isSuccess={actualizarControl.isSuccess}
+        title="Actualizar Control Fitosanitario"
+        initialValues={formData}  
+        key={JSON.stringify(formData)}
+        multipart={true}
+      />
+    </div>
+  );
 };
 
 export default ActualizarControlFitosanitario;

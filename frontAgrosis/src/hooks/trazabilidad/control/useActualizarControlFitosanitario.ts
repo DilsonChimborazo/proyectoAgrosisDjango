@@ -6,10 +6,15 @@ const apiUrl = import.meta.env.VITE_API_URL;
 export interface ControlFitosanitario {
     id: number;
     fecha_control: string;
+    duracion: number;
     descripcion: string;
     tipo_control: string;
-    fk_id_cultivo: number; // Solo ID del cultivo
-    fk_id_pea: number;      // Solo ID del PEA
+    fk_id_cultivo: number;
+    fk_id_pea: number;
+    fk_id_insumo: number;
+    cantidad_insumo: number;
+    fk_identificacion: number | null;
+    img: File;
 }
 
 export const useActualizarControlFitosanitario = () => {
@@ -17,12 +22,59 @@ export const useActualizarControlFitosanitario = () => {
 
     return useMutation({
         mutationFn: async (controlActualizado: ControlFitosanitario) => {
-            const { id, ...datos } = controlActualizado;
-            const { data } = await axios.put(`${apiUrl}control_fitosanitario/${id}/`, datos);
-            return data;
+            const token = localStorage.getItem("token");
+            if (!token) {
+                throw new Error("No hay token de autenticación");
+            }
+            const formData = new FormData();
+            formData.append('fecha_control', controlActualizado.fecha_control);
+            formData.append('duracion', String(controlActualizado.duracion));
+            formData.append('descripcion', controlActualizado.descripcion);
+            formData.append('tipo_control', controlActualizado.tipo_control);
+            formData.append('fk_id_cultivo', String(controlActualizado.fk_id_cultivo));
+            formData.append('fk_id_pea', String(controlActualizado.fk_id_pea));
+            formData.append('fk_id_insumo', String(controlActualizado.fk_id_insumo));
+            formData.append('cantidad_insumo', String(controlActualizado.cantidad_insumo));
+            if (controlActualizado.fk_identificacion !== null) {
+                formData.append('fk_identificacion', String(controlActualizado.fk_identificacion));
+            }
+            formData.append('img', controlActualizado.img);
+            console.log("FormData enviado al backend:", {
+                fecha_control: formData.get('fecha_control'),
+                duracion: formData.get('duracion'),
+                descripcion: formData.get('descripcion'),
+                tipo_control: formData.get('tipo_control'),
+                fk_id_cultivo: formData.get('fk_id_cultivo'),
+                fk_id_pea: formData.get('fk_id_pea'),
+                fk_id_insumo: formData.get('fk_id_insumo'),
+                cantidad_insumo: formData.get('cantidad_insumo'),
+                fk_identificacion: formData.get('fk_identificacion'),
+                img: formData.get('img'),
+            });
+
+            try {
+                const { data } = await axios.put(
+                    `${apiUrl}control_fitosanitario/${controlActualizado.id}/`,
+                    formData,
+                    {
+                        headers: {
+                            'Content-Type': 'multipart/form-data',
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }
+                );
+                return data;
+            } catch (error: any) {
+                console.error("Error completo del backend:", error.response?.data || error.message);
+                throw new Error(
+                    error.response?.data?.detail ||
+                    JSON.stringify(error.response?.data) ||
+                    "Error al actualizar el control fitosanitario"
+                );
+            }
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["ControlFitosanitario"] }); // Refresca la lista de controles
+            queryClient.invalidateQueries({ queryKey: ["controlFitosanitario"] });
         },
     });
 };

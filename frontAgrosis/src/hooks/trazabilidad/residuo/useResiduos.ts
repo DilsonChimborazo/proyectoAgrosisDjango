@@ -5,7 +5,7 @@ const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface Residuos {
     id: number;
-    nombre_residuo: string;
+    nombre: string;
     fecha: Date;
     descripcion: string;
     fk_id_cultivo: Cultivos ;
@@ -43,7 +43,7 @@ export interface Especie {
 }
 export interface TipoResiduos {
     id: number;
-    nombre_tipo_residuo: string;
+    nombre: string;
     descripcion: string;
 }
 

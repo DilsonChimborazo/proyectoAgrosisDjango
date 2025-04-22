@@ -36,14 +36,7 @@ import VentaPage from "./pages/finanzas/venta/VentaPage";
 import CrearVentaPage from "./pages/finanzas/venta/CrearVentaPage";
 import CrearInsumos from "./components/inventario/insumos/CrearInsumos";
 import CrearAsignacion from "./components/trazabilidad/actividad/CrearAsignacion";
-import CrearCultivo from "./components/trazabilidad/cultivos/CrearCultivos";
-import CrearResiduo from "./components/trazabilidad/residuos/CrearResiduo";
-import CrearPea from "./components/trazabilidad/peas/CrearPea";
-import CrearControlFitosanitario from "./components/trazabilidad/control/CrearControlFitosanitario";
-import ActualizarCultivo from "./components/trazabilidad/cultivos/ActualizarCultivo";
-import EditarResiduo from "./components/trazabilidad/residuos/ActualizarResiduo";
-import ActualizarPea from "./components/trazabilidad/peas/ActualizarPea";
-import ActualizarControlFitosanitario from "./components/trazabilidad/control/ActualizarControlFitosanitario";
+
 import CrearProduccionPage from "./pages/finanzas/produccion/CrearProduccionPage";
 import ActualizarProduccionPage from "./pages/finanzas/produccion/ActualizarProduccionPage";
 import CrearEras from "./components/iot/eras/CrearEras";
@@ -68,6 +61,7 @@ import ReporteInsumosPage from "./pages/finanzas/consultas/ReporteInsumosPage";
 import ReportesPage from "./components/reportes/Reportes";
 import BodegaPage from "./pages/inventario/BodegaPage";
 import UnidadMedida from "./components/inventario/unidadMedida/UnidadMedida";
+import TipoResiduos from "./components/trazabilidad/tiporesiduo/TipoResiduo";
 
 
 const queryClient = new QueryClient();
@@ -113,6 +107,8 @@ function App() {
           <Route path="/insumos" element={<Principal><ListarInsumos /></Principal>} />
           <Route path="/bodega" element={<Principal><BodegaPage /></Principal>} />
           <Route path="/unidad" element={<Principal><UnidadMedida /></Principal>} />
+          <Route path="/tipoResiduo" element={<Principal><TipoResiduos /></Principal>} />
+
 
           {/* Rutas módulo trazabilidad */}
           <Route path="/actividad" element={<Principal><CalendarPage /></Principal>} />
@@ -125,24 +121,14 @@ function App() {
           <Route path="/semilleros" element={<Principal><SemillerosPage /></Principal>} />
           <Route path="/calendario-lunar" element={<Principal><CalendarioLunarPage /></Principal>} />
           <Route path="/CrearAsignacion" element={<Principal><CrearAsignacion /></Principal>} />
-          <Route path="/crearcultivo" element={<Principal><CrearCultivo /></Principal>}/>
-          <Route path="/crearresiduo" element={<Principal><CrearResiduo /></Principal>} />
-          <Route path="/crearpea" element={<Principal><CrearPea /></Principal>} />
-          <Route path="/crearcontrolfitosanitario" element={<Principal><CrearControlFitosanitario /></Principal>} />
           <Route path="/CrearCalendarioLunar" element={<Principal><CrearCalendarioLunar /></Principal>}/>
-          <Route path="/CrearCultivo" element={<Principal><CrearCultivo/></Principal>}/>
+          
           <Route path="/CrearEspecie" element={<Principal><CrearEspecie/></Principal>}/>
           <Route path="/CrearSemillero" element={<Principal><CrearSemillero/></Principal>}/>
           
           <Route path="/actualizarCalendarioLunar/:id" element={<Principal><ActualizarCalendarioLunar/></Principal>}/>
           <Route path="/actualizarEspecie/:id" element={<Principal><ActualizarEspecie/></Principal>}/>
           <Route path="/actualizarSemillero/:id" element={<Principal><ActualizarSemillero/></Principal>}/>
-
-          {/**rutas modulo de trazabilidad actualizar*/}
-          <Route path="/actualizarcultivo/:id" element={<Principal><ActualizarCultivo /></Principal>} />
-          <Route path="/residuos/editar/:id" element={<Principal><EditarResiduo /></Principal>} />
-          <Route path="/pea/editar/:id" element={<Principal><ActualizarPea /></Principal>} />
-          <Route path="/controlfitosanitario/editar/:id" element={<Principal><ActualizarControlFitosanitario /></Principal>} />
           <Route path="/actualizarasignacion/:id" element={<Principal><ActualizarAsignacion /></Principal>} />
           
           {/* Rutas módulo finanzas */}

@@ -4,8 +4,8 @@ import axios from "axios";
 const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface Residuos {
-    nombre_residuo: string;
-    fecha: string;  // Enviar en formato ISO
+    nombre: string;
+    fecha: string;  
     descripcion: string;
     fk_id_cultivo: number;
     fk_id_tipo_residuo: number;
