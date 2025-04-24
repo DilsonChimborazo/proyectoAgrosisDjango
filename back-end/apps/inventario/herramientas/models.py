@@ -10,6 +10,7 @@ class Herramientas (models.Model):
     nombre_h = models.CharField(max_length=500)
     cantidad = models.IntegerField()
     estado = models.CharField(max_length=50 ,choices=estados, null=True)
+    
 
     def _str_(self):
         return self.nombre_h

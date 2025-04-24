@@ -48,8 +48,8 @@ export const useActualizarHerramientas = () => {
                 throw error;
             }
         },
-        onSuccess: () => {
-            console.log("✅ Herramienta actualizada con éxito");
+        onSuccess: (data) => {
+            console.log("🔁 Respuesta de la API:", data);
             queryClient.invalidateQueries({ queryKey: ["herramientas"] });
         },
         onError: (error) => {

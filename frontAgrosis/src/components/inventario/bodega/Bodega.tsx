@@ -95,7 +95,13 @@ const ListarBodega = () => {
         setSelectedMovimiento(movimiento);
 
         if (tipoSeleccionado === "Herramienta") {
-            setModalContenido(<ActualizarHerramienta id={id} onSuccess={closeModal} />);
+            setModalContenido(<ActualizarHerramienta 
+                id={id} 
+                onSuccess={() => {
+                    refetchHerramientas(); // <--- actualiza la lista después de editar
+                    refetchBodega();       // opcional si se refleja en bodega 
+                    closeModal();       
+                }}/>);
         } else {
             // setModalContenido(<ActualizarInsumos id={id} onSuccess={closeModal} />);
         }
@@ -155,9 +161,9 @@ const ListarBodega = () => {
 
         return {
             id: item.id,
-            herramienta: item.fk_id_herramientas?.nombre_h ?? "Sin herramienta",
-            insumo: item.fk_id_insumo?.nombre ?? "Sin insumo",
-            asignacion: item.fk_id_asignacion?.estado ?? "Sin asignación",
+            herramienta: item.fk_id_herramientas?.nombre_h ?? "No aplica",
+            insumo: item.fk_id_insumo?.nombre ?? "No aplica",
+            asignacion: item.fk_id_asignacion?.fecha_programada ?? "No aplica",
             cantidad: item.cantidad,
             fecha: new Date(item.fecha).toLocaleDateString(),
             movimiento: <span className={colorMovimiento}>{movimiento}</span>,

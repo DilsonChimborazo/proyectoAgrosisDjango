@@ -33,8 +33,9 @@ const ActualizarHerramienta: React.FC<Props> = ({ id, onSuccess }) => {
 
     // Función para manejar el envío del formulario
     const handleSubmit = (data: { [key: string]: string }) => {
+        console.log("📦 Datos recibidos del formulario:", data);
         const herramientaActualizada = {
-            id,  // Usamos el 'id' proporcionado en las props
+            id,  
             nombre_h: data.nombre_h.trim(),
             estado: data.estado.trim(),
             cantidad: parseInt(data.cantidad, 10),
@@ -54,7 +55,7 @@ const ActualizarHerramienta: React.FC<Props> = ({ id, onSuccess }) => {
         actualizarHerramienta.mutate(herramientaActualizada, {
             onSuccess: () => {
                 console.log("✅ Herramienta actualizada correctamente");
-                onSuccess();  // Llamar al callback de éxito para cerrar el modal
+                onSuccess();  
             },
             onError: (error) => {
                 console.error("❌ Error al actualizar la herramienta", error);
@@ -79,7 +80,7 @@ const ActualizarHerramienta: React.FC<Props> = ({ id, onSuccess }) => {
                         options: [
                             { value: "Disponible", label: "Disponible" },
                             { value: "Prestado", label: "Prestado" },
-                            { value: "En_reparacion", label: "En reparación" },
+                            { value: "En reparacion", label: "En reparación" },
                         ],
                     },
                     { id: "cantidad", label: "Cantidad", type: "number" },

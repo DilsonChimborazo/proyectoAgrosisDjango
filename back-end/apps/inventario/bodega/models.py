@@ -42,11 +42,27 @@ class Bodega(models.Model):
 
         # Calcular el costo total del insumo usando el precio_por_base del insumo
         if self.fk_id_insumo:
-            precio_por_base = self.fk_id_insumo.precio_por_base  # Obtener el precio directamente desde Insumo
+            precio_por_base = self.fk_id_insumo.precio_por_base  
             if self.cantidad_en_base and precio_por_base:
                 self.costo_insumo = Decimal(self.cantidad_en_base) * precio_por_base
 
+        # Verificar si el movimiento es de tipo 'Salida' y si está asociada una herramienta
+        if self.movimiento == 'Salida' and self.fk_id_herramientas:
+            herramienta = self.fk_id_herramientas
+            if herramienta.cantidad >= self.cantidad:
+                herramienta.cantidad -= self.cantidad
+                herramienta.save()
+            else:
+                raise ValueError("La cantidad a retirar excede la cantidad disponible en herramientas")
+
+        # Si es una Entrada, puedes aumentar la cantidad también
+        elif self.movimiento == 'Entrada' and self.fk_id_herramientas:
+            herramienta = self.fk_id_herramientas
+            herramienta.cantidad += self.cantidad
+            herramienta.save()
+
         super().save(*args, **kwargs)
+
 
     def __str__(self):
         return f"{self.movimiento} - {self.cantidad} {self.fk_unidad_medida} - {self.fecha}"
