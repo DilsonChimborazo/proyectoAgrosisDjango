@@ -48,6 +48,7 @@ from apps.trazabilidad.programacion.api.router import routerProgramacion
 from apps.trazabilidad.realiza.api.router import routerRealiza
 from apps.trazabilidad.semillero.api.router import routerSemillero
 from apps.trazabilidad.tipo_cultivo.api.router import routerTipo_cultivo
+from apps.trazabilidad.nombre_cultivo.api.router import router_nombrecultivo
 
 #rutas de finanzas
 from apps.finanzas.produccion.api.router import router_produccion
@@ -131,6 +132,7 @@ urlpatterns = [
     path('api/', include(routerSemillero.urls)),
     path('api/', include(routerProgramacion.urls)),
     path('api/', include(routerNotificacion.urls)),
+    path('api/', include(router_nombrecultivo.urls)),
 
     #INVENTARIO
     path('api/', include(router_herramientas.urls)),
