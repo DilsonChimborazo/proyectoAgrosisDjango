@@ -34,17 +34,18 @@ const CrearHerramientas = ({ onSuccess }: { onSuccess?: () => void }) => {
 
                 // Crear movimiento de entrada en la bodega después de la creación de la herramienta
                 const movimientoEntrada = {
-                    fk_id_herramientas: data.data.id, // Usamos el ID de la herramienta creada
+                    fk_id_herramientas: data.data.id, 
                     cantidad: nuevaHerramienta.cantidad,
-                    movimiento: 'Entrada', // Movimiento tipo entrada
+                    movimiento: 'Entrada'as const, 
                     fecha: new Date().toISOString(),
-                    fk_id_asignacion: null,  // O el ID de la asignación correspondiente si lo tienes
-                    fk_id_insumo: null,  // Si también trabajas con insumos, usa el ID del insumo
+                    fk_id_asignacion: null, 
+                    fk_id_insumo: null,  
                 };
 
                 // Registrar el movimiento de entrada en la bodega
                 mutate(movimientoEntrada, {
-                    onSuccess: () => {
+                    onSuccess: (response) => {
+                        console.log("este es el movimiento de entrada",response)
                         if (onSuccess) {
                             onSuccess(); 
                         }

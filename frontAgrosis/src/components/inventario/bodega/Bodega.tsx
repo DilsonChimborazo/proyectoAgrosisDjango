@@ -14,11 +14,8 @@ import ActualizarHerramienta from "../herramientas/ActualizarHerramientas";
 import CrearInsumos from "../insumos/CrearInsumos";
 // import ActualizarInsumos from "../insumos/ActualizarInsumos";
 
-
 import RegistrarSalidaBodega from "./CrearBodega";
 import { useAsignacion } from "@/hooks/trazabilidad/asignacion/useAsignacion";
-
-
 
 const SafeImage = ({ src, alt, className, placeholderText = 'Sin imagen' }: { 
     src: string | null | undefined, 
@@ -72,18 +69,63 @@ const SafeImage = ({ src, alt, className, placeholderText = 'Sin imagen' }: {
     );
 };
 
+const DetalleItemModal = ({ item, tipo }: { item: any, tipo: 'Herramienta' | 'Insumo', onClose: () => void }) => {
+    return (
+        <div className="p-4">
+            <h2 className="text-xl font-bold mb-4">Detalles del {tipo}</h2>
+            
+            <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-1">
+                    {tipo === 'Insumo' && (
+                        <SafeImage 
+                            src={item.img}
+                            alt={`Imagen de ${item.nombre}`}
+                            className="w-full h-48 object-contain rounded-lg"
+                        />
+                    )}
+                </div>
+                
+                <div className="col-span-1 space-y-3">
+                    <p><span className="font-semibold">Nombre:</span> {tipo === 'Herramienta' ? item.nombre_h : item.nombre}</p>
+                    <p><span className="font-semibold">Cantidad:</span> {item.cantidad}</p>
+                    
+                    {tipo === 'Insumo' && item.fecha_vencimiento && (
+                        <p><span className="font-semibold">Fecha de vencimiento:</span> {new Date(item.fecha_vencimiento).toLocaleDateString()}</p>
+                    )}
+                    
+                    {tipo === 'Herramienta' && item.descripcion && (
+                        <p><span className="font-semibold">Descripción:</span> {item.descripcion}</p>
+                    )}
+                    
+                    {tipo === 'Insumo' && item.descripcion && (
+                        <p><span className="font-semibold">Descripción:</span> {item.descripcion}</p>
+                    )}
+                    
+                    {tipo === 'Herramienta' && item.estado && (
+                        <p><span className="font-semibold">Estado:</span> {item.estado}</p>
+                    )}
+                    
+                    {tipo === 'Insumo' && item.categoria && (
+                        <p><span className="font-semibold">Categoría:</span> {item.categoria}</p>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const ListarBodega = () => {
     const { data: bodega, refetch: refetchBodega } = useBodega();  
     const { data: herramientas, refetch: refetchHerramientas } = useHerramientas();
     const { data: insumos, refetch: refetchInsumos } = useInsumo();
     const { data: asignaciones, refetch: refetchAsignacion } = useAsignacion();
 
-
     const [selectedMovimiento, setSelectedMovimiento] = useState<any>(null);
+    const [selectedItem, setSelectedItem] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const [tipoSeleccionado, setTipoSeleccionado] = useState<'Herramienta' | 'Insumo'>('Herramienta');
     const [modalContenido, setModalContenido] = useState<React.ReactNode>(null);
-
 
     const handleRowClick = (movimiento: any) => {
         const id = movimiento.id;
@@ -98,8 +140,8 @@ const ListarBodega = () => {
             setModalContenido(<ActualizarHerramienta 
                 id={id} 
                 onSuccess={() => {
-                    refetchHerramientas(); // <--- actualiza la lista después de editar
-                    refetchBodega();       // opcional si se refleja en bodega 
+                    refetchHerramientas();
+                    refetchBodega();
                     closeModal();       
                 }}/>);
         } else {
@@ -109,10 +151,16 @@ const ListarBodega = () => {
         setIsModalOpen(true);
     };
 
+    const handleItemClick = (item: any) => {
+        setSelectedItem(item);
+        setIsDetailModalOpen(true);
+    };
+
     const closeModal = () => {
         setSelectedMovimiento(null);
         setModalContenido(null);
         setIsModalOpen(false);
+        setIsDetailModalOpen(false);
     };
 
     const handleCreate = () => {
@@ -178,7 +226,14 @@ const ListarBodega = () => {
                 titulo=""
                 contenido={modalContenido}
             />
-
+            
+            <VentanaModal
+                isOpen={isDetailModalOpen}
+                onClose={closeModal}
+                titulo={""}
+                contenido={<DetalleItemModal item={selectedItem} tipo={tipoSeleccionado} onClose={closeModal} />}
+            />
+        
             <div className="flex p-2 bg-white rounded-2xl py-6 mx-5">
                 <div className="bg-white w-1/5">
                     <label className="font-bold mr-2">Seleccionar tipo:</label>
@@ -201,12 +256,16 @@ const ListarBodega = () => {
 
                 <div className="grid grid-cols-4 ml-6 w-4/5 bg-white gap-4">
                     {items?.map((item) => (
-                        <div key={item.id} className="border shadow-lg rounded p-3 flex justify-between items-center">
+                        <div 
+                            key={item.id} 
+                            className="border shadow-lg rounded p-3 flex justify-between items-center cursor-pointer hover:bg-gray-50"
+                            onClick={() => handleItemClick(item)}
+                        >
                             <div className="flex items-center space-x-4">
                                 {tipoSeleccionado === 'Insumo' && 'img' in item && (
                                     <SafeImage 
                                         src={item.img}
-                                        alt={`Imagen de cada insumo`}
+                                        alt={`Imagen de ${item.nombre}`}
                                         className="w-12 h-12 object-cover rounded-full"
                                     />
                                 )}
@@ -222,7 +281,10 @@ const ListarBodega = () => {
                             </div>
                             <div className="relative">
                                 <button
-                                    onClick={() => handleRowClick(item)}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleRowClick(item);
+                                    }}
                                     className="absolute bottom-0 right-0 px-1 py-1 rounded"
                                 >
                                     <Pencil size={25} color="white" className="bg-green-700 hover:bg-green-900 p-1 rounded-md" />

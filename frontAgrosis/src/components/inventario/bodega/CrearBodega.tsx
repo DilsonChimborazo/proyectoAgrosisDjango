@@ -1,3 +1,5 @@
+// src/pages/bodega/RegistrarSalidaBodega.tsx
+
 import { useCrearBodega } from "@/hooks/inventario/bodega/useCrearBodega";
 import { useNavigate } from "react-router-dom";
 import Formulario from "../../globales/Formulario";
@@ -5,11 +7,11 @@ import { useState } from "react";
 import { Herramientas, Insumos, Asignacion } from "@/hooks/inventario/bodega/useCrearBodega";
 
 interface Props {
-    id: number
+    id: number;
     herramientas: Herramientas[];
     insumos: Insumos[];
     asignaciones: Asignacion[];
-    onSuccess?: () => void; 
+    onSuccess?: () => void;
 }
 
 const RegistrarSalidaBodega = ({ herramientas, insumos, asignaciones }: Props) => {
@@ -33,7 +35,7 @@ const RegistrarSalidaBodega = ({ herramientas, insumos, asignaciones }: Props) =
             type: "select",
             options: [{ value: "", label: "Ninguno" }, ...insumos.map((i) => ({
                 value: i.id.toString(),
-                label: `${i.nombre} `,
+                label: `${i.nombre}`,
             }))],
         },
         {
@@ -50,35 +52,34 @@ const RegistrarSalidaBodega = ({ herramientas, insumos, asignaciones }: Props) =
     ];
 
     const handleSubmit = (formData: any) => {
-        const herramientaId = formData.fk_id_herramientas ? parseInt(formData.fk_id_herramientas) : null;
-        const insumoId = formData.fk_id_insumo ? parseInt(formData.fk_id_insumo) : null;
-        const asignacionId = formData.fk_id_asignacion ? parseInt(formData.fk_id_asignacion) : null;
-    
         const salida = {
-            fk_id_herramientas: herramientaId || null,
-            fk_id_insumo: insumoId || null,
-            fk_id_asignacion: asignacionId || null,
+            fk_id_herramientas: formData.fk_id_herramientas ? parseInt(formData.fk_id_herramientas) : null,
+            fk_id_insumo: formData.fk_id_insumo ? parseInt(formData.fk_id_insumo) : null,
+            fk_id_asignacion: formData.fk_id_asignacion ? parseInt(formData.fk_id_asignacion) : null,
             cantidad: Number(formData.cantidad),
             fecha: formData.fecha,
-            movimiento: "Salida",
+            movimiento: "Salida" as const,
         };
-    
+
         if (!salida.fk_id_herramientas && !salida.fk_id_insumo) {
             setMensaje("Debes seleccionar al menos una herramienta o un insumo.");
             return;
         }
-    
+
         crearMovimientoBodega(salida, {
             onSuccess: () => {
                 setMensaje("Salida registrada exitosamente.");
-                setTimeout(() => navigate("/bodega"), 1500);
+                setTimeout(() => {
+                    navigate("/bodega");
+                    window.location.reload(); // ✅ Recarga la página automáticamente
+                }, 1000);
             },
             onError: (err) => {
                 setMensaje(`Error al registrar salida: ${err.message}`);
             },
         });
     };
-    
+
     return (
         <div className="container">
             <Formulario

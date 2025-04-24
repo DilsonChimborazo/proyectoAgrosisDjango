@@ -76,7 +76,7 @@ const CrearInsumos = ({ onSuccess }: { onSuccess?: () => void }) => {
         const movimientoEntrada = {
           fk_id_insumo: data.data.id,
           cantidad: formData.cantidad,
-          movimiento: "Entrada",
+          movimiento: "Entrada" as const,
           fecha: new Date().toISOString(),
           fk_id_asignacion: null,
           fk_id_herramientas: null,

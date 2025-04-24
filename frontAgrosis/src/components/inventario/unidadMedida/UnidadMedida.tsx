@@ -6,13 +6,29 @@ const UnidadMedida = ({ onSuccess }: { onSuccess?: () => void }) => {
 
     const formFields = [
         { id: "nombre_medida", label: "Nombre de la Medida", type: "text" },
-        { id: "abreviatura", label: "Abreviatura", type: "text" },
+        {
+            id: "unidad_base",
+            label: "Unidad Base",
+            type: "select",
+            options: [
+                { label: "Gramo", value: "g" },
+                { label: "Mililitro", value: "ml" },
+                { label: "Unidad", value: "u" },
+            ],
+        },
+        {
+            id: "factor_conversion",
+            label: "Factor de Conversión",
+            type: "number",
+            step: "0.0001",
+        },
     ];
 
     const handleSubmit = (formData: any) => {
         const nuevaUnidad = {
             nombre_medida: formData.nombre_medida,
-            abreviatura: formData.abreviatura,
+            unidad_base: formData.unidad_base,
+            factor_conversion: parseFloat(formData.factor_conversion),
         };
 
         mutation.mutate(nuevaUnidad, {
@@ -21,7 +37,7 @@ const UnidadMedida = ({ onSuccess }: { onSuccess?: () => void }) => {
                 if (onSuccess) onSuccess();
             },
             onError: () => {
-                console.error("Error al crear la unidad de medida:");
+                console.error("Error al crear la unidad de medida");
             },
         });
     };
