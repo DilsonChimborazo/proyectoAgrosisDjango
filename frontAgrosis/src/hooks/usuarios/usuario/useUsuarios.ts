@@ -27,6 +27,8 @@ export interface Usuario {
   is_active: boolean;
   fk_id_rol: Rol | null; 
   ficha: Ficha | null;
+  img: string | null;
+  img_url: string
 }
 
 // Función para obtener usuarios

@@ -62,7 +62,7 @@ const menuItems = [
 ];
 
 export default function Principal({ children }: LayoutProps) {
-  const [usuario, setUsuario] = useState<{ nombre: string; apellido: string } | null>(null);
+  const [usuario, setUsuario] = useState<{ nombre: string; apellido: string; img?: string; } | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false); 
   const [active, setActive] = useState<string>("");
   const [openMenus, setOpenMenus] = useState<{ [key: string]: boolean }>({});
@@ -195,10 +195,9 @@ export default function Principal({ children }: LayoutProps) {
           <div className="flex items-center space-x-2 sm:space-x-4">
             <Notification size={20} className="text-white" />
             <p className="hidden sm:block"> | </p>
-            <User size={20} className="text-white" />
             <span
               className="text-white cursor-pointer hover:text-yellow-100 text-sm sm:text-base"
-              onClick={() => navigate("/usuarios")}
+              onClick={() => navigate("/perfil")}
             >
               {usuario ? `${usuario?.nombre || "Nombre no disponible"} ${usuario?.apellido || "Apellido no disponible"}` : "Usuario no identificado"}
             </span>

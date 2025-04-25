@@ -68,7 +68,7 @@ const Usuarios = () => {
     }
   };
 
-  const headers = ["ID", "identificacion", "Nombre", "Apellido", "Email", "Rol", 'Ficha', "Estado"];
+  const headers = ["ID", "Imagen", "identificacion", "Nombre", "Apellido", "Email", "Rol", 'Ficha', "Estado"];
 
   return (
     <div className="overflow-x-auto rounded-lg p-4">
@@ -105,6 +105,19 @@ const Usuarios = () => {
           headers={headers}
           data={usuarios.map((usuario) => ({
             id: usuario.id,
+            imagen: (
+              <img
+              src={usuario.img_url || "http://localhost:8000/media/imagenes/defecto.png"}
+                alt="foto"
+                className="w-10 h-7 md:w-10 md:h-7 rounded-full object-cover"
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  if (!target.src.includes("defecto.png")) {
+                    target.src = "imagenes/defecto.png";
+                  }
+                }}
+              />
+            ),  
             identificacion: usuario.identificacion,
             nombre: usuario.nombre,
             apellido: usuario.apellido,
