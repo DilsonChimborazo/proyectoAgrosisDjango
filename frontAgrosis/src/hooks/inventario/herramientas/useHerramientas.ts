@@ -6,7 +6,7 @@
     export interface Herramientas{
         id: number;
         nombre_h: string;
-        cantidad: number;
+        cantidad_herramienta: number;
         estado: 'Disponible' | 'Prestado' | 'En reparacion';
 
     }

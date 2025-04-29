@@ -65,7 +65,8 @@ from apps.inventario.herramientas.api.routers import router_herramientas
 from apps.inventario.insumo.api.routers import router_insumo
 from apps.inventario.bodega.api.routers import routerBodega
 from apps.inventario.unidadMedida.api.routers import routerUnidadMedida
-
+from apps.inventario.insumoCompuesto.api.routers import router_insumo_compuesto
+from apps.inventario.detalleInsumoCompuesto.api.routers import detalleInsumoCompuesto_router
 
 #rutas de IoT
 from apps.iot.eras.api.router import router_Eras
@@ -137,6 +138,8 @@ urlpatterns = [
     path('api/', include(router_insumo.urls)),
     path('api/', include(routerBodega.urls)),
     path('api/', include(routerUnidadMedida.urls)),
+    path('api/', include(router_insumo_compuesto.urls)),
+    path('api/', include(detalleInsumoCompuesto_router.urls)),
 ]
 
 if settings.DEBUG:

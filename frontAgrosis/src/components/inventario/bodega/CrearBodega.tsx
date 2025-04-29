@@ -4,12 +4,12 @@ import { useCrearBodega } from "@/hooks/inventario/bodega/useCrearBodega";
 import { useNavigate } from "react-router-dom";
 import Formulario from "../../globales/Formulario";
 import { useState } from "react";
-import { Herramientas, Insumos, Asignacion } from "@/hooks/inventario/bodega/useCrearBodega";
+import { Herramientas, Insumo, Asignacion } from "@/hooks/inventario/bodega/useCrearBodega";
 
 interface Props {
     id: number;
     herramientas: Herramientas[];
-    insumos: Insumos[];
+    insumos: Insumo[];
     asignaciones: Asignacion[];
     onSuccess?: () => void;
 }
@@ -30,6 +30,11 @@ const RegistrarSalidaBodega = ({ herramientas, insumos, asignaciones }: Props) =
             }))],
         },
         {
+            id: "cantidad_herramienta",
+            label: "Cantidad de Herramienta",
+            type: "number",
+        },
+        {
             id: "fk_id_insumo",
             label: "Insumo",
             type: "select",
@@ -37,6 +42,11 @@ const RegistrarSalidaBodega = ({ herramientas, insumos, asignaciones }: Props) =
                 value: i.id.toString(),
                 label: `${i.nombre}`,
             }))],
+        },
+        {
+            id: "cantidad_insumo",
+            label: "Cantidad de Insumo",
+            type: "number",
         },
         {
             id: "fk_id_asignacion",
@@ -47,7 +57,6 @@ const RegistrarSalidaBodega = ({ herramientas, insumos, asignaciones }: Props) =
                 label: `Asignación ${a.fecha_programada}`,
             })),
         },
-        { id: "cantidad", label: "Cantidad a retirar", type: "number" },
         { id: "fecha", label: "Fecha de salida", type: "date" },
     ];
 
@@ -56,7 +65,8 @@ const RegistrarSalidaBodega = ({ herramientas, insumos, asignaciones }: Props) =
             fk_id_herramientas: formData.fk_id_herramientas ? parseInt(formData.fk_id_herramientas) : null,
             fk_id_insumo: formData.fk_id_insumo ? parseInt(formData.fk_id_insumo) : null,
             fk_id_asignacion: formData.fk_id_asignacion ? parseInt(formData.fk_id_asignacion) : null,
-            cantidad: Number(formData.cantidad),
+            cantidad_herramienta: Number(formData.cantidad_herramienta) || 0,
+            cantidad_insumo: Number(formData.cantidad_insumo) || 0,
             fecha: formData.fecha,
             movimiento: "Salida" as const,
         };
@@ -71,7 +81,7 @@ const RegistrarSalidaBodega = ({ herramientas, insumos, asignaciones }: Props) =
                 setMensaje("Salida registrada exitosamente.");
                 setTimeout(() => {
                     navigate("/bodega");
-                    window.location.reload(); // ✅ Recarga la página automáticamente
+                    window.location.reload();
                 }, 1000);
             },
             onError: (err) => {

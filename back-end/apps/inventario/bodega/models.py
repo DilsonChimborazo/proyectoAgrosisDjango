@@ -7,16 +7,17 @@ from decimal import Decimal
 
 
 class Bodega(models.Model):
-    movimientos =[
+    movimientos = [
         ('Entrada', 'Entrada'),
         ('Salida', 'Salida'),
     ]
     fk_id_herramientas = models.ForeignKey(Herramientas, on_delete=models.SET_NULL, null=True)
     fk_id_insumo = models.ForeignKey(Insumo, on_delete=models.SET_NULL, null=True)
     fk_id_asignacion = models.ForeignKey(Asignacion_actividades, on_delete=models.SET_NULL, null=True)
-    cantidad = models.PositiveIntegerField(default=1)
+    cantidad_herramienta = models.PositiveIntegerField(default=0)  # Cambiado a 0 como valor por defecto
+    cantidad_insumo = models.PositiveIntegerField(default=0)  # Cambiado a 0 como valor por defecto
     fecha = models.DateTimeField(auto_now_add=True)
-    movimiento =  models.CharField(max_length=20, choices=movimientos, default='Entrada')
+    movimiento = models.CharField(max_length=20, choices=movimientos, default='Entrada')
     fk_unidad_medida = models.ForeignKey(UnidadMedida, on_delete=models.SET_NULL, null=True)
     
     cantidad_en_base = models.DecimalField(
@@ -35,34 +36,36 @@ class Bodega(models.Model):
         help_text="Costo total del insumo en base a la cantidad base y precio por base"
     )
 
+    @property
+    def cantidad(self):
+        """Propiedad para compatibilidad con código existente que usa 'cantidad'"""
+        return self.cantidad_herramienta if self.fk_id_herramientas else self.cantidad_insumo
+
     def save(self, *args, **kwargs):
         # Calcular la cantidad en base si hay unidad de medida
         if self.fk_unidad_medida:
-            self.cantidad_en_base = self.fk_unidad_medida.convertir_a_base(self.cantidad)
+            cantidad = self.cantidad_herramienta if self.fk_id_herramientas else self.cantidad_insumo
+            self.cantidad_en_base = self.fk_unidad_medida.convertir_a_base(cantidad)
 
         # Calcular el costo total del insumo usando el precio_por_base del insumo
-        if self.fk_id_insumo:
-            precio_por_base = self.fk_id_insumo.precio_por_base  
-            if self.cantidad_en_base and precio_por_base:
-                self.costo_insumo = Decimal(self.cantidad_en_base) * precio_por_base
+        if self.fk_id_insumo and self.cantidad_en_base and self.fk_id_insumo.precio_por_base:
+            self.costo_insumo = Decimal(self.cantidad_en_base) * self.fk_id_insumo.precio_por_base
 
-        # Verificar si el movimiento es de tipo 'Salida' y si está asociada una herramienta
-        if self.movimiento == 'Salida' and self.fk_id_herramientas:
+        # Manejo de movimientos de herramientas
+        if self.fk_id_herramientas:
             herramienta = self.fk_id_herramientas
-            if herramienta.cantidad >= self.cantidad:
-                herramienta.cantidad -= self.cantidad
+            if self.movimiento == 'Salida':
+                if herramienta.cantidad_herramienta >= self.cantidad_herramienta:
+                    herramienta.cantidad_herramienta -= self.cantidad_herramienta
+                    herramienta.save()
+                else:
+                    raise ValueError("La cantidad a retirar excede la cantidad disponible en herramientas")
+            elif self.movimiento == 'Entrada':
+                herramienta.cantidad_herramienta += self.cantidad_herramienta
                 herramienta.save()
-            else:
-                raise ValueError("La cantidad a retirar excede la cantidad disponible en herramientas")
-
-        # Si es una Entrada, puedes aumentar la cantidad también
-        elif self.movimiento == 'Entrada' and self.fk_id_herramientas:
-            herramienta = self.fk_id_herramientas
-            herramienta.cantidad += self.cantidad
-            herramienta.save()
 
         super().save(*args, **kwargs)
 
-
     def __str__(self):
-        return f"{self.movimiento} - {self.cantidad} {self.fk_unidad_medida} - {self.fecha}"
+        cantidad = self.cantidad_herramienta if self.fk_id_herramientas else self.cantidad_insumo
+        return f"{self.movimiento} - {cantidad} {self.fk_unidad_medida} - {self.fecha}"

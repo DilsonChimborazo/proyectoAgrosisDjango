@@ -3,5 +3,5 @@ from apps.inventario.herramientas.models import Herramientas
 
 @admin.register(Herramientas)
 class HerramientasAdmin(admin.ModelAdmin):
-    list_display = ('nombre_h','cantidad','estado') 
+    list_display = ('nombre_h','cantidad_herramienta','estado') 
     

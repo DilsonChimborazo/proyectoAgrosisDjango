@@ -17,12 +17,12 @@ class HerramientasViewSet(ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         instancia = self.get_object()
-        cantidad_anterior = instancia.cantidad
+        cantidad_anterior = instancia.cantidad_herramienta
 
         serializer = self.get_serializer(instancia, data=request.data, partial=False)
         serializer.is_valid(raise_exception=True)
 
-        cantidad_nueva = serializer.validated_data.get('cantidad', cantidad_anterior)
+        cantidad_nueva = serializer.validated_data.get('cantidad_herramienta', cantidad_anterior)
         movimiento = request.data.get('movimiento', 'entrada').lower()
 
         # Determinar la cantidad de movimiento real
@@ -31,24 +31,21 @@ class HerramientasViewSet(ModelViewSet):
                 raise ValidationError({
                     "error": f"No hay suficiente stock. Disponible: {cantidad_anterior}, Intentando restar: {cantidad_nueva}"
                 })
-            cantidad_movimiento = cantidad_nueva
+            cantidad_movimiento = cantidad_anterior - cantidad_nueva
         else:
-            cantidad_movimiento = cantidad_nueva
+            cantidad_movimiento = cantidad_nueva - cantidad_anterior
 
-        # Registrar el movimiento en bodega — aquí se gestiona el cambio real de stock
+        # Registrar el movimiento en bodega
         Bodega.objects.create(
             fk_id_herramientas=instancia,
             movimiento=movimiento.capitalize(),
-            cantidad=cantidad_movimiento,
+            cantidad_herramienta=cantidad_movimiento,  # Usando el campo correcto
             fecha=timezone.now()
         )
 
-        # Refrescar el objeto para ver los cambios actualizados por el modelo Bodega
         instancia.refresh_from_db()
         serializer = self.get_serializer(instancia)
-
         return Response(serializer.data)
-
     
     @action(detail=False, methods=['get'], url_path='reporte-estado')
     def reporte_estado(self, request):

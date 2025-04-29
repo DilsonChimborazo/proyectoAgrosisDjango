@@ -17,14 +17,14 @@ const CrearHerramientas = ({ onSuccess }: { onSuccess?: () => void }) => {
                 { value: "Disponible", label: "Disponible" },
             ]
         },
-        { id: "cantidad", label: "Cantidad", type: "number" },
+        { id: "cantidad_herramienta", label: "Cantidad", type: "number" },
     ];
 
     const handleSubmit = (formData: any) => {
         const nuevaHerramienta = {
             nombre_h: formData.nombre_h,
             estado: formData.estado,
-            cantidad: Number(formData.cantidad),
+            cantidad_herramienta: Number(formData.cantidad_herramienta),
         };
 
         // Primero creamos la herramienta
@@ -35,7 +35,7 @@ const CrearHerramientas = ({ onSuccess }: { onSuccess?: () => void }) => {
                 // Crear movimiento de entrada en la bodega después de la creación de la herramienta
                 const movimientoEntrada = {
                     fk_id_herramientas: data.data.id, 
-                    cantidad: nuevaHerramienta.cantidad,
+                    cantidad: nuevaHerramienta.cantidad_herramienta,
                     movimiento: 'Entrada'as const, 
                     fecha: new Date().toISOString(),
                     fk_id_asignacion: null, 

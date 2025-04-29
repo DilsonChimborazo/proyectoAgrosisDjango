@@ -17,7 +17,7 @@ const ActualizarHerramienta: React.FC<Props> = ({ id, onSuccess }) => {
     const [formData, setFormData] = useState({
         nombre_h: "",
         estado: "",
-        cantidad: "",
+        cantidad_herramienta: "",
     });
 
     // Actualizar el estado del formulario cuando los datos de la herramienta se carguen
@@ -26,42 +26,42 @@ const ActualizarHerramienta: React.FC<Props> = ({ id, onSuccess }) => {
             setFormData({
                 nombre_h: herramienta.nombre_h || "",
                 estado: herramienta.estado || "",
-                cantidad: herramienta.cantidad?.toString() || "0",
+                cantidad_herramienta: herramienta.cantidad_herramienta?.toString() || "0",
             });
         }
     }, [herramienta]);
 
     // Función para manejar el envío del formulario
-    const handleSubmit = (data: { [key: string]: string }) => {
+    const handleSubmit = (data: { [key: string]: string | File }) => {
         console.log("📦 Datos recibidos del formulario:", data);
+    
         const herramientaActualizada = {
-            id,  
-            nombre_h: data.nombre_h.trim(),
-            estado: data.estado.trim(),
-            cantidad: parseInt(data.cantidad, 10),
+            id,
+            nombre_h: (data.nombre_h as string).trim(),
+            estado: (data.estado as string).trim() as "Disponible" | "Prestado" | "En reparacion",
+            cantidad_herramienta: parseInt(data.cantidad_herramienta as string, 10),
         };
-
-        // Validación de los datos antes de enviar
+    
         if (
             !herramientaActualizada.nombre_h ||
             !herramientaActualizada.estado ||
-            isNaN(herramientaActualizada.cantidad)
+            isNaN(herramientaActualizada.cantidad_herramienta)
         ) {
             console.error("⚠️ Datos inválidos. No se enviará la actualización.");
             return;
         }
-
-        // Llamar a la mutación para actualizar la herramienta
+    
         actualizarHerramienta.mutate(herramientaActualizada, {
             onSuccess: () => {
                 console.log("✅ Herramienta actualizada correctamente");
-                onSuccess();  
+                onSuccess();
             },
             onError: (error) => {
                 console.error("❌ Error al actualizar la herramienta", error);
-            }
+            },
         });
     };
+    
 
     // Manejo de estado de carga y error
     if (isLoading) return <div className="text-gray-500">Cargando datos...</div>;
@@ -83,7 +83,7 @@ const ActualizarHerramienta: React.FC<Props> = ({ id, onSuccess }) => {
                             { value: "En reparacion", label: "En reparación" },
                         ],
                     },
-                    { id: "cantidad", label: "Cantidad", type: "number" },
+                    { id: "cantidad_herramienta", label: "Cantidad", type: "number" },
                 ]}
                 onSubmit={handleSubmit}  // Función para manejar el envío del formulario
                 initialValues={formData}  // Valores iniciales del formulario

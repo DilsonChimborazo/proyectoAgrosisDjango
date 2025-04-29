@@ -9,7 +9,8 @@ export interface MovimientoBodegaPayload {
     fk_id_herramientas: number | null;
     fk_id_insumo: number | null;
     fk_id_asignacion: number | null;
-    cantidad: number;
+    cantidad_insumo: number;
+    cantidad_herramienta: number,
     fecha: string;
     movimiento: 'Entrada' | 'Salida';
 }
@@ -17,25 +18,26 @@ export interface MovimientoBodegaPayload {
 export interface Herramientas {
     id: number;
     nombre_h: string;
-    cantidad: number;
+    cantidad_herramienta: number;
     estado: 'Disponible' | 'Prestado' | 'En reparacion';
 }
 
 export interface UnidadMedida {
-    id: number;
     nombre_medida: string;
-    abreviatura: string;
+    unidad_base: 'g' | 'ml' | 'u';  
+    factor_conversion: number;
 }
 
-export interface Insumos {
-    id: number;
-    nombre: string;
-    tipo: string;
-    precio_unidad: number;
-    cantidad: number;
-    fecha_vencimiento: string;
-    img: string;
-    fk_unidad_medida: UnidadMedida;
+export interface Insumo{
+    id: number
+    nombre: string
+    tipo: string
+    precio_unidad: number
+    cantidad_insumo: number
+    fecha_vencimiento: string
+    img: string | null | undefined ;
+    fk_unidad_medida: UnidadMedida
+    precio_por_base: number; 
 }
 
 export interface Asignacion {

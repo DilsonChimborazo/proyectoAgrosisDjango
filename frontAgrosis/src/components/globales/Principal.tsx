@@ -224,7 +224,7 @@ export default function Principal({ children }: LayoutProps) {
               </div>
               <div>Regional Pitalito-Huila</div>
             </div>
-        </footer>
+          </footer>
         </div>
 
       </div>

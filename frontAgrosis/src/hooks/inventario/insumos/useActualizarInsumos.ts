@@ -3,53 +3,74 @@ import axios from "axios";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
+export interface UnidadMedida {
+    nombre_medida: string;
+    unidad_base: 'g' | 'ml' | 'u';
+    factor_conversion: number;
+}
+
 export interface Insumo {
     id: number;
     nombre: string;
     tipo: string;
     precio_unidad: number;
-    stock: number;
-    unidad_medida: string;
+    cantidad_insumo: number;
+    fecha_vencimiento?: string | null;
+    img?: File | null; // Puede ser un archivo nuevo o no enviar nada
+    fk_unidad_medida: UnidadMedida | number; // Puede venir como objeto o solo el ID
 }
 
 export const useActualizarInsumos = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (eraActualizada: Insumo) => {
-            const { id, ...datos } = eraActualizada;
+        mutationFn: async (insumoActualizado: Insumo) => {
+            const { id, fk_unidad_medida, ...datosSinUnidad } = insumoActualizado;
 
-            // Validar antes de enviar
+            // Validación de campos
             if (
-                !datos.nombre.trim() ||
-                !datos.tipo.trim() ||
-                !datos.unidad_medida.trim() ||
-                datos.precio_unidad < 0 ||
-                datos.stock < 0
+                !datosSinUnidad.nombre.trim() ||
+                !datosSinUnidad.tipo.trim() ||
+                datosSinUnidad.precio_unidad < 0 ||
+                datosSinUnidad.cantidad_insumo < 0 ||
+                !datosSinUnidad.fecha_vencimiento
             ) {
                 throw new Error("⚠️ Datos inválidos. Verifica los campos del insumo.");
             }
 
-            console.log("📝 Enviando datos para actualizar:", datos);
-
-            // Obtener token de localStorage o de donde lo estés guardando
             const token = localStorage.getItem("token");
+            if (!token) throw new Error("⚠️ Token de autenticación no encontrado.");
 
-            if (!token) {
-                throw new Error("⚠️ Token de autenticación no encontrado.");
+            // Crear FormData
+            const formData = new FormData();
+            formData.append("nombre", datosSinUnidad.nombre);
+            formData.append("tipo", datosSinUnidad.tipo);
+            formData.append("precio_unidad", String(datosSinUnidad.precio_unidad));
+            formData.append("cantidad", String(datosSinUnidad.cantidad_insumo));
+            formData.append("fecha_vencimiento", datosSinUnidad.fecha_vencimiento || "");
+
+            // Enviar ID o extraerlo del objeto
+            const unidadMedidaId = typeof fk_unidad_medida === "number"
+                ? fk_unidad_medida
+                : (fk_unidad_medida as any).id || (fk_unidad_medida as any).pk || 1;
+
+            formData.append("fk_unidad_medida", String(unidadMedidaId));
+
+            if (datosSinUnidad.img instanceof File) {
+                formData.append("img", datosSinUnidad.img);
             }
 
             try {
-                const { data } = await axios.put(`${apiUrl}insumo/${id}/`, datos, {
+                const { data } = await axios.patch(`${apiUrl}insumo/${id}/`, formData, {
                     headers: {
-                        "Content-Type": "application/json",
+                        "Content-Type": "multipart/form-data",
                         "Authorization": `Bearer ${token}`,
                     },
                 });
                 return data;
             } catch (error: any) {
                 console.error("❌ Error en la solicitud:", error.response?.data || error.message);
-                throw error;
+                throw new Error(error.response?.data?.detail || "Error al actualizar el insumo");
             }
         },
         onSuccess: () => {

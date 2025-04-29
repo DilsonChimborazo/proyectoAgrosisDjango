@@ -95,7 +95,9 @@ INSTALLED_APPS = [
     'apps.inventario.insumo',
     'apps.inventario.bodega',
     'apps.inventario.unidadMedida',
-    
+    'apps.inventario.detalleInsumoCompuesto',
+    'apps.inventario.insumoCompuesto'
+
 
 ]
 

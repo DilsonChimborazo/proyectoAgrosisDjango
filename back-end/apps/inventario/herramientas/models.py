@@ -8,7 +8,7 @@ class Herramientas (models.Model):
         ('En reparación', 'En reparación')
     ]
     nombre_h = models.CharField(max_length=500)
-    cantidad = models.IntegerField()
+    cantidad_herramienta = models.IntegerField()
     estado = models.CharField(max_length=50 ,choices=estados, null=True)
     
 
