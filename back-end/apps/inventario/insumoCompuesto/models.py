@@ -8,7 +8,7 @@ class InsumoCompuesto(models.Model):
 
     def __str__(self):
         return self.nombre
-
+    
     def crear_compuesto(self):
         """
         Método para descontar automáticamente las cantidades de los insumos base

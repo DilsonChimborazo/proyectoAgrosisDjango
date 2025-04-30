@@ -98,7 +98,7 @@ export default function Principal({ children }: LayoutProps) {
   };
 
   return (
-    <div className="relative flex h-screen w-full overflow-x-hidden">
+    <div className="relative flex h-screen w-full  overflow-x-hidden">
     {/* Imagen de fondo con opacidad */}
     <div className="absolute inset-0">
       <img src="/fondo.jpg" alt="Fondo" className="w-full h-full object-cover" />

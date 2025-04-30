@@ -19,7 +19,7 @@ export interface Insumo{
     fecha_vencimiento: string
     img: string | null | undefined ;
     fk_unidad_medida: UnidadMedida
-    precio_por_base: number; // ✅ Agrega esto
+    precio_por_base: number;
 }
 
 const fetch = async (): Promise<Insumo[]> => {

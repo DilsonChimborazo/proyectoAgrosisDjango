@@ -76,7 +76,7 @@ const ListarInsumos = () => {
     nombre: i.nombre,
     tipo: i.tipo,
     precio_unidad: i.precio_unidad ? `$${i.precio_unidad.toLocaleString()}` : '$0',
-    stock: i.cantidad,
+    stock: i.cantidad_insumo,
     fecha_vencimiento: i.fecha_vencimiento,
     unidad_medida: i.fk_unidad_medida 
     ? `${i.fk_unidad_medida.nombre_medida} (${i.fk_unidad_medida.unidad_base})` 
