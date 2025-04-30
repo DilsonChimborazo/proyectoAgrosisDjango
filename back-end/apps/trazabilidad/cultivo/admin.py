@@ -3,6 +3,7 @@ from apps.trazabilidad.cultivo.models import Cultivo
 
 @admin.register(Cultivo)
 class CultivoAdmin(admin.ModelAdmin):
+
     list_display = (
         'nombre_cultivo', 
         'fecha_plantacion_formateada', 
@@ -29,3 +30,4 @@ class CultivoAdmin(admin.ModelAdmin):
     def semillero_info(self, obj):
         return str(obj.fk_id_semillero) if obj.fk_id_semillero else 'Sin semillero'
     semillero_info.short_description = 'Semillero'
+
