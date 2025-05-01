@@ -47,7 +47,7 @@ const CrearHerramientas = ({ onSuccess }: { onSuccess?: () => void }) => {
                     onSuccess: (response) => {
                         console.log("este es el movimiento de entrada",response)
                         if (onSuccess) {
-                            onSuccess(); 
+                            onSuccess();
                         }
                         navigate("/bodega"); // Redirigir a la página de bodega
                     },

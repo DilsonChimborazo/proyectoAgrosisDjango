@@ -19,6 +19,7 @@ export interface Insumo{
     fecha_vencimiento: string
     img: string | null | undefined ;
     fk_unidad_medida: UnidadMedida
+    es_compuesto: boolean;
     precio_por_base: number;
 }
 

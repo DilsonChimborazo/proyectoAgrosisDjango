@@ -40,6 +40,7 @@ export interface Asignacion {
 
 export interface Bodega {
     id: number;
+    onSuccess: () => void;
     fk_id_herramientas: Herramientas | null;
     fk_id_insumo: Insumos | null;
     fk_id_asignacion: Asignacion | null;

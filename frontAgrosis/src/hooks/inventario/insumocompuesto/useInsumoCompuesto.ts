@@ -31,7 +31,7 @@ export interface DetalleInsumoCompuesto {
 export interface InsumoCompuesto {
     id: number;
     nombre: string;
-    fk_unidad_medida: number | null; 
+    fk_unidad_medida: UnidadMedida | null; 
     unidad_medida_info: UnidadMedida | null; 
     precio_unidad: number | null;
     detalles: DetalleInsumoCompuesto[];

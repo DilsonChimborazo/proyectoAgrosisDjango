@@ -16,22 +16,23 @@ import RegistrarSalidaBodega from "./CrearBodega";
 import { useHerramientas } from "@/hooks/inventario/herramientas/useHerramientas";
 import { useInsumo } from "@/hooks/inventario/insumos/useInsumo";
 import { useAsignacion } from "@/hooks/trazabilidad/asignacion/useAsignacion";
+import { useInsumoCompuesto } from '@/hooks/inventario/insumocompuesto/useInsumoCompuesto';
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
 // Interfaces 
-interface Herramienta {
-    id: number;
-    nombre_h: string;
-    cantidad_herramienta: number;
-    estado: 'Disponible' | 'Prestado' | 'En reparacion';
-}
-
 interface UnidadMedida {
     id: number;
     nombre_medida: string;
     unidad_base: 'g' | 'ml' | 'u';
     factor_conversion: number;
+}
+
+interface Herramienta {
+    id: number;
+    nombre_h: string;
+    cantidad_herramienta: number;
+    estado: 'Disponible' | 'Prestado' | 'En reparacion';
 }
 
 interface Insumo {
@@ -42,7 +43,7 @@ interface Insumo {
     precio_por_base: number;
     cantidad_insumo: number | null;
     fecha_vencimiento: string;
-    img: string | null | undefined | File;
+    img: string | null | undefined;
     fk_unidad_medida: UnidadMedida;
 }
 
@@ -69,7 +70,37 @@ interface MovimientoBodega {
     costo_insumo: number | null;
 }
 
-// Componente SafeImage 
+interface DetalleInsumoCompuesto {
+    id: number;
+    cantidad_utilizada: number;
+    insumo: Insumo; 
+}
+
+interface InsumoCompuesto {
+    id: number;
+    nombre: string;
+    fk_unidad_medida: UnidadMedida | null;
+    unidad_medida_info: UnidadMedida | null;
+    precio_unidad: number | null;
+    detalles: DetalleInsumoCompuesto[];
+    cantidad_insumo?: number;
+    nombre_h?: never; // Para evitar conflicto con Herramienta
+}
+
+// Type guards
+function isHerramienta(item: Herramienta | Insumo | InsumoCompuesto): item is Herramienta {
+    return 'nombre_h' in item && !('detalles' in item);
+}
+
+function isInsumo(item: Herramienta | Insumo | InsumoCompuesto): item is Insumo {
+    return 'nombre' in item && !('detalles' in item);
+}
+
+function isInsumoCompuesto(item: Herramienta | Insumo | InsumoCompuesto): item is InsumoCompuesto {
+    return 'detalles' in item;
+}
+
+// Componente SafeImage
 const SafeImage = ({ src, alt, className, placeholderText = 'Sin imagen' }: { 
     src: string | null | undefined, 
     alt: string, 
@@ -112,14 +143,22 @@ const SafeImage = ({ src, alt, className, placeholderText = 'Sin imagen' }: {
     return <img src={imageSrc} alt={alt} className={className} onError={() => setHasError(true)} />;
 };
 
-const DetalleItemModal = ({ item, tipo, onClose }: { item: any, tipo: 'Herramienta' | 'Insumo', onClose: () => void }) => {
+const DetalleItemModal = ({ item, tipo }: { 
+    item: Herramienta | Insumo | InsumoCompuesto, 
+    tipo: 'Herramienta' | 'Insumo', 
+    onClose: () => void 
+}) => {
+    const esInsumoCompuesto = isInsumoCompuesto(item);
+    
     return (
         <div className="p-4">
-            <h2 className="text-xl font-bold mb-4">Detalles del {tipo}</h2>
+            <h2 className="text-xl font-bold mb-4">
+                {esInsumoCompuesto ? 'Detalles del Insumo Compuesto' : `Detalles del ${tipo}`}
+            </h2>
             
             <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-1">
-                    {tipo === 'Insumo' && (
+                    {!esInsumoCompuesto && isInsumo(item) && item.img && (
                         <SafeImage 
                             src={item.img}
                             alt={`Imagen de ${item.nombre}`}
@@ -129,19 +168,48 @@ const DetalleItemModal = ({ item, tipo, onClose }: { item: any, tipo: 'Herramien
                 </div>
                 
                 <div className="col-span-1 space-y-3">
-                    <p><span className="font-semibold">Nombre:</span> {tipo === 'Herramienta' ? item.nombre_h : item.nombre}</p>
-                    <p><span className="font-semibold">Cantidad:</span> {tipo === 'Herramienta' ? item.cantidad_herramienta : item.cantidad_insumo}</p>
+                    <p><span className="font-semibold">Nombre:</span> {
+                        isHerramienta(item) ? item.nombre_h : 
+                        isInsumo(item) ? item.nombre : 
+                        item.nombre
+                    }</p>
                     
-                    {tipo === 'Insumo' && item.fecha_vencimiento && (
+                    <p><span className="font-semibold">Cantidad:</span> {
+                        isHerramienta(item) ? item.cantidad_herramienta :
+                        isInsumo(item) ? item.cantidad_insumo :
+                        item.cantidad_insumo ?? 'N/A'
+                    }</p>
+                    
+                    {esInsumoCompuesto && item.unidad_medida_info && (
+                        <p>
+                            <span className="font-semibold">Unidad de medida:</span> 
+                            {` ${item.unidad_medida_info.nombre_medida} (${item.unidad_medida_info.unidad_base})`}
+                        </p>
+                    )}
+                    
+                    {isInsumo(item) && item.fecha_vencimiento && (
                         <p><span className="font-semibold">Fecha de vencimiento:</span> {new Date(item.fecha_vencimiento).toLocaleDateString()}</p>
                     )}
                     
-                    {tipo === 'Insumo' && item.fk_unidad_medida && (
+                    {isInsumo(item) && item.fk_unidad_medida && (
                         <p><span className="font-semibold">Unidad de medida:</span> {item.fk_unidad_medida.nombre_medida}</p>
                     )}
                     
-                    {tipo === 'Herramienta' && item.estado && (
+                    {isHerramienta(item) && item.estado && (
                         <p><span className="font-semibold">Estado:</span> {item.estado}</p>
+                    )}
+                    
+                    {esInsumoCompuesto && (
+                        <div>
+                            <p className="font-semibold">Componentes:</p>
+                            <ul className="list-disc list-inside pl-2 space-y-1">
+                                {item.detalles.map((detalle) => (
+                                    <li key={detalle.id}>
+                                        {detalle.insumo?.nombre || 'Insumo desconocido'} - {detalle.cantidad_utilizada} {detalle.insumo?.fk_unidad_medida?.unidad_base || ''}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
                     )}
                 </div>
             </div>
@@ -165,9 +233,10 @@ const ListarBodega = () => {
     const { data: herramientas, refetch: refetchHerramientas } = useHerramientas();
     const { data: insumos, refetch: refetchInsumos } = useInsumo();
     const { data: asignaciones, refetch: refetchAsignacion } = useAsignacion();
+    const { data: insumosCompuestos } = useInsumoCompuesto();
 
-    const [selectedMovimiento, setSelectedMovimiento] = useState<MovimientoBodega | null>(null);
-    const [selectedItem, setSelectedItem] = useState<Herramienta | Insumo | null>(null);
+    const [, setSelectedMovimiento] = useState<MovimientoBodega | null>(null);
+    const [selectedItem, setSelectedItem] = useState<Herramienta | Insumo | InsumoCompuesto | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const [tipoSeleccionado, setTipoSeleccionado] = useState<'Herramienta' | 'Insumo'>('Herramienta');
@@ -194,7 +263,7 @@ const ListarBodega = () => {
         setIsModalOpen(true);
     };
 
-    const handleItemClick = (item: Herramienta | Insumo) => {
+    const handleItemClick = (item: Herramienta | Insumo | InsumoCompuesto) => {
         setSelectedItem(item);
         setIsDetailModalOpen(true);
     };
@@ -252,8 +321,8 @@ const ListarBodega = () => {
         if (!terminoDebounced) return items || [];
         
         return items.filter(item => {
-            const nombre = 'nombre_h' in item ? item.nombre_h : item.nombre;
-            const tipo = 'tipo' in item ? item.tipo : '';
+            const nombre = isHerramienta(item) ? item.nombre_h : item.nombre;
+            const tipo = isInsumo(item) ? item.tipo : '';
             return (
                 nombre?.toLowerCase().includes(terminoDebounced.toLowerCase()) ||
                 tipo?.toLowerCase().includes(terminoDebounced.toLowerCase())
@@ -420,91 +489,154 @@ const ListarBodega = () => {
             </div>
 
             {viewMode === 'items' ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                    {itemsFiltrados.length > 0 ? (
-                        itemsFiltrados.map((item) => {
-                            const esHerramienta = tipoSeleccionado === 'Herramienta';
-                            const esInsumo = tipoSeleccionado === 'Insumo';
+                <div className="space-y-8">
+                    {/* Sección de Herramientas/Insumos normales */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                        {itemsFiltrados.length > 0 ? (
+                            itemsFiltrados.map((item) => {
+                                const esHerramienta = isHerramienta(item);
+                                const esInsumo = isInsumo(item);
 
-                            let cantidad = 0;
-                            if (esHerramienta && 'cantidad_herramienta' in item) {
-                                cantidad = Number(item.cantidad_herramienta) || 0;
-                            } else if (esInsumo && 'cantidad_insumo' in item) {
-                                cantidad = item.cantidad_insumo !== null ? Number(item.cantidad_insumo) : 0;
-                            }
+                                let cantidad = 0;
+                                if (esHerramienta) {
+                                    cantidad = Number(item.cantidad_herramienta) || 0;
+                                } else if (esInsumo) {
+                                    cantidad = item.cantidad_insumo !== null ? Number(item.cantidad_insumo) : 0;
+                                }
 
-                            const fechaVencimiento = esInsumo && 'fecha_vencimiento' in item ? item.fecha_vencimiento : null;
+                                const fechaVencimiento = esInsumo ? item.fecha_vencimiento : null;
 
-                            let cantidadClass = "text-white font-bold rounded-full px-3 py-1 text-center ";
-                            if (cantidad <= 5) {
-                                cantidadClass += "bg-red-500";
-                            } else if (cantidad <= 10) {
-                                cantidadClass += "bg-yellow-500";
-                            } else {
-                                cantidadClass += "bg-green-500";
-                            }
+                                let cantidadClass = "text-white font-bold rounded-full px-3 py-1 text-center ";
+                                if (cantidad <= 5) {
+                                    cantidadClass += "bg-red-500";
+                                } else if (cantidad <= 10) {
+                                    cantidadClass += "bg-yellow-500";
+                                } else {
+                                    cantidadClass += "bg-green-500";
+                                }
 
-                            return (
-                                <div 
-                                    key={item.id} 
-                                    className="shadow-lg rounded-lg p-4 flex flex-col justify-between cursor-pointer bg-white hover:bg-blue-50 transition-colors hover:shadow-xl border border-gray-200"
-                                    onClick={() => handleItemClick(item)}
-                                >
-                                    <div className="flex flex-col h-full">
-                                        {esInsumo && 'img' in item && item.img && (
-                                            <SafeImage 
-                                                src={item.img}
-                                                alt={`Imagen de ${item.nombre}`}
-                                                className="w-full h-32 object-contain rounded-t-lg mb-3"
-                                            />
-                                        )}
+                                return (
+                                    <div 
+                                        key={item.id} 
+                                        className="shadow-lg rounded-lg p-4 flex flex-col justify-between cursor-pointer bg-white hover:bg-blue-50 transition-colors hover:shadow-xl border border-gray-200"
+                                        onClick={() => handleItemClick(item)}
+                                    >
+                                        <div className="flex flex-col h-full">
+                                            {esInsumo && item.img && (
+                                                <SafeImage 
+                                                    src={item.img}
+                                                    alt={`Imagen de ${item.nombre}`}
+                                                    className="w-full h-32 object-contain rounded-t-lg mb-3"
+                                                />
+                                            )}
 
-                                        <h3 className="font-semibold text-lg mb-2 line-clamp-2">
-                                            {esHerramienta ? item.nombre_h : item.nombre}
-                                        </h3>
+                                            <h3 className="font-semibold text-lg mb-2 line-clamp-2">
+                                                {esHerramienta ? item.nombre_h : item.nombre}
+                                            </h3>
 
-                                        <div className="mt-2 mb-3">
-                                            <p className="text-sm text-gray-600">Cantidad en stock:</p>
-                                            <div className={cantidadClass}>
-                                                {cantidad} unidades
+                                            <div className="mt-2 mb-3">
+                                                <p className="text-sm text-gray-600">Cantidad en stock:</p>
+                                                <div className={cantidadClass}>
+                                                    {cantidad} unidades
+                                                </div>
                                             </div>
-                                        </div>
 
-                                        {fechaVencimiento && (
-                                            <div className="mt-auto">
-                                                <p className="text-sm text-gray-600">Vence:</p>
-                                                <p className="text-sm font-medium">
-                                                    {new Date(fechaVencimiento).toLocaleDateString()}
-                                                </p>
+                                            {fechaVencimiento && (
+                                                <div className="mt-auto">
+                                                    <p className="text-sm text-gray-600">Vence:</p>
+                                                    <p className="text-sm font-medium">
+                                                        {new Date(fechaVencimiento).toLocaleDateString()}
+                                                    </p>
+                                                </div>
+                                            )}
+
+                                            <div className="flex justify-end mt-3">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        const movimientoRelacionado = movimientos?.find(m => 
+                                                            esHerramienta 
+                                                                ? m.fk_id_herramientas?.id === item.id 
+                                                                : m.fk_id_insumo?.id === item.id
+                                                        );
+                                                        if (movimientoRelacionado) {
+                                                            handleRowClick(movimientoRelacionado);
+                                                        }
+                                                    }}
+                                                    className="p-1 rounded-full hover:bg-gray-200"
+                                                    title="Editar"
+                                                >
+                                                    <Pencil size={16} className="text-white bg-green-600 rounded-full p-1.5 w-7 h-7" />
+                                                </button>
                                             </div>
-                                        )}
-
-                                        <div className="flex justify-end mt-3">
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    const movimientoRelacionado = movimientos?.find(m => 
-                                                        esHerramienta 
-                                                            ? m.fk_id_herramientas?.id === item.id 
-                                                            : m.fk_id_insumo?.id === item.id
-                                                    );
-                                                    if (movimientoRelacionado) {
-                                                        handleRowClick(movimientoRelacionado);
-                                                    }
-                                                }}
-                                                className="p-1 rounded-full hover:bg-gray-200"
-                                                title="Editar"
-                                            >
-                                                <Pencil size={16} className="text-white bg-green-600 rounded-full p-1.5 w-7 h-7" />
-                                            </button>
                                         </div>
                                     </div>
-                                </div>
-                            );
-                        })
-                    ) : (
-                        <div className="col-span-full text-center py-8 text-gray-500">
-                            No se encontraron {tipoSeleccionado === 'Herramienta' ? 'herramientas' : 'insumos'} que coincidan con "{terminoDebounced}"
+                                );
+                            })
+                        ) : (
+                            <div className="col-span-full text-center py-8 text-gray-500">
+                                No se encontraron {tipoSeleccionado === 'Herramienta' ? 'herramientas' : 'insumos'} que coincidan con "{terminoDebounced}"
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Sección para Insumos Compuestos */}
+                    {tipoSeleccionado === 'Insumo' && insumosCompuestos && insumosCompuestos.length > 0 && (
+                        <div>
+                            <h3 className="text-xl font-bold mb-4">Insumos Compuestos</h3>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                                {insumosCompuestos.map((insumoCompuesto) => {
+                                    const cantidad = insumoCompuesto.cantidad_insumo || 0;
+                                    
+                                    let cantidadClass = "text-white font-bold rounded-full px-3 py-1 text-center ";
+                                    if (cantidad <= 5) {
+                                        cantidadClass += "bg-red-500";
+                                    } else if (cantidad <= 10) {
+                                        cantidadClass += "bg-yellow-500";
+                                    } else {
+                                        cantidadClass += "bg-green-500";
+                                    }
+
+                                    return (
+                                        <div 
+                                            key={insumoCompuesto.id} 
+                                            className="shadow-lg rounded-lg p-4 flex flex-col justify-between cursor-pointer bg-white hover:bg-purple-50 transition-colors hover:shadow-xl border border-gray-200"
+                                            onClick={() => handleItemClick(insumoCompuesto)}
+                                        >
+                                            <div className="flex flex-col h-full">
+                                                <h3 className="font-semibold text-lg mb-2 line-clamp-2">
+                                                    {insumoCompuesto.nombre}
+                                                </h3>
+                                                <p className="text-sm text-gray-600 mb-2">
+                                                    {insumoCompuesto.unidad_medida_info 
+                                                        ? `${insumoCompuesto.unidad_medida_info.nombre_medida} (${insumoCompuesto.unidad_medida_info.unidad_base})`
+                                                        : 'Sin unidad de medida'}
+                                                </p>
+
+                                                <div className="mt-2 mb-3">
+                                                    <p className="text-sm text-gray-600">Cantidad en stock:</p>
+                                                    <div className={cantidadClass}>
+                                                        {cantidad} unidades
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex justify-end mt-3">
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            // Lógica para editar si es necesario
+                                                        }}
+                                                        className="p-1 rounded-full hover:bg-gray-200"
+                                                        title="Editar"
+                                                    >
+                                                        <Pencil size={16} className="text-white bg-green-600 rounded-full p-1.5 w-7 h-7" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
                         </div>
                     )}
                 </div>
