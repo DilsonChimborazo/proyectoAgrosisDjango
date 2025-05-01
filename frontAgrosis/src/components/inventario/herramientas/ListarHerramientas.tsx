@@ -38,7 +38,7 @@ const ListarHerramientas = () => {
         id: h.id,
         nombre: h.nombre_h,
         estado: h.estado,
-        cantidad: h.cantidad,
+        cantidad: h.cantidad_herramienta,
     })) || [];
 
     return (

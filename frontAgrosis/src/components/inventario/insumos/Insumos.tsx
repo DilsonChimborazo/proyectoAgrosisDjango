@@ -1,7 +1,7 @@
 import { useInsumo } from '@/hooks/inventario/insumos/useInsumo';
 import Tabla from '@/components/globales/Tabla';
 import VentanaModal from '@/components/globales/VentanasModales';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const ListarInsumos = () => {
@@ -10,7 +10,6 @@ const ListarInsumos = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
 
-  // Componente de imagen seguro
   const SafeImage = ({ src, alt, className, placeholderText = 'Sin imagen' }: { 
     src: string | null | undefined, 
     alt: string, 
@@ -20,34 +19,14 @@ const ListarInsumos = () => {
     const [imageSrc, setImageSrc] = useState<string | null>(null);
     const [hasError, setHasError] = useState(false);
 
-    // Función para construir la URL de la imagen
-    const getImageUrl = (imgPath: string | null | undefined): string | null => {
-      if (!imgPath) return null;
-      
-      // Si ya es una URL completa
-      if (imgPath.startsWith('http://') || imgPath.startsWith('https://')) {
-        return imgPath;
-      }
-      
-      // Construir URL completa para rutas relativas
-      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
-      const cleanPath = imgPath.replace(/^\/+/, ''); // Eliminar barras iniciales
-      
-      return `${baseUrl}/${cleanPath}`;
-    };
-    // Efecto para cargar la URL de la imagen
-    useState(() => {
+    useEffect(() => {
       if (src) {
-        const url = getImageUrl(src);
-        if (url) {
-          // Verificar si la imagen existe antes de establecerla
-          const img = new Image();
-          img.src = url;
-          img.onload = () => setImageSrc(url);
-          img.onerror = () => setHasError(true);
-        } else {
-          setHasError(true);
-        }
+        const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+        const cleanPath = src.startsWith('http') ? src : `${baseUrl}${src.startsWith('/') ? '' : '/'}${src}`;
+        const img = new Image();
+        img.src = cleanPath;
+        img.onload = () => setImageSrc(cleanPath);
+        img.onerror = () => setHasError(true);
       } else {
         setHasError(true);
       }
@@ -62,12 +41,7 @@ const ListarInsumos = () => {
     }
 
     return (
-      <img
-        src={imageSrc}
-        alt={alt}
-        className={className}
-        onError={() => setHasError(true)}
-      />
+      <img src={imageSrc} alt={alt} className={className} onError={() => setHasError(true)} />
     );
   };
 
@@ -95,22 +69,27 @@ const ListarInsumos = () => {
   const mappedInsumos = insumos?.map((i) => ({
     id: i.id,
     imagen: <SafeImage 
-      src={i.img} 
+      src={typeof i.img === 'string' ? i.img : null} 
       alt={`Imagen de ${i.nombre}`} 
       className="w-12 h-12 object-cover rounded-full"
     />,
     nombre: i.nombre,
     tipo: i.tipo,
     precio_unidad: i.precio_unidad ? `$${i.precio_unidad.toLocaleString()}` : '$0',
-    stock: i.cantidad,
-    unidad_medida: i.fk_unidad_medida?.abreviatura || 'N/A',
+    stock: i.cantidad_insumo,
+    fecha_vencimiento: i.fecha_vencimiento,
+    unidad_medida: i.fk_unidad_medida 
+    ? `${i.fk_unidad_medida.nombre_medida} (${i.fk_unidad_medida.unidad_base})` 
+    : 'N/A'
   })) || [];
+
+  console.log("prueba",mappedInsumos)
 
   return (
     <div className="container mx-auto p-4">
       <Tabla
         title="Insumos"
-        headers={["ID", "Imagen", "Nombre", "Tipo", "Precio Unidad", "Stock", "Unidad Medida"]}
+        headers={["ID", "Imagen", "Nombre", "Tipo", "Precio Unidad", "Stock","Fecha vencimiento", "Unidad Medida"]}
         data={mappedInsumos}
         onClickAction={handleRowClick}
         onUpdate={handleUpdate}
@@ -127,7 +106,7 @@ const ListarInsumos = () => {
             <div className="p-4">
               <div className="flex items-center mb-4">
                 <SafeImage 
-                  src={selectedInsumo.imagen} 
+                  src={typeof selectedInsumo.img === 'string' ? selectedInsumo.img : null} 
                   alt={`Imagen de ${selectedInsumo.nombre}`}
                   className="w-24 h-24 object-cover rounded-lg mr-4"
                   placeholderText="Imagen no disponible"
@@ -151,10 +130,7 @@ const ListarInsumos = () => {
                 
                 <div className="bg-gray-50 p-3 rounded-lg">
                   <p className="font-semibold">Unidad de medida:</p>
-                  <p>
-                    {selectedInsumo.unidad_medida?.nombre || 'No especificada'} 
-                    {selectedInsumo.unidad_medida?.abreviatura && ` (${selectedInsumo.unidad_medida.abreviatura})`}
-                  </p>
+                  <p>{selectedInsumo.fk_unidad_medida?.nombre_medida || 'No especificada'}</p>
                 </div>
                 
                 {selectedInsumo.fecha_vencimiento && (

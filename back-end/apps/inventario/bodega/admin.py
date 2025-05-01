@@ -10,7 +10,8 @@ class BodegaAdmin(admin.ModelAdmin):
         'fk_id_insumo',
         'fk_id_asignacion',
         'fk_unidad_medida',
-        'cantidad',
+        'cantidad_insumo',
+        'cantidad_herramienta',
         'cantidad_en_base',
         'costo_insumo',  # 👉 Se añade aquí
         'movimiento',

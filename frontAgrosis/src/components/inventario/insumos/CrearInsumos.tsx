@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Formulario from "../../globales/Formulario";
-import VentanaModal from "@/components/globales/VentanasModales"; // 👈 Importar modal
+import VentanaModal from "@/components/globales/VentanasModales";
 import { useCrearInsumo } from "@/hooks/inventario/insumos/useCrearInsumos";
 import { useCrearBodega } from "@/hooks/inventario/bodega/useCrearBodega";
-import { UnidadMedida } from "@/hooks/inventario/insumos/useInsumo";
 import { useMedidas } from "@/hooks/inventario/unidadMedida/useMedidad";
-import CrearUnidadMedida from "@/components/inventario/unidadMedida/UnidadMedida"; // 👈 Importar formulario
+import CrearUnidadMedida from "@/components/inventario/unidadMedida/UnidadMedida";
 
 const CrearInsumos = ({ onSuccess }: { onSuccess?: () => void }) => {
   const mutation = useCrearInsumo();
@@ -14,15 +13,15 @@ const CrearInsumos = ({ onSuccess }: { onSuccess?: () => void }) => {
   const navigate = useNavigate();
   const { data: unidades = [], refetch } = useMedidas();
 
-  const [modalAbierto, setModalAbierto] = useState(false); 
+  const [modalAbierto, setModalAbierto] = useState(false);
 
   const abrirModalMedida = () => {
+    setModalAbierto(true);
+  };
 
-    ;setModalAbierto(true);
-  }
   const cerrarModalMedida = () => {
     setModalAbierto(false);
-    refetch(); 
+    refetch();
   };
 
   const formFields = [
@@ -34,13 +33,13 @@ const CrearInsumos = ({ onSuccess }: { onSuccess?: () => void }) => {
       id: "fk_unidad_medida",
       label: "Unidad de Medida",
       type: "select",
-      options: unidades.map((u: UnidadMedida) => ({
+      options: unidades.map((u: any) => ({
         value: u.id.toString(),
-        label: `${u.nombre_medida} (${u.abreviatura})`,
+        label: `${u.nombre_medida} (${u.unidad_base})`,
       })),
       hasExtraButton: true,
       extraButtonText: "+",
-      onExtraButtonClick: abrirModalMedida, 
+      onExtraButtonClick: abrirModalMedida,
     },
     { id: "fecha_vencimiento", label: "Fecha de Vencimiento", type: "date" },
     { id: "img", label: "Imagen", type: "file" },
@@ -53,30 +52,32 @@ const CrearInsumos = ({ onSuccess }: { onSuccess?: () => void }) => {
       !formData.precio_unidad ||
       !formData.cantidad ||
       !formData.fecha_vencimiento ||
-      !formData.fk_unidad_medida ||
-      !formData.img
+      !formData.fk_unidad_medida
     ) {
-      console.error("Todos los campos deben ser completados.");
+      console.error("Todos los campos obligatorios deben ser completados.");
       return;
     }
 
     const formDataToSubmit = new FormData();
     formDataToSubmit.append("nombre", formData.nombre);
     formDataToSubmit.append("tipo", formData.tipo);
-    formDataToSubmit.append("precio_unidad", formData.precio_unidad);
-    formDataToSubmit.append("cantidad", formData.cantidad);
+    formDataToSubmit.append("precio_unidad", formData.precio_unidad.toString());
+    formDataToSubmit.append("cantidad", formData.cantidad.toString());
     formDataToSubmit.append("fecha_vencimiento", formData.fecha_vencimiento);
     formDataToSubmit.append("fk_unidad_medida", formData.fk_unidad_medida);
-    formDataToSubmit.append("img", formData.img);
+
+    if (formData.img instanceof File) {
+      formDataToSubmit.append("img", formData.img);
+    }
 
     mutation.mutate(formDataToSubmit, {
-      onSuccess: (data) => {
-        console.log("✅ Insumo creado exitosamente:", data);
+      onSuccess: (insumoCreado) => {
+        console.log("✅ Insumo creado exitosamente:", insumoCreado);
 
         const movimientoEntrada = {
-          fk_id_insumo: data.data.id,
+          fk_id_insumo: insumoCreado.id,
           cantidad: formData.cantidad,
-          movimiento: "Entrada",
+          movimiento: "Entrada" as const,
           fecha: new Date().toISOString(),
           fk_id_asignacion: null,
           fk_id_herramientas: null,
@@ -110,10 +111,14 @@ const CrearInsumos = ({ onSuccess }: { onSuccess?: () => void }) => {
       />
 
       {mutation.isError && (
-        <div className="text-red-500 mt-2">Hubo un error al crear el insumo. Intenta nuevamente.</div>
+        <div className="text-red-500 mt-2">
+          Hubo un error al crear el insumo. Intenta nuevamente.
+        </div>
       )}
       {mutation.isSuccess && (
-        <div className="text-green-500 mt-2">¡Insumo creado exitosamente!</div>
+        <div className="text-green-500 mt-2">
+          ¡Insumo creado exitosamente!
+        </div>
       )}
 
       <VentanaModal

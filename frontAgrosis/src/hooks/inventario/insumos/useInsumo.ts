@@ -3,10 +3,11 @@ import axios from 'axios';
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
-export interface UnidadMedida{
-    id:number
-    nombre_medida:string
-    abreviatura: string
+export interface UnidadMedida {
+    id: number;
+    nombre_medida: string;
+    unidad_base: 'g' | 'ml' | 'u';  
+    factor_conversion: number;
 }
 
 export interface Insumo{
@@ -14,15 +15,18 @@ export interface Insumo{
     nombre: string
     tipo: string
     precio_unidad: number
-    cantidad: number
+    cantidad_insumo: number;
     fecha_vencimiento: string
-    img: string 
+    img: string | null | undefined ;
     fk_unidad_medida: UnidadMedida
+    es_compuesto: boolean;
+    precio_por_base: number;
 }
 
 const fetch = async (): Promise<Insumo[]> => {
     try {
         const { data } = await axios.get(`${apiUrl}insumo/`);
+        console.log("respuesta de insumos", data)
         return data;
     } catch (error) {
         console.error("Error al obtener el insumo:", error);

@@ -4,17 +4,16 @@ import axios from "axios";
 const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface UnidadMedida {
-  id: number;
   nombre_medida: string;
-  abreviatura: string;
+  unidad_base: 'g' | 'ml' | 'u';  
+  factor_conversion: number;
 }
-
 export interface Insumo {
   id: number;
   nombre: string;
   tipo: string;
   precio_unidad: number;
-  cantidad: number;
+  cantidad_insumo: number;
   fecha_vencimiento: string;
   img?: File | null;
   fk_unidad_medida: UnidadMedida;

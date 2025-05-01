@@ -1,3 +1,4 @@
+// src/hooks/inventario/unidadMedida/useMedidas.ts
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
@@ -6,7 +7,8 @@ const apiUrl = import.meta.env.VITE_API_URL;
 export interface UnidadMedida {
   id: number;
   nombre_medida: string;
-  abreviatura: string;
+  unidad_base: 'g' | 'ml' | 'u';
+  factor_conversion: number;
 }
 
 const fetchUnidades = async (): Promise<UnidadMedida[]> => {

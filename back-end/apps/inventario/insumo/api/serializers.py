@@ -1,10 +1,12 @@
 from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
 from apps.inventario.insumo.models import Insumo
+from apps.inventario.unidadMedida.api.serilizers import UnidadMedidaSerializer
 from apps.trazabilidad.actividad.models import Actividad
 from django.db.models import Sum, F
 
 class InsumoSerializer(ModelSerializer):
+    fk_unidad_medida = UnidadMedidaSerializer(read_only=True)
     class Meta:
         model = Insumo
         fields = '__all__'

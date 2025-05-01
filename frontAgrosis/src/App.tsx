@@ -66,6 +66,7 @@ import UnidadMedida from "./components/inventario/unidadMedida/UnidadMedida";
 import TipoResiduos from "./components/trazabilidad/tiporesiduo/TipoResiduo";
 
 import StockPage from "./pages/finanzas/stock/StockPage"
+import CrearInsumoCompuesto from "./components/inventario/insumocompuesto/CrearInsumoCompuesto";
 
 const queryClient = new QueryClient();
 
@@ -112,10 +113,11 @@ function App() {
           <Route path="/insumos" element={<Principal><ListarInsumos /></Principal>} />
           <Route path="/bodega" element={<Principal><BodegaPage /></Principal>} />
           <Route path="/unidad" element={<Principal><UnidadMedida /></Principal>} />
-          <Route path="/tipoResiduo" element={<Principal><TipoResiduos /></Principal>} />
+          <Route path="/CrearInsumoCompuesto" element={<Principal><CrearInsumoCompuesto /></Principal>} />
 
 
           {/* Rutas módulo trazabilidad */}
+          <Route path="/tipoResiduo" element={<Principal><TipoResiduos /></Principal>} />
           <Route path="/actividad" element={<Principal><CalendarPage /></Principal>} />
           <Route path="/cultivo" element={<Principal><CultivosPage /></Principal>} />
           <Route path="/residuos" element={<Principal><ResiduosPage /></Principal>} />

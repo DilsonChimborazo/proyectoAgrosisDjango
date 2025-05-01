@@ -13,7 +13,7 @@ interface VentanaModalProps {
   onClose: () => void;
   titulo: string;
   children?: React.ReactNode;
-  contenido?: React.ReactNode; // <-- Añade el ? para hacerla opcional
+  contenido?: React.ReactNode; 
   data?: any[];
   columns?: Column[];
   variant?: 'content' | 'table';
