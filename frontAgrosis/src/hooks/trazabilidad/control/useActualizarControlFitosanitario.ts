@@ -9,7 +9,7 @@ export interface ControlFitosanitario {
     duracion: number;
     descripcion: string;
     tipo_control: string;
-    fk_id_cultivo: number;
+    fk_id_plantacion: number;
     fk_id_pea: number;
     fk_id_insumo: number;
     cantidad_insumo: number;
@@ -31,7 +31,7 @@ export const useActualizarControlFitosanitario = () => {
             formData.append('duracion', String(controlActualizado.duracion));
             formData.append('descripcion', controlActualizado.descripcion);
             formData.append('tipo_control', controlActualizado.tipo_control);
-            formData.append('fk_id_cultivo', String(controlActualizado.fk_id_cultivo));
+            formData.append('fk_id_plantacion', String(controlActualizado.fk_id_plantacion));
             formData.append('fk_id_pea', String(controlActualizado.fk_id_pea));
             formData.append('fk_id_insumo', String(controlActualizado.fk_id_insumo));
             formData.append('cantidad_insumo', String(controlActualizado.cantidad_insumo));
@@ -44,7 +44,7 @@ export const useActualizarControlFitosanitario = () => {
                 duracion: formData.get('duracion'),
                 descripcion: formData.get('descripcion'),
                 tipo_control: formData.get('tipo_control'),
-                fk_id_cultivo: formData.get('fk_id_cultivo'),
+                fk_id_plantacion: formData.get('fk_id_plantacion'),
                 fk_id_pea: formData.get('fk_id_pea'),
                 fk_id_insumo: formData.get('fk_id_insumo'),
                 cantidad_insumo: formData.get('cantidad_insumo'),

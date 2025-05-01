@@ -28,6 +28,7 @@ import RealizaPage from "./pages/trazabilidad/RealizaPage";
 import SemillerosPage from "./pages/trazabilidad/SemillerosPage";
 import CalendarioLunarPage from "./pages/trazabilidad/CalendarioLunarPage";
 import CultivosPage from "./pages/trazabilidad/CultivosPage";
+import PlantacionPage from "./pages/trazabilidad/PlantacionPage";
 import ResiduosPage from "./pages/trazabilidad/ResiduosPage";
 import PeaPage from "./pages/trazabilidad/PeaPage";
 import ControlFitosanitarioPage from "./pages/trazabilidad/ControlFitosanitarioPage";
@@ -115,6 +116,7 @@ function App() {
           {/* Rutas módulo trazabilidad */}
           <Route path="/actividad" element={<Principal><CalendarPage /></Principal>} />
           <Route path="/cultivo" element={<Principal><CultivosPage /></Principal>} />
+          <Route path="/plantacion" element={<Principal><PlantacionPage /></Principal>} />
           <Route path="/residuos" element={<Principal><ResiduosPage /></Principal>} />
           <Route path="/pea" element={<Principal><PeaPage /></Principal>} />
           <Route path="/control-fitosanitario" element={<Principal><ControlFitosanitarioPage /></Principal>} />

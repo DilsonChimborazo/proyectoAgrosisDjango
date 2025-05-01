@@ -8,6 +8,7 @@ class Plantacion(models.Model):
     fk_id_eras = models.ForeignKey(Eras, on_delete=models.SET_NULL, null=True)
     fk_id_cultivo = models.ForeignKey(Cultivo, on_delete=models.SET_NULL, null=True)
     cantidad_transplante = models.IntegerField()
+    fecha_plantacion = models.DateField() 
     fk_id_semillero = models.ForeignKey(Semillero, on_delete=models.SET_NULL, null=True)
 
     

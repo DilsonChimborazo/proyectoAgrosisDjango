@@ -26,10 +26,11 @@ const menuItems = [
     submenu: [
       { name: "Eras", path: "/eras" },
       { name: "Lotes", path: "/lotes" },
-      { name: "Cultivos", path: "/cultivo" },
+      /*{ name: "Cultivos", path: "/cultivo" },
       { name: "Especies", path: "/especies" },
       { name: "Semilleros", path: "/semilleros" },
-      { name: "Residuos", path: "/residuos" },
+      { name: "Residuos", path: "/residuos" },*/
+      { name: "Plantacion", path: "/plantacion"},
     ],
   },
   {
@@ -45,7 +46,7 @@ const menuItems = [
     icon: <Bug size={18} />,
     submenu: [
       { name: "Control Fitosanitario", path: "/control-fitosanitario" },
-      { name: "PEA", path: "/pea" },
+     /* { name: "PEA", path: "/pea" },*/
     ],
   },
   {

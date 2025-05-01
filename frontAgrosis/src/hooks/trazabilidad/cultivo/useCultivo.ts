@@ -6,18 +6,9 @@ const apiUrl = import.meta.env.VITE_API_URL;
 export interface Cultivos{
     id: number;
     nombre_cultivo: string; 
-    fecha_plantacion: Date;
     descripcion: string;
     fk_id_especie: Especie;
-    fk_id_semillero: Semillero;
-}
-
-export interface Semillero {
-    id: number;
-    nombre_semilla: string;
-    fecha_siembra: Date;
-    fecha_estimada: Date;
-    cantidad: number;
+    
 }
 
 export interface TipoCultivo {
