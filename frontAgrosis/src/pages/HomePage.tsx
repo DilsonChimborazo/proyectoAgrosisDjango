@@ -20,7 +20,7 @@ import {
   CarouselPrevious,
   CarouselNext,
 } from "@/components/ui/carousel";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 // CSS para el estilo y animaciones
 const styles = `
@@ -43,11 +43,11 @@ const styles = `
     transform: translateY(-5px);
   }
   .card-orange {
-    background: linear-gradient(135deg, #ff8c00 0%, #ff4500 100%); /* Más naranja */
+    background: linear-gradient(135deg, #ff8c00 0%, #ff4500 100%);
     color: white;
   }
   .card-blue {
-    background: linear-gradient(135deg, #1e90ff 0%, #00b7eb 100%); /* Más azul */
+    background: linear-gradient(135deg, #1e90ff 0%, #00b7eb 100%);
     color: white;
   }
   .card-glass {
@@ -113,6 +113,24 @@ const styles = `
     flex-direction: column;
     align-items: flex-start;
   }
+  .evapo-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    border-radius: 1rem;
+    background: linear-gradient(135deg, #10B981 0%, #3B82F6 100%);
+    color: white;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+  .evapo-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+  }
 `;
 
 // Inyectar los estilos en el documento
@@ -153,7 +171,7 @@ interface RealTimeData {
 const icons: { [key: string]: string } = {
   temperatura: "🌡️",
   humedad: "💦",
-  luz: "✨",
+  iluminacion: "✨",
   viento: "🌪️",
   presion: "📈",
   aire: "🌬️",
@@ -170,7 +188,7 @@ const COLORS: { [key: string]: string } = {
   default: "#808080",
 };
 
-const DONUT_COLORS = ["#1e90ff", "#ff8c00", "#00b7eb", "#ff4500", "#87cefa"]; // Más azul y naranja
+const DONUT_COLORS = ["#1e90ff", "#ff8c00", "#00b7eb", "#ff4500", "#87cefa"];
 
 const formatSensorValue = (value: number, tipoSensor: string): string => {
   switch (tipoSensor.toLowerCase()) {
@@ -204,6 +222,7 @@ const HomePage = () => {
   const [chartsData, setChartsData] = useState<{ [key: number]: ChartDataPoint[] }>({});
   const [realTimeData, setRealTimeData] = useState<{ [key: number]: RealTimeData }>({});
   const [sensorDisplayData, setSensorDisplayData] = useState<SensorDisplayData[]>([]);
+  const navigate = useNavigate();
 
   const loadChartsData = useCallback(() => {
     const storedData = localStorage.getItem("chartsData");
@@ -431,11 +450,23 @@ const HomePage = () => {
   // Determinar el color de la línea según el índice del sensor
   const getLineColor = (sensorId: number) => {
     const sensorIndex = sensorDisplayData.findIndex((sensor) => sensor.id === sensorId);
-    return sensorIndex % 2 === 0 ? "#1e90ff" : "#ff8c00"; // Azul o naranja según el índice
+    return sensorIndex % 2 === 0 ? "#1e90ff" : "#ff8c00";
+  };
+
+  // Función para manejar la navegación al componente Evapotranspiracion
+  const handleEvapoClick = () => {
+    navigate('/iot/evapotranspiracion');
   };
 
   return (
     <div className="p-5">
+      {/* Encabezado con botón de Evapotranspiración */}
+      <div className="flex justify-between items-center mb-6">
+        <button className="evapo-button" onClick={handleEvapoClick}>
+          Ver Evapotranspiración
+        </button>
+      </div>
+
       {/* Tarjetas de Sensores */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mb-6">
         {sensorDisplayData.map((sensor, index) => {
@@ -665,7 +696,7 @@ const HomePage = () => {
                         <Line 
                           type="monotone" 
                           dataKey="valor" 
-                          stroke={getLineColor(Number(sensorId))} // Color dinámico según el sensor
+                          stroke={getLineColor(Number(sensorId))}
                           strokeWidth="2" 
                           dot={{ r: 4, fill: getLineColor(Number(sensorId)) }} 
                           activeDot={{ r: 6 }}
@@ -695,10 +726,10 @@ const HomePage = () => {
                   nameKey="name"
                   cx="50%"
                   cy="50%"
-                  innerRadius={60} // Esto crea el efecto de dona
+                  innerRadius={60}
                   outerRadius={120}
                   fill="#8884d8"
-                  label={({ value }) => `${value}`} // Mostrar solo el valor en las etiquetas
+                  label={({ value }) => `${value}`}
                 >
                   {latestSensorValues.map((_, index) => (
                     <Cell
