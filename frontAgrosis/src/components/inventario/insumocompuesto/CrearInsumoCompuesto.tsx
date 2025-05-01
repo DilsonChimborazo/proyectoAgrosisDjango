@@ -79,6 +79,7 @@ const CrearInsumoCompuesto = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+  
     if (!nombre || !fkUnidadMedida || detalles.length === 0) {
       alert('Todos los campos son obligatorios');
       return;
@@ -87,19 +88,22 @@ const CrearInsumoCompuesto = () => {
     try {
       await mutateAsync({
         nombre,
-        fk_unidad_medida: fkUnidadMedida,
+        fk_unidad_medida: fkUnidadMedida, // Solo enviamos el ID
         detalles,
       });
-      alert('Insumo compuesto creado exitosamente');
-      
-      // Cerrar el modal después de la creación exitosa
-      setIsModalOpen(false);
   
+      alert('Insumo compuesto creado exitosamente');
+      // Resetear el estado
+      setNombre('');
+      setFkUnidadMedida('');
+      setDetalles([]);
     } catch (error) {
-      console.error(error);
-      alert('Error al crear el insumo compuesto');
+      console.error('Error detallado:', error);
+      alert('Error al crear el insumo compuesto. Verifica los datos e intenta nuevamente.');
     }
   };
+  
+    
   
 
   return (
@@ -188,7 +192,6 @@ const CrearInsumoCompuesto = () => {
               <div className="grid grid-cols-4 gap-2 max-h-full overflow-y-auto">
                 {insumos?.map((insumo) => {
                   let cantidadClass = 'bg-gray-100'; 
-                  // Lógica para establecer el color de fondo
                   if (insumo.cantidad_insumo < 10) {
                     cantidadClass = 'bg-red-500'; 
                   } else if (insumo.cantidad_insumo >= 10 && insumo.cantidad_insumo <= 20) {

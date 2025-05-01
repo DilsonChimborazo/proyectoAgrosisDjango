@@ -10,10 +10,11 @@ const ListarInsumosCompuestos = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
 
-  const handleRowClick = (insumoCompuesto: any) => {
-    setSelectedInsumoCompuesto(insumoCompuesto);
+  const handleRowClick = (rowData: any) => {
+    setSelectedInsumoCompuesto(rowData.original);
     setIsModalOpen(true);
   };
+  
 
   const closeModal = () => {
     setSelectedInsumoCompuesto(null);
@@ -36,15 +37,17 @@ const ListarInsumosCompuestos = () => {
 
   // Aseguramos que los datos existan antes de mapear
   const mappedInsumosCompuestos = insumosCompuestos?.length 
-    ? insumosCompuestos.map((i) => ({
-        id: i.id,
-        nombre: i.nombre,
-        unidad_medida: i.fk_unidad_medida
-          ? `${i.fk_unidad_medida.nombre_medida} (${i.fk_unidad_medida.unidad_base})`
-          : 'N/A',
-        cantidad_componentes: i.detalles?.length || 0, 
-      }))
-    : [];
+  ? insumosCompuestos.map((i) => ({
+      id: i.id,
+      nombre: i.nombre,
+      unidad_medida: i.fk_unidad_medida
+        ? `${i.fk_unidad_medida.nombre_medida} (${i.fk_unidad_medida.unidad_base})`
+        : 'N/A',
+        cantidad_componentes: i.detalles?.reduce((total, detalle) => total + (detalle.cantidad_utilizada || 0), 0) || 0,
+      original: i  
+    }))
+  : [];
+
 
   return (
     <div className="container mx-auto p-4">

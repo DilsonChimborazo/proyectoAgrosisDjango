@@ -120,7 +120,9 @@ const RegistrarSalidaBodega = ({ herramientas, insumos: insumosIniciales, asigna
         )}
       </div>
 
-      <Formulario fields={formFields} onSubmit={handleSubmit} />
+      <Formulario 
+      fields={formFields} 
+      onSubmit={handleSubmit} />
 
       {tipoInsumo === "compuesto" && (
         <div className="mt-4">
