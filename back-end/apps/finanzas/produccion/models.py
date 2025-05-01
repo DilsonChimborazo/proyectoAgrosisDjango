@@ -1,5 +1,5 @@
 from django.db import models
-from apps.trazabilidad.cultivo.models import Cultivo
+from apps.trazabilidad.plantacion.models import Plantacion
 from apps.inventario.unidadMedida.models import UnidadMedida
 
 # Create your models here.
@@ -9,7 +9,7 @@ class Produccion(models.Model):
     cantidad_producida = models.DecimalField(null=True, max_digits=20, decimal_places=1)
     fecha = models.DateField() 
     stock_disponible = models.PositiveIntegerField(default=0)
-    fk_id_cultivo = models.ForeignKey(Cultivo, on_delete=models.SET_NULL, null=True)
+    fk_id_plantacion = models.ForeignKey(Plantacion, on_delete=models.SET_NULL, null=True)
     fk_unidad_medida = models.ForeignKey(UnidadMedida, on_delete=models.SET_NULL, null=True)
     
     # Campo para almacenar la cantidad convertida a la unidad base

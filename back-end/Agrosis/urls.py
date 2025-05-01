@@ -55,7 +55,10 @@ from apps.finanzas.venta.api.router import router_venta
 from apps.finanzas.salario.api.router import router_salario
 from apps.finanzas.nomina.api.router import router_nomina
 from apps.finanzas.stock.api.router import router_stock
-from apps.finanzas.nomina.api.views import TrazabilidadCultivoAPIView
+from apps.finanzas.trazabilidad_historica.api.views import TrazabilidadPlantacionAPIView, HistoricoTrazabilidadAPIView, ResumenActualTrazabilidadAPIView
+
+from apps.finanzas.trazabilidad_historica.api.router import router as trazabilidad_historica_router
+
 
 
 
@@ -113,8 +116,9 @@ urlpatterns = [
     path('api/', include(router_nomina.urls)),
     path('api/', include(router_salario.urls)),
     path('api/', include(router_stock.urls)),
-    path('api/finanzas/nomina/trazabilidad/<int:cultivo_id>/', TrazabilidadCultivoAPIView.as_view(), name='trazabilidad-cultivo'),
-
+    path('api/', include(trazabilidad_historica_router.urls)),
+    path('api/trazabilidad/plantacion/<int:plantacion_id>/', TrazabilidadPlantacionAPIView.as_view(), name='trazabilidad-plantacion'),
+    path('api/trazabilidad/historico/<int:plantacion_id>/', HistoricoTrazabilidadAPIView.as_view(), name='historico-trazabilidad'),
 
 
     #TRAZABILIDAD

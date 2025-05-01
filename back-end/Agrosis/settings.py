@@ -81,6 +81,8 @@ INSTALLED_APPS = [
     'apps.finanzas.salario',
     'apps.finanzas.nomina',
     'apps.finanzas.stock',
+    'apps.finanzas.trazabilidad_historica',
+    
     
     #Trazabilidad 2 xiomara
     'apps.trazabilidad.actividad',
@@ -159,8 +161,6 @@ CHANNEL_LAYERS = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-
-
         'NAME': 'agrosis',  
         'USER': 'postgres',                
         'PASSWORD': 'adso2024',      

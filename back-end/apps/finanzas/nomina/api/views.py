@@ -14,13 +14,15 @@ from apps.finanzas.nomina.api.serializers import (
     LeerNominaSerializer,
     EscribirNominaSerializer
 )
+from apps.trazabilidad.plantacion.models import Plantacion
 from apps.trazabilidad.cultivo.models import Cultivo
 from apps.trazabilidad.programacion.models import Programacion
 from apps.finanzas.stock.models import Stock
 from apps.finanzas.venta.models import Venta
 from apps.inventario.bodega.models import Bodega
 from apps.finanzas.produccion.models import Produccion
-from apps.trazabilidad.asignacion_actividades.models import Asignacion_actividades, Realiza
+from apps.trazabilidad.asignacion_actividades.models import Asignacion_actividades
+from apps.trazabilidad.realiza.models import Realiza
 from apps.trazabilidad.actividad.models import Actividad
 from apps.trazabilidad.control_fitosanitario.models import Control_fitosanitario
 
@@ -35,14 +37,15 @@ class NominaViewSet(ModelViewSet):
         return EscribirNominaSerializer
 
 
-class TrazabilidadCultivoAPIView(APIView):
-    def get(self, request, cultivo_id):
+class TrazabilidadPlantacionAPIView(APIView):
+    def get(self, request, plantacion_id):
         try:
-            cultivo = Cultivo.objects.get(id=cultivo_id)
+            plantacion = Plantacion.objects.get(id=plantacion_id)
+            cultivo = plantacion.fk_id_cultivo  # Get associated cultivo if needed
             
-            # 1. Obtener todas las asignaciones de actividades para este cultivo
+            # 1. Obtener todas las asignaciones de actividades para esta plantación
             asignaciones = Asignacion_actividades.objects.filter(
-                fk_id_realiza__fk_id_cultivo=cultivo
+                fk_id_realiza__fk_id_plantacion=plantacion
             ).select_related(
                 'fk_id_realiza__fk_id_actividad',
                 'fk_identificacion'
@@ -76,7 +79,7 @@ class TrazabilidadCultivoAPIView(APIView):
             
             # 5. Obtener controles fitosanitarios y sus costos
             controles = Control_fitosanitario.objects.filter(
-                fk_id_cultivo=cultivo
+                fk_id_plantacion=plantacion
             ).select_related(
                 'fk_id_insumo',
                 'fk_unidad_medida',
@@ -109,7 +112,7 @@ class TrazabilidadCultivoAPIView(APIView):
             egresos_insumos = egresos_bodega + egresos_controles
             
             # 7. Calcular ingresos por ventas
-            producciones = Produccion.objects.filter(fk_id_cultivo=cultivo)
+            producciones = Produccion.objects.filter(fk_id_plantacion=plantacion)
             ventas = Venta.objects.filter(
                 fk_id_produccion__in=producciones
             ).annotate(
@@ -207,9 +210,12 @@ class TrazabilidadCultivoAPIView(APIView):
             beneficio_costo = round((ingresos_ventas / costo_total), 2) if costo_total > 0 else 0
             
             return Response({
-                "cultivo": cultivo.nombre_cultivo,
-                "fecha_plantacion": cultivo.fecha_plantacion,
-                "especie": cultivo.fk_id_especie.nombre_comun if cultivo.fk_id_especie else None,
+                "plantacion_id": plantacion.id,
+                "cultivo": cultivo.nombre_cultivo if cultivo else None,
+                "especie": cultivo.fk_id_especie.nombre_comun if cultivo and cultivo.fk_id_especie else None,
+                "fecha_plantacion": plantacion.fecha_plantacion,
+                "era": plantacion.fk_id_eras.descripcion if plantacion.fk_id_eras else None,
+                "lote": plantacion.fk_id_eras.fk_id_lote.nombre_lote if plantacion.fk_id_eras and plantacion.fk_id_eras.fk_id_lote else None,
                 "total_tiempo_minutos": total_minutos,
                 "total_horas": total_horas,
                 "jornales": jornales,
@@ -230,7 +236,7 @@ class TrazabilidadCultivoAPIView(APIView):
                 }
             })
 
-        except Cultivo.DoesNotExist:
-            return Response({"error": "Cultivo no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+        except Plantacion.DoesNotExist:
+            return Response({"error": "Plantación no encontrada"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

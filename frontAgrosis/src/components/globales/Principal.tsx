@@ -37,8 +37,7 @@ const menuItems = [
     name: "Finanzas",
     icon: <DollarSign size={18} />,
     submenu: [
-      { name: "Ventas", path: "/ventas" },
-      { name: "Producción", path: "/produccion" },
+      { name: "Stock", path: "/stock" },
     ],
   },
   {

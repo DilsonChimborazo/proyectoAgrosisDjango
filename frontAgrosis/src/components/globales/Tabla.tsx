@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Pagination, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Button as HerouiButton,  } from "@heroui/react";
+import { Pagination, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Button as HerouiButton } from "@heroui/react";
 import { ChevronDown, MoreVertical, Plus, Search, X } from "lucide-react";
 
 // Definimos la interfaz para las columnas de la tabla
@@ -9,32 +9,34 @@ interface Column {
 }
 
 // Definimos las propiedades que recibe el componente Tabla
-interface TablaProps<T> {
+interface TablaProps<T extends Record<string, any>> {
   title: string;
   headers: string[];
   data: T[];
-  onClickAction: (row: T) => void;
-  onUpdate: (row: T) => void;
-  onCreate: () => void;
-  rowsPerPageOptions?: number[]; // Nueva prop para opciones de filas por página
+  onClickAction?: (row: T) => void;
+  onUpdate?: (row: T) => void;
+  onCreate?: () => void;
+  rowsPerPageOptions?: number[];
   createButtonTitle?: string;
   extraButton?: React.ReactNode;
   hiddenColumnsByDefault?: string[];
-  irFichaButtonTitle?: string;
-
+  renderCell?: (row: T, columnKey: string) => React.ReactNode;
+  onRowClick?: (row: T) => void;
 }
 
-const Tabla = <T extends { [key: string]: any }>({
+const Tabla = <T extends Record<string, any>>({
   title,
   headers,
   data,
   onClickAction,
   onUpdate,
   onCreate,
-  rowsPerPageOptions = [5, 10, 20, 50], 
+  rowsPerPageOptions = [5, 10, 20, 50],
   createButtonTitle = "Crear +",
   extraButton,
   hiddenColumnsByDefault = ['id'],
+  renderCell,
+  onRowClick
 }: TablaProps<T>) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState("");
@@ -45,7 +47,7 @@ const Tabla = <T extends { [key: string]: any }>({
       .map((header) => header.toLowerCase().replace(/\s+/g, "_"))
       .filter(key => !hiddenColumnsByDefault.includes(key.toLowerCase()))
   );
-  const [rowsPerPage, setRowsPerPage] = useState(rowsPerPageOptions[0]); 
+  const [rowsPerPage, setRowsPerPage] = useState(rowsPerPageOptions[0]);
 
   const columns: Column[] = useMemo(() => {
     return headers.map((header) => ({
@@ -125,7 +127,7 @@ const Tabla = <T extends { [key: string]: any }>({
 
   const handleRowsPerPageChange = (value: string) => {
     setRowsPerPage(Number(value));
-    setCurrentPage(1); // Resetear a la primera página cuando cambia el tamaño
+    setCurrentPage(1);
   };
 
   const visibleColumnsData = columns.filter((column) =>
@@ -158,10 +160,9 @@ const Tabla = <T extends { [key: string]: any }>({
         </div>
 
         <div className="w-full sm:w-1/4 flex justify-end gap-2">
-          {/* Selector de filas por página */}
           <select
             aria-label="Filas por página"
-            className="flex items-center  border-2 font-semibold text-green-700 border-green-700 hover:bg-green-700 hover:text-white p-2 rounded-xl shadow-md"
+            className="flex items-center border-2 font-semibold text-green-700 border-green-700 hover:bg-green-700 hover:text-white p-2 rounded-xl shadow-md"
             onChange={(e) => handleRowsPerPageChange(e.target.value)}
             value={rowsPerPage}
           >
@@ -197,7 +198,7 @@ const Tabla = <T extends { [key: string]: any }>({
               ))}
             </DropdownMenu>
           </Dropdown>
-          
+
           <HerouiButton
             title={createButtonTitle}
             onClick={onCreate}
@@ -237,53 +238,58 @@ const Tabla = <T extends { [key: string]: any }>({
                     </div>
                   </th>
                 ))}
-                <th className="px-2 sm:px-6 py-5 text-sm font-bold capitalize rounded-tr-2xl rounded-br-2xl text-left truncate">
-                  Acciones
-                </th>
+                {(onClickAction || onUpdate) && (
+                  <th className="px-2 sm:px-6 py-5 text-sm font-bold capitalize rounded-tr-2xl rounded-br-2xl text-left truncate">
+                    Acciones
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody className="px-20">
               {paginatedData.map((row, index) => (
                 <tr
                   key={row.id || index}
-                  className={`${index % 2 === 0 ? "bg-gray-50" : "bg-white"} hover:bg-green-100 transition duration-300 ease-in-out`}
+                  className={`${index % 2 === 0 ? "bg-gray-50" : "bg-white"} hover:bg-green-100 transition duration-300 ease-in-out ${onRowClick ? 'cursor-pointer' : ''}`}
+                  onClick={() => onRowClick && onRowClick(row)}
                 >
                   {visibleColumnsData.map((column, cellIndex) => (
                     <td
                       key={cellIndex}
                       className="px-8 py-3 sm:py-4 text-xs sm:text-sm text-gray-800 max-w-[100px] sm:max-w-xs truncate"
                     >
-                      {row[column.key] !== null && row[column.key] !== undefined ? row[column.key] : "—"}
+                      {renderCell ? renderCell(row, column.key) :
+                        (row[column.key] !== null && row[column.key] !== undefined ? row[column.key] : "—")}
                     </td>
                   ))}
-                  <td className="px-2">
-                    <Dropdown>
-                      <DropdownTrigger>
-                        <HerouiButton
-                          variant="bordered"
-                          className="p-2 rounded-full "
-                        >
-                          <MoreVertical size={18} />
-                        </HerouiButton>
-                      </DropdownTrigger>
-                      <DropdownMenu aria-label="Acciones" className="bg-white text-white">
-                        <DropdownItem
-                          key="details"
-                          onClick={() => onClickAction(row)}
-                          className="text-green-600"
-                        >
-                          Ver detalles
-                        </DropdownItem>
-                        <DropdownItem
-                          key="update"
-                          onClick={() => onUpdate(row)}
-                          className="text-yellow-600"
-                        >
-                          Actualizar
-                        </DropdownItem>
-                      </DropdownMenu>
-                    </Dropdown>
-                  </td>
+                  {(onClickAction || onUpdate) && (
+                    <td className="px-2">
+                      <Dropdown>
+                        <DropdownTrigger>
+                          <HerouiButton
+                            variant="bordered"
+                            className="p-2 rounded-full"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <MoreVertical size={18} />
+                          </HerouiButton>
+                        </DropdownTrigger>
+                        <DropdownMenu aria-label="Acciones">
+                          {[
+                            onClickAction && (
+                              <DropdownItem key="details" onClick={() => onClickAction(row)}>
+                                Ver detalles
+                              </DropdownItem>
+                            ),
+                            onUpdate && (
+                              <DropdownItem key="update" onClick={() => onUpdate(row)}>
+                                Actualizar
+                              </DropdownItem>
+                            )
+                          ].filter(Boolean) as React.ReactElement[]}
+                        </DropdownMenu>
+                      </Dropdown>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -302,7 +308,7 @@ const Tabla = <T extends { [key: string]: any }>({
               page={currentPage}
               total={totalPages}
               onChange={(page) => setCurrentPage(page)}
-              className="flex items-center gap-2 overflow-hidden "
+              className="flex items-center gap-2 overflow-hidden"
             />
           </div>
         </div>

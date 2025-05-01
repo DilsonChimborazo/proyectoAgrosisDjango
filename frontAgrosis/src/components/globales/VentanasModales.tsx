@@ -1,4 +1,3 @@
-// En tu archivo VentanasModales.tsx
 import React from 'react';
 import { X } from "lucide-react";
 import Tabla from '@/components/globales/Tabla';
@@ -17,6 +16,7 @@ interface VentanaModalProps {
   data?: any[];
   columns?: Column[];
   variant?: 'content' | 'table';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
 const VentanaModal: React.FC<VentanaModalProps> = ({
@@ -27,14 +27,21 @@ const VentanaModal: React.FC<VentanaModalProps> = ({
   contenido,
   data = [],
   columns = [],
-  variant = 'content'
+  variant = 'content',
+  size = 'md',
 }) => {
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 bg-gray-500 bg-opacity-70 flex justify-center items-start pt-20 overflow-auto">
-      <div className="relative bg-white p-8 rounded-xl shadow-lg w-4/12">
+  const sizeClasses = {
+    sm: 'w-1/4 min-w-[300px]',
+    md: 'w-1/3 min-w-[400px]',
+    lg: 'w-1/2 min-w-[500px]',
+    xl: 'w-3/4 min-w-[600px]'
+  };
 
+  return (
+    <div className="fixed inset-0 z-50 bg-gray-500 bg-opacity-70 flex justify-center items-start pt-20 overflow-auto p-4">
+      <div className={`relative bg-white p-8 rounded-xl shadow-lg ${sizeClasses[size]} max-w-[90vw] max-h-[90vh] overflow-auto`}>
         <button
           className="absolute top-2 right-2 hover:bg-gray-200 rounded-full w-8 h-8 flex items-center justify-center shadow-md transition duration-200"
           onClick={onClose}
@@ -57,7 +64,7 @@ const VentanaModal: React.FC<VentanaModalProps> = ({
             <p className="text-gray-500">No hay datos disponibles</p>
           )
         ) : (
-          contenido || children // <-- Esto muestra contenido si existe, sino muestra children
+          contenido || children
         )}
       </div>
     </div>
