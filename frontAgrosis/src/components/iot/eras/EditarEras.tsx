@@ -1,35 +1,45 @@
 import { useState, useEffect } from "react";
 import { useEditarEras } from "@/hooks/iot/eras/useEditarEras";
-import { useNavigate, useParams } from "react-router-dom";
 import { useEraPorId } from "@/hooks/iot/eras/useEraPorId";
+import { useLotes } from "@/hooks/iot/lote/useLotes";
 import Formulario from "../../globales/Formulario";
 
-const EditarEras = () => {
-    const { id } = useParams();
-    const navigate = useNavigate();
+interface EditarErasProps {
+    id: string;
+    onSuccess?: () => void;
+}
 
-    if (!id) {
-        console.error("❌ Error: ID no válido");
-        return <div className="text-red-500">Error: ID no válido</div>;
-    }
-
+const EditarEras = ({ id, onSuccess }: EditarErasProps) => {
     const { data: eras, isLoading, error } = useEraPorId(id);
+    const { data: lotes = [] } = useLotes();
     const actualizarEra = useEditarEras();
     
     const [formData, setFormData] = useState({
         fk_id_lote: "",
         descripcion: "",
+        estado: "",
     });
 
     useEffect(() => {
         if (eras) {
-            console.log("🔄 Cargando datos de la Era:", eras);
+            console.log("🔄 Datos de la Era recibidos:", eras);
+            const fkIdLote = eras.fk_id_lote?.id ? eras.fk_id_lote.id.toString() : "";
             setFormData({
-                fk_id_lote: eras.fk_id_lote ? eras.fk_id_lote.toString() : "",
+                fk_id_lote: fkIdLote,
                 descripcion: eras.descripcion || "",
+                estado: eras.estado ? "true" : "false",
+            });
+            console.log("📋 FormData actualizado:", {
+                fk_id_lote: fkIdLote,
+                descripcion: eras.descripcion || "",
+                estado: eras.estado ? "true" : "false",
             });
         }
     }, [eras]);
+
+    useEffect(() => {
+        console.log("📦 Lotes disponibles:", lotes);
+    }, [lotes]);
 
     const handleSubmit = (data: { [key: string]: string }) => {
         if (!id) return;
@@ -38,10 +48,11 @@ const EditarEras = () => {
             id: Number(id),
             fk_id_lote: Number(data.fk_id_lote) || 0, 
             descripcion: data.descripcion.trim() || "",
+            estado: data.estado === "true",
         };
 
         if (!eraActualizada.fk_id_lote || !eraActualizada.descripcion) {
-            console.error("⚠️ Datos inválidos. No se enviará la actualización.");
+            console.error("⚠️ Datos inválidos. No se enviará la actualización:", eraActualizada);
             return;
         }
 
@@ -50,7 +61,13 @@ const EditarEras = () => {
         actualizarEra.mutate(eraActualizada, {
             onSuccess: () => {
                 console.log("✅ Era actualizada correctamente");
-                navigate("/eras");
+                if (onSuccess) onSuccess();
+            },
+            onError: (error: any) => {
+                console.error("❌ Error al intentar actualizar la Era:", error);
+                if (error.response?.status === 401) {
+                    console.error("🔐 Error 401: No estás autorizado. Verifica tu token o permisos.");
+                }
             },
         });
     };
@@ -62,8 +79,25 @@ const EditarEras = () => {
         <div className="max-w-4xl mx-auto p-4">
             <Formulario 
                 fields={[
-                    { id: "fk_id_lote", label: "Lote", type: "number" },
+                    {
+                        id: "fk_id_lote",
+                        label: "Lote",
+                        type: "select",
+                        options: lotes.map(lote => ({
+                            value: lote.id.toString(),
+                            label: lote.nombre_lote
+                        }))
+                    },
                     { id: "descripcion", label: "Descripción", type: "text" },
+                    {
+                        id: "estado",
+                        label: "Estado",
+                        type: "select",
+                        options: [
+                            { value: "true", label: "Activo" },
+                            { value: "false", label: "Inactivo" }
+                        ]
+                    },
                 ]}
                 onSubmit={handleSubmit}  
                 isError={actualizarEra.isError} 

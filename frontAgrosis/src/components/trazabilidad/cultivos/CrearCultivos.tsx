@@ -11,13 +11,13 @@ const CrearCultivo = () => {
 
   // Obtener especies únicas
   const especiesUnicas = Array.from(new Map(
-    cultivos.map((cultivo) => [cultivo.fk_id_especie.id, cultivo.fk_id_especie])
-  ).values());
+    cultivos.map((cultivo) => [cultivo.fk_id_especie?.id, cultivo.fk_id_especie])
+  ).values()).filter(especie => especie !== null);
 
   // Obtener semilleros únicos
   const semillerosUnicos = Array.from(new Map(
-    cultivos.map((cultivo) => [cultivo.fk_id_semillero.id, cultivo.fk_id_semillero])
-  ).values());
+    cultivos.map((cultivo) => [cultivo.fk_id_semillero?.id, cultivo.fk_id_semillero])
+  ).values()).filter(semillero => semillero !== null);
 
   // Mapeo de opciones para el select de especies
   const especieOptions = especiesUnicas.map((especie) => ({
@@ -30,6 +30,13 @@ const CrearCultivo = () => {
     value: semillero.id,
     label: semillero.nombre_semillero,
   }));
+
+  // Opciones para el select de etapa_actual
+  const etapaOptions = [
+    { value: 'inicial', label: 'Inicial' },
+    { value: 'desarrollo', label: 'Desarrollo' },
+    { value: 'final', label: 'Final' },
+  ];
 
   // Definición de los campos del formulario
   const formFields = [
@@ -48,11 +55,30 @@ const CrearCultivo = () => {
       type: 'select',
       options: semilleroOptions,
     },
+    { id: 'kc_inicial', label: 'Kc Inicial', type: 'number', step: '0.1', defaultValue: '0.6' },
+    { id: 'kc_desarrollo', label: 'Kc Desarrollo', type: 'number', step: '0.1', defaultValue: '0.9' },
+    { id: 'kc_final', label: 'Kc Final', type: 'number', step: '0.1', defaultValue: '0.8' },
+    {
+      id: 'etapa_actual',
+      label: 'Etapa Actual',
+      type: 'select',
+      options: etapaOptions,
+      defaultValue: 'inicial',
+    },
   ];
 
   const handleSubmit = (formData: { [key: string]: string }) => {
-    if (!formData.nombre_cultivo || !formData.fecha_plantacion || !formData.descripcion || !formData.fk_id_especie || !formData.fk_id_semillero) {
-      console.error("❌ Todos los campos son obligatorios");
+    // Validar campos obligatorios
+    if (
+      !formData.nombre_cultivo ||
+      !formData.fecha_plantacion ||
+      !formData.descripcion ||
+      !formData.kc_inicial ||
+      !formData.kc_desarrollo ||
+      !formData.kc_final ||
+      !formData.etapa_actual
+    ) {
+      console.error("❌ Todos los campos obligatorios deben estar llenos");
       return;
     }
 
@@ -60,8 +86,12 @@ const CrearCultivo = () => {
       nombre_cultivo: formData.nombre_cultivo.trim(),
       fecha_plantacion: new Date(formData.fecha_plantacion).toISOString().split('T')[0],
       descripcion: formData.descripcion.trim(),
-      fk_id_especie: formData.fk_id_especie ,
-      fk_id_semillero: formData.fk_id_semillero ,
+      fk_id_especie: formData.fk_id_especie ? Number(formData.fk_id_especie) : null,
+      fk_id_semillero: formData.fk_id_semillero ? Number(formData.fk_id_semillero) : null,
+      kc_inicial: Number(formData.kc_inicial),
+      kc_desarrollo: Number(formData.kc_desarrollo),
+      kc_final: Number(formData.kc_final),
+      etapa_actual: formData.etapa_actual,
     };
 
     console.log("🚀 Enviando cultivo al backend:", nuevoCultivo);
@@ -69,7 +99,7 @@ const CrearCultivo = () => {
     mutation.mutate(nuevoCultivo, {
       onSuccess: () => {
         console.log("✅ Cultivo creado exitosamente");
-        navigate("/cultivo");
+        navigate("/cultivos");
       },
       onError: (error) => {
         console.error("❌ Error al crear cultivo:", error);

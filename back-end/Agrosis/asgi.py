@@ -17,7 +17,7 @@ django.setup()  # 🔹 Inicializar Django antes de importar cualquier módulo re
 from django.core.asgi import get_asgi_application
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
-from .routing import websocket_urlpatterns 
+from Agrosis.routing import websocket_urlpatterns 
 
 
 

@@ -11,9 +11,11 @@ import HistoricalDataPage from "./pages/HistoricalDataPage";
 import UsersPage from "./pages/usuarios/UsersPage";
 import CalendarPage from "./pages/trazabilidad/CalendarPage";
 import IOtPage from "./pages/iot/IotPage";
+import SensorPage from "./pages/iot/SensoresPage";
 import CrearSensor from "./components/iot/sensores/CrearSensor";
 import LotesPage from "./pages/iot/LotesPage";
 import ErasPage from "./pages/iot/ErasPage";
+import Evapotranspiracion from "./pages/iot/evapotranspiracionPage"; // Importamos el componente
 
 import Fichas from "./components/usuarios/ficha/Ficha";
 import CrearFicha from "./components/usuarios/ficha/crearFicha";
@@ -70,7 +72,6 @@ import ReportesPage from "./components/reportes/Reportes";
 import BodegaPage from "./pages/inventario/BodegaPage";
 import UnidadMedida from "./components/inventario/unidadMedida/UnidadMedida";
 
-
 const queryClient = new QueryClient();
 
 function App() {
@@ -95,6 +96,7 @@ function App() {
           {/* Rutas módulo IOT */}
           <Route path="/iot" element={<Principal><IOtPage /></Principal>} />
           <Route path="/iot/principal" element={<Principal><HomePage /></Principal>} />
+          <Route path="/iot/sensores" element={<Principal><SensorPage /></Principal>} />
           <Route path="/crear-sensor" element={<Principal><CrearSensor /></Principal>} />
           <Route path="/EditarSensor/:id" element={<Principal><EditarSensor /></Principal>} />
           <Route path="/lotes" element={<Principal><LotesPage /></Principal>} />
@@ -104,6 +106,7 @@ function App() {
           <Route path="/crear-eras" element={<Principal><CrearEras /></Principal>} />
           <Route path="/EditarEras/:id" element={<Principal><EditarEras /></Principal>} />
           <Route path="/historical/:sensorId" element={<Principal><HistoricalDataPage /></Principal>} />
+          <Route path="/iot/evapotranspiracion" element={<Principal><Evapotranspiracion /></Principal>} />
           
           {/* Rutas módulo inventario */}
           <Route path="/herramientas" element={<Principal><HerramientasPage /></Principal>} />

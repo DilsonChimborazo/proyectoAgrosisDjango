@@ -21,13 +21,14 @@ const Cultivos = () => {
   };
 
   const handleRowClick = (cultivo: { id: number }) => {
-    openModalHandler(cultivo);
+    const cultivoOriginal = cultivosList.find(c => c.id === cultivo.id);
+    openModalHandler(cultivoOriginal || cultivo);
   };
 
   const handleUpdate = (cultivo: { id: number }) => {
     navigate(`/actualizarcultivo/${cultivo.id}`);
   };
-  
+
   const handleCreate = () => {
     navigate("/crearcultivo");
   };
@@ -49,6 +50,8 @@ const Cultivos = () => {
     semillero: cultivo.fk_id_semillero
       ? cultivo.fk_id_semillero.nombre_semillero
       : "Sin semillero",
+    etapa_actual: cultivo.etapa_actual || "Desconocida",
+    kc_actual: cultivo.kc_actual !== undefined ? cultivo.kc_actual : "No disponible",
   }));
 
   const headers = [
@@ -58,19 +61,21 @@ const Cultivos = () => {
     "Descripcion",
     "Especie",
     "Semillero",
+    "Etapa Actual",
+    "kc Actual",
   ];
+  
 
   return (
-    <div className="overflow-x-auto  shadow-md rounded-lg">
+    <div className="overflow-x-auto shadow-md rounded-lg">
       <Tabla
         title="Listar Cultivos"
         headers={[...headers]}
         data={mappedCultivos}
         onClickAction={handleRowClick}
-        onUpdate={handleUpdate} 
+        onUpdate={handleUpdate}
         onCreate={handleCreate}
         createButtonTitle="Crear"
-        
       />
 
       {selectedCultivo && (

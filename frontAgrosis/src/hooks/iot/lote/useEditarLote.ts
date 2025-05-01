@@ -5,7 +5,6 @@ const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface Lotes {
     id: number;
-    fk_id_ubicacion: number;
     dimencion: number;
     nombre_lote: string;
     estado: string;
@@ -19,7 +18,7 @@ export const useEditarLote = () => {
             const { id, ...datos } = loteActualizado;
 
             // Validar antes de enviar
-            if (!datos.fk_id_ubicacion || !datos.dimencion || !datos.nombre_lote.trim() || !datos.estado.trim()) {
+            if (!datos.dimencion || !datos.nombre_lote.trim() || !datos.estado.trim()) {
                 throw new Error("⚠️ Datos inválidos. Por favor, revisa los campos.");
             }
 

@@ -10,13 +10,15 @@ class Sensores(models.Model):
     TIPO_SENSOR_CHOICES = [
         ('TEMPERATURA', 'Temperatura'),
         ('HUMEDAD_AMBIENTAL', 'Humedad ambiental'),
-        ('ILUMINACION', 'iluminacion'),
-        ('HUMEDAD TERRENO', 'Humedad terreno'),
-        ('VELOCIDAD VIENTO', 'Velocidad viento'),
-        ('NIVEL DE PH', 'Nivel de ph'),    
+        ('ILUMINACION', 'Iluminacion'),
+        ('HUMEDAD_TERRENO', 'Humedad terreno'),
+        ('VELOCIDAD_VIENTO', 'Velocidad viento'),
+        ('NIVEL_DE_PH', 'Nivel de pH'),
+        ('PRESION_ATMOSFERICA', 'Presión atmosférica'),  # Nuevo tipo
+        ('RADIACION_SOLAR', 'Radiación solar'),  # Agregado
     ]
     nombre_sensor = models.CharField(max_length=50)
-    tipo_sensor = models.CharField( max_length=50, choices=TIPO_SENSOR_CHOICES, unique=True)
+    tipo_sensor = models.CharField(max_length=50, choices=TIPO_SENSOR_CHOICES, unique=True)
     unidad_medida = models.CharField(max_length=50)
     descripcion = models.TextField()
     medida_minima = models.IntegerField()
@@ -47,4 +49,3 @@ def enviar_datos_sensores(sender, instance, **kwargs):
     
     import asyncio
     asyncio.run(send_data())
-

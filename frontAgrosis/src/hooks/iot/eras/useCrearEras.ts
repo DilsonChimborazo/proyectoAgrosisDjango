@@ -5,8 +5,10 @@ const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface Eras{
     id: number;
+    nombre: string;
     fk_id_lote: number;
     descripcion: string;
+    estado: boolean;
 }
 
 export const useCrearEras = () => {
