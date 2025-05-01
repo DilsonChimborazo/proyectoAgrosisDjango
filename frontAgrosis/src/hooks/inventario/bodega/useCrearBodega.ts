@@ -1,5 +1,3 @@
-// src/hooks/inventario/bodega/useCrearBodega.ts
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 
@@ -13,6 +11,7 @@ export interface MovimientoBodegaPayload {
     cantidad_herramienta: number,
     fecha: string;
     movimiento: 'Entrada' | 'Salida';
+    
 }
 
 export interface Herramientas {
@@ -41,6 +40,7 @@ export interface Insumo{
 }
 
 export interface Asignacion {
+    id: number;
     estado: string;
     fecha_programada: string;
     observaciones: string;

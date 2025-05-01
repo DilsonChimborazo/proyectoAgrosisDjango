@@ -8,7 +8,7 @@ interface FormField {
   type: string;
   options?: { value: string | number; label: string }[];
   value?: string;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void; 
   hasExtraButton?: boolean;
   extraButtonText?: string;
   onExtraButtonClick?: () => void;

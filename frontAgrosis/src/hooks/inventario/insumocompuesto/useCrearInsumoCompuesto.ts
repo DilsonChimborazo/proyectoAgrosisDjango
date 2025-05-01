@@ -14,6 +14,7 @@ interface CreateInsumoCompuestoData {
     insumo: number;
     cantidad_utilizada: number;
   }[];
+  
 }
 
 const createInsumoCompuesto = async (
