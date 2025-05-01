@@ -77,29 +77,15 @@ const Cultivos = () => {
   const mappedCultivos = cultivosList.map((cultivo: any) => ({
     id: cultivo.id,
     nombre: cultivo.nombre_cultivo,
-    fecha_plantacion: new Date(cultivo.fecha_plantacion).toLocaleDateString(),
+
     descripcion: cultivo.descripcion,
+    
     especie: cultivo.fk_id_especie
       ? cultivo.fk_id_especie.nombre_comun
       : "Sin especie",
-    semillero: cultivo.fk_id_semillero
-      ? cultivo.fk_id_semillero.nombre_semillero
-      : "Sin semillero",
-    etapa_actual: cultivo.etapa_actual || "Desconocida",
-    kc_actual: cultivo.kc_actual !== undefined ? cultivo.kc_actual : "No disponible",
   }));
 
-  const headers = [
-    "ID",
-    "Nombre",
-    "Fecha Plantacion",
-    "Descripcion",
-    "Especie",
-    "Semillero",
-    "Etapa Actual",
-    "kc Actual",
-  ];
-  
+  const headers = ["ID", "Nombre", "Descripcion", "Especie"];
 
   return (
     <div className="overflow-x-auto shadow-md rounded-lg">
@@ -130,19 +116,12 @@ const Cultivos = () => {
               <div className="grid grid-cols-2 gap-4">
                 <p><strong>ID:</strong> {(selectedCultivo as any).id}</p>
                 <p><strong>Nombre:</strong> {(selectedCultivo as any).nombre_cultivo || "Sin nombre"}</p>
-                <p>
-                  <strong>Fecha de Plantación:</strong>{" "}
-                  {new Date((selectedCultivo as any).fecha_plantacion).toLocaleDateString()}
-                </p>
                 <p><strong>Descripción:</strong> {(selectedCultivo as any).descripcion || "Sin descripción"}</p>
                 <p>
                   <strong>Especie:</strong>{" "}
                   {(selectedCultivo as any).fk_id_especie?.nombre_comun || "Sin especie"}
                 </p>
-                <p>
-                  <strong>Semillero:</strong>{" "}
-                  {(selectedCultivo as any).fk_id_semillero?.nombre_semilla || "Sin semillero"}
-                </p>
+                
               </div>
             ) : (
               modalContenido

@@ -4,15 +4,9 @@ import axios from "axios";
 const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface Cultivos {
-    nombre_cultivo: string;
-    fecha_plantacion: string;
+    nombre_cultivo: string; 
     descripcion: string;
-    fk_id_especie: number | null;
-    fk_id_semillero: number | null;
-    kc_inicial: number;
-    kc_desarrollo: number;
-    kc_final: number;
-    etapa_actual: string;
+    fk_id_especie: number;
 }
 
 export const useCrearCultivo = () => {

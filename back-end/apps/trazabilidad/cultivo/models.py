@@ -1,6 +1,5 @@
 from django.db import models
 from apps.trazabilidad.especie.models import Especie
-from apps.trazabilidad.semillero.models import Semillero
 
 class Cultivo(models.Model):
     # Opciones para la etapa del cultivo
@@ -11,7 +10,6 @@ class Cultivo(models.Model):
     )
 
     nombre_cultivo = models.CharField(max_length=100)
-    fecha_plantacion = models.DateField()
     descripcion = models.CharField(max_length=300)
 
     # Kc para cada etapa
@@ -23,7 +21,6 @@ class Cultivo(models.Model):
     etapa_actual = models.CharField(max_length=20, choices=ETAPAS, default='inicial')
 
     fk_id_especie = models.ForeignKey(Especie, on_delete=models.SET_NULL, null=True)
-    fk_id_semillero = models.ForeignKey(Semillero, on_delete=models.SET_NULL, null=True)
 
     def get_kc_actual(self):
         """
@@ -51,3 +48,8 @@ class Cultivo(models.Model):
         """
         kc = self.get_kc_actual()
         return float(eto) * float(kc)
+
+    
+    def __str__(self):
+        return self.nombre_cultivo
+

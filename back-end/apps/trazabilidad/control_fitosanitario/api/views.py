@@ -12,7 +12,7 @@ from apps.trazabilidad.control_fitosanitario.api.serializers import (
 class Control_fitosanitarioViewSet(ModelViewSet):
    # permission_classes = [IsAuthenticatedOrReadOnly]
     queryset = Control_fitosanitario.objects.select_related(
-        'fk_id_cultivo', 'fk_id_pea'
+        'fk_id_plantacion', 'fk_id_pea'
     ).all()
 
     def get_serializer_class(self):
@@ -28,12 +28,12 @@ class Control_fitosanitarioViewSet(ModelViewSet):
         reporte = []
 
         for control in self.get_queryset():
-            cultivo_nombre = control.fk_id_cultivo.nombre_cultivo if control.fk_id_cultivo else "No especificado"
+            fk_id_cultivo = control.fk_id_plantacion.fk_id_cultivo if control.fk_id_plantacion else "No especificado"
             pea_nombre = control.fk_id_pea.nombre_pea if control.fk_id_pea else "No especificado"
             tipo_control = control.tipo_control
 
             reporte.append({
-                "cultivo": cultivo_nombre,
+                "cultivo": fk_id_cultivo,
                 "pea": pea_nombre,
                 "tipo_control": tipo_control,
             })

@@ -9,7 +9,7 @@ export interface ControlFitosanitario {
     duracion: number;
     descripcion: string;
     tipo_control: string;
-    fk_id_cultivo: Cultivo | null;
+    fk_id_plantacion: Plantacion | null;
     fk_id_pea: Pea | null;
     fk_id_insumo: Insumo | null;
     cantidad_insumo: number;
@@ -23,7 +23,36 @@ export interface Pea {
     descripcion: string;
     tipo_pea: string;
 }
+export interface Plantacion {
+    id: number;
+    fk_id_eras: Eras | null;
+    fk_id_cultivo: Cultivo | null;
+    cantidad_transplante: number;
+    fecha_plantacion: string;
+    fk_id_semillero: Semillero | null;
+}
+export interface Eras {
+    id: number;
+    descripcion: string;
+    fk_id_lote: Lote | null;
+    estado: boolean;
+}
 
+export interface Lote {
+    id: number;
+    dimencion: string;
+    nombre_lote: string;
+    estado: boolean;
+    
+}
+
+export interface Semillero {
+    id: number;
+    nombre_semilla: string;
+    fecha_siembra: string; 
+    fecha_estimada: string;
+    cantidad: number;
+}
 export interface Cultivo {
     id: number;
     nombre_cultivo: string;

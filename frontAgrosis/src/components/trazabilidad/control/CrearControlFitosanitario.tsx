@@ -1,12 +1,12 @@
 import { useCrearControlFitosanitario } from '@/hooks/trazabilidad/control/useCrearControlFitosanitario';
 import Formulario from '../../globales/Formulario';
-import { useCultivo } from '@/hooks/trazabilidad/cultivo/useCultivo';
+import { usePlantacion } from '@/hooks/trazabilidad/plantacion/usePlantacion';
 import { usePea } from '@/hooks/trazabilidad/pea/usePea';
 import { useInsumo } from '@/hooks/inventario/insumos/useInsumo';
 import { useUsuarios } from '@/hooks/usuarios/usuario/useUsuarios';
 import { useState } from 'react';
 import VentanaModal from '../../globales/VentanasModales';
-import CrearCultivo from '../cultivos/CrearCultivos';
+import CrearPlantacion from '../plantacion/CrearPlantacion';
 import CrearPea from '../peas/CrearPea'; 
 import CrearInsumo from '../../inventario/insumos/CrearInsumos'; 
 import CrearUsuario from '../../usuarios/usuario/crearUsuario'; 
@@ -17,12 +17,12 @@ interface CrearControlFitosanitarioProps {
 
 const CrearControlFitosanitario = ({ onSuccess }: CrearControlFitosanitarioProps) => {
   const mutation = useCrearControlFitosanitario();
-  const { data: cultivos = [], isLoading: isLoadingCultivos, refetch: refetchCultivos } = useCultivo();
+  const { data: plantaciones = [], isLoading: isLoadingPlantaciones, refetch: refetchPlantaciones } = usePlantacion();
   const { data: peas = [], isLoading: isLoadingPeas, refetch: refetchPeas } = usePea();
   const { data: insumos = [], isLoading: isLoadingInsumos, refetch: refetchInsumos } = useInsumo();
   const { data: usuarios = [], isLoading: isLoadingUsuarios, error: errorUsuarios, refetch: refetchUsuarios } = useUsuarios();
 
-  const [mostrarModalCultivo, setMostrarModalCultivo] = useState(false);
+  const [mostrarModalPlantacion, setMostrarModalPlantacion] = useState(false);
   const [mostrarModalPea, setMostrarModalPea] = useState(false);
   const [mostrarModalInsumo, setMostrarModalInsumo] = useState(false);
   const [mostrarModalUsuario, setMostrarModalUsuario] = useState(false);
@@ -40,9 +40,9 @@ const CrearControlFitosanitario = ({ onSuccess }: CrearControlFitosanitarioProps
     { value: 'Control Genetico', label: 'Control Genetico' },
   ];
 
-  const cultivoOptions = cultivos.map((cultivo) => ({
-    value: String(cultivo.id),
-    label: cultivo.nombre_cultivo,
+  const plantacionOptions = plantaciones.map((plantacion) => ({
+    value: String(plantacion.id),
+    label: `Plantación ${plantacion.id} - ${plantacion.fk_id_cultivo?.nombre_cultivo || 'Sin cultivo'}`,
   }));
 
   const peaOptions = peas.map((pea) => ({
@@ -68,14 +68,14 @@ const CrearControlFitosanitario = ({ onSuccess }: CrearControlFitosanitarioProps
     { id: 'descripcion', label: 'Descripción', type: 'text', required: true },
     { id: 'tipo_control', label: 'Tipo de Control', type: 'select', options: tipoControlOptions, required: true },
     {
-      id: 'fk_id_cultivo',
-      label: 'Cultivo',
+      id: 'fk_id_plantacion',
+      label: 'Plantación',
       type: 'select',
-      options: cultivoOptions,
+      options: plantacionOptions,
       required: true,
       hasExtraButton: true,
-      extraButtonText: 'Crear Cultivo',
-      onExtraButtonClick: () => setMostrarModalCultivo(true),
+      extraButtonText: 'Crear Plantación',
+      onExtraButtonClick: () => setMostrarModalPlantacion(true),
     },
     {
       id: 'fk_id_pea',
@@ -123,13 +123,13 @@ const CrearControlFitosanitario = ({ onSuccess }: CrearControlFitosanitarioProps
       !formData.duracion ||
       !formData.descripcion ||
       !formData.tipo_control ||
-      !formData.fk_id_cultivo ||
+      !formData.fk_id_plantacion ||
       !formData.fk_id_pea ||
       !formData.fk_id_insumo ||
       !formData.cantidad_insumo ||
       !formData.img
     ) {
-      console.error(" Los campos obligatorios no están completos:", formData);
+      console.error("Los campos obligatorios no están completos:", formData);
       return;
     }
 
@@ -138,7 +138,7 @@ const CrearControlFitosanitario = ({ onSuccess }: CrearControlFitosanitarioProps
       duracion: Number(formData.duracion),
       descripcion: (formData.descripcion as string).trim(),
       tipo_control: formData.tipo_control as string,
-      fk_id_cultivo: Number(formData.fk_id_cultivo),
+      fk_id_plantacion: Number(formData.fk_id_plantacion),
       fk_id_pea: Number(formData.fk_id_pea),
       fk_id_insumo: Number(formData.fk_id_insumo),
       cantidad_insumo: Number(formData.cantidad_insumo),
@@ -160,19 +160,19 @@ const CrearControlFitosanitario = ({ onSuccess }: CrearControlFitosanitarioProps
   };
 
   const cerrarYActualizar = async () => {
-    setMostrarModalCultivo(false);
+    setMostrarModalPlantacion(false);
     setMostrarModalPea(false);
     setMostrarModalInsumo(false);
     setMostrarModalUsuario(false);
     await Promise.all([
-      refetchCultivos(),
+      refetchPlantaciones(),
       refetchPeas(),
       refetchInsumos(),
       refetchUsuarios(),
     ]);
   };
 
-  if (isLoadingCultivos || isLoadingPeas || isLoadingInsumos || isLoadingUsuarios) {
+  if (isLoadingPlantaciones || isLoadingPeas || isLoadingInsumos || isLoadingUsuarios) {
     return <div className="text-center text-gray-500">Cargando datos...</div>;
   }
 
@@ -192,10 +192,10 @@ const CrearControlFitosanitario = ({ onSuccess }: CrearControlFitosanitarioProps
       />
 
       <VentanaModal
-        isOpen={mostrarModalCultivo}
+        isOpen={mostrarModalPlantacion}
         onClose={cerrarYActualizar}
         titulo=""
-        contenido={<CrearCultivo onSuccess={cerrarYActualizar} />}
+        contenido={<CrearPlantacion onSuccess={cerrarYActualizar} />}
       />
 
       <VentanaModal

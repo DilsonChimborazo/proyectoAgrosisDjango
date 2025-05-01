@@ -1,5 +1,5 @@
 from django.db import models
-from apps.trazabilidad.cultivo.models import Cultivo
+from apps.trazabilidad.plantacion.models import Plantacion
 from apps.trazabilidad.pea.models import Pea
 from apps.inventario.insumo.models import Insumo
 from apps.usuarios.usuario.models import Usuarios
@@ -19,7 +19,7 @@ class Control_fitosanitario(models.Model):
     duracion = models.IntegerField(help_text="Duración en minutos")
     descripcion = models.CharField(max_length=300)
     tipo_control = models.CharField(max_length=20, choices=TIPOS_CONTROL, default='Control Biológico')
-    fk_id_cultivo = models.ForeignKey(Cultivo, on_delete=models.SET_NULL, null=True)
+    fk_id_plantacion = models.ForeignKey(Plantacion, on_delete=models.SET_NULL, null=True)
     fk_id_pea = models.ForeignKey(Pea, on_delete=models.SET_NULL, null=True)
     fk_id_insumo = models.ForeignKey(Insumo, on_delete=models.SET_NULL, null=True)
     cantidad_insumo = models.IntegerField()
@@ -68,4 +68,4 @@ class Control_fitosanitario(models.Model):
 
         
     def __str__(self):
-        return f"Cultivo: {self.fk_id_cultivo.nombre_cultivo} pea: {self.fk_id_pea}" 
+        return f"plantacion: {self.fk_id_plantacion}, Insumo: {self.fk_id_insumo.nombre}, Cantidad: {self.cantidad_insumo}, Unidad: {self.fk_unidad_medida.nombre if self.fk_unidad_medida else 'N/A'}, Costo: {self.costo_insumo}pea: {self.fk_id_pea}" 

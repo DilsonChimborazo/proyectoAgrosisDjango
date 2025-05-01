@@ -16,20 +16,16 @@ const ActualizarCultivo = ({ id, onSuccess }: ActualizarCultivo) => {
 
   const [formData, setFormData] = useState<Record<string, string>>({
     nombre_cultivo: "",
-    fecha_plantacion: "",
     descripcion: "",
     fk_id_especie: "",
-    fk_id_semillero: "",
   });
 
   useEffect(() => {
     if (cultivo) {
       setFormData({
         nombre_cultivo: cultivo.nombre_cultivo || "",
-        fecha_plantacion: cultivo.fecha_plantacion?.toString().slice(0, 10) || "",
         descripcion: cultivo.descripcion || "",
         fk_id_especie: String(cultivo.fk_id_especie?.id ?? ""),
-        fk_id_semillero: String(cultivo.fk_id_semillero?.id ?? ""),
       });
     }
   }, [cultivo]);
@@ -37,17 +33,10 @@ const ActualizarCultivo = ({ id, onSuccess }: ActualizarCultivo) => {
   const especiesUnicas = Array.from(
     new Map(todos.map((c) => [c.fk_id_especie.id, c.fk_id_especie])).values()
   );
-  const semillerosUnicos = Array.from(
-    new Map(todos.map((c) => [c.fk_id_semillero.id, c.fk_id_semillero])).values()
-  );
 
   const opcionesEspecies = especiesUnicas.map((e) => ({
     value: String(e.id),
     label: e.nombre_comun,
-  }));
-  const opcionesSemilleros = semillerosUnicos.map((s) => ({
-    value: String(s.id),
-    label: s.nombre_semilla,
   }));
 
   const handleSubmit = (data: Record<string, string>) => {
@@ -55,10 +44,8 @@ const ActualizarCultivo = ({ id, onSuccess }: ActualizarCultivo) => {
       {
         id: +id,
         nombre_cultivo: data.nombre_cultivo,
-        fecha_plantacion: data.fecha_plantacion,
         descripcion: data.descripcion,
         fk_id_especie: parseInt(data.fk_id_especie),
-        fk_id_semillero: parseInt(data.fk_id_semillero),
       },
       {
         onSuccess: () => {
@@ -83,19 +70,12 @@ const ActualizarCultivo = ({ id, onSuccess }: ActualizarCultivo) => {
         isSuccess={actualizarCultivo.isSuccess}
         fields={[
           { id: "nombre_cultivo", label: "Nombre del Cultivo", type: "text" },
-          { id: "fecha_plantacion", label: "Fecha de Plantación", type: "date" },
           { id: "descripcion", label: "Descripción", type: "text" },
           {
             id: "fk_id_especie",
             label: "Especie",
             type: "select",
             options: opcionesEspecies,
-          },
-          {
-            id: "fk_id_semillero",
-            label: "Semillero",
-            type: "select",
-            options: opcionesSemilleros,
           },
         ]}
       />

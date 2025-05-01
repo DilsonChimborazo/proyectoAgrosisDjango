@@ -3,12 +3,13 @@ import axios from 'axios';
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
-export interface Semillero {
+
+export interface Cultivos{
     id: number;
-    nombre_semillero: string;
-    fecha_siembra: string;
-    fecha_estimada: string;
-    cantidad: number;
+    nombre_cultivo: string; 
+    descripcion: string;
+    fk_id_especie: Especie;
+    
 }
 
 export interface TipoCultivo {
@@ -22,31 +23,19 @@ export interface Especie {
     nombre_comun: string;
     nombre_cientifico: string;
     descripcion: string;
-    fk_id_tipo_cultivo: TipoCultivo | null;
+    fk_id_tipo_cultivo: TipoCultivo ;
 }
 
 export interface Cultivos {
     id: number;
     nombre_cultivo: string;
-    fecha_plantacion: string;
     descripcion: string;
-    fk_id_especie: Especie | null;
-    fk_id_semillero: Semillero | null;
-    kc_inicial: number;
-    kc_desarrollo: number;
-    kc_final: number;
-    etapa_actual: string;
-    etapa_actual_display: string;
-    kc_actual: number;
+    fk_id_especie: Especie;
 }
 
 const fetchAsignacion = async (): Promise<Cultivos[]> => {
     try {
         const response = await axios.get(`${apiUrl}cultivo/`, {
-            headers: {
-                // Si tu API requiere autenticación, descomenta y ajusta
-                // Authorization: `Bearer ${localStorage.getItem('token')}`,
-            },
         });
         console.log("Datos recibidos del backend:", response.data);
         return response.data;
