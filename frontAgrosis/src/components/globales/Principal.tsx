@@ -70,7 +70,7 @@ const menuItems = [
 ];
 
 export default function Principal({ children }: LayoutProps) {
-  const [usuario, setUsuario] = useState<{ nombre: string; apellido: string } | null>(null);
+  const [usuario, setUsuario] = useState<{ nombre: string; apellido: string; img_url?: string; } | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false); 
   const [active, setActive] = useState<string>("");
   const [openMenus, setOpenMenus] = useState<{ [key: string]: boolean }>({});
@@ -203,10 +203,21 @@ export default function Principal({ children }: LayoutProps) {
           <div className="flex items-center space-x-2 sm:space-x-4">
             <Notification size={20} className="text-white" />
             <p className="hidden sm:block"> | </p>
-            <User size={20} className="text-white" />
+            <img
+              src={usuario?.img_url || 'http://localhost:8000/media/imagenes/defecto.png'}
+              alt="Foto de perfil"
+              className="w-8 h-8 rounded-full object-cover"
+              onError={(e) => {
+                const target = e.currentTarget;
+                console.log('Error cargando imagen, usando defecto');
+                if (!target.src.includes('defecto.png')) {
+                  target.src = 'http://localhost:8000/media/imagenes/defecto.png';
+                }
+              }}
+            />
             <span
               className="text-white cursor-pointer hover:text-yellow-100 text-sm sm:text-base"
-              onClick={() => navigate("/usuarios")}
+              onClick={() => navigate("/perfil")}
             >
               {usuario ? `${usuario?.nombre || "Nombre no disponible"} ${usuario?.apellido || "Apellido no disponible"}` : "Usuario no identificado"}
             </span>

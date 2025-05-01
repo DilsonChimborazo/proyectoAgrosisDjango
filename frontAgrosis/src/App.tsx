@@ -20,6 +20,7 @@ import Evapotranspiracion from "./pages/iot/evapotranspiracionPage"; // Importam
 import Fichas from "./components/usuarios/ficha/Ficha";
 import CrearFicha from "./components/usuarios/ficha/crearFicha";
 import CrearUsuario from "./components/usuarios/usuario/crearUsuario";
+import PerfilUsuario from "./components/usuarios/usuario/PerfilUsuario";
 import ActualizarUsuario from "./components/usuarios/usuario/UpdateUsuario";
 import SolicitarRecuperacion from "./components/usuarios/recuperaciones/SolicitarRecuperacion";
 import ResetearContrasena from "./components/usuarios/recuperaciones/ResetearContrasena";
@@ -68,6 +69,7 @@ import TipoResiduos from "./components/trazabilidad/tiporesiduo/TipoResiduo";
 import StockPage from "./pages/finanzas/stock/StockPage"
 import CrearInsumoCompuesto from "./components/inventario/insumocompuesto/CrearInsumoCompuesto";
 
+
 const queryClient = new QueryClient();
 
 function App() {
@@ -83,12 +85,12 @@ function App() {
           <Route path="/Home" element={<Principal><HomePage /></Principal>} />
           <Route path="/principal" element={<Principal><HomePage /></Principal>} />
           <Route path="/fichas" element={<Principal><Fichas/></Principal>} />
+          <Route path="/perfil" element={<Principal><PerfilUsuario/></Principal>} />
           <Route path="/crearFicha" element={<Principal><CrearFicha/></Principal>} />
           <Route path="/usuarios" element={<Principal><UsersPage /></Principal>} />
           <Route path="/crearUsuarios" element={<Principal><CrearUsuario /></Principal>} />
           <Route path="/editarUsuario/:id" element={<Principal><ActualizarUsuario/></Principal>} />
           <Route path="/mapa" element={<Principal><Mapa /></Principal>} />
-
           {/* Rutas módulo IOT */}
           <Route path="/iot" element={<Principal><IOtPage /></Principal>} />
           <Route path="/iot/principal" element={<Principal><HomePage /></Principal>} />

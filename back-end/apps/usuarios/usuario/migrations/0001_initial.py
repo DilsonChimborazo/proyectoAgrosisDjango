@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
                 ('nombre', models.CharField(max_length=30)),
                 ('apellido', models.CharField(max_length=30)),
                 ('is_active', models.BooleanField(default=True)),
-                ('img', models.ImageField(upload_to='imagenes/')),
+                ('img', models.ImageField(blank=True, default='imagenes/defecto.png', null=True, upload_to='media')),
                 ('ficha', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='ficha.ficha')),
                 ('fk_id_rol', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='rol.rol')),
                 ('groups', models.ManyToManyField(blank=True, help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.', related_name='user_set', related_query_name='user', to='auth.group', verbose_name='groups')),

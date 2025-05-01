@@ -3,18 +3,18 @@ import { useActualizarUsuario } from "@/hooks/usuarios/usuario/useUpdateUsuarios
 import { useNavigate, useParams } from "react-router-dom";
 import { useUsuarioPorId } from "@/hooks/usuarios/usuario/useIdUsuarios";
 import Formulario from "@/components/globales/Formulario";
-import { Usuario } from "@/hooks/usuarios/usuario/useCreateUsuarios"; 
+import { Usuario } from "@/hooks/usuarios/usuario/useCreateUsuarios";
 import { useRoles } from "@/hooks/usuarios/rol/useRol";
 import { UseFicha } from "@/hooks/usuarios/ficha/useFicha";
 
 const ActualizarUsuario = () => {
-    const { id } = useParams(); 
+    const { id } = useParams();
     const { data: usuario, isLoading, error } = useUsuarioPorId(id || "");
     const actualizarUsuario = useActualizarUsuario();
     const navigate = useNavigate();
-    const { data: roles = [] } = useRoles(); 
-    const { data: fichas = [] } = UseFicha(); 
-    
+    const { data: roles = [] } = useRoles();
+    const { data: fichas = [] } = UseFicha();
+
     const [formData, setFormData] = useState<Partial<Usuario>>({
         identificacion: 0,
         email: "",
@@ -33,8 +33,8 @@ const ActualizarUsuario = () => {
                 email: usuario.email ?? "",
                 nombre: usuario.nombre ?? "",
                 apellido: usuario.apellido ?? "",
-                fk_id_rol: usuario.fk_id_rol?.id ?? 0, 
-                ficha: usuario.ficha?.id ?? 0, 
+                fk_id_rol: usuario.fk_id_rol?.id ?? 0,
+                ficha: usuario.ficha?.id ?? 0,
             });
         }
     }, [usuario]);
@@ -45,10 +45,14 @@ const ActualizarUsuario = () => {
         const usuarioActualizado: Partial<Usuario> = {};
 
         Object.entries(data).forEach(([key, value]) => {
-            if (typeof value === "string" && value.trim() !== "" && value !== String(usuario?.[key as keyof Usuario])) {
-                (usuarioActualizado as any)[key] = ["fk_id_rol", "identificacion"].includes(key)
-                    ? parseInt(value, 10) || 0  // ✅ Convierte solo los campos numéricos
-                    : value;  // ✅ Mantiene el valor original si no es numérico
+            if (
+                typeof value === "string" &&
+                value.trim() !== "" &&
+                value !== String(usuario?.[key as keyof Usuario])
+            ) {
+                (usuarioActualizado as any)[key] = ["fk_id_rol", "identificacion", "ficha"].includes(key)
+                    ? parseInt(value, 10) || 0
+                    : value;
             }
         });
 
@@ -58,11 +62,11 @@ const ActualizarUsuario = () => {
             console.error("❌ ID de usuario no válido");
             return;
         }
-        
+
         const usuarioFinal = Object.fromEntries(
             Object.entries(usuarioActualizado).filter(([_, value]) => value !== undefined)
         );
-        
+
         actualizarUsuario.mutate(
             { id: Number(id), ...usuarioFinal },
             {
@@ -82,38 +86,45 @@ const ActualizarUsuario = () => {
 
     return (
         <div className="max-w-4xl mx-auto p-4">
-            <Formulario 
+            <Formulario
                 fields={[
-                    { id: 'identificacion', label: 'Identificación', type: 'text' },
-                    { id: 'email', label: 'Email', type: 'email' },
-                    { id: 'nombre', label: 'Nombre', type: 'text' },
-                    { id: 'apellido', label: 'Apellido', type: 'text' },
-                    { 
-                        id: "fk_id_rol", 
-                        label: "Rol", 
-                        type: "select", 
-                        options: Array.isArray(roles) 
+                    { id: "identificacion", label: "Identificación", type: "text" },
+                    { id: "email", label: "Email", type: "email" },
+                    { id: "nombre", label: "Nombre", type: "text" },
+                    { id: "apellido", label: "Apellido", type: "text" },
+                    {
+                        id: "fk_id_rol",
+                        label: "Rol",
+                        type: "select",
+                        options: Array.isArray(roles)
                             ? roles.map((rol) => ({ value: String(rol.id), label: rol.rol }))
-                            : []
+                            : [],
                     },
-                    { 
-                        id: "ficha", 
-                        label: "Ficha", 
+                    {
+                        id: "ficha",
+                        label: "Ficha",
                         type: "select",
                         options: Array.isArray(fichas)
-                            ? fichas.map((ficha) =>({ value: Number(ficha.id), label: ficha.numero_ficha}))
-                            :[]
-                            
-                            
+                            ? fichas
+                                  .filter(
+                                      (ficha) =>
+                                          ficha.id !== undefined &&
+                                          ficha.numero_ficha !== undefined
+                                  )
+                                  .map((ficha) => ({
+                                      value: ficha.id as number,
+                                      label: ficha.numero_ficha as string,
+                                  }))
+                            : [],
                     },
-                ]} 
-                onSubmit={handleSubmit} 
-                isError={actualizarUsuario.isError} 
+                ]}
+                onSubmit={handleSubmit}
+                isError={actualizarUsuario.isError}
                 isSuccess={actualizarUsuario.isSuccess}
-                title="Actualizar Usuario"  
+                title="Actualizar Usuario"
                 initialValues={Object.fromEntries(
                     Object.entries(formData).map(([key, value]) => [key, String(value ?? "")])
-                )}  
+                )}
                 key={JSON.stringify(formData)}
             />
         </div>

@@ -16,9 +16,9 @@ const SolicitarRecuperacion = () => {
       <img src="/fondo.jpg" alt="Fondo" className="absolute inset-0 w-full object-cover z-0"/>
       <div className="absolute inset-0 bg-black opacity-70  z-10"></div>
       <div className="relative z-20 flex h-full w-full items-center justify-center ">
-        <div className="flex w-3/5 h-4/5 backdrop-blur-md bg-white/10 border border-white/20 text-white shadow-2xl rounded-3xl overflow-hidden">
+        <div className="flex flex-col md:flex-row w-11/12 md:w-3/5 h-auto md:h-4/5 backdrop-blur-md bg-white/10 border border-white/20 text-white shadow-2xl rounded-3xl overflow-hidden">
           {/* Sección izquierda con formulario */}
-          <div className="w-1/2 flex flex-col justify-center p-8">
+          <div className="w-full md:w-1/2 flex flex-col justify-center p-8">
             <h2 className="text-2xl font-bold text-gray-500 text-center">Recuperar Contraseña</h2>
             <p className="w-full px-4 py-2 bg-transparent border-b border-white placeholder">Ingrese su correo para recuperar acceso</p>
             {isSuccess && <p className="text-green-500 text-center mb-4">Correo enviado con éxito.</p>}
@@ -47,10 +47,10 @@ const SolicitarRecuperacion = () => {
             </form>
           </div>
 
-          <div className="w-[1px] bg-white/30 h-4/5 self-center"></div>
+          <div className="hidden md:block w-[1px] bg-white/30 h-4/5 self-center"></div>
 
           {/* Sección derecha con logo */}
-          <div className="w-1/2 flex flex-col items-center justify-center p-6">
+          <div className="w-full md:w-1/2 flex flex-col items-center justify-center p-6">
             <img src={logoAgrosis} alt="AgroSIS" className="w-48 mb-4" />
             <p className="text-gray-300 text-center">Te enviaremos un enlace para recuperar tu cuenta.</p>
           </div>
