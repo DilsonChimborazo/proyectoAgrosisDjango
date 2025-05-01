@@ -84,7 +84,7 @@ interface InsumoCompuesto {
     precio_unidad: number | null;
     detalles: DetalleInsumoCompuesto[];
     cantidad_insumo?: number;
-    nombre_h?: never; // Para evitar conflicto con Herramienta
+    nombre_h?: never;
 }
 
 // Type guards
@@ -244,6 +244,7 @@ const ListarBodega = () => {
     const [viewMode, setViewMode] = useState<'items' | 'movimientos'>('items');
     const [terminoBusqueda, setTerminoBusqueda] = useState('');
     const [terminoDebounced] = useDebounce(terminoBusqueda, 300);
+    const [filtroInsumo, setFiltroInsumo] = useState<'todos' | 'normales' | 'compuestos'>('todos');
 
     const handleRowClick = (movimiento: MovimientoBodega) => {
         setSelectedMovimiento(movimiento);
@@ -382,6 +383,11 @@ const ListarBodega = () => {
     
     const itemsFiltrados = filtrarItems(tipoSeleccionado === 'Herramienta' ? herramientas || [] : insumos || []);
 
+    // Filtrar insumos compuestos según el término de búsqueda
+    const insumosCompuestosFiltrados = insumosCompuestos?.filter(ic => 
+        ic.nombre.toLowerCase().includes(terminoDebounced.toLowerCase())
+    ) || [];
+
     return (
         <div className="p-4 mt-5 rounded-3xl space-y-6">
             <VentanaModal
@@ -446,6 +452,7 @@ const ListarBodega = () => {
                             onClick={() => {
                                 setTipoSeleccionado('Herramienta');
                                 setTerminoBusqueda('');
+                                setFiltroInsumo('todos');
                             }}
                             className={`flex items-center px-4 py-2 rounded-lg ${tipoSeleccionado === 'Herramienta' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
                         >
@@ -457,6 +464,7 @@ const ListarBodega = () => {
                             onClick={() => {
                                 setTipoSeleccionado('Insumo');
                                 setTerminoBusqueda('');
+                                setFiltroInsumo('todos');
                             }}
                             className={`flex items-center px-4 py-2 rounded-lg ${tipoSeleccionado === 'Insumo' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
                         >
@@ -464,6 +472,26 @@ const ListarBodega = () => {
                             Insumos
                         </button>
                     </div>
+
+                    
+                    {tipoSeleccionado === 'Insumo' && viewMode === 'items' && (
+                        <div className="relative">
+                            <select
+                                value={filtroInsumo}
+                                onChange={(e) => setFiltroInsumo(e.target.value as 'todos' | 'normales' | 'compuestos')}
+                                className="appearance-none bg-white  rounded-lg pl-4 pr-8 py-2 focus:outline-none focus:ring-2"
+                            >
+                                <option value="todos">Todos los insumos</option>
+                                <option value="normales">Insumos normales</option>
+                                <option value="compuestos">Insumos compuestos</option>
+                            </select>
+                            <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                                <svg className="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                                </svg>
+                            </div>
+                        </div>
+                    )}
 
                     {viewMode === 'items' && (
                         <button
@@ -491,101 +519,104 @@ const ListarBodega = () => {
             {viewMode === 'items' ? (
                 <div className="space-y-8">
                     {/* Sección de Herramientas/Insumos normales */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                        {itemsFiltrados.length > 0 ? (
-                            itemsFiltrados.map((item) => {
-                                const esHerramienta = isHerramienta(item);
-                                const esInsumo = isInsumo(item);
+                    {(tipoSeleccionado === 'Herramienta' || filtroInsumo !== 'compuestos') && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                            {itemsFiltrados.length > 0 ? (
+                                itemsFiltrados.map((item) => {
+                                    const esHerramienta = isHerramienta(item);
+                                    const esInsumo = isInsumo(item);
 
-                                let cantidad = 0;
-                                if (esHerramienta) {
-                                    cantidad = Number(item.cantidad_herramienta) || 0;
-                                } else if (esInsumo) {
-                                    cantidad = item.cantidad_insumo !== null ? Number(item.cantidad_insumo) : 0;
-                                }
+                                    let cantidad = 0;
+                                    if (esHerramienta) {
+                                        cantidad = Number(item.cantidad_herramienta) || 0;
+                                    } else if (esInsumo) {
+                                        cantidad = item.cantidad_insumo !== null ? Number(item.cantidad_insumo) : 0;
+                                    }
 
-                                const fechaVencimiento = esInsumo ? item.fecha_vencimiento : null;
+                                    const fechaVencimiento = esInsumo ? item.fecha_vencimiento : null;
 
-                                let cantidadClass = "text-white font-bold rounded-full px-3 py-1 text-center ";
-                                if (cantidad <= 5) {
-                                    cantidadClass += "bg-red-500";
-                                } else if (cantidad <= 10) {
-                                    cantidadClass += "bg-yellow-500";
-                                } else {
-                                    cantidadClass += "bg-green-500";
-                                }
+                                    let cantidadClass = "text-white font-bold rounded-full px-3 py-1 text-center ";
+                                    if (cantidad <= 5) {
+                                        cantidadClass += "bg-red-500";
+                                    } else if (cantidad <= 10) {
+                                        cantidadClass += "bg-yellow-500";
+                                    } else {
+                                        cantidadClass += "bg-green-500";
+                                    }
 
-                                return (
-                                    <div 
-                                        key={item.id} 
-                                        className="shadow-lg rounded-lg p-4 flex flex-col justify-between cursor-pointer bg-white hover:bg-blue-50 transition-colors hover:shadow-xl border border-gray-200"
-                                        onClick={() => handleItemClick(item)}
-                                    >
-                                        <div className="flex flex-col h-full">
-                                            {esInsumo && item.img && (
-                                                <SafeImage 
-                                                    src={item.img}
-                                                    alt={`Imagen de ${item.nombre}`}
-                                                    className="w-full h-32 object-contain rounded-t-lg mb-3"
-                                                />
-                                            )}
+                                    return (
+                                        <div 
+                                            key={item.id} 
+                                            className="shadow-lg rounded-lg p-4 flex flex-col justify-between cursor-pointer bg-white hover:bg-blue-50 transition-colors hover:shadow-xl border border-gray-200"
+                                            onClick={() => handleItemClick(item)}
+                                        >
+                                            <div className="flex flex-col h-full">
+                                                {esInsumo && item.img && (
+                                                    <SafeImage 
+                                                        src={item.img}
+                                                        alt={`Imagen de ${item.nombre}`}
+                                                        className="w-full h-32 object-contain rounded-t-lg mb-3"
+                                                    />
+                                                )}
 
-                                            <h3 className="font-semibold text-lg mb-2 line-clamp-2">
-                                                {esHerramienta ? item.nombre_h : item.nombre}
-                                            </h3>
+                                                <h3 className="font-semibold text-lg mb-2 line-clamp-2">
+                                                    {esHerramienta ? item.nombre_h : item.nombre}
+                                                </h3>
 
-                                            <div className="mt-2 mb-3">
-                                                <p className="text-sm text-gray-600">Cantidad en stock:</p>
-                                                <div className={cantidadClass}>
-                                                    {cantidad} unidades
+                                                <div className="mt-2 mb-3">
+                                                    <p className="text-sm text-gray-600">Cantidad en stock:</p>
+                                                    <div className={cantidadClass}>
+                                                        {cantidad} unidades
+                                                    </div>
                                                 </div>
-                                            </div>
 
-                                            {fechaVencimiento && (
-                                                <div className="mt-auto">
-                                                    <p className="text-sm text-gray-600">Vence:</p>
-                                                    <p className="text-sm font-medium">
-                                                        {new Date(fechaVencimiento).toLocaleDateString()}
-                                                    </p>
+                                                {fechaVencimiento && (
+                                                    <div className="mt-auto">
+                                                        <p className="text-sm text-gray-600">Vence:</p>
+                                                        <p className="text-sm font-medium">
+                                                            {new Date(fechaVencimiento).toLocaleDateString()}
+                                                        </p>
+                                                    </div>
+                                                )}
+
+                                                <div className="flex justify-end mt-3">
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            const movimientoRelacionado = movimientos?.find(m => 
+                                                                esHerramienta 
+                                                                    ? m.fk_id_herramientas?.id === item.id 
+                                                                    : m.fk_id_insumo?.id === item.id
+                                                            );
+                                                            if (movimientoRelacionado) {
+                                                                handleRowClick(movimientoRelacionado);
+                                                            }
+                                                        }}
+                                                        className="p-1 rounded-full hover:bg-gray-200"
+                                                        title="Editar"
+                                                    >
+                                                        <Pencil size={16} className="text-white bg-green-600 rounded-full p-1.5 w-7 h-7" />
+                                                    </button>
                                                 </div>
-                                            )}
-
-                                            <div className="flex justify-end mt-3">
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        const movimientoRelacionado = movimientos?.find(m => 
-                                                            esHerramienta 
-                                                                ? m.fk_id_herramientas?.id === item.id 
-                                                                : m.fk_id_insumo?.id === item.id
-                                                        );
-                                                        if (movimientoRelacionado) {
-                                                            handleRowClick(movimientoRelacionado);
-                                                        }
-                                                    }}
-                                                    className="p-1 rounded-full hover:bg-gray-200"
-                                                    title="Editar"
-                                                >
-                                                    <Pencil size={16} className="text-white bg-green-600 rounded-full p-1.5 w-7 h-7" />
-                                                </button>
                                             </div>
                                         </div>
+                                    );
+                                })
+                            ) : (
+                                tipoSeleccionado === 'Herramienta' || filtroInsumo !== 'compuestos' ? (
+                                    <div className="col-span-full text-center py-8 text-gray-500">
+                                        No se encontraron {tipoSeleccionado === 'Herramienta' ? 'herramientas' : 'insumos'} que coincidan con "{terminoDebounced}"
                                     </div>
-                                );
-                            })
-                        ) : (
-                            <div className="col-span-full text-center py-8 text-gray-500">
-                                No se encontraron {tipoSeleccionado === 'Herramienta' ? 'herramientas' : 'insumos'} que coincidan con "{terminoDebounced}"
-                            </div>
-                        )}
-                    </div>
+                                ) : null
+                            )}
+                        </div>
+                    )}
 
                     {/* Sección para Insumos Compuestos */}
-                    {tipoSeleccionado === 'Insumo' && insumosCompuestos && insumosCompuestos.length > 0 && (
+                    {tipoSeleccionado === 'Insumo' && (filtroInsumo === 'todos' || filtroInsumo === 'compuestos') && insumosCompuestosFiltrados.length > 0 && (
                         <div>
-                            <h3 className="text-xl font-bold mb-4">Insumos Compuestos</h3>
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                                {insumosCompuestos.map((insumoCompuesto) => {
+                                {insumosCompuestosFiltrados.map((insumoCompuesto) => {
                                     const cantidad = insumoCompuesto.cantidad_insumo || 0;
                                     
                                     let cantidadClass = "text-white font-bold rounded-full px-3 py-1 text-center ";
@@ -607,11 +638,6 @@ const ListarBodega = () => {
                                                 <h3 className="font-semibold text-lg mb-2 line-clamp-2">
                                                     {insumoCompuesto.nombre}
                                                 </h3>
-                                                <p className="text-sm text-gray-600 mb-2">
-                                                    {insumoCompuesto.unidad_medida_info 
-                                                        ? `${insumoCompuesto.unidad_medida_info.nombre_medida} (${insumoCompuesto.unidad_medida_info.unidad_base})`
-                                                        : 'Sin unidad de medida'}
-                                                </p>
 
                                                 <div className="mt-2 mb-3">
                                                     <p className="text-sm text-gray-600">Cantidad en stock:</p>
@@ -637,6 +663,12 @@ const ListarBodega = () => {
                                     );
                                 })}
                             </div>
+                        </div>
+                    )}
+
+                    {tipoSeleccionado === 'Insumo' && filtroInsumo === 'compuestos' && insumosCompuestosFiltrados.length === 0 && (
+                        <div className="col-span-full text-center py-8 text-gray-500">
+                            No se encontraron insumos compuestos que coincidan con "{terminoDebounced}"
                         </div>
                     )}
                 </div>
