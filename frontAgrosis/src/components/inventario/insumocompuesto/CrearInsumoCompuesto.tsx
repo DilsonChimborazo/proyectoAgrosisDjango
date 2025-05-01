@@ -86,13 +86,18 @@ const CrearInsumoCompuesto = () => {
     }
   
     try {
-      await mutateAsync({
+      const datosAEnviar = {
         nombre,
-        fk_unidad_medida: fkUnidadMedida, // Solo enviamos el ID
+        fk_unidad_medida: fkUnidadMedida,
         detalles,
-      });
+      };
   
+      console.log('Datos a enviar:', datosAEnviar);
+  
+      await mutateAsync(datosAEnviar);
+      
       alert('Insumo compuesto creado exitosamente');
+      
       // Resetear el estado
       setNombre('');
       setFkUnidadMedida('');
@@ -102,6 +107,7 @@ const CrearInsumoCompuesto = () => {
       alert('Error al crear el insumo compuesto. Verifica los datos e intenta nuevamente.');
     }
   };
+  
   
     
   

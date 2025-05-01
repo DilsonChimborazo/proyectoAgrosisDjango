@@ -40,9 +40,9 @@ const ListarInsumosCompuestos = () => {
   ? insumosCompuestos.map((i) => ({
       id: i.id,
       nombre: i.nombre,
-      unidad_medida: i.fk_unidad_medida
-        ? `${i.fk_unidad_medida.nombre_medida} (${i.fk_unidad_medida.unidad_base})`
-        : 'N/A',
+      unidad_medida: i.unidad_medida_info
+      ? `${i.unidad_medida_info.nombre_medida} (${i.unidad_medida_info.unidad_base})`
+      : 'N/A',    
         cantidad_componentes: i.detalles?.reduce((total, detalle) => total + (detalle.cantidad_utilizada || 0), 0) || 0,
       original: i  
     }))
@@ -71,9 +71,9 @@ const ListarInsumosCompuestos = () => {
               <div className="mb-4">
                 <h3 className="text-xl font-bold">{selectedInsumoCompuesto.nombre}</h3>
                 <p className="text-gray-600">
-                  Unidad de medida: {selectedInsumoCompuesto.fk_unidad_medida
-                    ? `${selectedInsumoCompuesto.fk_unidad_medida.nombre_medida} (${selectedInsumoCompuesto.fk_unidad_medida.unidad_base})`
-                    : 'No especificada'}
+                Unidad de medida: {selectedInsumoCompuesto.unidad_medida_info
+                  ? `${selectedInsumoCompuesto.unidad_medida_info.nombre_medida} (${selectedInsumoCompuesto.unidad_medida_info.unidad_base})`
+                  : 'No especificada'}
                 </p>
               </div>
 
