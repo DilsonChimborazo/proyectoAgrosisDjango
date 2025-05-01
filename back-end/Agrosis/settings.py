@@ -80,6 +80,8 @@ INSTALLED_APPS = [
     'apps.finanzas.salario',
     'apps.finanzas.nomina',
     'apps.finanzas.stock',
+    'apps.finanzas.trazabilidad_historica',
+    
     
     #Trazabilidad 2 xiomara
     'apps.trazabilidad.actividad',
@@ -89,7 +91,6 @@ INSTALLED_APPS = [
     'apps.trazabilidad.plantacion',
     'apps.trazabilidad.residuos',
     'apps.trazabilidad.tipo_residuos',
-    'apps.trazabilidad.nombre_cultivo',
 
     #Inventario
     'apps.inventario.herramientas',
@@ -159,7 +160,7 @@ CHANNEL_LAYERS = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'agro4',  
+        'NAME': 'agrosis',  
         'USER': 'postgres',                
         'PASSWORD': 'adso2024',      
         'HOST': 'localhost',                  

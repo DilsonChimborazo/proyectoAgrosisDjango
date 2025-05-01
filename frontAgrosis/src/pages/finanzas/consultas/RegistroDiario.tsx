@@ -1,9 +1,9 @@
-import BeneficioCosto from '@/components/finanzas/consultas/BeneficioCostro';
+import TrazabilidadHistorica from '@/components/finanzas/trazabilidad/TrazabilidadHistorica';
 
 const RegistroDiario = () => {
   return (
     <div>
-      <BeneficioCosto />
+      <TrazabilidadHistorica />
     </div>
   );
 };
