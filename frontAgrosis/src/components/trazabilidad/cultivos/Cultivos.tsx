@@ -12,6 +12,7 @@ const Cultivos = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContenido, setModalContenido] = useState<React.ReactNode>(null);
 
+
   const openModalHandler = (cultivo: object, type: "details" | "update") => {
     setSelectedCultivo(cultivo);
     setModalType(type);
@@ -44,10 +45,12 @@ const Cultivos = () => {
     setIsModalOpen(false);
   };
 
+
   const handleSuccess = () => {
     refetchCultivos();
     closeModal();
-  };
+
+
 
   const handleRowClick = (cultivo: { id: number }) => {
     const originalCultivo = cultivos?.find((c: any) => c.id === cultivo.id);
@@ -56,12 +59,14 @@ const Cultivos = () => {
     }
   };
 
+
   const handleUpdateClick = (cultivo: { id: number }) => {
     const originalCultivo = cultivos?.find((c: any) => c.id === cultivo.id);
     if (originalCultivo) {
       openModalHandler(originalCultivo, "update");
     }
-  };
+
+
 
   if (isLoading) return <div>Cargando cultivos...</div>;
   if (error instanceof Error)
@@ -74,11 +79,27 @@ const Cultivos = () => {
     nombre: cultivo.nombre_cultivo,
     fecha_plantacion: new Date(cultivo.fecha_plantacion).toLocaleDateString(),
     descripcion: cultivo.descripcion,
-    especie: cultivo.fk_id_especie ? cultivo.fk_id_especie.nombre_comun : "Sin especie",
-    semillero: cultivo.fk_id_semillero ? cultivo.fk_id_semillero.nombre_semilla : "Sin semillero",
+    especie: cultivo.fk_id_especie
+      ? cultivo.fk_id_especie.nombre_comun
+      : "Sin especie",
+    semillero: cultivo.fk_id_semillero
+      ? cultivo.fk_id_semillero.nombre_semillero
+      : "Sin semillero",
+    etapa_actual: cultivo.etapa_actual || "Desconocida",
+    kc_actual: cultivo.kc_actual !== undefined ? cultivo.kc_actual : "No disponible",
   }));
 
-  const headers = ["ID", "Nombre", "Fecha Plantacion", "Descripcion", "Especie", "Semillero"];
+  const headers = [
+    "ID",
+    "Nombre",
+    "Fecha Plantacion",
+    "Descripcion",
+    "Especie",
+    "Semillero",
+    "Etapa Actual",
+    "kc Actual",
+  ];
+  
 
   return (
     <div className="overflow-x-auto shadow-md rounded-lg">
@@ -89,6 +110,7 @@ const Cultivos = () => {
         onClickAction={handleRowClick}
         onUpdate={handleUpdateClick}
         onCreate={openCreateModal}
+
         createButtonTitle="Crear"
       />
 
@@ -131,5 +153,6 @@ const Cultivos = () => {
     </div>
   );
 };
+  }}
 
 export default Cultivos;

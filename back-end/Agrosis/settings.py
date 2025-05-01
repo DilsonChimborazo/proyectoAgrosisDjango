@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     'apps.iot.mide',
     'apps.iot.lote',
     'apps.iot.eras',
+    'apps.iot.evapotranspiracion',
 
     #Trazabilidad 1 Pacho
     'apps.trazabilidad.realiza',
@@ -156,7 +157,7 @@ CHANNEL_LAYERS = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'agrosis',  
+        'NAME': 'agro3',  
         'USER': 'postgres',                
         'PASSWORD': 'adso2024',      
         'HOST': 'localhost',                  

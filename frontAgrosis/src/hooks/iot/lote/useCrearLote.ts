@@ -5,7 +5,6 @@ const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface Lotes {
     id: number;
-    fk_id_ubicacion: number;
     dimencion: number;
     nombre_lote: string;
     estado: string;

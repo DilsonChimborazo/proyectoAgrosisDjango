@@ -8,7 +8,7 @@ class leerErasSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Eras
-        fields = ['id', 'fk_id_lote', 'descripcion']  # Agregar solo los campos necesarios
+        fields = ['id','nombre', 'fk_id_lote', 'descripcion', 'estado']  # Agregado 'estado'
 
 class escribirErasSerializer(serializers.ModelSerializer):
     class Meta:

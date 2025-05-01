@@ -72,7 +72,7 @@ from apps.iot.eras.api.router import router_Eras
 from apps.iot.lote.api.router import router_Lote
 from apps.iot.mide.api.router import router_mide
 from apps.iot.sensores.api.router import router_Sensores
-
+from apps.iot.evapotranspiracion.api.router import router_Evapo
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -104,6 +104,7 @@ urlpatterns = [
     path('api/', include(router_Lote.urls)),
     path('api/', include(router_mide.urls)), 
     path('api/', include(router_Sensores.urls)),
+    path('api/', include(router_Evapo.urls)),
     
     #FINANZASS
     path('api/', include(router_produccion.urls)),

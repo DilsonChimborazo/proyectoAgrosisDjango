@@ -3,18 +3,11 @@ import axios from 'axios';
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
-export interface Ubicacion{
-    id: number;
-    latitud: number;
-    longitud: number;
-}
-
 export interface Lotes {
     id: number;
-    fk_id_ubicacion: Ubicacion;
     dimencion: string;
     nombre_lote: string;
-    estado: string;
+    estado: boolean;
 }
 
 const fetchLotes = async (): Promise<Lotes[]> => {

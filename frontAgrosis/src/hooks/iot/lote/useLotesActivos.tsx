@@ -9,7 +9,6 @@ export interface Ubicacion {
 
 export interface Lotes {
   id: number;
-  fk_id_ubicacion: Ubicacion | null;
   dimencion: string;
   nombre_lote: string;
   estado: string;

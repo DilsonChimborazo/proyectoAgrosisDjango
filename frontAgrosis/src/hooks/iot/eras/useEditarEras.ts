@@ -4,43 +4,58 @@ import axios from "axios";
 const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface Eras {
-    id: number;
-    fk_id_lote: number;
-    descripcion: string;
+  id: number;
+  fk_id_lote: number;
+  descripcion: string;
+  estado: boolean;
 }
 
-export const useEditarEras = () => {
-    const queryClient = useQueryClient();
+const useEditarEras = () => {
+  const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn: async (eraActualizada: Eras) => {
-            const { id, ...datos } = eraActualizada;
+  return useMutation({
+    mutationFn: async (eraActualizada: Eras) => {
+      const token = localStorage.getItem("token");
+      console.log("🔑 Token para actualizar era:", token);
 
-            // Validar antes de enviar
-            if (!datos.fk_id_lote || !datos.descripcion.trim()) {
-                throw new Error("⚠️ Datos inválidos. Por favor, revisa los campos.");
-            }
+      if (!token) {
+        throw new Error("No se encontró el token. Por favor, inicia sesión.");
+      }
 
-            console.log("📝 Enviando datos para actualizar:", datos);
+      const headers = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      };
+      console.log("📋 Encabezados de la solicitud:", headers);
 
-            try {
-                const { data } = await axios.put(`${apiUrl}eras/${id}/`, datos, {
-                    headers: {
-                        "Content-Type": "application/json", 
-                    },
-                });
-                return data;
-            } catch (error: any) {
-                console.error("❌ Error en la solicitud:", error.response?.data || error.message);
-                throw error;
-            }
-        },
-        onSuccess: () => {
-            console.log("✅ Era actualizada con éxito");
-            queryClient.invalidateQueries({ queryKey: ["eras"] });
-        },
-        onError: (error) => {
-            console.error("❌ Error al actualizar la Era:", error);
-        },
-    });
+      try {
+        console.log("🚀 Enviando solicitud de actualización para la era:", eraActualizada);
+        const { data } = await axios.put(
+          `${apiUrl}eras/${eraActualizada.id}/`, // Aseguramos el formato del endpoint
+          eraActualizada,
+          { headers }
+        );
+        console.log("✅ Respuesta del servidor:", data);
+        return data;
+      } catch (error) {
+        console.error("❌ Error en la solicitud:", error);
+        if (axios.isAxiosError(error) && error.response) {
+          console.error("📡 Detalles del error del servidor:", error.response.data);
+        }
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      console.log("✅ Era actualizada correctamente, invalidando caché...");
+      queryClient.invalidateQueries({ queryKey: ["eras"] });
+    },
+    onError: (error: any) => {
+      console.error("❌ Error al actualizar la Era:", error);
+      if (error.response?.status === 401) {
+        console.error("🔐 Error 401: Verifica tu token o permisos de administrador.");
+      }
+    },
+  });
 };
+
+export { useEditarEras };
