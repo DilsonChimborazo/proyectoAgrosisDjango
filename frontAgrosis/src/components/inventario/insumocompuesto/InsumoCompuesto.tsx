@@ -43,7 +43,7 @@ const ListarInsumosCompuestos = () => {
       unidad_medida: i.unidad_medida_info
       ? `${i.unidad_medida_info.nombre_medida} (${i.unidad_medida_info.unidad_base})`
       : 'N/A',    
-        cantidad_componentes: i.detalles?.reduce((total, detalle) => total + (detalle.cantidad_utilizada || 0), 0) || 0,
+      cantidad: i.cantidad_insumo || 0,
       original: i  
     }))
   : [];
@@ -53,7 +53,7 @@ const ListarInsumosCompuestos = () => {
     <div className="container mx-auto p-4">
       <Tabla
         title="Insumos Compuestos"
-        headers={["ID", "Nombre", "Unidad Medida", "Cantidad de Componentes"]}
+        headers={["ID", "Nombre", "Unidad Medida", "Cantidad"]}
         data={mappedInsumosCompuestos}
         onClickAction={handleRowClick}
         onUpdate={handleUpdate}

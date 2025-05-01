@@ -31,10 +31,11 @@ export interface DetalleInsumoCompuesto {
 export interface InsumoCompuesto {
     id: number;
     nombre: string;
-    fk_unidad_medida: number | null; // ahora es solo el ID si es necesario enviarlo
-    unidad_medida_info: UnidadMedida | null; // para mostrar los datos
+    fk_unidad_medida: number | null; 
+    unidad_medida_info: UnidadMedida | null; 
     precio_unidad: number | null;
     detalles: DetalleInsumoCompuesto[];
+    cantidad_insumo?: number;
 }
 
 const fetchInsumoCompuesto = async (): Promise<InsumoCompuesto[]> => {

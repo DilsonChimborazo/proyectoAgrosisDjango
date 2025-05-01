@@ -32,3 +32,22 @@ class InsumoCompuestoSerializer(serializers.ModelSerializer):
             )
         
         return insumo_compuesto
+    
+    def create(self, validated_data):
+        detalles_data = validated_data.pop('detalles')
+        
+        # Calcular la suma total de las cantidades utilizadas
+        cantidad_total = sum(detalle['cantidad_utilizada'] for detalle in detalles_data)
+        
+        # Asignar esta cantidad como cantidad_insumo al InsumoCompuesto
+        validated_data['cantidad_insumo'] = cantidad_total
+
+        insumo_compuesto = InsumoCompuesto.objects.create(**validated_data)
+
+        for detalle_data in detalles_data:
+            DetalleInsumoCompuesto.objects.create(
+                insumo_compuesto=insumo_compuesto,
+                **detalle_data
+            )
+
+        return insumo_compuesto

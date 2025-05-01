@@ -5,6 +5,7 @@ from apps.inventario.unidadMedida.models import UnidadMedida
 class InsumoCompuesto(models.Model):
     nombre = models.CharField(max_length=255)
     fk_unidad_medida = models.ForeignKey(UnidadMedida, on_delete=models.SET_NULL, null=True)
+    cantidad_insumo = models.FloatField(default=0)
 
     def __str__(self):
         return self.nombre
