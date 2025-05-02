@@ -8,14 +8,13 @@ import CrearVenta from "../venta/CrearVenta";
 import CrearProduccion from "../produccion/CrearProduccion";
 
 const Stock = () => {
-    const { data: stockData, isLoading, error } = useStock();
+    const { data: stockData, isLoading, error, refetch } = useStock();
     const [selectedStock, setSelectedStock] = useState<object | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     // Estado para abrir el modal de "Registrar Venta"
     const [isVentaModalOpen, setIsVentaModalOpen] = useState(false);
     const [isProduccionModalOpen, setIsProduccionModalOpen] = useState(false);
-
 
     const openModalHandler = (stock: object) => {
         setSelectedStock(stock);
@@ -27,6 +26,13 @@ const Stock = () => {
         setIsModalOpen(false);
     };
 
+    // Función para cerrar modales y refrescar datos
+    const cerrarModalConExito = () => {
+        setIsVentaModalOpen(false);
+        setIsProduccionModalOpen(false);
+        refetch(); // Refresca los datos del stock
+    };
+
     const renderStockDetails = (stock: any) => {
         if (stock) {
             return (
@@ -35,28 +41,12 @@ const Stock = () => {
                     <p><strong>Nombre:</strong> {stock.nombre}</p>
                     <p><strong>Movimiento:</strong> {stock.movimiento}</p>
                     <p><strong>Fecha:</strong> {stock.fecha}</p>
-                    <p><strong>Cantidad:</strong> {stock.cantidad}</p>
+                    <p><strong>Cantidad:</strong> {stock.cantidad} {stock.unidad}</p>
+                    {stock.precioUnidad && <p><strong>Precio por unidad:</strong> ${stock.precioUnidad}</p>}
                 </div>
             );
         }
         return <p>No hay detalles disponibles</p>;
-    };
-
-
-    const abrirModalVenta = () => {
-        setIsVentaModalOpen(true);
-    };
-
-    const cerrarModalVenta = () => {
-        setIsVentaModalOpen(false);
-    };
-
-    const abrirModalProduccion = () => {
-        setIsProduccionModalOpen(true);
-    };
-
-    const cerrarModalProduccion = () => {
-        setIsProduccionModalOpen(false);
     };
 
     if (isLoading)
@@ -73,21 +63,29 @@ const Stock = () => {
         );
 
     const mappedStock = (stockData || []).map((registro) => {
-        const fechaFormateada = format(new Date(registro.fecha), "MMMM dd yyyy", {
+        const fecha = registro.fk_id_produccion?.fecha || registro.fk_id_venta?.fecha || registro.fecha;
+        const fechaFormateada = format(new Date(fecha), "MMMM dd yyyy", {
             locale: es,
         });
-        const tipoMovimiento = registro.movimiento; // "Entrada" o "Salida"
+        
+        const tipoMovimiento = registro.movimiento;
         const origen = tipoMovimiento === "Entrada" ? "Producción" : "Venta";
 
-
         let nombre = "No disponible";
+        let unidad = "";
+        let precioUnidad = null;
 
         if (tipoMovimiento === "Entrada" && registro.fk_id_produccion) {
-            nombre =
-                registro.fk_id_produccion?.fk_id_cultivo?.nombre_cultivo ?? "No disponible";
+            nombre = registro.fk_id_produccion.nombre_produccion || 
+                     registro.fk_id_produccion.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo || 
+                     "No disponible";
+            unidad = registro.fk_id_produccion.fk_unidad_medida?.nombre_medida || "";
         } else if (tipoMovimiento === "Salida" && registro.fk_id_venta) {
-            nombre =
-                registro.fk_id_venta?.fk_id_produccion?.nombre_produccion ?? "No disponible";
+            nombre = registro.fk_id_venta.fk_id_produccion?.nombre_produccion || 
+                     registro.fk_id_venta.fk_id_produccion?.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo || 
+                     "No disponible";
+            unidad = registro.fk_id_venta.fk_unidad_medida?.nombre_medida || "";
+            precioUnidad = registro.fk_id_venta.precio_unidad;
         }
 
         return {
@@ -97,6 +95,9 @@ const Stock = () => {
             movimiento: <span className={tipoMovimiento === "Entrada" ? "text-green-700 font-bold" : "text-red-700 font-bold"}>{tipoMovimiento}</span>,
             fecha: fechaFormateada,
             cantidad: registro.cantidad,
+            unidad,
+            precioUnidad,
+            rawData: registro
         };
     });
 
@@ -106,7 +107,7 @@ const Stock = () => {
         "Nombre",
         "Movimiento",
         "Fecha",
-        "Cantidad",
+        "Cantidad"
     ];
 
     return (
@@ -114,19 +115,18 @@ const Stock = () => {
             {/* Botón para registrar nueva venta */}
             <div className="flex justify-start mb-4 ml-5">
                 <button
-                    onClick={abrirModalVenta}
+                    onClick={() => setIsVentaModalOpen(true)}
                     className="bg-green-600 hover:bg-green-800 text-white font-bold py-2 px-4 rounded mr-4"
                 >
                     Registrar Venta
                 </button>
                 <button
-                    onClick={abrirModalProduccion}
+                    onClick={() => setIsProduccionModalOpen(true)}
                     className="bg-green-600 hover:bg-green-800 text-white font-bold py-2 px-4 rounded"
                 >
                     Registrar Producción
                 </button>
             </div>
-
 
             <Tabla
                 createButtonTitle="Crear"
@@ -134,9 +134,8 @@ const Stock = () => {
                 headers={headers}
                 data={mappedStock}
                 onClickAction={openModalHandler}
-                onUpdate={() => { }}
-                onCreate={() => { }}
-
+                onUpdate={() => {}}
+                onCreate={() => {}}
             />
 
             {/* Modal para mostrar detalle del movimiento de stock */}
@@ -153,17 +152,29 @@ const Stock = () => {
             {isVentaModalOpen && (
                 <VentanaModal
                     isOpen={isVentaModalOpen}
-                    onClose={cerrarModalVenta}
+                    onClose={cerrarModalConExito}
                     titulo=""
-                    contenido={<CrearVenta />}
+                    contenido={
+                        <CrearVenta 
+                            onClose={cerrarModalConExito}
+                            onSuccess={cerrarModalConExito}
+                        />
+                    }
                 />
             )}
+
+            {/* Modal para crear Producción */}
             {isProduccionModalOpen && (
                 <VentanaModal
                     isOpen={isProduccionModalOpen}
-                    onClose={cerrarModalProduccion}
+                    onClose={cerrarModalConExito}
                     titulo=""
-                    contenido={<CrearProduccion />}
+                    contenido={
+                        <CrearProduccion 
+                            onClose={cerrarModalConExito}
+                            onSuccess={cerrarModalConExito}
+                        />
+                    }
                 />
             )}
         </div>
