@@ -13,15 +13,15 @@ const CrearEspecie = () => {
   const tipoCultivoOptions = especies
     .filter((especie) => especie.fk_id_tipo_cultivo) // Filtrar especies con fk_id_tipo_cultivo válido
     .map((especie) => ({
-      value: especie.fk_id_tipo_cultivo?.nombre || '', // Asegurar que value sea un string válido
-      label: especie.fk_id_tipo_cultivo?.nombre || 'Sin Nombre', // Asegurar que label sea un string válido
+      value: especie.fk_id_tipo_cultivo?.nombre|| '', // Asegurar que value sea un string válido
+      
     }));
 
   // Definición de los campos del formulario
   const formFields = [
-    { id: 'nombre_comun', label: 'Nombre Común', type: 'text' },
-    { id: 'nombre_cientifico', label: 'Nombre Científico', type: 'text' },
-    { id: 'descripcion', label: 'Descripción', type: 'text' },
+    { id: 'nombre_comun', label: 'Nombre Comun', type: 'text' },
+    { id: 'nombre_cientifico', label: 'Nombre Cientifico', type: 'text' },
+    { id: 'descripcion', label: 'Descripcion', type: 'text' },
     {
       id: 'fk_id_tipo_cultivo',
       label: 'Tipo de Cultivo',
