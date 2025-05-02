@@ -38,6 +38,7 @@ const menuItems = [
     icon: <DollarSign size={18} />,
     submenu: [
       { name: "Stock", path: "/stock" },
+      { name: "Beneficio Costo", path: "/diario" },
     ],
   },
   {
