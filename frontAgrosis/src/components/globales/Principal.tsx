@@ -73,7 +73,11 @@ export default function Principal({ children }: LayoutProps) {
     const usuarioGuardado = localStorage.getItem("user");
     if (usuarioGuardado) {
       setUsuario(JSON.parse(usuarioGuardado));
+    } else {
+      setUsuario(null);
     }
+
+   
   }, []);
 
   const toggleMenu = (name: string) => {

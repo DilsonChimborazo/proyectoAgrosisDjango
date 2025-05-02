@@ -71,6 +71,7 @@ import ReporteInsumosPage from "./pages/finanzas/consultas/ReporteInsumosPage";
 import ReportesPage from "./components/reportes/Reportes";
 import BodegaPage from "./pages/inventario/BodegaPage";
 import UnidadMedida from "./components/inventario/unidadMedida/UnidadMedida";
+import { Provider } from "./provider";
 
 
 
@@ -79,6 +80,7 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <HeroUIProvider>
+      <Provider>
       <QueryClientProvider client={queryClient}>
         <AuthChecker>  
           <Routes>
@@ -167,6 +169,7 @@ function App() {
           </Routes>
         </AuthChecker> 
       </QueryClientProvider>
+      </Provider> 
     </HeroUIProvider>
   );
 }
