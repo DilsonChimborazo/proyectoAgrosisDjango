@@ -1,6 +1,6 @@
 import Button from '@/components/globales/Button';
 import { BarChart2, History, GitCompare, Download } from 'lucide-react';
-import { Plantacion } from '@/hooks/trazabilidad/plantacion/usePlantaciones';
+import { Plantacion } from '@/hooks/trazabilidad/plantacion/usePlantacion';
 
 interface PlantacionSelectorProps {
     plantaciones: Plantacion[] | undefined;

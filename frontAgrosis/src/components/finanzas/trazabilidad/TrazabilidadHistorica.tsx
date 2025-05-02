@@ -3,7 +3,7 @@ import { useTrazabilidadActual, useResumenActual, useHistorialTrazabilidad } fro
 import PlantacionSelector from './PlantacionSelector';
 import ResumenTrazabilidad from './ResumenTrazabilidad';
 import ModalesTrazabilidad from './ModalesTrazabilidad';
-import { usePlantaciones } from '@/hooks/trazabilidad/plantacion/usePlantaciones';
+import { usePlantacion } from '@/hooks/trazabilidad/plantacion/usePlantacion';
 import { SnapshotTrazabilidad} from './Types';
 
 const TrazabilidadHistorica = () => {
@@ -12,7 +12,7 @@ const TrazabilidadHistorica = () => {
     const [modalAbierto, setModalAbierto] = useState<{tipo: string, data: any} | null>(null);
     const [comparando, setComparando] = useState<number[]>([]);
 
-    const { data: plantaciones, isLoading: loadingPlantaciones } = usePlantaciones();
+    const { data: plantaciones, isLoading: loadingPlantaciones } = usePlantacion();
     const { data: trazabilidadData, isLoading } = useTrazabilidadActual(plantacionSeleccionada || 0);
     const { data: resumenActual } = useResumenActual(plantacionSeleccionada || 0);
     const { data: historial } = useHistorialTrazabilidad(plantacionSeleccionada || 0);

@@ -101,7 +101,7 @@ const RegistrarSalidaBodega = ({
         setMensaje("Salida registrada exitosamente.");
         setTimeout(() => {
           navigate("/bodega");
-        }, 1000);
+        });
       },
       onError: (err) => {
         setMensaje(`Error al registrar salida: ${err.message}`);
