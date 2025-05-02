@@ -1,93 +1,121 @@
 import { useState } from 'react';
-import { useSemilleros } from '../../../hooks/trazabilidad/semillero/useSemilleros';
+import { useSemilleros, Semillero } from '../../../hooks/trazabilidad/semillero/useSemilleros';
 import VentanaModal from '../../globales/VentanasModales';
 import Tabla from '../../globales/Tabla';
-import { useNavigate } from 'react-router-dom';
+import CrearSemillero from '../semillero/CrearSemillero';
 
-const Semilleros = () => {
-  const { data: semilleros, error, isLoading } = useSemilleros();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedSemillero, setSelectedSemillero] = useState<any>(null);
-
-  const navigate = useNavigate();
-
-  const openModal = (semillero: any) => {
-    setSelectedSemillero(semillero);
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setSelectedSemillero(null);
-  };
-
-  const handleUpdate = (semillero: { id: number }) => {
-    navigate(`/actualizarSemillero/${semillero.id}`);
-  };
-
-  const handleCreate = () => {
-    navigate('/CrearSemillero');
-  };
-
-  if (isLoading) return <div className="text-center text-gray-500">Cargando...</div>;
-
-  if (error)
+const DetalleSemilleroModal = ({ item }: { item: Semillero }) => {
     return (
-      <div className="text-center text-red-500">
-        Error al cargar los datos: {error.message}
-      </div>
+        <div className="p-4">
+            <h2 className="text-xl font-bold mb-4">Detalles del Semillero</h2>
+            
+            <div className="space-y-3">
+                <p><span className="font-semibold">Nombre:</span> {item.nombre_semilla || 'Sin nombre'}</p>
+                <p><span className="font-semibold">Fecha de Siembra:</span> {item.fecha_siembra ? new Date(item.fecha_siembra).toLocaleDateString('es-ES') : 'Sin fecha'}</p>
+                <p><span className="font-semibold">Fecha Estimada:</span> {item.fecha_estimada ? new Date(item.fecha_estimada).toLocaleDateString('es-ES') : 'Sin fecha'}</p>
+                <p><span className="font-semibold">Cantidad:</span> {item.cantidad || 'No especificada'}</p>
+            </div>
+        </div>
     );
-
-  const tablaData = (semilleros ?? []).map((semillero) => ({
-    id: semillero.id,
-    nombre_semilla: semillero.nombre_semillero || 'Sin nombre',
-    fecha_siembra: semillero.fecha_siembra
-      ? new Date(semillero.fecha_siembra).toLocaleDateString('es-ES', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        })
-      : 'Sin fecha de siembra',
-    fecha_estimada: semillero.fecha_estimada
-      ? new Date(semillero.fecha_estimada).toLocaleDateString('es-ES', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        })
-      : 'Sin fecha estimada',
-    cantidad: semillero.cantidad || 'No especificada',
-  }));
-
-  const headers = [
-    'id',
-    'Nombre Semilla',
-    'Fecha Siembra',
-    'Fecha Estimada',
-    'Cantidad',
-  ];
-
-  return (
-    <div className="">
-      <Tabla
-        title="Lista de Semilleros"
-        headers={headers}
-        data={tablaData}
-        onClickAction={openModal}
-        onUpdate={handleUpdate}
-        onCreate={handleCreate}
-        createButtonTitle="Crear"
-      />
-
-      {selectedSemillero && (
-        <VentanaModal
-          isOpen={isModalOpen}
-          onClose={closeModal}
-          titulo="Detalles del Semillero"
-          contenido={selectedSemillero}
-        />
-      )}
-    </div>
-  );
 };
 
-export default Semilleros;
+const ListarSemillero = () => {
+    const { data: semilleros, error, isLoading, refetch: refetchSemilleros } = useSemilleros();
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+    const [selectedSemillero, setSelectedSemillero] = useState<Semillero | null>(null);
+    const [modalContenido, setModalContenido] = useState<React.ReactNode>(null);
+
+    const handleItemClick = (item: Semillero) => {
+        setSelectedSemillero(item);
+        setIsDetailModalOpen(true);
+    };
+
+    const closeModal = () => {
+        setSelectedSemillero(null);
+        setModalContenido(null);
+        setIsModalOpen(false);
+        setIsDetailModalOpen(false);
+    };
+
+    const handleCreate = () => {
+        setModalContenido(<CrearSemillero 
+            onSuccess={() => {
+                refetchSemilleros();
+                closeModal();
+            }}
+        />);
+        setIsModalOpen(true); 
+    };
+
+    if (isLoading) return <div className="text-center text-gray-500">Cargando...</div>;
+
+    if (error) return (
+        <div className="text-center text-red-500">
+            Error al cargar los datos: {error.message}
+        </div>
+    );
+
+    const tablaData = (semilleros ?? []).map((semillero) => ({
+        id: semillero.id,
+        nombre_semilla: semillero.nombre_semilla || 'Sin nombre',
+        fecha_siembra: semillero.fecha_siembra
+            ? new Date(semillero.fecha_siembra).toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+            })
+            : 'Sin fecha de siembra',
+        fecha_estimada: semillero.fecha_estimada
+            ? new Date(semillero.fecha_estimada).toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+            })
+            : 'Sin fecha estimada',
+        cantidad: semillero.cantidad ?? 0,
+    }));
+
+    const headers = [
+        'Nombre Semilla',
+        'Fecha Siembra',
+        'Fecha Estimada',
+        'Cantidad',
+    ];
+
+    return (
+        <div className="p-4">
+            <VentanaModal
+                isOpen={isModalOpen}
+                onClose={closeModal}
+                titulo=""
+                contenido={modalContenido}
+            />
+            
+            <VentanaModal
+                isOpen={isDetailModalOpen}
+                onClose={closeModal}
+                titulo=""
+                contenido={<DetalleSemilleroModal item={selectedSemillero!} />}
+            />
+
+            {semilleros?.length === 0 ? (
+                <div className="text-center text-gray-500">
+                    No hay semilleros registrados. Haz clic en "Crear Semillero" para agregar uno.
+                </div>
+            ) : (
+                <Tabla
+                    title="Lista de Semilleros"
+                    headers={headers}
+                    data={tablaData}
+                    onClickAction={handleItemClick}
+                    onUpdate={(row) => {}}
+                    onCreate={handleCreate}
+                    createButtonTitle="Crear Semillero"
+                />
+            )}
+        </div>
+    );
+};
+
+export default ListarSemillero;
