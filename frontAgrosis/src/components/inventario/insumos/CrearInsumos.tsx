@@ -28,7 +28,7 @@ const CrearInsumos = ({ onSuccess }: { onSuccess?: () => void }) => {
     { id: "nombre", label: "Nombre del Insumo", type: "text" },
     { id: "tipo", label: "Tipo", type: "text" },
     { id: "precio_unidad", label: "Precio por Unidad", type: "number" },
-    { id: "cantidad", label: "Cantidad", type: "number" },
+    { id: "cantidad_insumo", label: "Cantidad", type: "number" },
     {
       id: "fk_unidad_medida",
       label: "Unidad de Medida",
@@ -50,7 +50,7 @@ const CrearInsumos = ({ onSuccess }: { onSuccess?: () => void }) => {
       !formData.nombre ||
       !formData.tipo ||
       !formData.precio_unidad ||
-      !formData.cantidad ||
+      !formData.cantidad_insumo ||
       !formData.fecha_vencimiento ||
       !formData.fk_unidad_medida
     ) {
@@ -62,7 +62,7 @@ const CrearInsumos = ({ onSuccess }: { onSuccess?: () => void }) => {
     formDataToSubmit.append("nombre", formData.nombre);
     formDataToSubmit.append("tipo", formData.tipo);
     formDataToSubmit.append("precio_unidad", formData.precio_unidad.toString());
-    formDataToSubmit.append("cantidad", formData.cantidad.toString());
+    formDataToSubmit.append("cantidad_insumo", formData.cantidad_insumo.toString());
     formDataToSubmit.append("fecha_vencimiento", formData.fecha_vencimiento);
     formDataToSubmit.append("fk_unidad_medida", formData.fk_unidad_medida);
 
@@ -76,7 +76,8 @@ const CrearInsumos = ({ onSuccess }: { onSuccess?: () => void }) => {
 
         const movimientoEntrada = {
           fk_id_insumo: insumoCreado.id,
-          cantidad: formData.cantidad,
+          cantidad_insumo: formData.cantidad_insumo,
+          cantidad_herramienta: null,
           movimiento: "Entrada" as const,
           fecha: new Date().toISOString(),
           fk_id_asignacion: null,
