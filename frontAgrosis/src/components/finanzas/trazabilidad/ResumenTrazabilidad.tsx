@@ -29,7 +29,7 @@ const ResumenTrazabilidad = ({
     const datosParaTabla = ordenarSnapshots.map((s) => ({
         versión: `v${s.version}`,
         fecha: new Date(s.fecha_registro).toLocaleDateString(),
-        trigger: s.trigger || 'Manual',
+        
         'b/c': (s.datos.beneficio_costo || 0).toFixed(2),
         balance: `$${(
             (s.datos.ingresos_ventas || 0) - 
@@ -181,7 +181,7 @@ const ResumenTrazabilidad = ({
                                             {ordenarSnapshots.length > 0 ? (
                                                 <Tabla
                                                     title=""
-                                                    headers={['Versión', 'Fecha', 'Trigger', 'B/C', 'Balance', 'Acciones']}
+                                                    headers={['Versión', 'Fecha', 'B/C', 'Balance', 'Acciones']}
                                                     data={datosParaTabla}
                                                     rowsPerPageOptions={[5, 10, 20]}
                                                 />

@@ -3,12 +3,14 @@ import axios from "axios";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
+// Definimos la interfaz actualizada para NuevaVenta
 export interface NuevaVenta {
   fk_id_produccion: number;
   cantidad: number;
   precio_unidad: number;
-  total_venta: number;
   fecha: string;
+  fk_unidad_medida: number; // Ya no es opcional
+  cantidad_en_base: number; // Campo calculado
 }
 
 export const useCrearVenta = () => {
@@ -21,23 +23,36 @@ export const useCrearVenta = () => {
         throw new Error("No se ha encontrado un token de autenticación");
       }
 
-      const { data } = await axios.post(
-        `${apiUrl}venta/`, 
-        nuevaVenta,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      try {
+        const { data } = await axios.post(
+          `${apiUrl}venta/`, 
+          nuevaVenta,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        return data;
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          throw new Error(
+            error.response?.data?.message || 
+            "Error al crear la venta"
+          );
         }
-      );
-
-      return data;
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["ventas"] });
+      queryClient.invalidateQueries({ queryKey: ["producciones"] }); // Añadido para actualizar stock
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       console.error("Error al crear la venta:", error.message);
     },
   });
 };
+
+// Definimos la interfaz Venta actualizada
