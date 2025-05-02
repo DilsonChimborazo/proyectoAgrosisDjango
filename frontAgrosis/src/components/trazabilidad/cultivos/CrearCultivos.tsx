@@ -6,7 +6,6 @@ import CrearEspecie from '../especie/CrearEspecie';
 import { useState } from 'react';
 import VentanaModal from '../../globales/VentanasModales';
 
-
 interface CrearCultivoProps {
   onSuccess: () => void;
 }
@@ -16,22 +15,17 @@ const CrearCultivo = ({ onSuccess }: CrearCultivoProps) => {
   const mutation = useCrearCultivo();
   const { data: cultivos = [], isLoading: isLoadingCultivos, refetch } = useCultivo();
 
-
   const [mostrarModalEspecie, setMostrarModalEspecie] = useState(false);
 
-
-  // Obtener especies únicas
-  const especiesUnicas = Array.from(new Map(
-    cultivos.map((cultivo) => [cultivo.fk_id_especie?.id, cultivo.fk_id_especie])
-  ).values()).filter(especie => especie !== null);
-
+  const especiesUnicas = Array.from(
+    new Map(cultivos.map((cultivo) => [cultivo.fk_id_especie.id, cultivo.fk_id_especie])).values()
+  );
 
   const especieOptions = especiesUnicas.map((especie) => ({
     value: especie.id,
     label: especie.nombre_comun,
   }));
 
-  // Definición de los campos del formulario
 
   const formFields = [
     { id: 'nombre_cultivo', label: 'Nombre del Cultivo', type: 'text' },
@@ -44,18 +38,17 @@ const CrearCultivo = ({ onSuccess }: CrearCultivoProps) => {
       hasExtraButton: true,
       extraButtonText: 'Crear Especie',
       onExtraButtonClick: () => setMostrarModalEspecie(true),
-    }
+    },
+
   ];
 
   const handleSubmit = (formData: { [key: string]: string }) => {
-    // Validar campos obligatorios
     if (
       !formData.nombre_cultivo ||
       !formData.descripcion ||
       !formData.fk_id_especie 
-
     ) {
-      console.error("❌ Todos los campos obligatorios deben estar llenos");
+      console.error("❌ Todos los campos son obligatorios");
       return;
     }
 
@@ -63,7 +56,6 @@ const CrearCultivo = ({ onSuccess }: CrearCultivoProps) => {
       nombre_cultivo: formData.nombre_cultivo.trim(),
       descripcion: formData.descripcion.trim(),
       fk_id_especie: parseInt(formData.fk_id_especie),
-
     };
 
     mutation.mutate(nuevoCultivo, {
