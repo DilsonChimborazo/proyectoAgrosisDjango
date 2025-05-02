@@ -1,85 +1,138 @@
-import { Asignacion } from '@/hooks/trazabilidad/asignacion/useCrearAsignacion';
-import { useCrearAsignacion } from '../../../hooks/trazabilidad/asignacion/useCrearAsignacion';
-import Formulario from '../../globales/Formulario';
+import { useState } from 'react';
+import { useCrearAsignacion } from '@/hooks/trazabilidad/asignacion/useCrearAsignacion';
+import { useRealiza } from '@/hooks/trazabilidad/realiza/useRealiza';
 import { useUsuarios } from '@/hooks/usuarios/usuario/useUsuarios';
-import { useAsignacion } from '@/hooks/trazabilidad/asignacion/useAsignacion'; // Hook para obtener actividades
+import { Asignacion } from '@/hooks/trazabilidad/asignacion/useAsignacion';
+import Formulario from '../../globales/Formulario';
 import { useNavigate } from 'react-router-dom';
 
 const CrearAsignacion = () => {
-  const mutation = useCrearAsignacion(); // Hook para manejar la creación
+  const mutation = useCrearAsignacion();
   const navigate = useNavigate();
-  const { data: usuarios = [] } = useUsuarios(); // Hook para obtener usuarios
-  const { data: asignaciones = [], isLoading: isLoadingAsignaciones } = useAsignacion(); // Hook para obtener actividades relacionadas con asignaciones
+  const { data: realizaList = [], isLoading: isLoadingRealiza } = useRealiza();
+  const { data: usuarios = [], isLoading: isLoadingUsuarios } = useUsuarios();
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Mapeo de opciones para el select de actividades
-  const actividadOptions = asignaciones
-    .map((asignacion) => ({
-      value: asignacion.fk_id_actividad.id, // ID de la actividad
-      label: asignacion.fk_id_actividad.nombre_actividad, // Nombre de la actividad
-    }));
+  // Mapeo de opciones para el select de realiza
+  const realizaOptions = realizaList.map((realiza) => {
+    // Construimos el nombre compuesto: "especie.nombre_comun nombre_cultivo"
+    const especieNombre = realiza.fk_id_cultivo.fk_id_especie.nombre_comun || 'Sin especie';
+    const cultivoNombre = realiza.fk_id_cultivo.nombre_cultivo || 'Sin cultivo';
+    const nombreCompuesto = `${especieNombre} ${cultivoNombre}`.trim();
+    return {
+      value: realiza.id.toString(),
+      label: nombreCompuesto || 'Sin nombre',
+    };
+  });
 
   // Mapeo de opciones para el select de usuarios
-  const usuarioOptions = usuarios.map((usr) => ({
-    value: usr.id,
-    label: `${usr.nombre} ${usr.apellido}`, // Mostrar nombre completo del usuario
+  const usuarioOptions = usuarios.map((usuario) => ({
+    value: usuario.id.toString(),
+    label: `${usuario.nombre} ${usuario.apellido}`,
   }));
+
+  // Opciones para el select de estado
+  const estadoOptions = [
+    { value: 'Pendiente', label: 'Pendiente' },
+    { value: 'Completada', label: 'Completada' },
+    { value: 'Cancelada', label: 'Cancelada' },
+    { value: 'Reprogramada', label: 'Reprogramada' },
+  ];
 
   // Definición de los campos del formulario
   const formFields = [
-    { id: 'fecha', label: 'Fecha', type: 'date' }, // Campo de tipo date
-    { id: 'observaciones', label: 'Observaciones', type: 'text' }, // Observaciones
     {
-      id: 'fk_id_actividad',
-      label: 'Actividad',
+      id: 'estado',
+      label: 'Estado',
       type: 'select',
-      options: actividadOptions, // Opciones dinámicas basadas en actividades
+      options: estadoOptions,
+    },
+    { id: 'fecha_programada', label: 'Fecha Programada', type: 'date' },
+    { id: 'observaciones', label: 'Observaciones', type: 'textarea' },
+    {
+      id: 'fk_id_realiza',
+      label: 'Fk id realiza',
+      type: 'select',
+      options: realizaOptions.length > 0
+        ? realizaOptions
+        : [{ value: '', label: 'No hay opciones disponibles' }],
     },
     {
-      id: 'id_identificacion',
-      label: 'Usuario',
+      id: 'fk_identificacion',
+      label: 'Fk identificacion',
       type: 'select',
-      options: usuarioOptions, // Opciones dinámicas basadas en usuarios
+      options: usuarioOptions.length > 0
+        ? usuarioOptions
+        : [{ value: '', label: 'No hay usuarios disponibles' }],
     },
   ];
 
   // Manejo del formulario
-  const handleSubmit = (formData: { [key: string]: string }) => {
+  const handleSubmit = (formData: { [key: string]: string |File }) => {
+    setErrorMessage(null);
+
+    const estado = formData.estado;
+    const fechaProgramada = formData.fecha_programada;
+    const observaciones = formData.observaciones;
+    const fkIdRealiza = formData.fk_id_realiza;
+    const fkIdentificacion = formData.fk_identificacion;
+
+    // Validaciones
     if (
-      !formData.fecha ||
-      !formData.observaciones ||
-      !formData.fk_id_actividad ||
-      !formData.id_identificacion
+      typeof estado !== 'string' ||
+      typeof fechaProgramada !== 'string' ||
+      typeof observaciones !== 'string' ||
+      typeof fkIdRealiza !== 'string' ||
+      typeof fkIdentificacion !== 'string'
     ) {
-      console.error("❌ Todos los campos son obligatorios");
+      setErrorMessage('❌ Todos los campos deben ser de tipo texto');
       return;
     }
 
-    const newAsignacion: Asignacion = {
-      fecha: new Date(formData.fecha).toISOString().split('T')[0], // Convertir la fecha al formato ISO
-      observaciones: formData.observaciones.trim(),
-      fk_id_actividad: formData.fk_id_actividad,
-      id_identificacion:formData.id_identificacion
+    if (!estado || !fechaProgramada || !fkIdRealiza || !fkIdentificacion) {
+      setErrorMessage('❌ Los campos Estado, Fecha Programada, Fk id realiza y Fk identificacion son obligatorios');
+      return;
+    }
+
+    if (fkIdRealiza === '' || fkIdentificacion === '') {
+      setErrorMessage('❌ Debes seleccionar un realiza y un usuario válidos');
+      return;
+    }
+
+    const nuevaAsignacion: Omit<Asignacion, 'id'> = {
+      estado: estado as 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada',
+      fecha_programada: fechaProgramada,
+      observaciones: observaciones.trim() || '',
+      fk_id_realiza: parseInt(fkIdRealiza, 10),
+      fk_identificacion: parseInt(fkIdentificacion, 10),
     };
 
-    console.log("🚀 Enviando asignación al backend:", newAsignacion);
+    console.log('🚀 Enviando asignación al backend:', nuevaAsignacion);
 
-    mutation.mutate(newAsignacion, {
+    mutation.mutate(nuevaAsignacion, {
       onSuccess: () => {
-        console.log("✅ Asignación creada exitosamente");
-        navigate("/actividad"); // Redirigir al listado de actividades
+        console.log('✅ Asignación creada exitosamente');
+        navigate('/asignaciones_actividades');
       },
-      onError: (error) => {
-        console.error("❌ Error al crear asignación:", error);
+      onError: (error: any) => {
+        const errorMsg = error.message || 'Error desconocido al crear la asignación';
+        console.error('❌ Error al crear asignación:', errorMsg);
+        setErrorMessage(`❌ Error: ${errorMsg}`);
       },
     });
   };
 
-  if (isLoadingAsignaciones) {
-    return <div className="text-center text-gray-500">Cargando actividades...</div>;
+  if (isLoadingRealiza || isLoadingUsuarios) {
+    return <div className="text-center text-gray-500">Cargando datos...</div>;
   }
 
   return (
     <div className="max-w-4xl mx-auto p-4">
+      {errorMessage && (
+        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
+          {errorMessage}
+        </div>
+      )}
       <Formulario
         fields={formFields}
         onSubmit={handleSubmit}

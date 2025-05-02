@@ -9,7 +9,7 @@ export interface Semillero {
   nombre_semilla: string;
   fecha_siembra: string;
   fecha_estimada: string;
-  cantidad: number;
+  cantidad: number
 }
 
 const fetchSemilleros = async (): Promise<Semillero[]> => {
