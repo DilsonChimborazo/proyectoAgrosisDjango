@@ -28,14 +28,17 @@
     is_active: boolean;
     fk_id_rol: Rol | null; 
     ficha: Ficha | null;
+    password: string;
     img: string | null;
     img_url: string;
     }
 
     export interface FormData {
+        identificacion: string;
         nombre: string;
         apellido: string;
         email: string;
+        password: string;
         img?: File | null;
     }
 

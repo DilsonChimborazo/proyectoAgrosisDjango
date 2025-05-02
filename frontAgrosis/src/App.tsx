@@ -67,6 +67,8 @@ import ReportesPage from "./components/reportes/Reportes";
 import BodegaPage from "./pages/inventario/BodegaPage";
 import UnidadMedida from "./components/inventario/unidadMedida/UnidadMedida";
 import TipoResiduos from "./components/trazabilidad/tiporesiduo/TipoResiduo";
+import { Provider } from "./provider";
+
 
 import StockPage from "./pages/finanzas/stock/StockPage"
 import CrearInsumoCompuesto from "./components/inventario/insumocompuesto/CrearInsumoCompuesto";
@@ -77,6 +79,7 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <HeroUIProvider>
+      <Provider>
       <QueryClientProvider client={queryClient}>
         <AuthChecker>  
           <Routes>
@@ -161,6 +164,7 @@ function App() {
           </Routes>
         </AuthChecker> 
       </QueryClientProvider>
+      </Provider> 
     </HeroUIProvider>
   );
 }

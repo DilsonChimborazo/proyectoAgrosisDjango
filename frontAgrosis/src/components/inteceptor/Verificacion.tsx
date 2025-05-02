@@ -12,10 +12,10 @@ const AuthChecker = ({ children }: { children: React.ReactNode }) => {
       if (token && isTokenExpired(token)) {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
-        setShowAlert(true); // Muestra la alerta
+        setShowAlert(true); 
         setTimeout(() => {
-          setShowAlert(false); // Oculta la alerta después de 3 segundos
-          navigate("/"); // Redirige al login
+          setShowAlert(false); 
+          navigate("/"); 
         }, 3000);
       }
     };

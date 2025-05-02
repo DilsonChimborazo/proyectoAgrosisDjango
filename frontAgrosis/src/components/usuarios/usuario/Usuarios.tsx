@@ -199,7 +199,7 @@ const Usuarios = () => {
                   <img
                     src={selectedUser.img_url || "http://localhost:8000/media/imagenes/defecto.png"}
                     alt="foto"
-                    className="w-10 h-7 rounded-full object-cover"
+                    className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full object-cover"
                     onError={(e) => {
                       const target = e.currentTarget;
                       if (!target.src.includes("defecto.png")) {
