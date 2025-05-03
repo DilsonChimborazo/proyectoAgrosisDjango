@@ -60,126 +60,6 @@ class ResumenActualViewSet(ModelViewSet):
     lookup_url_kwarg = 'plantacion_id'
 
 class TrazabilidadPlantacionAPIView(APIView):
-    def get(self, request, plantacion_id):
-        try:
-            plantacion = Plantacion.objects.get(id=plantacion_id)
-            cultivo = plantacion.fk_id_cultivo
-            
-            # 1. Obtener todas las asignaciones de actividades
-            asignaciones = Asignacion_actividades.objects.filter(
-                fk_id_realiza__fk_id_plantacion=plantacion
-            ).select_related(
-                'fk_id_realiza__fk_id_actividad',
-                'fk_identificacion'
-            )
-            
-            # 2. Obtener programaciones COMPLETADAS
-            programaciones = Programacion.objects.filter(
-                fk_id_asignacionActividades__in=asignaciones,
-                estado='Completada'
-            ).select_related(
-                'fk_id_asignacionActividades__fk_id_realiza__fk_id_actividad',
-                'fk_id_asignacionActividades__fk_identificacion'
-            )
-            
-            # 3. Calcular tiempos totales
-            total_minutos = programaciones.aggregate(total=Sum('duracion'))['total'] or 0
-            total_horas = round(total_minutos / 60, 2)
-            jornales = round(total_horas / 8, 2)
-            
-            # 4. Costos de mano de obra
-            nominas = Nomina.objects.filter(
-                fk_id_programacion__in=programaciones
-            ).select_related('fk_id_salario')
-            
-            costo_mano_obra = nominas.aggregate(total=Sum('pago_total'))['total'] or 0
-            
-            # 5. Controles fitosanitarios
-            controles = Control_fitosanitario.objects.filter(
-                fk_id_plantacion=plantacion
-            ).select_related(
-                'fk_id_insumo',
-                'fk_unidad_medida',
-                'fk_id_pea'
-            )
-            
-            # Sumar tiempo de controles
-            tiempo_controles = controles.aggregate(total=Sum('duracion'))['total'] or 0
-            total_minutos += tiempo_controles
-            total_horas = round(total_minutos / 60, 2)
-            jornales = round(total_horas / 8, 2)
-            
-            # 6. Egresos de insumos
-            egresos_bodega = Bodega.objects.filter(
-                fk_id_asignacion__in=asignaciones,
-                movimiento='Salida',
-                fk_id_insumo__isnull=False
-            ).aggregate(total=Sum('costo_insumo'))['total'] or 0
-            
-            egresos_controles = controles.aggregate(total=Sum('costo_insumo'))['total'] or 0
-            egresos_insumos = egresos_bodega + egresos_controles
-            
-            # 7. Ingresos por ventas
-            producciones = Produccion.objects.filter(fk_id_plantacion=plantacion)
-            ventas = Venta.objects.filter(
-                fk_id_produccion__in=producciones
-            ).annotate(ingreso_total=F('precio_unidad') * F('cantidad'))
-            
-            ingresos_ventas = ventas.aggregate(total=Sum('ingreso_total'))['total'] or 0
-            
-            # 8. Preparar datos detallados
-            detalle_actividades = self._get_detalle_actividades(programaciones, controles)
-            detalle_insumos = self._get_detalle_insumos(asignaciones, controles)
-            detalle_ventas = self._get_detalle_ventas(ventas)
-            
-            # 9. Calcular relación beneficio/costo
-            costo_total = costo_mano_obra + egresos_insumos
-            beneficio_costo = round((ingresos_ventas / costo_total), 2) if costo_total > 0 else 0
-            
-            # Estructura final de resultados
-            resultado = {
-                "plantacion_id": plantacion.id,
-                "cultivo": cultivo.nombre_cultivo if cultivo else None,
-                "especie": cultivo.fk_id_especie.nombre_comun if cultivo and cultivo.fk_id_especie else None,
-                "fecha_plantacion": plantacion.fecha_plantacion,
-                "era": plantacion.fk_id_eras.descripcion if plantacion.fk_id_eras else None,
-                "lote": plantacion.fk_id_eras.fk_id_lote.nombre_lote if plantacion.fk_id_eras and plantacion.fk_id_eras.fk_id_lote else None,
-                "total_tiempo_minutos": total_minutos,
-                "total_horas": total_horas,
-                "jornales": jornales,
-                "costo_mano_obra": costo_mano_obra,
-                "egresos_insumos": egresos_insumos,
-                "ingresos_ventas": ingresos_ventas,
-                "beneficio_costo": beneficio_costo,
-                "detalle_actividades": detalle_actividades,
-                "detalle_insumos": detalle_insumos,
-                "detalle_ventas": detalle_ventas,
-                "resumen": {
-                    "total_actividades": len(detalle_actividades),
-                    "total_controles": controles.count(),
-                    "total_ventas": ventas.count(),
-                    "total_insumos": len(detalle_insumos),
-                    "costo_total": costo_total,
-                    "balance": ingresos_ventas - costo_total
-                }
-            }
-            
-            # Guardar snapshot si se solicita
-            if request.query_params.get('save', 'false').lower() == 'true':
-                snapshot = TrazabilidadService.crear_snapshot(
-                    plantacion_id=plantacion.id,
-                    datos=resultado,
-                    trigger='consulta_manual'
-                )
-                resultado['snapshot_id'] = snapshot.id
-            
-            return Response(resultado)
-        
-        except Plantacion.DoesNotExist:
-            return Response({"error": "Plantación no encontrada"}, status=status.HTTP_404_NOT_FOUND)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
     def _get_detalle_actividades(self, programaciones, controles):
         detalle = []
         for programacion in programaciones:
@@ -213,7 +93,6 @@ class TrazabilidadPlantacionAPIView(APIView):
     
     def _get_detalle_insumos(self, asignaciones, controles):
         detalle = []
-        # Insumos de bodega
         salidas_bodega = Bodega.objects.filter(
             fk_id_asignacion__in=asignaciones,
             movimiento='Salida',
@@ -234,7 +113,6 @@ class TrazabilidadPlantacionAPIView(APIView):
                 'actividad_asociada': salida.fk_id_asignacion.fk_id_realiza.fk_id_actividad.nombre_actividad if salida.fk_id_asignacion else None
             })
         
-        # Insumos de controles fitosanitarios
         for control in controles:
             if control.fk_id_insumo:
                 detalle.append({
@@ -265,6 +143,121 @@ class TrazabilidadPlantacionAPIView(APIView):
                 'produccion_asociada': venta.fk_id_produccion.nombre_produccion if venta.fk_id_produccion else None
             })
         return detalle
+
+    def calcular_trazabilidad(self, plantacion_id):
+        """Método centralizado para el cálculo de trazabilidad"""
+        try:
+            plantacion = Plantacion.objects.get(id=plantacion_id)
+            cultivo = plantacion.fk_id_cultivo
+            
+            asignaciones = Asignacion_actividades.objects.filter(
+                fk_id_realiza__fk_id_plantacion=plantacion
+            ).select_related(
+                'fk_id_realiza__fk_id_actividad',
+                'fk_identificacion'
+            )
+            
+            programaciones = Programacion.objects.filter(
+                fk_id_asignacionActividades__in=asignaciones,
+                estado='Completada'
+            ).select_related(
+                'fk_id_asignacionActividades__fk_id_realiza__fk_id_actividad',
+                'fk_id_asignacionActividades__fk_identificacion'
+            )
+            
+            total_minutos = programaciones.aggregate(total=Sum('duracion'))['total'] or 0
+            total_horas = round(total_minutos / 60, 2)
+            jornales = round(total_horas / 8, 2)
+            
+            nominas = Nomina.objects.filter(
+                fk_id_programacion__in=programaciones
+            ).select_related('fk_id_salario')
+            costo_mano_obra = nominas.aggregate(total=Sum('pago_total'))['total'] or 0
+            
+            controles = Control_fitosanitario.objects.filter(
+                fk_id_plantacion=plantacion
+            ).select_related(
+                'fk_id_insumo',
+                'fk_unidad_medida',
+                'fk_id_pea'
+            )
+            
+            tiempo_controles = controles.aggregate(total=Sum('duracion'))['total'] or 0
+            total_minutos += tiempo_controles
+            total_horas = round(total_minutos / 60, 2)
+            jornales = round(total_horas / 8, 2)
+            
+            egresos_bodega = Bodega.objects.filter(
+                fk_id_asignacion__in=asignaciones,
+                movimiento='Salida',
+                fk_id_insumo__isnull=False
+            ).aggregate(total=Sum('costo_insumo'))['total'] or 0
+            
+            egresos_controles = controles.aggregate(total=Sum('costo_insumo'))['total'] or 0
+            egresos_insumos = egresos_bodega + egresos_controles
+            
+            producciones = Produccion.objects.filter(fk_id_plantacion=plantacion)
+            ventas = Venta.objects.filter(
+                fk_id_produccion__in=producciones
+            ).annotate(ingreso_total=F('precio_unidad') * F('cantidad'))
+            
+            ingresos_ventas = ventas.aggregate(total=Sum('ingreso_total'))['total'] or 0
+            
+            detalle_actividades = self._get_detalle_actividades(programaciones, controles)
+            detalle_insumos = self._get_detalle_insumos(asignaciones, controles)
+            detalle_ventas = self._get_detalle_ventas(ventas)
+            
+            costo_total = costo_mano_obra + egresos_insumos
+            beneficio_costo = round((ingresos_ventas / costo_total), 2) if costo_total > 0 else 0
+            
+            return {
+                "plantacion_id": plantacion.id,
+                "cultivo": cultivo.nombre_cultivo if cultivo else None,
+                "especie": cultivo.fk_id_especie.nombre_comun if cultivo and cultivo.fk_id_especie else None,
+                "fecha_plantacion": plantacion.fecha_plantacion,
+                "era": plantacion.fk_id_eras.descripcion if plantacion.fk_id_eras else None,
+                "lote": plantacion.fk_id_eras.fk_id_lote.nombre_lote if plantacion.fk_id_eras and plantacion.fk_id_eras.fk_id_lote else None,
+                "total_tiempo_minutos": total_minutos,
+                "total_horas": total_horas,
+                "jornales": jornales,
+                "costo_mano_obra": costo_mano_obra,
+                "egresos_insumos": egresos_insumos,
+                "ingresos_ventas": ingresos_ventas,
+                "beneficio_costo": beneficio_costo,
+                "detalle_actividades": detalle_actividades,
+                "detalle_insumos": detalle_insumos,
+                "detalle_ventas": detalle_ventas,
+                "resumen": {
+                    "total_actividades": len(detalle_actividades),
+                    "total_controles": controles.count(),
+                    "total_ventas": ventas.count(),
+                    "total_insumos": len(detalle_insumos),
+                    "costo_total": costo_total,
+                    "balance": ingresos_ventas - costo_total
+                }
+            }
+            
+        except Exception as e:
+            raise e
+
+    def get(self, request, plantacion_id):
+        try:
+            resultado = self.calcular_trazabilidad(plantacion_id)
+            
+            if request.query_params.get('save', 'false').lower() == 'true':
+                snapshot = TrazabilidadService.crear_snapshot(
+                    plantacion_id=plantacion_id,
+                    datos=resultado,
+                    trigger='consulta_manual'
+                )
+                resultado['snapshot_id'] = snapshot.id
+            
+            return Response(resultado)
+        
+        except Plantacion.DoesNotExist:
+            return Response({"error": "Plantación no encontrada"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class HistoricoTrazabilidadAPIView(ListAPIView):
     serializer_class = SnapshotSerializer
