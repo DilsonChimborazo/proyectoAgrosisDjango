@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useEspecie, Especie } from '../../../hooks/trazabilidad/especie/useEspecie';
+import {  Especie } from '../../../hooks/trazabilidad/especie/useEspecie';
 import { useTipoCultivo, TipoCultivo } from '../../../hooks/trazabilidad/tipoCultivo/useTipoCultivo';
 import { useCrearEspecie } from '../../../hooks/trazabilidad/especie/useCrearEspecie';
 import VentanaModal from '../../globales/VentanasModales';

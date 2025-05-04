@@ -3,21 +3,13 @@ import axios from 'axios';
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
+
 export interface Cultivos{
     id: number;
     nombre_cultivo: string; 
-    fecha_plantacion: Date;
     descripcion: string;
     fk_id_especie: Especie;
-    fk_id_semillero: Semillero;
-}
-
-export interface Semillero {
-    id: number;
-    nombre_semilla: string;
-    fecha_siembra: Date;
-    fecha_estimada: Date;
-    cantidad: number;
+    
 }
 
 export interface TipoCultivo {
@@ -31,28 +23,32 @@ export interface Especie {
     nombre_comun: string;
     nombre_cientifico: string;
     descripcion: string;
-    fk_id_tipo_cultivo: TipoCultivo;
+    fk_id_tipo_cultivo: TipoCultivo ;
 }
 
-// Función para obtener los usuarios con manejo de errores
+export interface Cultivos {
+    id: number;
+    nombre_cultivo: string;
+    descripcion: string;
+    fk_id_especie: Especie;
+}
+
 const fetchAsignacion = async (): Promise<Cultivos[]> => {
     try {
-        const { data } = await axios.get(`${apiUrl}cultivo/`);
-        return data;
-    } catch (error) {
-        console.error("Error al obtener cultivos:", error);
+        const response = await axios.get(`${apiUrl}cultivo/`);
+        console.log("Datos recibidos del backend:", response.data);
+        return response.data;
+    } catch (error: any) {
+        console.error("Error al obtener cultivos:", error.response?.data || error.message);
         throw new Error("No se pudo obtener la lista de los cultivos");
     }
 };
-
 
 export const useCultivo = () => {
     return useQuery<Cultivos[], Error>({
         queryKey: ['Cultivos'],
         queryFn: fetchAsignacion,
-        gcTime: 1000 * 60 * 10, 
-
+        gcTime: 1000 * 60 * 10,
+        staleTime: 1000 * 60 * 5,
     });
 };
-
-

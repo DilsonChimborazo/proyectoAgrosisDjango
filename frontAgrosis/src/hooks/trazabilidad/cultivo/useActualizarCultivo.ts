@@ -6,10 +6,9 @@
     export interface Cultivo {
         id: number;
         nombre_cultivo: string;
-        fecha_plantacion: string;
         descripcion: string;
         fk_id_especie: number;
-        fk_id_semillero: number;
+
     }
 
     export const useActualizarCultivo = () => {
