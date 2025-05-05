@@ -4,6 +4,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from apps.usuarios.usuario.models import Usuarios
 from apps.usuarios.usuario.api.serializer import LeerUsuarioSerializer, EscribirUsuarioSerializer
+from apps.usuarios.rol.models import Rol
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
@@ -27,11 +28,18 @@ class UsuarioViewSet(ModelViewSet):
         return EscribirUsuarioSerializer
 
     def get_permissions(self):
-        """Permite la creación del primer usuario sin autenticación"""
+        """Permite la creación del primer usuario sin autenticación y asegura que exista el rol Administrador"""
+
+        if Rol.objects.count() == 0:
+            Rol.objects.create(nombre="Administrador")
+
+        # Permitir la creación del primer usuario sin autenticación
         if self.action == "create" and Usuarios.objects.count() == 0:
             return [AllowAny()]
+
         elif self.action in ["create", "update", "partial_update", "destroy"]:
             return [IsAdminUser()]
+
         return [IsAuthenticated()]
 
     def perform_create(self, serializer):

@@ -31,11 +31,13 @@ const CrearHerramientas = ({ onSuccess }: { onSuccess?: () => void }) => {
         mutation.mutate(nuevaHerramienta, {
             onSuccess: (data) => {
                 console.log("Herramienta creada exitosamente:", nuevaHerramienta);
+                
 
                 // Crear movimiento de entrada en la bodega después de la creación de la herramienta
                 const movimientoEntrada = {
                     fk_id_herramientas: data.data.id, 
-                    cantidad: nuevaHerramienta.cantidad_herramienta,
+                    cantidad_herramienta: nuevaHerramienta.cantidad_herramienta,
+                    cantidad_insumo: 0,
                     movimiento: 'Entrada'as const, 
                     fecha: new Date().toISOString(),
                     fk_id_asignacion: null, 

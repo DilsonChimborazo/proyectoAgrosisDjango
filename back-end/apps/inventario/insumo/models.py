@@ -24,7 +24,12 @@ class Insumo (models.Model):
         help_text="Precio por unidad base (gramo, ml, unidad)"
     )
 
-    fk_unidad_medida = models.ForeignKey(UnidadMedida, on_delete=models.SET_NULL, null=True)
+    fk_unidad_medida = models.ForeignKey(
+    UnidadMedida, 
+    on_delete=models.PROTECT,  
+    null=False,
+    help_text="Unidad de medida del insumo"
+)
     fecha_vencimiento = models.DateField()
     img = models.ImageField(upload_to='imagenes/')
 

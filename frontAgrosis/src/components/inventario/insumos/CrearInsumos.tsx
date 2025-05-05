@@ -64,7 +64,7 @@ const CrearInsumos = ({ onSuccess }: { onSuccess?: () => void }) => {
     formDataToSubmit.append("precio_unidad", formData.precio_unidad.toString());
     formDataToSubmit.append("cantidad_insumo", formData.cantidad_insumo.toString());
     formDataToSubmit.append("fecha_vencimiento", formData.fecha_vencimiento);
-    formDataToSubmit.append("fk_unidad_medida", formData.fk_unidad_medida);
+    formDataToSubmit.append("fk_unidad_medida", formData.fk_unidad_medida); // Corregido el nombre del campo
 
     if (formData.img instanceof File) {
       formDataToSubmit.append("img", formData.img);

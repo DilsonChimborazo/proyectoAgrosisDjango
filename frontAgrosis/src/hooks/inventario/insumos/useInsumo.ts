@@ -16,6 +16,7 @@ export interface Insumo{
     tipo: string
     precio_unidad: number
     cantidad_insumo: number;
+    cantidad_en_base: string | null;
     fecha_vencimiento: string
     img: string | null | undefined ;
     fk_unidad_medida: UnidadMedida

@@ -20,6 +20,7 @@ export interface Insumo {
     img: string | null | undefined;
     fk_unidad_medida: UnidadMedida;
     precio_por_base: number; 
+    cantidad_en_base: string;
 }
 
 export interface DetalleInsumoCompuesto {

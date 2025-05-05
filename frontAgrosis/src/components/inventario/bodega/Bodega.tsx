@@ -41,6 +41,7 @@ interface Insumo {
     tipo: string;
     precio_unidad: number;
     precio_por_base: number;
+    cantidad_en_base: string | null; 
     cantidad_insumo: number | null;
     fecha_vencimiento: string;
     img: string | null | undefined;
@@ -336,50 +337,63 @@ const ListarBodega = () => {
             ? item.fk_id_herramientas !== null 
             : item.fk_id_insumo !== null
     );
-
+    
+    // Depuración: Verificar los datos originales y filtrados
+    console.log("Datos originales de movimientos:", movimientos);
+    console.log("Movimientos filtrados:", filteredMovimientos);
+    
     const mappedMovimientos = filteredMovimientos?.map(item => {
+        // Extraer el nombre según el tipo seleccionado
+        const nombreHerramienta = item.fk_id_herramientas?.nombre_h || "N/A";
+        const nombreInsumo = item.fk_id_insumo?.nombre || "N/A";
+        const nombre = tipoSeleccionado === "Herramienta" ? nombreHerramienta : nombreInsumo;
+    
+        // Depuración: Verificar qué nombre se está mapeando
+        console.log(`ID ${item.id} - Nombre mapeado: ${nombre} (Tipo: ${tipoSeleccionado})`);
+    
         const movimiento = item.movimiento;
         const colorMovimiento = movimiento === "Entrada" 
             ? "text-green-700 font-bold" 
             : "text-red-700 font-bold";
     
-        const cantidad = tipoSeleccionado === "Herramienta" 
-            ? item.cantidad_herramienta 
-            : item.cantidad_insumo;
+        const cantidad = item.cantidad_herramienta ?? item.cantidad_insumo ?? 0;
+        let bgCantidad = "bg-gray-300 text-black font-bold rounded px-2";
+        if (cantidad < 10) bgCantidad = "bg-red-300 text-red-900 font-bold rounded px-2";
+        else if (cantidad >= 10) bgCantidad = "bg-green-300 text-green-900 font-bold rounded px-2";
     
-        const nombreItem = tipoSeleccionado === "Herramienta"
-            ? item.fk_id_herramientas?.nombre_h ?? "N/A"
-            : item.fk_id_insumo?.nombre ?? "N/A";
-    
-        let bgCantidad = "bg-gray-300 text-black font-bold rounded px-2"; 
-    
-        if (cantidad !== null && cantidad !== undefined) {
-            if (cantidad < 10) {
-                bgCantidad = "bg-red-300 text-red-900 font-bold rounded px-2";
-            } else if (cantidad >= 10) {
-                bgCantidad = "bg-green-300 text-green-900 font-bold rounded px-2";
-            }
+        // Calcular cantidad_base como número entero con la unidad base (para insumos, si aplica)
+        let cantidadBase;
+        if (tipoSeleccionado === "Insumo" && item.fk_id_insumo?.cantidad_en_base) {
+            cantidadBase = `${Math.round(parseFloat(item.fk_id_insumo.cantidad_en_base))} ${item.fk_id_insumo.fk_unidad_medida?.unidad_base || ''}`;
+        } else if (tipoSeleccionado === "Insumo" && item.cantidad_insumo && item.fk_id_insumo?.fk_unidad_medida?.factor_conversion) {
+            const factor = item.fk_id_insumo.fk_unidad_medida.factor_conversion;
+            cantidadBase = `${Math.round(item.cantidad_insumo * factor)} ${item.fk_id_insumo.fk_unidad_medida?.unidad_base || ''}`;
+        } else {
+            cantidadBase = "No Aplica";
         }
     
         return {
             id: item.id,
-            item: nombreItem,
+            // Usar 'herramienta' o 'insumo' según el tipo seleccionado
+            [tipoSeleccionado === "Herramienta" ? "herramienta" : "insumo"]: nombre,
             asignacion: item.fk_id_asignacion?.fecha_programada 
                 ? new Date(item.fk_id_asignacion.fecha_programada).toLocaleDateString() 
                 : "N/A",
-            cantidad: (
-                <span className={bgCantidad}>
-                    {cantidad ?? "N/A"}
-                </span>
-            ),
-            unidad_medida: item.fk_unidad_medida?.nombre_medida ?? "N/A",
-            cantidad_base: item.cantidad_en_base?.toFixed(2) ?? "N/A",
-            costo: item.costo_insumo ? `$${item.costo_insumo.toFixed(2)}` : "N/A",
+            cantidad: <span className={bgCantidad}>{cantidad}</span>,
+            unidad_medida: tipoSeleccionado === "Insumo" ? item.fk_id_insumo?.fk_unidad_medida?.nombre_medida || "No Aplica" : "No Aplica",
+            cantidad_base: cantidadBase,
+            costo: item.costo_insumo ? `$${(Number(item.costo_insumo)).toFixed(2)
+            }` : "No Aplica",
             fecha: new Date(item.fecha).toLocaleDateString(),
             movimiento: <span className={colorMovimiento}>{movimiento}</span>,
             rawData: item
         };
     }) || [];
+    
+    // Depuración: Verificar los datos finales mapeados
+    console.log("Datos mapeados para la tabla:", mappedMovimientos);
+
+    
     
     const itemsFiltrados = filtrarItems(tipoSeleccionado === 'Herramienta' ? herramientas || [] : insumos || []);
 
@@ -677,7 +691,7 @@ const ListarBodega = () => {
                     title={`Movimientos de ${tipoSeleccionado === 'Herramienta' ? 'Herramientas' : 'Insumos'}`}
                     headers={[
                         "ID", 
-                        tipoSeleccionado, 
+                        tipoSeleccionado === "Herramienta" ? "Herramienta" : "Insumo", 
                         "Asignación", 
                         "Cantidad", 
                         "Unidad Medida",

@@ -11,6 +11,10 @@ class InsumoSerializer(ModelSerializer):
         model = Insumo
         fields = '__all__'
 
+class InsumoCreateSerializer(ModelSerializer):
+    class Meta:
+        model = Insumo
+        fields = '__all__'
 
 class ReporteEgresosSerializer(ModelSerializer):
     actividad = serializers.CharField(source='nombre_actividad')
@@ -22,11 +26,6 @@ class ReporteEgresosSerializer(ModelSerializer):
         fields = ['actividad', 'insumos', 'costo_total']
 
     def get_insumos(self, obj):
-        """
-        Obtiene la lista de insumos utilizados en la actividad.
-        Retorna:
-        - Un diccionario con lista_insumos (nombres, cantidad y unidad) y lista_costos (precio unitario de cada insumo).
-        """
         utilizaciones = Utiliza.objects.filter(
             fk_id_asignacion_actividad__fk_id_actividad=obj
         ).select_related('fk_id_insumo')
@@ -41,7 +40,6 @@ class ReporteEgresosSerializer(ModelSerializer):
                 'precio_unitario': float(insumo.precio_unidad)
             })
 
-        # Formateo de datos para el reporte
         insumos_lista = ", ".join(
             [f"{i['nombre']} {i['cantidad']} {i['unidad_medida']}"
              for i in insumos_data]
@@ -57,13 +55,10 @@ class ReporteEgresosSerializer(ModelSerializer):
         }
 
     def get_costo_total(self, obj):
-        """
-        Calcula el costo total de los insumos utilizados en la actividad.
-        """
         total = Utiliza.objects.filter(
             fk_id_asignacion_actividad__fk_id_actividad=obj
         ).annotate(
             costo=F('cantidad') * F('fk_id_insumo__precio_unidad')
         ).aggregate(total=Sum('costo'))['total'] or 0
 
-        return float(total)  # Convertimos a float para evitar problemas con JSON
+        return float(total)
