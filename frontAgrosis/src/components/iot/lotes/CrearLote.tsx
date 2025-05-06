@@ -12,15 +12,19 @@ const CrearLote = ({ onSuccess }: CrearLoteProps) => {
   const formFields = [
     { id: "dimencion", label: "Dimensión", type: "number" },
     { id: "nombre_lote", label: "Nombre del Lote", type: "text" },
-    { id: "estado", label: "Estado", type: "text" },
+    {
+      id: "estado",
+      label: "Estado",
+      type: "select",
+      options: [
+        { value: "true", label: "Activo" },
+        { value: "false", label: "Inactivo" },
+      ],
+    },
   ];
 
   const handleSubmit = (formData: { [key: string]: string }) => {
-    if (
-      !formData.dimencion ||
-      !formData.nombre_lote ||
-      !formData.estado
-    ) {
+    if (!formData.dimencion || !formData.nombre_lote || !formData.estado) {
       console.log("Campos faltantes");
       return;
     }
@@ -29,7 +33,7 @@ const CrearLote = ({ onSuccess }: CrearLoteProps) => {
       id: 0,
       dimencion: Number(formData.dimencion),
       nombre_lote: formData.nombre_lote,
-      estado: formData.estado,
+      estado: formData.estado === "true", // Convertir string a boolean
     };
 
     mutation.mutate(nuevoLote, {
