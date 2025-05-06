@@ -7,14 +7,11 @@ env/
 db.sqlite3
 *.pyc
 __pycache__/
-migrations/
-*/migrations/
 
+#migraciones
+**/migrations/*
+!**/migrations/__init__.py
 
-# Ignorar todas las migraciones de Django
-**/migrations/*.py
-**/migrations/*.pyc
-**/migrations/__pycache__/
 
 /media/
 /staticfiles/
