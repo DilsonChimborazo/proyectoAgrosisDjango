@@ -30,6 +30,7 @@ const menuItems = [
       { name: "Especies", path: "/especies" },
       { name: "Residuos", path: "/residuos" },
       { name: "Plantacion", path: "/plantacion"},
+      { name: "Semilleros", path: "/semilleros"},
     ],
   },
   {
