@@ -10,7 +10,7 @@ class Plantacion(models.Model):
     cantidad_transplante = models.IntegerField()
     fecha_plantacion = models.DateField()
     fk_id_semillero = models.ForeignKey(Semillero, on_delete=models.SET_NULL, null=True)
-    fecha_plantacion = models.DateField()
+
 
     
     def _str_(self): 
