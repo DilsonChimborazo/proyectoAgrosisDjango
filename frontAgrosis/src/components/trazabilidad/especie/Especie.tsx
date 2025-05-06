@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import {  Especie } from '../../../hooks/trazabilidad/especie/useEspecie';
+import { Especie, useEspecie } from '../../../hooks/trazabilidad/especie/useEspecie';
 import { useTipoCultivo, TipoCultivo } from '../../../hooks/trazabilidad/tipoCultivo/useTipoCultivo';
 import { useCrearEspecie } from '../../../hooks/trazabilidad/especie/useCrearEspecie';
 import VentanaModal from '../../globales/VentanasModales';
@@ -9,7 +9,11 @@ import CrearTipoCultivo from '../tipocultivo/CrearTipoCultivo';
 import { FaLeaf } from 'react-icons/fa';
 
 // Tipo específico para los datos de la tabla
-interface EspecieTabla extends Omit<Especie, 'fk_id_tipo_cultivo'> {
+interface EspecieTabla {
+    id: number;
+    nombre_comun: string;
+    nombre_cientifico: string;
+    descripcion: string;
     tipo_cultivo: string;
 }
 
@@ -64,17 +68,17 @@ const CrearEspecieModal = ({ onSuccess, tiposCultivo }: { onSuccess: () => void;
             typeof descripcion !== 'string' ||
             typeof fkIdTipoCultivo !== 'string'
         ) {
-            setErrorMessage("❌ Todos los campos deben ser de tipo texto");
+            setErrorMessage('❌ Todos los campos deben ser de tipo texto');
             return;
         }
 
         if (!nombreComun || !nombreCientifico || !fkIdTipoCultivo) {
-            setErrorMessage("❌ Los campos Nombre Común, Nombre Científico y Tipo de Cultivo son obligatorios");
+            setErrorMessage('❌ Los campos Nombre Común, Nombre Científico y Tipo de Cultivo son obligatorios');
             return;
         }
 
         if (fkIdTipoCultivo === '') {
-            setErrorMessage("❌ Debes crear un tipo de cultivo primero");
+            setErrorMessage('❌ Debes crear un tipo de cultivo primero');
             return;
         }
 
@@ -87,12 +91,12 @@ const CrearEspecieModal = ({ onSuccess, tiposCultivo }: { onSuccess: () => void;
 
         mutation.mutate(nuevaEspecie, {
             onSuccess: () => {
-                console.log("✅ Especie creada, refetching especies...");
+                console.log('✅ Especie creada, refetching especies...');
                 onSuccess();
             },
             onError: (error: any) => {
-                const errorMsg = error.message || "Error desconocido al crear la especie";
-                console.error("❌ Error al crear especie:", errorMsg);
+                const errorMsg = error.message || 'Error desconocido al crear la especie';
+                console.error('❌ Error al crear especie:', errorMsg);
                 setErrorMessage(`❌ Error al crear especie: ${errorMsg}`);
             },
         });
@@ -101,9 +105,7 @@ const CrearEspecieModal = ({ onSuccess, tiposCultivo }: { onSuccess: () => void;
     return (
         <div className="p-4">
             {errorMessage && (
-                <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
-                    {errorMessage}
-                </div>
+                <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{errorMessage}</div>
             )}
             <Formulario
                 fields={formFields}
@@ -124,8 +126,8 @@ const Especies = () => {
     const [selectedEspecie, setSelectedEspecie] = useState<Especie | null>(null);
     const [modalContenido, setModalContenido] = useState<React.ReactNode>(null);
 
-    console.log("📋 Especies recibidas del backend:", especies);
-    console.log("📋 Tipos de cultivo recibidos:", tiposCultivo);
+    console.log('📋 Especies recibidas del backend:', especies);
+    console.log('📋 Tipos de cultivo recibidos:', tiposCultivo);
 
     const handleItemClick = (item: EspecieTabla) => {
         const especie: Especie = {
@@ -147,66 +149,76 @@ const Especies = () => {
     };
 
     const handleCreateEspecie = () => {
-        setModalContenido(<CrearEspecieModal 
-            onSuccess={() => {
-                console.log("📋 Refetching especies después de crear...");
-                refetchEspecies();
-                closeModal();
-            }}
-            tiposCultivo={tiposCultivo || []}
-        />);
+        setModalContenido(
+            <CrearEspecieModal
+                onSuccess={() => {
+                    console.log('📋 Refetching especies después de crear...');
+                    refetchEspecies();
+                    closeModal();
+                }}
+                tiposCultivo={tiposCultivo || []}
+            />
+        );
         setIsModalOpen(true);
     };
 
     const handleCreateTipoCultivo = () => {
-        setModalContenido(<CrearTipoCultivo 
-            onSuccess={(nombre: string) => {
-                console.log("📋 Refetching tipos de cultivo después de crear...");
-                refetchTiposCultivo();
-                closeModal();
-            }}
-        />);
+        setModalContenido(
+            <CrearTipoCultivo
+                onSuccess={() => {
+                    console.log('📋 Refetching tipos de cultivo después de crear...');
+                    refetchTiposCultivo();
+                    closeModal();
+                }}
+            />
+        );
         setIsModalOpen(true);
     };
 
-    if (isLoadingEspecies || isLoadingTiposCultivo) return <div className="text-center text-gray-500">Cargando...</div>;
+    if (isLoadingEspecies || isLoadingTiposCultivo) {
+        return <div className="text-center text-gray-500">Cargando...</div>;
+    }
 
-    if (errorEspecies) return (
-        <div className="text-center text-red-500">
-            Error al cargar las especies: {errorEspecies.message}
-        </div>
-    );
+    if (errorEspecies) {
+        return (
+            <div className="text-center text-red-500">
+                Error al cargar las especies: {errorEspecies.message}
+            </div>
+        );
+    }
 
-    if (errorTiposCultivo) return (
-        <div className="text-center text-red-500">
-            Error al cargar los tipos de cultivo: {errorTiposCultivo.message}
-        </div>
-    );
+    if (errorTiposCultivo) {
+        return (
+            <div className="text-center text-red-500">
+                Error al cargar los tipos de cultivo: {errorTiposCultivo.message}
+            </div>
+        );
+    }
 
-    const tablaData: EspecieTabla[] = (especies ?? []).map((especie) => {
-        console.log("📋 Procesando especie:", especie);
+    if (!especies || especies.length === 0) {
+        return (
+            <div className="text-center text-gray-500">
+                No hay especies registradas. Haz clic en "Crear Especie" para agregar una.
+            </div>
+        );
+    }
 
-        // Inspeccionamos el valor de fk_id_tipo_cultivo
-        console.log("🔍 Valor de fk_id_tipo_cultivo:", especie.fk_id_tipo_cultivo);
-        console.log("🔍 Tipo de fk_id_tipo_cultivo:", typeof especie.fk_id_tipo_cultivo);
+    const tablaData: EspecieTabla[] = especies.map((especie) => {
+        console.log('📋 Procesando especie:', especie);
 
-        // Aseguramos que fk_id_tipo_cultivo sea un número
+        // Ensure fk_id_tipo_cultivo is a number
         const fkIdTipoCultivo = typeof especie.fk_id_tipo_cultivo === 'number'
             ? especie.fk_id_tipo_cultivo
-            : (typeof especie.fk_id_tipo_cultivo === 'object' && especie.fk_id_tipo_cultivo !== null && 'id' in especie.fk_id_tipo_cultivo
-                ? (especie.fk_id_tipo_cultivo as any).id
-                : -1);
+            : parseInt(String(especie.fk_id_tipo_cultivo), 10) || -1;
 
-        // Buscamos el tipo de cultivo correspondiente
+        console.log(`🔍 fk_id_tipo_cultivo: ${fkIdTipoCultivo}, Tipo: ${typeof fkIdTipoCultivo}`);
+
+        // Find matching tipoCultivo
         const tipoCultivo = tiposCultivo?.find(tipo => tipo.id === fkIdTipoCultivo);
+        const tipoCultivoNombre = tipoCultivo?.nombre || 'Sin tipo de cultivo asignado';
 
-        console.log(`🔍 Buscando tipo de cultivo para fk_id_tipo_cultivo: ${fkIdTipoCultivo}`);
+        console.log(`🔍 Tipo Cultivo encontrado:`, tipoCultivo);
         console.log(`🔍 Tipos de cultivo disponibles (IDs):`, tiposCultivo?.map(tipo => tipo.id));
-
-        const tipoCultivoNombre = tipoCultivo?.nombre || 
-            (fkIdTipoCultivo !== -1 
-                ? `Tipo de cultivo no encontrado (ID: ${fkIdTipoCultivo})` 
-                : 'Sin tipo de cultivo asignado');
 
         return {
             id: especie.id ?? 0,
@@ -217,14 +229,9 @@ const Especies = () => {
         };
     });
 
-    console.log("📋 Datos para la tabla:", tablaData);
+    console.log('📋 Datos para la tabla:', tablaData);
 
-    const headers = [
-        'Nombre Comun',
-        'Nombre Cientifico',
-        'Descripcion',
-        'Tipo Cultivo',
-    ];
+    const headers = ['Nombre Comun', 'Nombre Cientifico', 'Descripcion', 'Tipo Cultivo'];
 
     return (
         <div className="p-4 space-y-6">
@@ -238,7 +245,7 @@ const Especies = () => {
                 isOpen={isDetailModalOpen}
                 onClose={closeModal}
                 titulo=""
-                contenido={<DetalleEspecieModal item={selectedEspecie!} tiposCultivo={tiposCultivo || []} />}
+                contenido={selectedEspecie ? <DetalleEspecieModal item={selectedEspecie} tiposCultivo={tiposCultivo || []} /> : null}
             />
             <div className="bg-white rounded-lg shadow p-6">
                 <div className="mb-4">
@@ -280,10 +287,9 @@ const Especies = () => {
                 headers={headers}
                 data={tablaData}
                 onClickAction={handleItemClick}
-                onUpdate={(row) => {}}
+                onUpdate={() => {}}
                 onCreate={handleCreateEspecie}
                 createButtonTitle="Crear Especie"
-                
             />
         </div>
     );

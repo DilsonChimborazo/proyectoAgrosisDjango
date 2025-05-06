@@ -1,35 +1,57 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import axios from 'axios';
 
-const apiUrl = 'http://127.0.0.1:8000/api/';
+const apiUrl = import.meta.env.VITE_API_URL;
 
-// Interfaz para los datos de actualización de asignación
-interface ActualizarAsignacionDTO {
+interface Asignacion {
   id: number;
+  fecha?: string;
+  observaciones?: string;
+  fk_id_actividad?: number;
+  id_identificacion?: number;
   estado: 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada';
+  fecha_programada?: string;
+  fk_id_realiza?: number | { id: number };
+  fk_identificacion?: number | { id: number };
 }
 
-// Función para actualizar una asignación
-const actualizarAsignacion = async (asignacionData: ActualizarAsignacionDTO) => {
-  const response = await axios.patch(`${apiUrl}asignaciones_actividades/${asignacionData.id}/`, {
-    estado: asignacionData.estado,
+const actualizarAsignacion = async (asignacion: Partial<Asignacion>) => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    throw new Error('No se encontró el token de autenticación');
+  }
+
+  if (!asignacion.id) {
+    throw new Error('El ID de la asignación es requerido');
+  }
+
+  const { id, ...updateData } = asignacion;
+
+  // Convertir estado a minúsculas
+  if (updateData.estado) {
+    
+  }
+
+  console.log('Datos enviados al backend:', updateData); // Para depuración
+
+  const response = await axios.patch(`${apiUrl}asignaciones_actividades/${id}/`, updateData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
   });
-  return response.data;
+
+  return response.data as Asignacion;
 };
 
-// Hook para actualizar una asignación
 export const useActualizarAsignacion = () => {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: actualizarAsignacion,
-    onSuccess: () => {
-      // Invalidar las consultas de asignaciones para actualizar la tabla
-      queryClient.invalidateQueries({ queryKey: ['Asignaciones'] });
-    },
     onError: (error: any) => {
       console.error('Error al actualizar asignación:', error.response?.data || error.message);
-      throw new Error(error.response?.data?.detail || 'No se pudo actualizar la asignación');
+    },
+    onSuccess: (data: Asignacion) => {
+      console.log('Asignación actualizada exitosamente:', data);
     },
   });
 };

@@ -1,22 +1,51 @@
 import { useState } from 'react';
-import { useCrearProgramacion } from '@/hooks/trazabilidad/programacion/useCrearProgramacion'; // Importar desde el archivo correcto
+import { useCrearProgramacion } from '@/hooks/trazabilidad/programacion/useCrearProgramacion';
 import { useActualizarAsignacion } from '@/hooks/trazabilidad/asignacion/useActualizarAsignacion';
+
+interface Programacion {
+  id?: number;
+  fk_id_asignacionActividades: number;
+  fecha_realizada?: string;
+  duracion?: number;
+  cantidad_insumo?: number;
+  img?: string;
+  fk_unidad_medida?: number;
+  estado: 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada';
+}
+
+interface UnidadMedida {
+  id: number;
+  nombre_medida: string;
+  abreviatura: string;
+}
+
+interface Asignacion {
+  id: number;
+  estado: 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada';
+  fecha_programada: string;
+  observaciones?: string;
+  fk_id_realiza: number | { id: number };
+  fk_identificacion: number | { id: number };
+}
 
 interface CrearProgramacionModalProps {
   asignacionId: number;
+  existingProgramacion?: Programacion;
+  unidadesMedida: UnidadMedida[];
+  asignacion?: Asignacion;
   onSuccess: () => void;
   onCancel: () => void;
 }
 
-const CrearProgramacionModal = ({ asignacionId, onSuccess, onCancel }: CrearProgramacionModalProps) => {
+const CrearProgramacionModal = ({ asignacionId, existingProgramacion, unidadesMedida, asignacion, onSuccess, onCancel }: CrearProgramacionModalProps) => {
   const { mutate: createProgramacion, isLoading: isLoadingProgramacion, error: mutationErrorProgramacion } = useCrearProgramacion();
   const { mutate: actualizarAsignacion, isLoading: isLoadingAsignacion, error: mutationErrorAsignacion } = useActualizarAsignacion();
   const [formData, setFormData] = useState({
-    estado: 'Completada' as 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada',
-    fecha_realizada: '',
-    duracion: '',
-    cantidad_insumo: '',
-    fk_unidad_medida: '',
+    estado: asignacion?.estado || 'Pendiente', // Default to lowercase
+    fecha_realizada: existingProgramacion?.fecha_realizada || '',
+    duracion: existingProgramacion?.duracion?.toString() || '',
+    cantidad_insumo: existingProgramacion?.cantidad_insumo?.toString() || '',
+    fk_unidad_medida: existingProgramacion?.fk_unidad_medida?.toString() || '',
     img: null as File | null,
   });
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +55,7 @@ const CrearProgramacionModal = ({ asignacionId, onSuccess, onCancel }: CrearProg
     if (name === 'img' && files) {
       setFormData((prev) => ({ ...prev, img: files[0] }));
     } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
+      setFormData((prev) => ({ ...prev, [name]: value.toLowerCase() })); // Convert to lowercase
     }
     setError(null);
   };
@@ -48,29 +77,33 @@ const CrearProgramacionModal = ({ asignacionId, onSuccess, onCancel }: CrearProg
     }
 
     try {
-      // 1. Crear la programación
-      await createProgramacion({
-        estado: formData.estado,
-        fecha_realizada: formData.fecha_realizada,
-        duracion: Number(formData.duracion),
-        fk_id_asignacionActividades: asignacionId,
-        cantidad_insumo: Number(formData.cantidad_insumo),
-        fk_unidad_medida: Number(formData.fk_unidad_medida),
-        img: formData.img || undefined,
-      }, {
-        onSuccess: async () => {
-          // 2. Actualizar el estado de la asignación a "Completada"
-          await actualizarAsignacion({
-            id: asignacionId,
-            estado: 'Completada',
-          }, {
-            onSuccess: () => {
-              onSuccess();
-            },
-            onError: (err: any) => {
-              setError(`Error al actualizar la asignación: ${err.message || 'Por favor, intenta de nuevo.'}`);
-            },
-          });
+      const formDataToSend = new FormData();
+      formDataToSend.append('fk_id_asignacionActividades', asignacionId.toString());
+      formDataToSend.append('fecha_realizada', formData.fecha_realizada);
+      formDataToSend.append('duracion', formData.duracion);
+      formDataToSend.append('cantidad_insumo', formData.cantidad_insumo);
+      formDataToSend.append('fk_unidad_medida', formData.fk_unidad_medida);
+      if (formData.img) {
+        formDataToSend.append('img', formData.img);
+      }
+
+      await createProgramacion(formDataToSend, {
+        onSuccess: (data: Programacion) => {
+          if (data) {
+            actualizarAsignacion(
+              { id: asignacionId, estado: formData.estado }, // Use lowercase estado
+              {
+                onSuccess: () => {
+                  onSuccess();
+                },
+                onError: (err: any) => {
+                  setError(`Error al actualizar la asignación: ${err.response?.data?.estado?.[0] || err.message || 'Por favor, intenta de nuevo.'}`);
+                },
+              }
+            );
+          } else {
+            setError('No se recibió datos válidos de la programación creada.');
+          }
         },
         onError: (err: any) => {
           setError(`Error al crear la programación: ${err.message || 'Por favor, intenta de nuevo.'}`);
@@ -91,6 +124,24 @@ const CrearProgramacionModal = ({ asignacionId, onSuccess, onCancel }: CrearProg
         </div>
       )}
       <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label htmlFor="estado" className="block text-sm font-medium text-gray-700">
+            Estado
+          </label>
+          <select
+            id="estado"
+            name="estado"
+            value={formData.estado}
+            onChange={handleChange}
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+            required
+          >
+            <option value="Pendiente">Pendiente</option>
+            <option value="Completada">Completada</option>
+            <option value="Cancelada">Cancelada</option>
+            <option value="Reprogramada">Reprogramada</option>
+          </select>
+        </div>
         <div>
           <label htmlFor="fecha_realizada" className="block text-sm font-medium text-gray-700">
             Fecha Realizada
@@ -149,10 +200,11 @@ const CrearProgramacionModal = ({ asignacionId, onSuccess, onCancel }: CrearProg
             required
           >
             <option value="">Selecciona una unidad</option>
-            <option value="1">Kilogramos</option>
-            <option value="2">Litros</option>
-            <option value="3">Unidades</option>
-            {/* Agrega más opciones según las unidades de medida disponibles en tu backend */}
+            {unidadesMedida.map((unidad) => (
+              <option key={unidad.id} value={unidad.id}>
+                {unidad.nombre_medida} ({unidad.abreviatura})
+              </option>
+            ))}
           </select>
         </div>
         <div>
@@ -182,7 +234,7 @@ const CrearProgramacionModal = ({ asignacionId, onSuccess, onCancel }: CrearProg
             className="px-4 py-2 bg-green-700 text-white rounded-md hover:bg-green-900"
             disabled={isLoadingProgramacion || isLoadingAsignacion}
           >
-            {isLoadingProgramacion || isLoadingAsignacion ? 'Guardando...' : 'Finalizar Asignación'}
+            {isLoadingProgramacion || isLoadingAsignacion ? 'Guardando...' : 'Guardar'}
           </button>
         </div>
       </form>

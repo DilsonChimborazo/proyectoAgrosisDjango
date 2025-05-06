@@ -10,7 +10,7 @@ interface CrearAsignacionModalProps {
   usuarios: Usuario[];
 }
 
-const CrearAsignacionModal = ({ onSuccess, onCancel, realizaList, usuarios }: CrearAsignacionModalProps) => {
+const CrearAsignacion = ({ onSuccess, onCancel, realizaList, usuarios }: CrearAsignacionModalProps) => {
   const { mutate: createAsignacion, isLoading, error: mutationError } = useCrearAsignacion();
   const [formData, setFormData] = useState({
     fk_id_realiza: '',
@@ -182,4 +182,4 @@ const CrearAsignacionModal = ({ onSuccess, onCancel, realizaList, usuarios }: Cr
   );
 };
 
-export default CrearAsignacionModal;
+export default CrearAsignacion;

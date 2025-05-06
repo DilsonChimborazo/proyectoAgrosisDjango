@@ -8,7 +8,8 @@ import { useEspecie } from '@/hooks/trazabilidad/especie/useEspecie';
 import { useTipoCultivo } from '@/hooks/trazabilidad/tipoCultivo/useTipoCultivo';
 import { useUsuarios, Usuario } from '@/hooks/usuarios/usuario/useUsuarios';
 import { useProgramacion } from '@/hooks/trazabilidad/programacion/useProgramacion';
-import { UnidadMedida } from '@/hooks/inventario/unidadMedida/useMedidad'; // Nuevo hook
+import { useMedidas } from '@/hooks/inventario/unidadMedida/useMedidad';
+import { useUnidadMedida } from '@/hooks/inventario/unidadMedida/useCrearMedida';
 import VentanaModal from '../../globales/VentanasModales';
 import CrearCultivo from '../cultivos/CrearCultivos';
 import CrearActividad from '../actividad/CrearActividad';
@@ -19,9 +20,12 @@ import Tabla from '../../globales/Tabla';
 import CrearRealiza from '../realiza/CrearRealiza';
 import CrearAsignacionModal from './CrearAsignacion';
 import CrearProgramacionModal from '../programacion/CrearProgramacion';
-import { useUnidadMedida } from '@/hooks/inventario/unidadMedida/useCrearMedida';
 
-interface AsignacionTabla extends Omit<Asignacion, 'fk_id_realiza' | 'fk_identificacion'> {
+interface AsignacionTabla {
+  id: number;
+  estado:'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada';
+  fecha_programada: string;
+  observaciones: string;
   especie: string;
   actividad: string;
   cultivo: string;
@@ -29,8 +33,8 @@ interface AsignacionTabla extends Omit<Asignacion, 'fk_id_realiza' | 'fk_identif
   fecha_realizada: string | null;
   duracion: number | null;
   cantidad_insumo: number | null;
-  img: string | null; // Nueva propiedad para la imagen
-  unidad_medida: string; // Nueva propiedad para la unidad de medida
+  img: string | null;
+  unidad_medida: string;
 }
 
 const DetalleAsignacionModal = memo(({ item, realizaList, usuarios }: { item: Asignacion; realizaList: Realiza[]; usuarios: Usuario[] }) => {
@@ -68,7 +72,7 @@ const ListarAsignacion = () => {
   const { data: realizaList, isLoading: isLoadingRealiza, error: errorRealiza, refetch: refetchRealiza } = useRealiza();
   const { data: usuarios, isLoading: isLoadingUsuarios, error: errorUsuarios, refetch: refetchUsuarios } = useUsuarios();
   const { data: programaciones, isLoading: isLoadingProgramaciones, error: errorProgramaciones, refetch: refetchProgramaciones } = useProgramacion();
-  const { data: unidadesMedida, isLoading: isLoadingUnidadesMedida, error: errorUnidadesMedida } = useUnidadMedida();
+  const { data: unidadesMedida, isLoading: isLoadingUnidadesMedida, error: errorUnidadesMedida, refetch: refetchUnidadesMedida } = useMedidas();
 
   const { data: cultivos, isLoading: isLoadingCultivos, error: errorCultivos, refetch: refetchCultivos } = useCultivo({
     enabled: selectedType === 'cultivo' || isModalOpen,
@@ -83,18 +87,25 @@ const ListarAsignacion = () => {
     enabled: isModalOpen,
   });
 
+  // Debugging logs
+  console.log('unidadesMedida:', unidadesMedida);
+  console.log('programaciones:', programaciones);
+
   const handleItemClick = (item: AsignacionTabla) => {
     const asignacion = asignaciones?.find((a) => a.id === item.id) ?? null;
     setSelectedAsignacion(asignacion);
     setIsDetailModalOpen(true);
   };
 
-  const handleEstadoClick = (item: AsignacionTabla) => {
-    if (item.estado === 'Pendiente') {
-      const asignacion = asignaciones?.find((a) => a.id === item.id) ?? null;
-      setSelectedAsignacion(asignacion);
-      setIsProgramacionModalOpen(true);
+  const handleUpdateClick = (item: AsignacionTabla) => {
+    if (!unidadesMedida || unidadesMedida.length === 0) {
+      alert('No hay unidades de medida disponibles. Por favor, registra una unidad de medida.');
+      setSelectedType('unidadMedida');
+      return;
     }
+    const asignacion = asignaciones?.find((a) => a.id === item.id) ?? null;
+    setSelectedAsignacion(asignacion);
+    setIsProgramacionModalOpen(true);
   };
 
   const closeModal = () => {
@@ -161,6 +172,10 @@ const ListarAsignacion = () => {
       setModalContenido(<CrearUsuario onSuccess={() => { refetchUsuarios(); closeModal(); }} />);
       setIsModalOpen(true);
     },
+    unidadMedida: () => {
+      alert('Por favor, utiliza el formulario correspondiente para registrar una unidad de medida.');
+      setSelectedType('unidadMedida');
+    },
   };
 
   const tablaData: AsignacionTabla[] = useMemo(() => {
@@ -172,13 +187,21 @@ const ListarAsignacion = () => {
       const usuario = usuarios?.find((u) => u.id === usuarioId);
       const programacion = programaciones?.find((p) => p.fk_id_asignacionActividades === asignacion.id);
 
-      // Mapear fk_unidad_medida al nombre de la unidad
-      const unidadMedida = programacion?.fk_unidad_medida
-        ? unidadesMedida?.find((um) => um.id === programacion.fk_unidad_medida)?.nombre || 'Desconocida'
-        : (asignacion.estado === 'Pendiente' ? 'Nulo' : 'Sin registro');
+      // Robust unidad_medida mapping
+      let unidadMedida = 'Sin registro';
+      if (programacion?.fk_unidad_medida) {
+        const unidad = unidadesMedida?.find((um) => um.id === Number(programacion.fk_unidad_medida));
+        unidadMedida = unidad ? `${unidad.nombre_medida} (${unidad.abreviatura})` : `Unidad no encontrada (ID: ${programacion.fk_unidad_medida})`;
+      }
 
-      // Depuración: Mostrar el estado de cada asignación
-      console.log(`Asignación ID ${asignacion.id} - Estado: ${asignacion.estado}`);
+      console.log(
+        `Asignación ID ${asignacion.id} - Estado: ${asignacion.estado}, Programación:`,
+        programacion,
+        'fk_unidad_medida:',
+        programacion?.fk_unidad_medida,
+        'Unidad Medida:',
+        unidadMedida
+      );
 
       return {
         id: asignacion.id,
@@ -189,11 +212,11 @@ const ListarAsignacion = () => {
         actividad: realiza?.fk_id_actividad?.nombre_actividad || 'Sin actividad',
         cultivo: realiza?.fk_id_cultivo?.nombre_cultivo || 'Sin cultivo',
         usuario: usuario ? `${usuario.nombre} ${usuario.apellido}` : 'Sin usuario',
-        fecha_realizada: programacion?.fecha_realizada || (asignacion.estado === 'Pendiente' ? 'Nulo' : 'Sin registro'),
-        duracion: programacion?.duracion || (asignacion.estado === 'Pendiente' ? null : 0),
-        cantidad_insumo: programacion?.cantidad_insumo || (asignacion.estado === 'Pendiente' ? null : 0),
-        img: programacion?.img || (asignacion.estado === 'Pendiente' ? null : 'Sin imagen'), // Nueva propiedad
-        unidad_medida: unidadMedida, // Nueva propiedad
+        fecha_realizada: programacion?.fecha_realizada || 'Sin registro',
+        duracion: programacion?.duracion ?? 0,
+        cantidad_insumo: programacion?.cantidad_insumo ?? 0,
+        img: programacion?.img || 'Sin imagen',
+        unidad_medida: unidadMedida,
       };
     });
     console.log('tablaData:', data);
@@ -219,7 +242,7 @@ const ListarAsignacion = () => {
         )}
         {errorUnidadesMedida && (
           <span>
-            No se pudo cargar las unidades de medida. Verifica que el endpoint /api/unidades_medida/ esté disponible.
+            No se pudo cargar las unidades de medida. Verifica que el endpoint /api/unidad_medida/ esté disponible.
           </span>
         )}
       </div>
@@ -237,8 +260,8 @@ const ListarAsignacion = () => {
     'Fecha Realizada',
     'Duración (min)',
     'Cantidad Insumo',
-    'Imagen', // Nueva columna
-    'Unidad de Medida', // Nueva columna
+    'Imagen',
+    'Unidad de Medida',
     'Estado',
   ];
 
@@ -252,8 +275,8 @@ const ListarAsignacion = () => {
       <td className="p-3">{item.especie}</td>
       <td className="p-3">{item.observaciones}</td>
       <td className="p-3">{item.fecha_realizada}</td>
-      <td className="p-3">{item.duracion ?? 'Nulo'}</td>
-      <td className="p-3">{item.cantidad_insumo ?? 'Nulo'}</td>
+      <td className="p-3">{item.duracion}</td>
+      <td className="p-3">{item.cantidad_insumo}</td>
       <td className="p-3">
         {item.img && item.img !== 'Sin imagen' ? (
           <a href={item.img} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
@@ -264,18 +287,7 @@ const ListarAsignacion = () => {
         )}
       </td>
       <td className="p-3">{item.unidad_medida}</td>
-      <td className="p-3">
-        {item.estado.toLowerCase() === 'pendiente' ? (
-          <button
-            onClick={() => handleEstadoClick(item)}
-            className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-700"
-          >
-            Finalizar
-          </button>
-        ) : (
-          item.estado
-        )}
-      </td>
+      <td className="p-3">{item.estado}</td>
     </tr>
   );
 
@@ -295,9 +307,13 @@ const ListarAsignacion = () => {
         contenido={
           <CrearProgramacionModal
             asignacionId={selectedAsignacion?.id!}
+            existingProgramacion={programaciones?.find((p) => p.fk_id_asignacionActividades === selectedAsignacion?.id)}
+            unidadesMedida={unidadesMedida || []}
+            Asignacion={selectedAsignacion}
             onSuccess={() => {
               refetchAsignaciones();
               refetchProgramaciones();
+              refetchUnidadesMedida();
               closeModal();
             }}
             onCancel={closeModal}
@@ -311,6 +327,7 @@ const ListarAsignacion = () => {
             <option value="cultivo">Cultivo</option>
             <option value="actividad">Actividad</option>
             <option value="realiza">Realiza</option>
+            <option value="unidadMedida">Unidad de Medida</option>
           </select>
           {selectedType && (
             <button
@@ -361,6 +378,18 @@ const ListarAsignacion = () => {
                 </div>
               ))}
             </div>
+          ) : selectedType === 'unidadMedida' && unidadesMedida?.length ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {unidadesMedida.map((unidad) => (
+                <div key={unidad.id} className="bg-white border border-gray-200 rounded-lg shadow flex items-center p-4 hover:bg-gray-50 transition">
+                  <FaLeaf className="text-green-600 text-3xl mr-4" />
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800">{unidad.nombre_medida || 'Sin nombre'}</h3>
+                    <p className="text-gray-600 text-sm">{`Abreviatura: ${unidad.abreviatura}`}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : (
             <div className="text-center text-gray-500">{selectedType ? 'No hay registros disponibles.' : 'Selecciona un tipo para ver los registros.'}</div>
           )}
@@ -372,7 +401,7 @@ const ListarAsignacion = () => {
           headers={headers}
           data={tablaData}
           onClickAction={handleItemClick}
-          onUpdate={() => {}}
+          onUpdate={handleUpdateClick}
           onCreate={createHandlers.asignacion}
           createButtonTitle="Crear Asignación"
           renderRow={renderRow}
