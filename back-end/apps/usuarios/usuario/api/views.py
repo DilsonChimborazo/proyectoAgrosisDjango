@@ -31,7 +31,7 @@ class UsuarioViewSet(ModelViewSet):
         """Permite la creación del primer usuario sin autenticación y asegura que exista el rol Administrador"""
 
         if Rol.objects.count() == 0:
-            Rol.objects.create(nombre="Administrador")
+            Rol.objects.create(rol="Administrador")
 
         # Permitir la creación del primer usuario sin autenticación
         if self.action == "create" and Usuarios.objects.count() == 0:

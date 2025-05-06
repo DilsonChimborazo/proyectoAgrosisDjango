@@ -53,7 +53,7 @@ export default function RegisterForm() {
 
       if (response.status === 201) {
         setSuccess(true);
-        setTimeout(() => navigate("/login"), 2000);
+        setTimeout(() => navigate("/"), 2000);
       }
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
