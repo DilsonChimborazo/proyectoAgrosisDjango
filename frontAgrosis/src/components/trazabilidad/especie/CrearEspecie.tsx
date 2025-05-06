@@ -55,7 +55,7 @@ const CrearEspecie = () => {
     mutation.mutate(nuevaEspecie, {
       onSuccess: () => {
         console.log("✅ Especie creada exitosamente");
-        navigate("/especies"); // Redirigir al listado de especies
+        navigate(-1); // Redirigir al listado de especies
       },
       onError: (error) => {
         console.error("❌ Error al crear especie:", error);
