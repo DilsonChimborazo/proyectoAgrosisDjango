@@ -3,8 +3,6 @@ import { Link } from 'react-router-dom';
 import { usePlantacion } from '../../../hooks/trazabilidad/plantacion/usePlantacion';
 import { useCultivo } from '../../../hooks/trazabilidad/cultivo/useCultivo';
 import { useSemilleros } from '../../../hooks/trazabilidad/semillero/useSemilleros';
-import { useEspecie } from '../../../hooks/trazabilidad/especie/useEspecie';
-import { useResiduos } from '../../../hooks/trazabilidad/residuo/useResiduos';
 import VentanaModal from '../../globales/VentanasModales';
 import Tabla from '../../globales/Tabla';
 import CrearPlantacion from '../plantacion/CrearPlantacion';
@@ -16,8 +14,6 @@ const Plantacion = () => {
     usePlantacion();
   const { isLoading: isLoadingCultivos } = useCultivo();
   const { isLoading: isLoadingSemilleros } = useSemilleros();
-  const { isLoading: isLoadingEspecies } = useEspecie();
-  const { isLoading: isLoadingResiduos } = useResiduos();
   const [selectedPlantacion, setSelectedPlantacion] = useState<object | null>(
     null
   );
@@ -88,9 +84,7 @@ const Plantacion = () => {
   if (
     isLoading ||
     isLoadingCultivos ||
-    isLoadingSemilleros ||
-    isLoadingEspecies ||
-    isLoadingResiduos
+    isLoadingSemilleros 
   ) {
     return <div>Cargando plantaciones...</div>;
   }
@@ -130,25 +124,9 @@ const Plantacion = () => {
             className="px-9 py-1.5 bg-green-600 text-white text-base rounded-md shadow-md hover:bg-green-700"
           />
         </Link>
-        <Link to="/residuos">
-          <Button
-            text="Residuos"
-            variant="success"
-            onClick={() => {}}
-            className="px-9 py-1.5 bg-green-600 text-white text-base rounded-md shadow-md hover:bg-green-700"
-          />
-        </Link>
         <Link to="/semilleros">
           <Button
             text="Semilleros"
-            variant="success"
-            onClick={() => {}}
-            className="px-9 py-1.5 bg-green-600 text-white text-base rounded-md shadow-md hover:bg-green-700"
-          />
-        </Link>
-        <Link to="/especies">
-          <Button
-            text="Especies"
             variant="success"
             onClick={() => {}}
             className="px-9 py-1.5 bg-green-600 text-white text-base rounded-md shadow-md hover:bg-green-700"
