@@ -1,6 +1,6 @@
 import { Especie } from '@/hooks/trazabilidad/especie/useCrearEspecie';
 import Formulario from '../../globales/Formulario';
-import { useCrearEspecie } from '@/hooks/trazabilidad/especie/useCrearEspecie'; 
+import { useCrearEspecie } from '@/hooks/trazabilidad/especie/useCrearEspecie';
 import { useNavigate } from 'react-router-dom';
 import { useEspecie } from '@/hooks/trazabilidad/especie/useEspecie';
 
@@ -11,12 +11,11 @@ const CrearEspecie = () => {
 
   // Mapeo de opciones para el select de tipo de cultivo
   const tipoCultivoOptions = especies
-    .filter((especie) => especie.fk_id_tipo_cultivo) // Filtrar especies con fk_id_tipo_cultivo válido
+    .filter((especie) => especie.fk_id_tipo_cultivo !== null) // Filtra explícitamente los null
     .map((especie) => ({
-      value: especie.fk_id_tipo_cultivo?.nombre || '', // Asegurar que value sea un string válido
-      label: especie.fk_id_tipo_cultivo?.nombre || 'Sin Nombre', // Asegurar que label sea un string válido
+      value: especie.fk_id_tipo_cultivo!.id, // Usa "!" para indicar que no es null (o usa optional chaining)
+      label: especie.fk_id_tipo_cultivo?.nombre || 'Sin Nombre',
     }));
-
   // Definición de los campos del formulario
   const formFields = [
     { id: 'nombre_comun', label: 'Nombre Común', type: 'text' },
@@ -43,11 +42,11 @@ const CrearEspecie = () => {
     }
 
     const nuevaEspecie: Especie = {
-      id: 0, // Se define como 0 porque se genera automáticamente en el backend
+      id: 0,
       nombre_comun: formData.nombre_comun.trim(),
       nombre_cientifico: formData.nombre_cientifico.trim(),
       descripcion: formData.descripcion.trim(),
-      fk_id_tipo_cultivo:formData.fk_id_tipo_cultivo// Relación con tipo de cultivo
+      fk_id_tipo_cultivo: Number(formData.fk_id_tipo_cultivo),  // Convertir a número
     };
 
     console.log("🚀 Enviando especie al backend:", nuevaEspecie);

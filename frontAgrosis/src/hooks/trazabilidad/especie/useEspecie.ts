@@ -12,6 +12,7 @@ export interface Especie {
 }
 
 interface TipoCultivo {
+  id: number;
   nombre: string;
   descripcion: string;
 }

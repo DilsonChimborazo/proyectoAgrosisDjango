@@ -4,11 +4,11 @@ import axios from 'axios';
 const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface Especie {
-  id: number,
+  id: number;
   nombre_comun: string;
   nombre_cientifico: string;
   descripcion: string;
-  fk_id_tipo_cultivo: string;
+  fk_id_tipo_cultivo: number | null; 
 }
 
 export const useCrearEspecie = () => {
