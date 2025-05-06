@@ -26,10 +26,9 @@ const menuItems = [
     submenu: [
       { name: "Eras", path: "/eras" },
       { name: "Lotes", path: "/lotes" },
-      /*{ name: "Cultivos", path: "/cultivo" },
+      /*{ name: "Cultivos", path: "/cultivo" }, */
       { name: "Especies", path: "/especies" },
-      { name: "Semilleros", path: "/semilleros" },
-      { name: "Residuos", path: "/residuos" },*/
+      { name: "Residuos", path: "/residuos" },
       { name: "Plantacion", path: "/plantacion"},
     ],
   },
@@ -46,7 +45,6 @@ const menuItems = [
     icon: <Bug size={18} />,
     submenu: [
       { name: "Control Fitosanitario", path: "/control-fitosanitario" },
-     /* { name: "PEA", path: "/pea" },*/
     ],
   },
   {
@@ -206,7 +204,10 @@ export default function Principal({ children }: LayoutProps) {
             </form>
           </div>
           <div className="flex items-center space-x-2 sm:space-x-4">
-            <Notification size={20} className="text-white" />
+            
+            <div><Notification size={20} className="text-white" 
+            onClick={() => navigate("/usuarios")}/></div>
+            
             <p className="hidden sm:block"> | </p>
             <img
               src={usuario?.img_url || 'http://localhost:8000/media/imagenes/defecto.png'}
