@@ -7,9 +7,9 @@ import { useEspecie } from '../../../hooks/trazabilidad/especie/useEspecie';
 import { useResiduos } from '../../../hooks/trazabilidad/residuo/useResiduos';
 import VentanaModal from '../../globales/VentanasModales';
 import Tabla from '../../globales/Tabla';
-import CrearPlantacion from '../plantacion/CrearPlantacion';
-import ActualizarPlantacion from '../plantacion/ActualizarPlantacion';
-import Button from '../../globales/Button'; // Ajusta la ruta según tu estructura
+import CrearPlantacion from './CrearPlantacion';
+import ActualizarPlantacion from './ActualizarPlantacion';
+import Button from '../../globales/Button'; 
 
 const Plantacion = () => {
   const { data: plantaciones, isLoading, error, refetch: refetchPlantaciones } =
@@ -223,5 +223,4 @@ const Plantacion = () => {
 };
 
 export default Plantacion;
-
 

@@ -12,9 +12,9 @@ class LeerPlantacionSerializer(ModelSerializer):
 
     class Meta:
         model = Plantacion
-        fields = '__all__'
+        fields = '_all_'
         
 class escribirPlantacionSerializer(ModelSerializer):
     class Meta:
         model = Plantacion
-        fields = '__all__'
+        fields = '_all_'

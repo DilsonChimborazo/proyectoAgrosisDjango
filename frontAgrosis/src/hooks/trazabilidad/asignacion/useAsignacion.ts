@@ -22,10 +22,8 @@ export interface Realiza {
 export interface Cultivo {
   id: number;
   nombre_cultivo: string;
-  fecha_plantacion: string;
   descripcion: string;
   fk_id_especie: Especie;
-  fk_id_semillero: Semillero;
 }
 
 export interface Especie {
@@ -40,14 +38,6 @@ export interface TipoCultivo {
   id: number;
   nombre: string;
   descripcion: string;
-}
-
-export interface Semillero {
-  id: number;
-  nombre_semillero: string;
-  fecha_siembra: string;
-  fecha_estimada: string;
-  cantidad: number;
 }
 
 export interface Actividad {
@@ -74,11 +64,12 @@ export interface CrearAsignacionDTO {
 
 const fetchAsignaciones = async (): Promise<Asignacion[]> => {
   try {
-    const { data } = await axios.get(`${apiUrl}asignaciones_actividades/`);
-    return data;
-  } catch (error) {
-    console.error('Error al obtener las asignaciones:', error);
-    throw new Error('No se pudo obtener la lista de asignaciones');
+    const response = await axios.get(`${apiUrl}asignaciones_actividades/`);
+    console.log("Datos recibidos del backend:", response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error("Error al obtener asignaciones:", error.response?.data || error.message);
+    throw new Error("No se pudo obtener la lista de asignaciones");
   }
 };
 
@@ -87,5 +78,6 @@ export const useAsignacion = () => {
     queryKey: ['Asignaciones'],
     queryFn: fetchAsignaciones,
     gcTime: 1000 * 60 * 10, // 10 minutos
+    staleTime: 1000 * 60 * 5, // 5 minutos
   });
 };

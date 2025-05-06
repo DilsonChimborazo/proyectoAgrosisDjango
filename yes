@@ -1,0 +1,157 @@
+* [33mf26399e[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfrontend-pacho[m[33m, [m[1;31morigin/frontend-pacho[m[33m)[m creacion y actualizacion de asignacion, especie y semillero
+[31m|[m * [33m11e5f13[m[33m ([m[1;31morigin/frontend-wilson[m[33m)[m componente y hook para inteceptor de verificacion de token una parte
+[31m|[m [32m|[m *   [33mf8071c5[m[33m ([m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m merge frontend-lucy
+[31m|[m [32m|[m [33m|[m[34m\[m  
+[31m|[m [32m|[m [33m|[m * [33m818d28a[m[33m ([m[1;31morigin/frontend-lucy[m[33m)[m mejora del calculo beneficio costo
+[31m|[m [32m|[m [33m|[m *   [33m3b2580f[m Merge branch 'frontend-xiomara' into frontend-lucy
+[31m|[m [32m|[m [33m|[m [35m|[m[36m\[m  
+[31m|[m [32m|[m [33m|[m * [36m\[m   [33me907e96[m Merge branch 'frontend-lucy' of https://github.com/DilsonChimborazo/proyectoAgrosisDjango into frontend-lucy
+[31m|[m [32m|[m [33m|[m [1;31m|[m[1;32m\[m [36m\[m  
+[31m|[m [32m|[m [33m|[m [1;31m|[m * [36m|[m [33m6a27c2b[m modificacion del modelo de cultivo
+[31m|[m [32m|[m[31m_[m[33m|[m[31m_[m[1;31m|[m[31m/[m [36m/[m  
+[31m|[m[31m/[m[32m|[m [33m|[m [1;31m|[m [36m|[m   
+[31m|[m [32m|[m * [1;31m|[m [36m|[m   [33m6b80985[m merge frontend xiomara
+[31m|[m [32m|[m [1;33m|[m[1;34m\[m [1;31m\[m [36m\[m  
+[31m|[m [32m|[m [1;33m|[m * [1;31m|[m [36m|[m [33mf71d5e5[m[33m ([m[1;31morigin/frontend-xiomara[m[33m)[m realice algunos ajustes visuales en el modulo de trazabilidad
+[31m|[m [32m|[m [1;33m|[m [36m|[m [1;31m|[m[36m/[m  
+[31m|[m [32m|[m [1;33m|[m [36m|[m[36m/[m[1;31m|[m   
+[31m|[m [32m|[m [1;33m|[m * [1;31m|[m [33m71299aa[m cambios a las tablas de cultivo y plantacion
+[31m|[m [32m|[m[31m_[m[1;33m|[m[31m/[m [1;31m/[m  
+[31m|[m[31m/[m[32m|[m [1;33m|[m [1;31m|[m   
+[31m|[m [32m|[m * [1;31m|[m   [33mc38c449[m Merge branch 'frontend-wilson'
+[31m|[m [32m|[m [1;35m|[m[32m\[m [1;31m\[m  
+[31m|[m [32m|[m [1;35m|[m[32m/[m [1;31m/[m  
+[31m|[m [32m|[m[32m/[m[1;35m|[m [1;31m|[m   
+[31m|[m * [1;35m|[m [1;31m|[m [33m2f9d818[m ventana modal para crear usuario ademas de poner foto de perfil al listar usuario y al nabvar
+[31m|[m * [1;35m|[m [1;31m|[m [33mada3003[m cambios en backend para poder subir imagenes y hook componenete para agregar fotos de perfil (es un avance no esta completo)
+[31m|[m * [1;35m|[m [1;31m|[m [33m8f68c5d[m componente para fichas de formacion y se agrego ficha de formacion a los usuarios
+[31m|[m [1;36m|[m * [1;31m|[m   [33m3d2fd27[m merge inventario
+[31m|[m [1;36m|[m [31m|[m[32m\[m [1;31m\[m  
+[31m|[m [1;36m|[m [31m|[m * [1;31m|[m [33meda6954[m[33m ([m[1;31morigin/inventario[m[33m)[m actalizacion de insumos dependiendo los insumos compuestos
+[31m|[m [1;36m|[m [31m|[m * [1;31m|[m [33m0bdf36e[m filtro para los insumos e insumos compuestos
+[31m|[m [1;36m|[m [31m|[m * [1;31m|[m [33m5f81f16[m lista insumos e insumos compuestos en la misma vista
+[31m|[m [1;36m|[m [31m|[m * [1;31m|[m [33maf607b6[m tabla insumo compuesto finalizado
+[31m|[m [1;36m|[m [31m|[m * [1;31m|[m [33m4af03cb[m unidad de medida en insumo compuesto listo
+[31m|[m [1;36m|[m [31m|[m * [1;31m|[m [33m2122fa6[m me guarda el insumo compuesto en la base de datos de las dos tablas correspondientes
+[31m|[m [1;36m|[m [31m|[m [1;31m|[m[1;31m/[m  
+[31m|[m [1;36m|[m [31m|[m * [33mafe67fe[m Bodega medio funcional
+[31m|[m [1;36m|[m [31m|[m * [33m9c454f2[m backend ajustado para los modelos de insumo compuesto
+[31m|[m [1;36m|[m [31m|[m * [33m43760f5[m Unidad medida actualizado
+[31m|[m [1;36m|[m [31m|[m * [33mb602ad4[m Modelo Herramientas funcionando correctamente en bodega
+[31m|[m [1;36m|[m [31m|[m * [33m4335f75[m ajustes de migracionde despues de los cambios de lucy
+[31m|[m [1;36m|[m[31m_[m[31m|[m[31m/[m  
+[31m|[m[31m/[m[1;36m|[m [31m|[m   
+[31m|[m [1;36m|[m * [33md4e23d1[m Merge branch 'frontend-Dilson'
+[31m|[m [1;36m|[m[31m/[m[34m|[m 
+[31m|[m[31m/[m[1;36m|[m [34m|[m 
+[31m|[m [1;36m|[m * [33m6fffb7a[m[33m ([m[1;31morigin/frontend-Dilson[m[33m)[m ajustes de evapotranpiracion
+[31m|[m [1;36m|[m * [33mf7a8312[m Realice algunos cambios en la rrama de iot, agregamos la evapotranspiracion
+[31m|[m [1;36m|[m[1;36m/[m  
+[31m|[m [1;36m|[m * [33m8a0c6bd[m[33m ([m[1;31morigin/frontend-yanira[m[33m)[m Merge branch 'frontend-yanira' of https://github.com/DilsonChimborazo/proyectoAgrosisDjango into frontend-yanira
+[31m|[m [1;36m|[m[31m/[m[36m|[m 
+[31m|[m[31m/[m[1;36m|[m [36m|[m 
+[31m|[m [1;36m|[m *   [33m7889c1f[m rebase yanira
+[31m|[m [1;36m|[m [1;31m|[m[1;32m\[m  
+[31m|[m [1;36m|[m [1;31m|[m *   [33me3045bc[m Merge branch 'frontend-yanira' of https://github.com/DilsonChimborazo/proyectoAgrosisDjango into frontend-yanira
+[31m|[m [1;36m|[m [1;31m|[m [1;33m|[m[1;34m\[m  
+[31m|[m [1;36m|[m [1;31m|[m [1;33m|[m *   [33m230d991[m Merge branch 'frontend-yanira' of https://github.com/DilsonChimborazo/proyectoAgrosisDjango into frontend-yanira
+[31m|[m [1;36m|[m [1;31m|[m [1;33m|[m [1;35m|[m[1;36m\[m  
+[31m|[m [1;36m|[m [1;31m|[m [1;33m|[m [1;35m|[m * [33m2f6290b[m cree el pdf de lotes activos
+[31m|[m [1;36m|[m [1;31m|[m [1;33m|[m * [1;36m|[m [33m91086c1[m correcion de actualizar insumos y herramientas.
+[31m|[m [1;36m|[m [1;31m|[m [1;33m|[m [1;36m|[m[1;36m/[m  
+[31m|[m [1;36m|[m [1;31m|[m [1;33m|[m *   [33m89889e7[m Merge branch 'frontend-yanira' of https://github.com/DilsonChimborazo/proyectoAgrosisDjango into frontend-yanira
+[31m|[m [1;36m|[m [1;31m|[m [1;33m|[m [31m|[m[32m\[m  
+[31m|[m [1;36m|[m [1;31m|[m [1;33m|[m [31m|[m * [33mab90c2e[m Hola
+[31m|[m [1;36m|[m [1;31m|[m * [31m|[m [32m|[m [33mb96c954[m cree el pdf de lotes activos
+[31m|[m [1;36m|[m [1;31m|[m * [31m|[m [32m|[m [33m95aaf41[m correcion de actualizar insumos y herramientas.
+[31m|[m [1;36m|[m [1;31m|[m * [31m|[m [32m|[m [33m110741e[m rebase yanira
+[31m|[m [1;36m|[m * [32m|[m [31m|[m [32m|[m [33m9f9e772[m cree el pdf de lotes activos
+[31m|[m [1;36m|[m * [32m|[m [31m|[m [32m|[m [33m511066f[m cree el pdf de lotes activos
+[31m|[m [1;36m|[m * [32m|[m [31m|[m [32m|[m [33m4285b4b[m correcion de actualizar insumos y herramientas.
+[31m|[m [1;36m|[m * [32m|[m [31m|[m [32m|[m [33mfc35b7a[m rebase yanira
+* [1;36m|[m [32m|[m [32m|[m [31m|[m [32m|[m [33ma9cf6a5[m ajuste conflicto en el archivo package.json
+* [1;36m|[m [32m|[m [32m|[m [31m|[m [32m|[m [33mb7a77d6[m ajustes archivos de gitignore
+* [1;36m|[m [32m|[m [32m|[m [31m|[m [32m|[m   [33m9394306[m Merge branch 'frontend-lucy'
+[33m|[m[34m\[m [1;36m\[m [32m\[m [32m\[m [31m\[m [32m\[m  
+[33m|[m * [1;36m|[m [32m|[m [32m|[m [31m|[m [32m|[m [33m48b1c54[m ajustes modulo finanzas
+[33m|[m [1;36m|[m[1;36m/[m [32m/[m [32m/[m [31m/[m [32m/[m  
+* [1;36m|[m [32m|[m [32m|[m [31m|[m [32m|[m   [33mfd1c200[m Merge branch 'frontend-xiomara'
+[35m|[m[36m\[m [1;36m\[m [32m\[m [32m\[m [31m\[m [32m\[m  
+[35m|[m * [1;36m|[m [32m|[m [32m|[m [31m|[m [32m|[m [33ma81a42a[m Realice los debidos cambioos para que el frontend funcione correctamente, en el modulo de trazabilidad
+[35m|[m [1;36m|[m[1;36m/[m [32m/[m [32m/[m [31m/[m [32m/[m  
+* [1;36m|[m [32m|[m [32m|[m [31m|[m [32m|[m   [33m82fd90b[m Merge branch 'frontend-pacho'
+[1;31m|[m[1;32m\[m [1;36m\[m [32m\[m [32m\[m [31m\[m [32m\[m  
+[1;31m|[m * [1;36m\[m [32m\[m [32m\[m [31m\[m [32m\[m   [33m4fdd309[m Merge branch 'frontend-pacho' of https://github.com/DilsonChimborazo/proyectoAgrosisDjango into frontend-pacho
+[1;31m|[m [1;36m|[m[1;34m\[m [1;36m\[m [32m\[m [32m\[m [31m\[m [32m\[m  
+[1;31m|[m [1;36m|[m [1;34m|[m[1;36m/[m [32m/[m [32m/[m [31m/[m [32m/[m  
+[1;31m|[m [1;36m|[m[1;36m/[m[1;34m|[m [32m|[m [32m|[m [31m|[m [32m|[m   
+[1;31m|[m [1;36m|[m * [32m|[m [32m|[m [31m|[m [32m|[m [33mf489fea[m Resueltos conflictos en package.json durante fusión
+[1;31m|[m [1;36m|[m [1;35m|[m[32m\[m[32m|[m [32m|[m [31m|[m [32m|[m 
+[1;31m|[m [1;36m|[m * [32m|[m [32m|[m [31m|[m [32m|[m [33m555f366[m Resueltos conflictos en views.py y package.json
+[1;31m|[m [1;36m|[m * [32m|[m [32m|[m [31m|[m [32m|[m   [33ma5d41ab[m Resueltos conflictos en views.py y package.json
+[1;31m|[m [1;36m|[m [31m|[m[32m\[m [32m\[m [32m\[m [31m\[m [32m\[m  
+[1;31m|[m [1;36m|[m * [32m|[m [32m|[m [32m|[m [31m|[m [32m|[m [33m32380f5[m Mensaje descriptivo del commit
+* [1;36m|[m [32m|[m [32m|[m [32m|[m [32m|[m [31m|[m [32m|[m [33m063a240[m ajustes modulo de bodega
+[1;36m|[m[1;36m/[m [32m/[m [32m/[m [32m/[m [32m/[m [31m/[m [32m/[m  
+* [32m|[m [32m|[m [32m|[m [32m|[m [31m|[m [32m|[m [33m1190dce[m ya casi logro insumos
+* [32m|[m [32m|[m [32m|[m [32m|[m [31m|[m [32m|[m [33mbf0873a[m ya se crean los insumos
+* [32m|[m [32m|[m [32m|[m [32m|[m [31m|[m [32m|[m [33ma53a785[m completo insumos y herramientas pero con muchos errores pequeños
+[32m|[m [32m|[m[32m_[m[32m|[m[32m/[m [32m/[m [31m/[m [32m/[m  
+[32m|[m[32m/[m[32m|[m [32m|[m [32m|[m [31m|[m [32m|[m   
+* [32m|[m [32m|[m [32m|[m [31m|[m [32m|[m [33m4ad3872[m backend solucionado y al parecer completo
+* [32m|[m [32m|[m [32m|[m [31m|[m [32m|[m [33m169b5aa[m migraciones ajustadas y realizadas
+* [32m|[m [32m|[m [32m|[m [31m|[m [32m|[m [33m891117a[m ajustes en las tablas del backend
+* [32m|[m [32m|[m [32m|[m [31m|[m [32m|[m   [33mb045cfd[m Merge branch 'frontend-lucy'
+[33m|[m[34m\[m [32m\[m [32m\[m [32m\[m [31m\[m [32m\[m  
+[33m|[m * [32m|[m [32m|[m [32m|[m [31m|[m [32m|[m [33m170a425[m creacion de nuevas apps nomina y salario
+[33m|[m [32m|[m [32m|[m[32m/[m [32m/[m [31m/[m [32m/[m  
+[33m|[m [32m|[m[32m/[m[32m|[m [32m|[m [31m|[m [32m|[m   
+* [32m|[m [32m|[m [32m|[m [31m|[m [32m|[m [33m260e521[m tabla de bodega y unidad medida finalizados en el backend
+* [32m|[m [32m|[m [32m|[m [31m|[m [32m|[m [33m00eb41a[m creando usuarios correctamente
+* [32m|[m [32m|[m [32m|[m [31m|[m [32m|[m [33m36c93ee[m merge wilson
+* [32m|[m [32m|[m [32m|[m [31m|[m [32m|[m   [33m5376ce4[m Merge branch 'frontend-wilson'
+[35m|[m[36m\[m [32m\[m [32m\[m [32m\[m [31m\[m [32m\[m  
+[35m|[m * [32m|[m [32m|[m [32m|[m [31m|[m [32m|[m [33m28ef8b0[m pequeño cambio que se me olvido XD
+[35m|[m * [32m|[m [32m|[m [32m|[m [31m|[m [32m|[m [33mf85c12f[m componente para fichas de formacion y se agrego ficha de formacion a los usuarios
+[35m|[m * [32m|[m [32m|[m [32m|[m [31m|[m [32m|[m [33mb0f99e1[m documentacion con astro de los 5 documentos. Incluyo un modelo o app nueva en backen llamada ficha ya definida y funcionando
+[35m|[m * [32m|[m [32m|[m [32m|[m [31m|[m [32m|[m [33m0026d4e[m estado de usuarios activo e inactivo
+* [36m|[m [32m|[m [32m|[m [32m|[m [31m|[m [32m|[m [33m665015a[m ajustes de fuentes para el sistema
+* [36m|[m [32m|[m [32m|[m [32m|[m [31m|[m [32m|[m   [33m6ef320d[m Merge branch 'frontend-Dilson'
+[1;31m|[m[1;32m\[m [36m\[m [32m\[m [32m\[m [32m\[m [31m\[m [32m\[m  
+[1;31m|[m * [36m|[m [32m|[m [32m|[m [32m|[m [31m|[m [32m|[m [33m239e84a[m Diseño de la interfaz de sensores y graficos
+* [1;32m|[m [36m|[m [32m|[m [32m|[m [32m|[m [31m|[m [32m|[m [33m893b3c2[m ajuste control y residuos en el componente de reportes
+* [1;32m|[m [36m|[m [32m|[m [32m|[m [32m|[m [31m|[m [32m|[m   [33meabf664[m Merge branch 'frontend-xiomara'
+[1;33m|[m[1;34m\[m [1;32m\[m [36m\[m [32m\[m [32m\[m [32m\[m [31m\[m [32m\[m  
+[1;33m|[m * [1;32m|[m [36m|[m [32m|[m [32m|[m [32m|[m [31m|[m [32m|[m [33maf17f6e[m cambios organizados
+[1;33m|[m * [1;32m|[m [36m|[m [32m|[m [32m|[m [32m|[m [31m|[m [32m|[m [33meac5948[m Realice algunos cambios en el modelo de control fitosaniraio y realice los reportes del control fitosanitario y residuos.
+[1;33m|[m [32m|[m [1;32m|[m[32m_[m[36m|[m[32m/[m [32m/[m [32m/[m [31m/[m [32m/[m  
+[1;33m|[m [32m|[m[32m/[m[1;32m|[m [36m|[m [32m|[m [32m|[m [31m|[m [32m|[m   
+* [32m|[m [1;32m|[m [36m|[m [32m|[m [32m|[m [31m|[m [32m|[m [33md67c49a[m Mas cambios
+* [32m|[m [1;32m|[m [36m|[m [32m|[m [32m|[m [31m|[m [32m|[m [33m49e8e72[m reporte de insumo finalizado
+* [32m|[m [1;32m|[m [36m|[m [32m|[m [32m|[m [31m|[m [32m|[m [33m759925a[m reporte herramientas completo
+* [32m|[m [1;32m|[m [36m|[m [32m|[m [32m|[m [31m|[m [32m|[m [33m058f24e[m reporte de herramientas sin pdf
+* [32m|[m [1;32m|[m [36m|[m [32m|[m [32m|[m [31m|[m [32m|[m [33m68001bf[m Herramientas, crea, lista,edita
+[32m|[m[32m/[m [1;32m/[m [36m/[m [32m/[m [32m/[m [31m/[m [32m/[m  
+* [1;32m|[m [36m|[m [32m|[m [32m/[m [31m/[m [32m/[m [33m76518ee[m Insumos, lista, crea y actualiza
+[32m|[m [1;32m|[m[32m_[m[36m|[m[32m_[m[32m|[m[32m/[m [31m/[m [32m/[m  
+[32m|[m[32m/[m[1;32m|[m [36m|[m [32m|[m [31m|[m [32m|[m   
+* [1;32m|[m [36m|[m [32m|[m [31m|[m [32m|[m [33ma0aae7e[m Cambio en el back-end en el modulo de inventario
+* [1;32m|[m [36m|[m [32m|[m [31m|[m [32m|[m   [33mf39ff46[m Merge branch 'frontend-xiomara'
+[1;32m|[m[1;36m\[m [1;32m\[m [36m\[m [32m\[m [31m\[m [32m\[m  
+[1;32m|[m [1;36m|[m[1;32m/[m [36m/[m [32m/[m [31m/[m [32m/[m  
+[1;32m|[m[1;32m/[m[1;36m|[m [36m|[m [32m|[m [31m|[m [32m|[m   
+[1;32m|[m * [36m|[m [32m|[m [31m|[m [32m|[m [33m5815591[m Se mejoró la sintaxis de la documentación para hacerla más clara y específica.
+* [1;36m|[m [36m|[m [32m|[m [31m|[m [32m|[m [33mf0b9ab0[m por no mirar la rama
+* [1;36m|[m [36m|[m [32m|[m [31m|[m [32m|[m   [33m98320d8[m Merge branch 'frontend-lucy' of https://github.com/DilsonChimborazo/proyectoAgrosisDjango into frontend-lucy
+[31m|[m[32m\[m [1;36m\[m [36m\[m [32m\[m [31m\[m [32m\[m  
+[31m|[m * [1;36m|[m [36m|[m [32m|[m [31m|[m [32m|[m [33me8265d8[m creación del reporte del producto mas vendido
+[31m|[m * [1;36m|[m [36m|[m [32m|[m [31m|[m [32m|[m [33m57f299b[m creación del frontend para los egresos por insumo
+[31m|[m * [1;36m|[m [36m|[m [32m|[m [31m|[m [32m|[m [33mb52428d[m mejore la consulta de egresos por insumos
+[31m|[m * [1;36m|[m [36m|[m [32m|[m [31m|[m [32m|[m [33m575c70a[m corregi algunas cosas que estaban mal
+[31m|[m * [1;36m|[m [36m|[m [32m|[m [31m|[m [32m|[m [33m7a2d573[m webhook para la consulta de egresos por insumos en actividades realizadas
+[31m|[m * [1;36m|[m [36m|[m [32m|[m [31m|[m [32m|[m [33m7b03ecb[m creacion de la interfaz de la consulta de tiempo invertido por actividad
+[31m|[m * [1;36m|[m [36m|[m [32m|[m [31m|[m [32m|[m [33m5967e86[m mejore la consulta de el tiempo gastado en las actividades
+[31m|[m * [1;36m|[m [36m|[m [32m|[m [31m|[m [32m|[m [33m5f1ca9b[m consulta de ingresos y consulta de rentabilidad
+[31m|[m * [1;36m|[m [36m|[m [32m|[m [31m|[m [32m|[m [33mea5e288[m consulta para saber el costo total de insumos
+[31m|[m * [1;36m|[m [36m|[m [32m|[m [31m|[m [32m|[m [33maa91f44[m creación de una consulta para calcular el tiempo gastado en una actividad
+[31m|[m * [1;36m|[m [36m|[m [32m|[m [31m|[m [32m|[m [33m3d03b50[m cambie numeros que innesariamente aparecian float, creé un stock para saber que se vendio y cuanto no

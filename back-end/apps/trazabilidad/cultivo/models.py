@@ -49,8 +49,7 @@ class Cultivo(models.Model):
         kc = self.get_kc_actual()
         return float(eto) * float(kc)
 
-    
-    def __str__(self):
-        return self.nombre_cultivo
 
+    def _str_(self):
+        return self.nombre_cultivo
 

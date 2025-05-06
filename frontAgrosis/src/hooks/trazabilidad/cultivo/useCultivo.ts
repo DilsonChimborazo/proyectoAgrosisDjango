@@ -35,8 +35,7 @@ export interface Cultivos {
 
 const fetchAsignacion = async (): Promise<Cultivos[]> => {
     try {
-        const response = await axios.get(`${apiUrl}cultivo/`, {
-        });
+        const response = await axios.get(`${apiUrl}cultivo/`);
         console.log("Datos recibidos del backend:", response.data);
         return response.data;
     } catch (error: any) {

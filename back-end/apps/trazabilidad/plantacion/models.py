@@ -8,10 +8,10 @@ class Plantacion(models.Model):
     fk_id_eras = models.ForeignKey(Eras, on_delete=models.SET_NULL, null=True)
     fk_id_cultivo = models.ForeignKey(Cultivo, on_delete=models.SET_NULL, null=True)
     cantidad_transplante = models.IntegerField()
-    fecha_plantacion = models.DateField() 
+    fecha_plantacion = models.DateField()
     fk_id_semillero = models.ForeignKey(Semillero, on_delete=models.SET_NULL, null=True)
     fecha_plantacion = models.DateField()
 
     
-    def __str__(self): 
-        return f"Cultivo: {self.fk_id_cultivo.nombre_cultivo} Era: {self.fk_id_eras}" 
+    def _str_(self): 
+        return f"Cultivo: {self.fk_id_cultivo.nombre_cultivo} Era: {self.fk_id_eras}"

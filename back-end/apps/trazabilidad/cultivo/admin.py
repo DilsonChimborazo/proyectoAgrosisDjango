@@ -12,5 +12,5 @@ class CultivoAdmin(admin.ModelAdmin):
         'etapa_actual', 'fk_id_especie'
     )
     list_filter = ('etapa_actual', 'fk_id_especie')
-    search_fields = ('nombre_cultivo', 'descripcion') 
+    search_fields = ('nombre_cultivo', 'descripcion')
 
