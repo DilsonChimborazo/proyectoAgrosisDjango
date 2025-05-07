@@ -4,23 +4,28 @@ import { useCreateInsumoCompuesto } from "@/hooks/inventario/insumocompuesto/use
 import { useInsumo } from "@/hooks/inventario/insumos/useInsumo";
 import { useMedidas } from "@/hooks/inventario/unidadMedida/useMedidad";
 
-const CrearInsumoCompuesto = () => {
+interface Props {
+  onSuccess?: (nuevo: any) => void;
+  onClose?: () => void;
+}
+
+const CrearInsumoCompuesto: React.FC<Props> = ({ onSuccess, onClose }) => {
   const { data: insumos } = useInsumo();
   const { data: unidades } = useMedidas();
   const { mutateAsync } = useCreateInsumoCompuesto();
 
   const [nombre, setNombre] = useState("");
   const [fkUnidadMedida, setFkUnidadMedida] = useState<number | "">("");
-  const [detalles, setDetalles] = useState<
-    { insumo: number; cantidad_utilizada: number }[]
-  >([]);
-  const [selectedInsumos, setSelectedInsumos] = useState<
-    { insumoId: number; cantidad: number }[]
-  >([]);
+  const [detalles, setDetalles] = useState<{
+    insumo: number;
+    cantidad_utilizada: number;
+  }[]>([]);
+  const [selectedInsumos, setSelectedInsumos] = useState<{
+    insumoId: number;
+    cantidad: number;
+  }[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [insumoErrors, setInsumoErrors] = useState<{ [key: number]: string }>(
-    {}
-  );
+  const [insumoErrors, setInsumoErrors] = useState<{ [key: number]: string }>({});
 
   const handleCantidadChange = (insumoId: number, cantidad: string) => {
     const cantidadNumero = parseFloat(cantidad);
@@ -30,7 +35,7 @@ const CrearInsumoCompuesto = () => {
       if (cantidadNumero > insumo.cantidad_insumo) {
         setInsumoErrors((prev) => ({
           ...prev,
-          [insumoId]: ` cantidad disponible: ${insumo.cantidad_insumo}`,
+          [insumoId]: `Cantidad disponible: ${insumo.cantidad_insumo}`,
         }));
         return;
       } else {
@@ -94,8 +99,17 @@ const CrearInsumoCompuesto = () => {
         detalles,
       };
 
-      await mutateAsync(datosAEnviar);
+      const nuevoInsumo = await mutateAsync(datosAEnviar);
       alert("Insumo compuesto creado exitosamente");
+      
+      if (onSuccess) {
+        onSuccess(nuevoInsumo);
+      }
+      
+      if (onClose) {
+        onClose();
+      }
+      
       setNombre("");
       setFkUnidadMedida("");
       setDetalles([]);
@@ -188,14 +202,12 @@ const CrearInsumoCompuesto = () => {
         </div>
       </form>
 
-      {/* Modal usando componente global */}
       <VentanaModal
         titulo=""
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       >
         <div className="flex flex-col gap-6 w-full max-h-[85vh] overflow-auto p-6 bg-white rounded shadow-lg">
-          {/* Insumos disponibles */}
           <div className="w-full overflow-y-auto">
             <h4 className="font-semibold text-xl mb-4 text-gray-700">
               Insumos disponibles
@@ -222,7 +234,7 @@ const CrearInsumoCompuesto = () => {
                       {insumo.nombre}
                     </h5>
                     <p
-                      className={`mt-2 py-2  rounded text-white text-center text-sm ${cantidadClass}`}
+                      className={`mt-2 py-2 rounded text-white text-center text-sm ${cantidadClass}`}
                     >
                       Cantidad disponible: {insumo.cantidad_insumo}
                     </p>
@@ -233,7 +245,6 @@ const CrearInsumoCompuesto = () => {
             </div>
           </div>
 
-          {/* Insumos seleccionados abajo */}
           <div className="w-full">
             <h4 className="font-semibold text-xl mb-4 text-gray-700">
               Insumos seleccionados
@@ -269,7 +280,6 @@ const CrearInsumoCompuesto = () => {
               ))}
             </div>
 
-            {/* Botones abajo */}
             <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-end">
               <button
                 onClick={handleAddDetalle}

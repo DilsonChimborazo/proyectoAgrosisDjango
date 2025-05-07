@@ -3,7 +3,6 @@ import axios from 'axios';
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
-// Interfaces para los datos que devuelve la API (GET)
 export interface Asignacion {
   id: number;
   estado: 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada';

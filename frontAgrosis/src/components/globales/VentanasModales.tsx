@@ -12,11 +12,12 @@ interface VentanaModalProps {
   onClose: () => void;
   titulo: string;
   children?: React.ReactNode;
-  contenido?: React.ReactNode; 
+  contenido?: React.ReactNode;
   data?: any[];
   columns?: Column[];
   variant?: 'content' | 'table';
   size?: 'sm' | 'md' | 'lg' | 'xl';
+  onSuccess?: (nuevo: any) => void; 
 }
 
 const VentanaModal: React.FC<VentanaModalProps> = ({
@@ -29,6 +30,7 @@ const VentanaModal: React.FC<VentanaModalProps> = ({
   columns = [],
   variant = 'content',
   size = 'md',
+  onSuccess, 
 }) => {
   if (!isOpen) return null;
 
@@ -57,8 +59,14 @@ const VentanaModal: React.FC<VentanaModalProps> = ({
               headers={columns.map(c => c.name)}
               data={data}
               onClickAction={(row) => console.log('Detalle:', row)}
-              onUpdate={(row) => console.log('Actualizar:', row)}
-              onCreate={() => console.log('Crear nuevo')}
+              onUpdate={(row) => {
+                console.log('Actualizar:', row);
+                if (onSuccess) onSuccess(row); 
+              }}
+              onCreate={() => {
+                console.log('Crear nuevo');
+                if (onSuccess) onSuccess({}); 
+              }}
             />
           ) : (
             <p className="text-gray-500">No hay datos disponibles</p>

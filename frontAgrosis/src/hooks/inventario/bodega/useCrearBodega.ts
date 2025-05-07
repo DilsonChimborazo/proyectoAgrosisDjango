@@ -7,8 +7,8 @@ export interface MovimientoBodegaPayload {
     fk_id_herramientas: number | null;
     fk_id_insumo: number | null;
     fk_id_asignacion: number | null;
-    cantidad_insumo: number;
-    cantidad_herramienta: number,
+    cantidad_insumo: number | null;
+    cantidad_herramienta: number | null,
     fecha: string;
     movimiento: 'Entrada' | 'Salida';
     
@@ -38,15 +38,54 @@ export interface Insumo{
     fk_unidad_medida: UnidadMedida
     precio_por_base: number; 
 }
-
 export interface Asignacion {
     id: number;
-    estado: string;
+    estado: 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada';
     fecha_programada: string;
     observaciones: string;
-    fk_id_realiza: number | null;
-    fk_identificacion: number | null;
-}
+    fk_id_realiza: Realiza;
+    fk_identificacion: Usuario;
+  }
+  
+  export interface Realiza {
+    id: number;
+    fk_id_cultivo: Cultivo;
+    fk_id_actividad: Actividad;
+  }
+  
+  export interface Cultivo {
+    id: number;
+    nombre_cultivo: string;
+    descripcion: string;
+    fk_id_especie: Especie;
+  }
+  
+  export interface Especie {
+    id: number;
+    nombre_cientifico: string;
+    nombre_comun: string;
+    descripcion: string;
+    fk_id_tipo_cultivo: TipoCultivo;
+  }
+  
+  export interface TipoCultivo {
+    id: number;
+    nombre: string;
+    descripcion: string;
+  }
+  
+  export interface Actividad {
+    id: number;
+    nombre_actividad: string;
+    descripcion: string;
+  }
+  
+  export interface Usuario {
+    id: number;
+    nombre: string;
+    apellido: string;
+    email: string;
+  }
 
 export const useCrearBodega = () => {
     const queryClient = useQueryClient();

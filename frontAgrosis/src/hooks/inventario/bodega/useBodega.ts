@@ -43,7 +43,7 @@ export interface Bodega {
     onSuccess: () => void;
     fk_id_herramientas: Herramientas | null;
     fk_id_insumo: Insumos | null;
-    fk_id_asignacion: Asignacion | null;
+    fk_id_asignacion: string ;
     cantidad_herramienta: number;
     cantidad_insumo: number;
     fecha: string;

@@ -337,61 +337,95 @@ const ListarBodega = () => {
             ? item.fk_id_herramientas !== null 
             : item.fk_id_insumo !== null
     );
+
     
     // Depuración: Verificar los datos originales y filtrados
     console.log("Datos originales de movimientos:", movimientos);
     console.log("Movimientos filtrados:", filteredMovimientos);
     
     const mappedMovimientos = filteredMovimientos?.map(item => {
-        // Extraer el nombre según el tipo seleccionado
+        // Función para formatear fechas sin problemas de zona horaria
+        function formatDateWithoutTimezone(dateInput: string | Date): string {
+            const date = new Date(dateInput);
+        
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0'); 
+            const year = date.getFullYear();
+        
+            return `${day}/${month}/${year}`;
+        }
+        
+    
+        // Extraer nombre según el tipo seleccionado
         const nombreHerramienta = item.fk_id_herramientas?.nombre_h || "N/A";
         const nombreInsumo = item.fk_id_insumo?.nombre || "N/A";
         const nombre = tipoSeleccionado === "Herramienta" ? nombreHerramienta : nombreInsumo;
     
-        // Depuración: Verificar qué nombre se está mapeando
-        console.log(`ID ${item.id} - Nombre mapeado: ${nombre} (Tipo: ${tipoSeleccionado})`);
-    
+        // Estilos para movimiento (Entrada/Salida)
         const movimiento = item.movimiento;
         const colorMovimiento = movimiento === "Entrada" 
             ? "text-green-700 font-bold" 
             : "text-red-700 font-bold";
     
+        // Estilos para cantidad según disponibilidad
         const cantidad = item.cantidad_herramienta ?? item.cantidad_insumo ?? 0;
         let bgCantidad = "bg-gray-300 text-black font-bold rounded px-2";
-        if (cantidad < 10) bgCantidad = "bg-red-300 text-red-900 font-bold rounded px-2";
-        else if (cantidad >= 10) bgCantidad = "bg-green-300 text-green-900 font-bold rounded px-2";
+        if (cantidad < 5) bgCantidad = "bg-red-300 text-red-900 font-bold rounded px-2";
+        else if (cantidad < 10) bgCantidad = "bg-yellow-300 text-yellow-900 font-bold rounded px-2";
+        else bgCantidad = "bg-green-300 text-green-900 font-bold rounded px-2";
     
-        // Calcular cantidad_base como número entero con la unidad base (para insumos, si aplica)
-        let cantidadBase;
-        if (tipoSeleccionado === "Insumo" && item.fk_id_insumo?.cantidad_en_base) {
-            cantidadBase = `${Math.round(parseFloat(item.fk_id_insumo.cantidad_en_base))} ${item.fk_id_insumo.fk_unidad_medida?.unidad_base || ''}`;
-        } else if (tipoSeleccionado === "Insumo" && item.cantidad_insumo && item.fk_id_insumo?.fk_unidad_medida?.factor_conversion) {
-            const factor = item.fk_id_insumo.fk_unidad_medida.factor_conversion;
-            cantidadBase = `${Math.round(item.cantidad_insumo * factor)} ${item.fk_id_insumo.fk_unidad_medida?.unidad_base || ''}`;
-        } else {
-            cantidadBase = "No Aplica";
+        // Calcular cantidad en base (para insumos)
+        let cantidadBase = "No Aplica";
+        if (tipoSeleccionado === "Insumo") {
+            if (item.fk_id_insumo?.cantidad_en_base) {
+                cantidadBase = `${Math.round(parseFloat(item.fk_id_insumo.cantidad_en_base))} ${
+                    item.fk_id_insumo.fk_unidad_medida?.unidad_base || ''
+                }`;
+            } else if (item.cantidad_insumo && item.fk_id_insumo?.fk_unidad_medida?.factor_conversion) {
+                const factor = item.fk_id_insumo.fk_unidad_medida.factor_conversion;
+                cantidadBase = `${Math.round(item.cantidad_insumo * factor)} ${
+                    item.fk_id_insumo.fk_unidad_medida?.unidad_base || ''
+                }`;
+            }
         }
+    
+        // Obtener unidad de medida
+        const unidadMedida = tipoSeleccionado === "Insumo" 
+            ? item.fk_id_insumo?.fk_unidad_medida?.nombre_medida || "No Aplica" 
+            : "No Aplica";
+            
+        console.log("Item ID:", item.id);
+        console.log("Fecha asignación cruda:", item.fk_id_asignacion?.fecha_programada);
+        console.log("Fecha movimiento cruda:", item.fecha);
+            
     
         return {
             id: item.id,
-            // Usar 'herramienta' o 'insumo' según el tipo seleccionado
             [tipoSeleccionado === "Herramienta" ? "herramienta" : "insumo"]: nombre,
             asignacion: item.fk_id_asignacion?.fecha_programada 
-                ? new Date(item.fk_id_asignacion.fecha_programada).toLocaleDateString() 
-                : "N/A",
+                ? formatDateWithoutTimezone(item.fk_id_asignacion.fecha_programada)
+                : "esta monda",
             cantidad: <span className={bgCantidad}>{cantidad}</span>,
-            unidad_medida: tipoSeleccionado === "Insumo" ? item.fk_id_insumo?.fk_unidad_medida?.nombre_medida || "No Aplica" : "No Aplica",
+            unidad_medida: unidadMedida,
             cantidad_base: cantidadBase,
-            costo: item.costo_insumo ? `$${(Number(item.costo_insumo)).toFixed(2)
-            }` : "No Aplica",
-            fecha: new Date(item.fecha).toLocaleDateString(),
+            costo: tipoSeleccionado === "Herramienta" 
+            ? "No Aplica" 
+            : (item.costo_insumo ? `$${parseFloat(item.costo_insumo.toString()).toFixed(2)}` : "—"),
+            fecha: formatDateWithoutTimezone(item.fecha),
             movimiento: <span className={colorMovimiento}>{movimiento}</span>,
             rawData: item
         };
     }) || [];
     
     // Depuración: Verificar los datos finales mapeados
-    console.log("Datos mapeados para la tabla:", mappedMovimientos);
+    console.log("Datos mapeados:", mappedMovimientos.map(m => ({
+        id: m.id,
+        nombre: m[m.tipoSeleccionado === "Herramienta" ? "herramienta" : "insumo"],
+        fechaAsignacion: m.asignacion,
+        fechaMovimiento: m.fecha,
+        cantidad: m.cantidad,
+        costo: m.costo
+    })));
 
     
     

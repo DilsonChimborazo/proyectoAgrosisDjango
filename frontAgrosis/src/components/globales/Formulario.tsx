@@ -2,11 +2,16 @@ import React from 'react';
 import Button from '../globales/Button';
 import { Plus } from 'lucide-react';
 
+interface Option {
+  value: string | number;
+  label: string;
+}
+
 interface FormField {
   id: string;
   label: string;
   type: string;
-  options?: { value: string | number; label: string }[];
+  options?: Option[];
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
   hasExtraButton?: boolean;
@@ -40,6 +45,7 @@ const Formulario: React.FC<FormProps> = ({
   onFieldChange,
   onExtraButtonClick,
   extraButtonTitle = 'Botón Extra',
+  children,
 }) => {
   const [formData, setFormData] = React.useState<{ [key: string]: string | File }>(
     initialValues || {}
@@ -51,8 +57,8 @@ const Formulario: React.FC<FormProps> = ({
 
   const handleChange = (id: string, value: string | File) => {
     setFormData((prev) => ({ ...prev, [id]: value }));
-    if (onFieldChange) {
-      onFieldChange(id, value as string);
+    if (onFieldChange && typeof value === 'string') {
+      onFieldChange(id, value);
     }
   };
 
@@ -65,7 +71,7 @@ const Formulario: React.FC<FormProps> = ({
     <form
       onSubmit={handleSubmit}
       className="max-w-5xl mx-auto bg-white p-6 rounded-3xl"
-      encType={multipart ? 'multipart/form-data' : ''}
+      encType={multipart ? 'multipart/form-data' : undefined}
     >
       <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">{title}</h2>
 
@@ -80,7 +86,12 @@ const Formulario: React.FC<FormProps> = ({
                 <select
                   id={field.id}
                   className="w-full p-2 border border-gray-300 rounded"
-                  onChange={(e) => handleChange(field.id, e.target.value)}
+                  onChange={(e) => {
+                    handleChange(field.id, e.target.value);
+                    if (field.onChange) {
+                      field.onChange(e);
+                    }
+                  }}
                   value={(formData[field.id] as string) || ''}
                 >
                   <option value="">Seleccione una opción</option>
@@ -95,9 +106,9 @@ const Formulario: React.FC<FormProps> = ({
                     type="button"
                     className="bg-green-700 text-white w-9 h-8 flex items-center justify-center rounded-full shadow-md hover:bg-green-800 hover:shadow-lg transition-all duration-300 ease-in-out"
                     onClick={field.onExtraButtonClick}
-                    title="Crear unidad medida"
+                    title={field.extraButtonText || 'Agregar'}
                   >
-                    <Plus size={16} className="font-semibold" />
+                    <Plus size={16} />
                   </button>
                 )}
               </div>
@@ -129,7 +140,12 @@ const Formulario: React.FC<FormProps> = ({
                 type={field.type}
                 id={field.id}
                 value={(formData[field.id] as string) || ''}
-                onChange={(e) => handleChange(field.id, e.target.value)}
+                onChange={(e) => {
+                  handleChange(field.id, e.target.value);
+                  if (field.onChange) {
+                    field.onChange(e);
+                  }
+                }}
                 placeholder=" "
                 className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-gray-900 bg-transparent border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
               />
@@ -154,8 +170,9 @@ const Formulario: React.FC<FormProps> = ({
           Enviado exitosamente
         </div>
       )}
+
       <div className="flex justify-center items-center mt-8">
-        <Button text="registrar" className="mx-2" variant="success" onClick={() => {}} />
+        <Button text="Registrar" className="mx-2" variant="success" type="submit" />
         {onExtraButtonClick && (
           <Button
             text={extraButtonTitle}
@@ -165,6 +182,7 @@ const Formulario: React.FC<FormProps> = ({
           />
         )}
       </div>
+      {children}
     </form>
   );
 };

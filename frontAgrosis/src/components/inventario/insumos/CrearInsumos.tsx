@@ -80,14 +80,14 @@ const CrearInsumos = ({ onSuccess }: { onSuccess?: () => void }) => {
           cantidad_herramienta: null,
           movimiento: "Entrada" as const,
           fecha: new Date().toISOString(),
-          fk_id_asignacion: null,
-          fk_id_herramientas: null,
+          fk_id_asignacion: 0,
+          fk_id_herramientas: 0,
         };
 
         mutate(movimientoEntrada, {
           onSuccess: () => {
             if (onSuccess) onSuccess();
-            navigate("/bodega");
+            navigate(-1);
           },
           onError: (error) => {
             console.error("❌ Error al registrar en bodega:", error?.response?.data || error?.message);

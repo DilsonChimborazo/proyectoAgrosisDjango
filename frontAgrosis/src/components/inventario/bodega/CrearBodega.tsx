@@ -7,26 +7,26 @@ import { Herramientas, Insumo, Asignacion } from "@/hooks/inventario/bodega/useC
 import CrearInsumoCompuesto from "@/components/inventario/insumocompuesto/CrearInsumoCompuesto";
 
 interface Props {
-  id: number;
+  id: string;
   herramientas: Herramientas[];
   insumos: Insumo[];
-  insumosCompuestos?: Insumo[]; 
+  insumosCompuestos?: Insumo[];
   asignaciones: Asignacion[];
   onSuccess?: () => void;
   onClick: (nuevo: Insumo) => void;
 }
 
-const RegistrarSalidaBodega = ({ 
-  herramientas, 
-  insumos: insumosIniciales = [], 
-  insumosCompuestos: insumosCompuestosIniciales = [], 
+const RegistrarSalidaBodega = ({
+  herramientas,
+  insumos: insumosIniciales = [],
+  insumosCompuestos: insumosCompuestosIniciales = [],
   asignaciones = [],
   onClick
 }: Props) => {
   const { mutate: crearMovimientoBodega } = useCrearBodega();
   const navigate = useNavigate();
 
-  const [mensaje, setMensaje] = useState("");
+  const [, setMensaje] = useState("");
   const [tipoInsumo, setTipoInsumo] = useState<"simple" | "compuesto">("simple");
   const [insumos] = useState<Insumo[]>(insumosIniciales);
   const [insumosCompuestos, setInsumosCompuestos] = useState<Insumo[]>(insumosCompuestosIniciales);
@@ -36,28 +36,51 @@ const RegistrarSalidaBodega = ({
   const [mostrarModalInsumo, setMostrarModalInsumo] = useState(false);
   const [mostrarCrearCompuesto, setMostrarCrearCompuesto] = useState(false);
   const [tabActual, setTabActual] = useState<"simples" | "compuestos">("simples");
-
   const agregarNuevoInsumo = (nuevo: Insumo) => {
     setInsumosCompuestos([...insumosCompuestos, nuevo]);
     setInsumoSeleccionado(nuevo);
     onClick(nuevo);
   };
+  
 
-  const formFields  = [
+  const formFields = [
+    {
+      id: "fk_id_herramientas",
+      label: "Herramienta (opcional)",
+      type: "select",
+      options: herramientas.map((h) => ({
+        value: h.id.toString(),
+        label: h.nombre_h,
+      })),
+      hasExtraButton: true,
+      onExtraButtonClick: () => setMostrarModalHerramienta(true),
+      onChange: (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
+        if (e.target instanceof HTMLSelectElement) {
+          const selected = herramientas.find((h) => h.id.toString() === e.target.value);
+          setHerramientaSeleccionada(selected || null);
+        }
+      }
+    },
     {
       id: "cantidad_herramienta",
       label: "Cantidad de Herramienta",
       type: "number",
     },
     {
-      id: "tipo_insumo",
-      label: "Tipo de Insumo",
+      id: "fk_id_insumo",
+      label: tipoInsumo === "simple" ? "Insumo Simple" : "Insumo Compuesto",
       type: "select",
-      options: [
-        { value: "simple", label: "Simple" },
-        { value: "compuesto", label: "Compuesto" },
-      ],
-      onChange: (e: React.ChangeEvent<HTMLSelectElement>) => setTipoInsumo(e.target.value as "simple" | "compuesto"),
+      options: (tipoInsumo === "simple" ? insumos : insumosCompuestos).map((i) => ({
+        value: i.id.toString(),
+        label: i.nombre,
+      })),
+      hasExtraButton: tipoInsumo === "compuesto",
+      onExtraButtonClick: () => setMostrarCrearCompuesto(true),
+      onChange: (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const allInsumos = tipoInsumo === "simple" ? insumos : insumosCompuestos;
+        const selected = allInsumos.find((i) => i.id.toString() === e.target.value);
+        setInsumoSeleccionado(selected || null);
+      }      
     },
     ...(tipoInsumo === "simple"
       ? [
@@ -77,7 +100,11 @@ const RegistrarSalidaBodega = ({
         label: `Asignación ${a.fecha_programada}`,
       })),
     },
-    { id: "fecha", label: "Fecha de salida", type: "date" },
+    {
+      id: "fecha",
+      label: "Fecha de salida",
+      type: "date",
+    },
   ];
 
   const handleSubmit = (formData: any) => {
@@ -99,9 +126,7 @@ const RegistrarSalidaBodega = ({
     crearMovimientoBodega(salida, {
       onSuccess: () => {
         setMensaje("Salida registrada exitosamente.");
-        setTimeout(() => {
-          navigate("/bodega");
-        });
+        setTimeout(() => navigate("/bodega"), 1500);
       },
       onError: (err) => {
         setMensaje(`Error al registrar salida: ${err.message}`);
@@ -137,19 +162,12 @@ const RegistrarSalidaBodega = ({
         onSubmit={handleSubmit} 
         title="Registrar Salida"
       >
-        {mensaje && (
-          <div className={`mt-3 p-3 rounded-md text-center ${
-            mensaje.includes("Error") ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
-          }`}>
-            {mensaje}
-          </div>
-        )}
       </Formulario>
 
       {tipoInsumo === "compuesto" && (
         <div className="mt-6 text-center">
-          <button 
-            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md transition-colors"
+          <button
+            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md"
             onClick={() => setMostrarCrearCompuesto(true)}
           >
             + Crear Nuevo Insumo Compuesto
@@ -157,10 +175,9 @@ const RegistrarSalidaBodega = ({
         </div>
       )}
 
-      {/* Modal para seleccionar herramientas */}
-      <VentanaModal 
-        isOpen={mostrarModalHerramienta} 
-        onClose={() => setMostrarModalHerramienta(false)} 
+      <VentanaModal
+        isOpen={mostrarModalHerramienta}
+        onClose={() => setMostrarModalHerramienta(false)}
         titulo="Seleccionar Herramienta"
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -180,100 +197,57 @@ const RegistrarSalidaBodega = ({
         </div>
       </VentanaModal>
 
-      {/* Modal para seleccionar insumos */}
-      <VentanaModal 
+      <VentanaModal
         titulo="Seleccionar Insumo"
-        isOpen={mostrarModalInsumo} 
+        isOpen={mostrarModalInsumo}
         onClose={() => setMostrarModalInsumo(false)}
       >
         <div className="mb-4 flex border-b">
           <button
             className={`px-4 py-2 font-medium ${tabActual === "simples" ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-500"}`}
-            onClick={() => setTabActual("simples")}
+            onClick={() => {
+              setTabActual("simples");
+              setTipoInsumo("simple");
+            }}
           >
             Insumos Simples
           </button>
           <button
             className={`px-4 py-2 font-medium ${tabActual === "compuestos" ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-500"}`}
-            onClick={() => setTabActual("compuestos")}
+            onClick={() => {
+              setTabActual("compuestos");
+              setTipoInsumo("compuesto");
+            }}
           >
             Insumos Compuestos
           </button>
         </div>
 
-        {tabActual === "simples" ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {insumos.length > 0 ? (
-              insumos.map((i) => (
-                <div
-                  key={i.id}
-                  className="border p-4 rounded-lg shadow-sm cursor-pointer hover:bg-green-50 transition-colors"
-                  onClick={() => {
-                    setInsumoSeleccionado(i);
-                    setMostrarModalInsumo(false);
-                  }}
-                >
-                  <h4 className="font-semibold text-lg">{i.nombre}</h4>
-                  <p className="text-gray-600">Disponibles: {i.cantidad_insumo}</p>
-                </div>
-              ))
-            ) : (
-              <div className="col-span-full text-center py-8 text-gray-500">
-                No hay insumos simples disponibles
-              </div>
-            )}
-          </div>
-        ) : (
-          <div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-4">
-              {insumosCompuestos.length > 0 ? (
-                insumosCompuestos.map((i) => (
-                  <div
-                    key={i.id}
-                    className="border p-4 rounded-lg shadow-sm cursor-pointer hover:bg-green-50 transition-colors"
-                    onClick={() => {
-                      setInsumoSeleccionado(i);
-                      setMostrarModalInsumo(false);
-                    }}
-                  >
-                    <h4 className="font-semibold text-lg">{i.nombre} (Compuesto)</h4>
-                    <p className="text-gray-600">Disponibles: {i.cantidad_insumo}</p>
-                  </div>
-                ))
-              ) : (
-                <div className="col-span-full text-center py-8 text-gray-500">
-                  No hay insumos compuestos disponibles
-                </div>
-              )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          {(tabActual === "simples" ? insumos : insumosCompuestos).map((i) => (
+            <div
+              key={i.id}
+              className="border p-4 rounded-lg shadow-sm cursor-pointer hover:bg-green-50 transition-colors"
+              onClick={() => {
+                setInsumoSeleccionado(i);
+                setMostrarModalInsumo(false);
+              }}
+            >
+              <h4 className="font-semibold text-lg">{i.nombre}</h4>
+              <p className="text-gray-600">Disponibles: {i.cantidad_insumo}</p>
             </div>
-            <div className="mt-4 text-center">
-              <button
-                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors"
-                onClick={() => {
-                  setMostrarModalInsumo(false);
-                  setMostrarCrearCompuesto(true);
-                }}
-              >
-                + Crear Nuevo Insumo Compuesto
-              </button>
-            </div>
-          </div>
-        )}
+          ))}
+        </div>
       </VentanaModal>
 
-      {/* Modal para crear insumo compuesto */}
       <VentanaModal
         titulo="Crear Insumo Compuesto"
         isOpen={mostrarCrearCompuesto}
         onClose={() => setMostrarCrearCompuesto(false)}
       >
-        <CrearInsumoCompuesto
-          onClick={(nuevoInsumo) => {
-            agregarNuevoInsumo(nuevoInsumo);
-            setMostrarCrearCompuesto(false);
-            setTipoInsumo("compuesto");
-          }}
-        />
+        <CrearInsumoCompuesto 
+        onSuccess={agregarNuevoInsumo} 
+        onClose={() => setMostrarCrearCompuesto(false)} />
       </VentanaModal>
     </div>
   );
