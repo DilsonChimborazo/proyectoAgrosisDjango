@@ -726,7 +726,7 @@ const ListarBodega = () => {
                     headers={[
                         "ID", 
                         tipoSeleccionado === "Herramienta" ? "Herramienta" : "Insumo", 
-                        "Asignación", 
+                        "Asignacion", 
                         "Cantidad", 
                         "Unidad Medida",
                         "Cantidad Base",

@@ -13,6 +13,12 @@ interface DetalleActividad {
 
 export type { DetalleActividad };
 
+interface UnidadMedida {
+    id: number;
+    nombre_medida: string;
+    unidad_base: 'g' | 'ml' | 'u';
+    factor_conversion: number;
+}
 
 interface DetalleInsumo {
     tipo: 'Actividad' | 'Control Fitosanitario';
