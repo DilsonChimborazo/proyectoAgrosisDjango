@@ -62,7 +62,6 @@ const menuItems = [
     icon: <Cpu size={18} />,
     path: "/iot",
     submenu: [
-      { name: "Evapotranspiración", path: "/iot/evapotranspiracion" },
       {name: "Sensores", path: "/iot/sensores"}
     ],
   },
