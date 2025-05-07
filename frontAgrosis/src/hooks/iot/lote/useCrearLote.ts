@@ -7,7 +7,7 @@ export interface Lotes {
     id: number;
     dimencion: number;
     nombre_lote: string;
-    estado: string;
+    estado: Boolean;
 }
 
 export const useCrearLote = () => {
