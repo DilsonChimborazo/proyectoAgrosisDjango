@@ -21,6 +21,8 @@ import {
   CarouselNext,
 } from "@/components/ui/carousel";
 import { Link, useNavigate } from "react-router-dom";
+import VentanaModal from "@/components/globales/VentanasModales";
+import CrearSensor from "@/components/iot/sensores/CrearSensor";
 
 // CSS para el estilo y animaciones
 const styles = `
@@ -113,7 +115,7 @@ const styles = `
     flex-direction: column;
     align-items: flex-start;
   }
-  .evapo-button {
+  .evapo-button, .create-sensor-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -127,7 +129,7 @@ const styles = `
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   }
-  .evapo-button:hover {
+  .evapo-button:hover, .create-sensor-button:hover {
     transform: translateY(-3px);
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
   }
@@ -222,6 +224,7 @@ const HomePage = () => {
   const [chartsData, setChartsData] = useState<{ [key: number]: ChartDataPoint[] }>({});
   const [realTimeData, setRealTimeData] = useState<{ [key: number]: RealTimeData }>({});
   const [sensorDisplayData, setSensorDisplayData] = useState<SensorDisplayData[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
 
   const loadChartsData = useCallback(() => {
@@ -458,14 +461,41 @@ const HomePage = () => {
     navigate('/iot/evapotranspiracion');
   };
 
+  // Funciones para manejar la ventana modal
+  const openCreateModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const handleSuccess = () => {
+    closeModal();
+  };
+
   return (
-    <div className="p-5">
-      {/* Encabezado con botón de Evapotranspiración */}
-      <div className="flex justify-between items-center mb-6">
-        <button className="evapo-button" onClick={handleEvapoClick}>
-          Ver Evapotranspiración
-        </button>
-      </div>
+      <div className="p-5">
+    {/* Encabezado con botones */}
+    <div className="flex justify-start items-center gap-4 mb-6">
+      <button className="evapo-button" onClick={handleEvapoClick}>
+        Ver Evapotranspiración
+      </button>
+      <button className="create-sensor-button" onClick={openCreateModal}>
+        Crear Sensor
+      </button>
+    </div>
+
+      {/* Ventana Modal para Crear Sensor */}
+      {isModalOpen && (
+        <VentanaModal
+          isOpen={isModalOpen}
+          onClose={closeModal}
+          titulo="Crear Nuevo Sensor"
+          contenido={<CrearSensor onSuccess={handleSuccess} />}
+          size="md"
+        />
+      )}
 
       {/* Tarjetas de Sensores */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mb-6">

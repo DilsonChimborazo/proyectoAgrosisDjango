@@ -43,7 +43,7 @@ const CrearEras = ({ onSuccess }: CrearErasProps) => {
             nombre: formData.nombre,
             fk_id_lote: Number(formData.fk_id_lote),
             descripcion: formData.descripcion,
-            estado: formData.estado === 'true'  // Convertir string a boolean
+            estado: formData.estado === 'true'
         };
 
         mutation.mutate(nuevaEra, {
@@ -75,7 +75,11 @@ const CrearEras = ({ onSuccess }: CrearErasProps) => {
                 isOpen={mostrarModalLote}
                 onClose={cerrarYActualizar}
                 titulo=""
-                contenido={<CrearLote />}
+                contenido={
+                    <CrearLote
+                        onSuccess={cerrarYActualizar}
+                    />
+                }
             />
         </div>
     );

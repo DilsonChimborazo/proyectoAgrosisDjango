@@ -11,7 +11,7 @@ export interface Lotes {
   id: number;
   dimencion: string;
   nombre_lote: string;
-  estado: string;
+  estado: boolean;
 }
 
 const useLotesActivos = () => {
@@ -23,6 +23,7 @@ const useLotesActivos = () => {
     const fetchLotes = async () => {
       try {
         const response = await axios.get<Lotes[]>("http://127.0.0.1:8000/api/lote/lotesActivos");
+        console.log(response.data); // Verifica la respuesta del servidor
         setLotes(response.data);
       } catch (err: any) {
         setError(err?.message || "Error desconocido");

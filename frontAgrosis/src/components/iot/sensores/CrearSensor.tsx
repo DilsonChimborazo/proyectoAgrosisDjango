@@ -3,7 +3,7 @@ import { useCrearSensores } from '../../../hooks/iot/sensores/useCrearSensores';
 import Formulario from '../../globales/Formulario';
 
 interface CrearSensorProps {
-  onSuccess?: () => void;
+  onSuccess?: (sensor: Sensores) => void;
 }
 
 const CrearSensor = ({ onSuccess }: CrearSensorProps) => {
@@ -15,8 +15,19 @@ const CrearSensor = ({ onSuccess }: CrearSensorProps) => {
     { value: 'ILUMINACION', label: 'Iluminación' },
     { value: 'HUMEDAD_TERRENO', label: 'Humedad terreno' },
     { value: 'VELOCIDAD_VIENTO', label: 'Velocidad viento' },
-    { value: 'NIVEL DE PH', label: 'Nivel de pH' },
-    { value: 'RADIACION_SOLAR', label: 'Radiacion solar'} 
+    { value: 'NIVEL_DE_PH', label: 'Nivel de pH' },
+    { value: 'PRESION_ATMOSFERICA', label: 'Presión atmosférica' },
+    { value: 'RADIACION_SOLAR', label: 'Radiación solar' },
+  ];
+
+  const UNIDAD_MEDIDA_OPTIONS = [
+    { value: '°C', label: '°C' },
+    { value: '%', label: '%' },
+    { value: 'Lux', label: 'Lux' },
+    { value: 'm/s', label: 'm/s' },
+    { value: 'pH', label: 'pH' },
+    { value: 'hPa', label: 'hPa' },
+    { value: 'W/m²', label: 'W/m²' },
   ];
 
   const formFields = [
@@ -27,7 +38,12 @@ const CrearSensor = ({ onSuccess }: CrearSensorProps) => {
       type: 'select',
       options: TIPO_SENSOR_OPTIONS,
     },
-    { id: 'unidad_medida', label: 'Unidad de Medida', type: 'text' },
+    {
+      id: 'unidad_medida',
+      label: 'Unidad de Medida',
+      type: 'select',
+      options: UNIDAD_MEDIDA_OPTIONS,
+    },
     { id: 'descripcion', label: 'Descripción', type: 'text' },
     { id: 'medida_minima', label: 'Medida Mínima', type: 'number' },
     { id: 'medida_maxima', label: 'Medida Máxima', type: 'number' },
@@ -56,12 +72,12 @@ const CrearSensor = ({ onSuccess }: CrearSensorProps) => {
     };
 
     mutation.mutate(newSensor, {
-      onSuccess: () => {
-        console.log('✅ Sensor creado correctamente');
-        if (onSuccess) onSuccess();
+      onSuccess: (data) => {
+        console.log('✅ Sensor creado correctamente:', data);
+        if (onSuccess) onSuccess(data);
       },
-      onError: (error) => {
-        console.error('❌ Error al crear el sensor:', error);
+      onError: (error: any) => {
+        console.error('❌ Error al crear el sensor:', error.message);
       },
     });
   };
