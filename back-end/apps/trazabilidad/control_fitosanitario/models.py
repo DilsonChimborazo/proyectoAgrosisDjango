@@ -1,12 +1,13 @@
+# apps/fitosanitario/models.py
 from django.db import models
 from apps.trazabilidad.plantacion.models import Plantacion
 from apps.trazabilidad.pea.models import Pea
 from apps.inventario.insumo.models import Insumo
 from apps.usuarios.usuario.models import Usuarios
 from apps.inventario.unidadMedida.models import UnidadMedida
+from apps.inventario.bodega.models import Bodega  # ⬅️ IMPORTANTE
 from decimal import Decimal
 
-# Create your models here.
 class Control_fitosanitario(models.Model):
     TIPOS_CONTROL = [
         ('Control Biologico', 'Control Biologico'),
@@ -15,6 +16,7 @@ class Control_fitosanitario(models.Model):
         ('Control Cultural', 'Control Cultural'),
         ('Control Genetico', 'Control Genetico')
     ]
+
     fecha_control = models.DateField()
     duracion = models.IntegerField(help_text="Duración en minutos")
     descripcion = models.CharField(max_length=300)
@@ -44,29 +46,43 @@ class Control_fitosanitario(models.Model):
     )
 
     def save(self, *args, **kwargs):
-        # Asegurar que la unidad de medida existe
+        # Calcular cantidad en base y costo
         if self.fk_unidad_medida:
             try:
-                # Convertir cantidad a unidad base
                 self.cantidad_en_base = self.fk_unidad_medida.convertir_a_base(self.cantidad_insumo)
 
-                # Calcular costo solo si hay insumo y cantidad_en_base
                 if self.fk_id_insumo and self.cantidad_en_base:
                     if not self.fk_id_insumo.precio_por_base:
-                        # Si no tiene precio_por_base, actualizar el insumo primero
                         self.fk_id_insumo.save()
 
                     if self.fk_id_insumo.precio_por_base:
                         self.costo_insumo = Decimal(self.cantidad_en_base) * self.fk_id_insumo.precio_por_base
             except AttributeError as e:
-                print(f"Error en conversión: {e}")  # Para debug
+                print(f"Error en conversión: {e}")
         else:
-            print("Advertencia: No hay unidad de medida asignada")  # Para debug
+            print("Advertencia: No hay unidad de medida asignada")
 
         super().save(*args, **kwargs)
 
+        # Crear salida en bodega si no existe
+        if self.fk_id_insumo and self.cantidad_insumo:
+            existe_salida = Bodega.objects.filter(
+                fk_id_insumo=self.fk_id_insumo,
+                cantidad_insumo=self.cantidad_insumo,
+                movimiento='Salida',
+                fk_unidad_medida=self.fk_unidad_medida,
+                fecha__date=self.fecha_control
+            ).exists()
+
+            if not existe_salida:
+                Bodega.objects.create(
+                    fk_id_insumo=self.fk_id_insumo,
+                    cantidad_insumo=self.cantidad_insumo,
+                    movimiento='Salida',
+                    fk_unidad_medida=self.fk_unidad_medida,
+                    fk_id_asignacion=None,  # Puedes asignar si aplicas actividades
+                    cantidad_herramienta=None,
+                )
 
     def __str__(self):
-        
-        return f"plantacion: {self.fk_id_plantacion}, Insumo: {self.fk_id_insumo.nombre}, Cantidad: {self.cantidad_insumo}, Unidad: {self.fk_unidad_medida.nombre if self.fk_unidad_medida else 'N/A'}, Costo: {self.costo_insumo}pea: {self.fk_id_pea}" 
-
+        return f"plantacion: {self.fk_id_plantacion}, Insumo: {self.fk_id_insumo.nombre}, Cantidad: {self.cantidad_insumo}, Unidad: {self.fk_unidad_medida.nombre if self.fk_unidad_medida else 'N/A'}, Costo: {self.costo_insumo}pea: {self.fk_id_pea}"
