@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Usuario } from '@/hooks/usuarios/usuario/useCreateUsuarios';
 import { useCreateUsuarios } from '@/hooks/usuarios/usuario/useCreateUsuarios';
 import Formulario from '@/components/globales/Formulario';
 import { useRoles } from '@/hooks/usuarios/rol/useRol';
 import { UseFicha } from '@/hooks/usuarios/ficha/useFicha';
+import CrearFicha from '../ficha/crearFicha';
+import VentanaModal from '@/components/globales/VentanasModales';
+import CrearRol from '../rol/crearRol';
 
 interface CrearUsuarioProps {
   isOpen: boolean;
@@ -15,7 +18,13 @@ const CrearUsuario: React.FC<CrearUsuarioProps> = ({ isOpen, onClose }) => {
   const { data: roles = [] } = useRoles();
   const { data: fichas = [] } = UseFicha();
 
-  if (!isOpen) return null; // Si la modal no debe estar abierta, no renderiza nada
+  const [modalAbierto, setModalAbierto] = useState(false);
+
+  const abrirModalFicha = () => setModalAbierto(true);
+  const cerrarModalFicha = () => setModalAbierto(false);
+
+  const abrirModalRol = () => setModalAbierto(true);
+  const cerrarModalRol = () => setModalAbierto(false);
 
   const formFields = [
     { id: 'identificacion', label: 'Identificación', type: 'text' },
@@ -24,27 +33,40 @@ const CrearUsuario: React.FC<CrearUsuarioProps> = ({ isOpen, onClose }) => {
     { id: 'apellido', label: 'Apellido', type: 'text' },
     { id: 'password', label: 'Contraseña', type: 'password' },
     {
-      id: "fk_id_rol",
-      label: "Rol",
-      type: "select",
-      options: Array.isArray(roles) ? roles.map((rol) => ({
-        value: String(rol.id),
-        label: rol.rol
-      })) : []
+      id: 'fk_id_rol',
+      label: 'Rol',
+      type: 'select',
+      options: Array.isArray(roles)
+        ? roles.map((rol) => ({ value: String(rol.id), label: rol.rol }))
+        : [],
+      
+      hasExtraButton: true,
+      extraButtonText: '+',
+      onExtraButtonClick: abrirModalRol,
     },
     {
-      id: "ficha",
-      label: "Ficha",
-      type: "select",
-      options: Array.isArray(fichas) ? fichas.map((numero_ficha) => ({
-        value: String(numero_ficha.id),
-        label: numero_ficha.numero_ficha
-      })) : []
-    }
+      id: 'ficha',
+      label: 'Ficha',
+      type: 'select',
+      options: Array.isArray(fichas)
+        ? fichas.map((f) => ({ value: String(f.id), label: f.numero_ficha }))
+        : [],
+      hasExtraButton: true,
+      extraButtonText: '+',
+      onExtraButtonClick: abrirModalFicha,
+    },
   ];
 
   const handleSubmit = (formData: { [key: string]: string }) => {
-    if (!formData.identificacion || !formData.email || !formData.nombre || !formData.apellido || !formData.password || !formData.fk_id_rol || !formData.ficha) {
+    if (
+      !formData.identificacion ||
+      !formData.email ||
+      !formData.nombre ||
+      !formData.apellido ||
+      !formData.password ||
+      !formData.fk_id_rol ||
+      !formData.ficha
+    ) {
       console.error('Campos faltantes');
       return;
     }
@@ -65,27 +87,52 @@ const CrearUsuario: React.FC<CrearUsuarioProps> = ({ isOpen, onClose }) => {
       apellido: formData.apellido,
       password: formData.password,
       fk_id_rol,
-      ficha,
     };
 
     mutation.mutate(newUsuario, {
       onSuccess: () => {
-        onClose(); // Cierra la modal después de éxito
-      }
+        onClose(); // Cierra la modal principal
+      },
     });
   };
 
   return (
-   
-        <Formulario
-          fields={formFields}
-          onSubmit={handleSubmit}
-          isError={mutation.isError}
-          isSuccess={mutation.isSuccess}
-          title="Crear Nuevo Usuario"
-        />
+    <>
+      <VentanaModal
+        isOpen={isOpen}
+        onClose={onClose}
+        titulo="Crear Nuevo Usuario"
+        size="md"
+        variant="content"
+        contenido={
+          <Formulario
+            fields={formFields}
+            onSubmit={handleSubmit}
+            isError={mutation.isError}
+            isSuccess={mutation.isSuccess}
+            title=""
+          />
+        }
+      />
+      <VentanaModal
+        isOpen={modalAbierto}
+        onClose={cerrarModalFicha}
+        titulo=""
+        size="sm"
+        variant="content"
+        contenido={<CrearFicha onClose={cerrarModalFicha} />}
+      />
+
+      <VentanaModal
+      isOpen={modalAbierto}
+      onClose={cerrarModalRol}
+      titulo=""
+      size="sm"
+      variant="content"
+      contenido={<CrearRol onClose={cerrarModalRol} />}
+      />
+    </>
   );
 };
-
 
 export default CrearUsuario;

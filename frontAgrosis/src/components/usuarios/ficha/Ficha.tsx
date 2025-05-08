@@ -3,10 +3,12 @@ import { UseFicha } from "@/hooks/usuarios/ficha/useFicha";
 import { useNavigate } from "react-router-dom";
 import Tabla from "@/components/globales/Tabla";
 import VentanaModal from "@/components/globales/VentanasModales";
+import CrearFicha from "./crearFicha";
 
 const Fichas = () => {
   const navigate = useNavigate();
   const { data: fichas, isLoading, error, refetch } = UseFicha();
+  const [modoCreacion, setModoCreacion] = useState(false);
   const [selectedFicha, setSelectedFicha] = useState<Record<string, any> | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [esAdministrador, setEsAdministrador] = useState(false);
@@ -30,7 +32,8 @@ const Fichas = () => {
 
   const handleCreate = () => {
     if (esAdministrador) {
-      navigate("/crearFicha");
+      setModoCreacion(true);
+      setIsModalOpen(true);
     } else {
       setMensaje("No tienes permisos para crear fichas.");
       setTimeout(() => setMensaje(null), 3000);
@@ -39,6 +42,7 @@ const Fichas = () => {
 
   const closeModal = useCallback(() => {
     setSelectedFicha(null);
+    setModoCreacion(false);
     setIsModalOpen(false);
   }, []);
 
@@ -79,6 +83,7 @@ const Fichas = () => {
   ];
 
   return (
+    <>
     <div className="overflow-x-auto rounded-lg p-4">
       {mensaje && (
         <div className="mb-2 p-2 bg-red-500 text-white text-center rounded-md">
@@ -141,15 +146,29 @@ const Fichas = () => {
         />
       )}
 
-      {selectedFicha && (
-        <VentanaModal
-          isOpen={isModalOpen}
-          onClose={closeModal}
-          titulo="Detalles de la Ficha"
-          contenido={selectedFicha}
-        />
-      )}
+{isModalOpen && (
+  <VentanaModal
+    isOpen={isModalOpen}
+    onClose={closeModal}
+    titulo={modoCreacion ? "" : "Detalles de la Ficha"}
+    contenido={
+      modoCreacion ? (
+        <CrearFicha onClose={closeModal} onCreated={refetch} />
+      ) : selectedFicha && (
+        <div>
+          <p><strong>Número de ficha:</strong> {selectedFicha.numero_ficha}</p>
+          <p><strong>Nombre:</strong> {selectedFicha.nombre_ficha}</p>
+          <p><strong>Abreviación:</strong> {selectedFicha.abreviacion}</p>
+          <p><strong>Fecha de inicio:</strong> {new Date(selectedFicha.fecha_inicio).toLocaleDateString()}</p>
+          <p><strong>Fecha de salida:</strong> {new Date(selectedFicha.fecha_salida).toLocaleDateString()}</p>
+          <p><strong>Estado:</strong> {selectedFicha.is_active ? "Activa" : "Inactiva"}</p>
+        </div>
+      )
+    }
+  />
+)}
     </div>
+    </>
   );
 };
 

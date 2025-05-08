@@ -3,29 +3,24 @@ import axios from "axios";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
-  export interface Usuario {
+export interface Rol {
     id?: number;
-    identificacion: number;
-    email: string;
-    nombre: string;
-    apellido: string;
-    password: string;
-    fk_id_rol: number;
-    ficha?: number | null;
+    rol: string;
+    fecha_creacion: string;
 }
 
-export const useCreateUsuarios = () =>{
+export const useCreateRol = () =>{
   const queryClient = useQueryClient();
 
   return useMutation({
-      mutationFn: async (nuevoUsuario: Usuario) => {
+      mutationFn: async (nuevoRol: Rol) => {
         const token = localStorage.getItem("token");
         if (!token) {
           throw new Error("No se ha encontrado un token de autenticacion");
         }
   const {data} = await axios.post(
-    `${apiUrl}usuario/`,
-    nuevoUsuario,
+    `${apiUrl}rol/`,
+    nuevoRol,
     {
 
       headers: {
@@ -37,10 +32,10 @@ export const useCreateUsuarios = () =>{
   return data;
 },
 onSuccess: () => {
-  queryClient.invalidateQueries({queryKey: ["usuarios"]});
+  queryClient.invalidateQueries({queryKey: ["rol"]});
 },
 onError: (error: any) => {
-  console.error("Error al crear un nuevo usuario:", error.message)
+  console.error("Error al crear una nuevo rol:", error.message)
 }
   });
 };

@@ -1,10 +1,15 @@
-import { useNavigate } from 'react-router-dom';
 import { useCreateFicha } from '@/hooks/usuarios/ficha/useCreateFicha';
 import { Ficha } from '@/hooks/usuarios/ficha/useFicha';
 import Formulario from '@/components/globales/Formulario';
+import { QueryObserverResult, RefetchOptions } from '@tanstack/react-query';
 
-const CrearFicha = () => {
-  const navigate = useNavigate();
+
+interface CrearFichaProps {
+  onClose: () => void;
+  onCreated?: (options?: RefetchOptions) => Promise<QueryObserverResult>;
+}
+
+const CrearFicha: React.FC<CrearFichaProps> = ({ onClose, onCreated }) => {
   const mutation = useCreateFicha();
 
   const formFields = [
@@ -32,7 +37,10 @@ const CrearFicha = () => {
     };
 
     mutation.mutate(newFicha, {
-      onSuccess: () => navigate('/fichas'), // redirige a la lista de fichas
+      onSuccess: () => {
+        onCreated?.();
+        onClose(); // Cierra la modal después de crear la ficha
+      },
     });
   };
 

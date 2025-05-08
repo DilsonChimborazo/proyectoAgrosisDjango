@@ -99,12 +99,12 @@ const Usuarios = () => {
         </div>
       )}
 
-      <div className="mb-4 text-right">
+      <div className='mb-4 text-right'>
         <button
-          onClick={() => navigate("/fichas")}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md shadow"
+          onClick={() => navigate('/fichas')}
+          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 d-flex justify-center"
         >
-          Fichas de formación
+          Ver Lista de Fichas
         </button>
       </div>
 

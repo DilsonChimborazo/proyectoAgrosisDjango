@@ -6,6 +6,7 @@ const apiUrl = import.meta.env.VITE_API_URL;
 export interface Rol {
   id: number;
   rol: string;
+  fecha_creacion: string;
 }
 
 const fetchRoles = async (): Promise<Rol[]> => {
