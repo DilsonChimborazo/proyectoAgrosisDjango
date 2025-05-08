@@ -20,6 +20,8 @@ from apps.finanzas.stock.models import Stock
 from apps.finanzas.venta.models import Venta
 from apps.inventario.bodega.models import Bodega
 from apps.finanzas.produccion.models import Produccion
+# Agrega esto con las demás importaciones
+from apps.finanzas.salario.models import Salario  # Asegúrate que esta sea la ruta correcta
 
 from apps.finanzas.trazabilidad_historica.models import SnapshotTrazabilidad, ResumenTrazabilidad
 from apps.finanzas.trazabilidad_historica.api.serializers import SnapshotSerializer, ResumenTrazabilidadSerializer
@@ -144,6 +146,38 @@ class TrazabilidadPlantacionAPIView(APIView):
             })
         return detalle
 
+    def _calcular_costo_mano_obra(self, programaciones, controles):
+        costo_total = Decimal('0')
+        
+        # Obtener el salario activo por defecto
+        salario_default = Salario.objects.filter(activo=True).first()
+        
+        for prog in programaciones:
+            # Buscar salario vigente para la fecha de la actividad
+            salario = Salario.objects.filter(
+                fecha_inicio__lte=prog.fecha_realizada,
+                fecha_fin__gte=prog.fecha_realizada
+            ).first() or salario_default
+            
+            if salario:
+                horas = Decimal(prog.duracion) / Decimal('60')
+                jornales = horas / Decimal(salario.horas_por_jornal)
+                costo_total += jornales * salario.precio_jornal
+
+        for control in controles:
+            # Buscar salario vigente para la fecha del control
+            salario = Salario.objects.filter(
+                fecha_inicio__lte=control.fecha_control,
+                fecha_fin__gte=control.fecha_control
+            ).first() or salario_default
+            
+            if salario:
+                horas = Decimal(control.duracion) / Decimal('60')
+                jornales = horas / Decimal(salario.horas_por_jornal)
+                costo_total += jornales * salario.precio_jornal
+
+        return round(costo_total, 2)
+
     def calcular_trazabilidad(self, plantacion_id):
         """Método centralizado para el cálculo de trazabilidad"""
         try:
@@ -165,14 +199,8 @@ class TrazabilidadPlantacionAPIView(APIView):
                 'fk_id_asignacionActividades__fk_identificacion'
             )
             
+            # Cálculo de tiempo total
             total_minutos = programaciones.aggregate(total=Sum('duracion'))['total'] or 0
-            total_horas = round(total_minutos / 60, 2)
-            jornales = round(total_horas / 8, 2)
-            
-            nominas = Nomina.objects.filter(
-                fk_id_programacion__in=programaciones
-            ).select_related('fk_id_salario')
-            costo_mano_obra = nominas.aggregate(total=Sum('pago_total'))['total'] or 0
             
             controles = Control_fitosanitario.objects.filter(
                 fk_id_plantacion=plantacion
@@ -184,8 +212,23 @@ class TrazabilidadPlantacionAPIView(APIView):
             
             tiempo_controles = controles.aggregate(total=Sum('duracion'))['total'] or 0
             total_minutos += tiempo_controles
+            
+            # Conversión a horas y jornales
             total_horas = round(total_minutos / 60, 2)
-            jornales = round(total_horas / 8, 2)
+            
+            # Obtener horas por jornal del salario activo
+            salario_default = Salario.objects.filter(activo=True).first()
+            horas_por_jornal = salario_default.horas_por_jornal if salario_default else 8
+            jornales = round(total_horas / horas_por_jornal, 2)
+            
+            # Cálculo del costo de mano de obra
+            costo_mano_obra = self._calcular_costo_mano_obra(programaciones, controles)
+            
+            # Cálculo de costos reales de nómina (para comparación)
+            nominas = Nomina.objects.filter(
+                fk_id_programacion__in=programaciones
+            ).select_related('fk_id_salario')
+            costo_real_nominas = nominas.aggregate(total=Sum('pago_total'))['total'] or 0
             
             egresos_bodega = Bodega.objects.filter(
                 fk_id_asignacion__in=asignaciones,
@@ -220,10 +263,12 @@ class TrazabilidadPlantacionAPIView(APIView):
                 "total_tiempo_minutos": total_minutos,
                 "total_horas": total_horas,
                 "jornales": jornales,
-                "costo_mano_obra": costo_mano_obra,
-                "egresos_insumos": egresos_insumos,
-                "ingresos_ventas": ingresos_ventas,
-                "beneficio_costo": beneficio_costo,
+                "costo_mano_obra": float(costo_mano_obra),
+                "costo_real_nominas": float(costo_real_nominas),
+                "diferencia_costo": float(costo_mano_obra - costo_real_nominas),
+                "egresos_insumos": float(egresos_insumos),
+                "ingresos_ventas": float(ingresos_ventas),
+                "beneficio_costo": float(beneficio_costo),
                 "detalle_actividades": detalle_actividades,
                 "detalle_insumos": detalle_insumos,
                 "detalle_ventas": detalle_ventas,
@@ -232,8 +277,8 @@ class TrazabilidadPlantacionAPIView(APIView):
                     "total_controles": controles.count(),
                     "total_ventas": ventas.count(),
                     "total_insumos": len(detalle_insumos),
-                    "costo_total": costo_total,
-                    "balance": ingresos_ventas - costo_total
+                    "costo_total": float(costo_total),
+                    "balance": float(ingresos_ventas - costo_total)
                 }
             }
             

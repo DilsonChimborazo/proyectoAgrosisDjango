@@ -28,7 +28,7 @@ from apps.trazabilidad.control_fitosanitario.models import Control_fitosanitario
 
 
 class NominaViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    #permission_classes = [IsAuthenticatedOrReadOnly]
     queryset = Nomina.objects.all()
 
     def get_serializer_class(self):

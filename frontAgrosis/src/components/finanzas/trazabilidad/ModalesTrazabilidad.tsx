@@ -9,6 +9,25 @@ interface ModalesTrazabilidadProps {
     onCerrarModal: () => void;
 }
 
+// Función utilitaria para formatear números de manera segura
+const safeNumberFormat = (value: any, options: { 
+    decimals?: number, 
+    isCurrency?: boolean 
+} = {}): string => {
+    const { decimals = 2, isCurrency = false } = options;
+    const num = typeof value === 'number' ? value : parseFloat(value);
+    const formatted = isNaN(num) ? 0 : num;
+    
+    if (isCurrency) {
+        return `$${formatted.toLocaleString(undefined, {
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals
+        })}`;
+    }
+    
+    return formatted.toFixed(decimals);
+};
+
 const ModalesTrazabilidad = ({ modalAbierto, comparando, onCerrarModal }: ModalesTrazabilidadProps) => {
     if (!modalAbierto) return null;
 
@@ -24,21 +43,21 @@ const ModalesTrazabilidad = ({ modalAbierto, comparando, onCerrarModal }: Modale
                             <div className="space-y-2">
                                 <div className="flex justify-between">
                                     <span>Relación Beneficio/Costo:</span>
-                                    <span className="font-medium">{data.beneficio_costo.toFixed(2)}</span>
+                                    <span className="font-medium">{safeNumberFormat(data.beneficio_costo)}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span>Ingresos por ventas:</span>
-                                    <span className="font-medium">${data.ingresos_ventas.toLocaleString()}</span>
+                                    <span className="font-medium">{safeNumberFormat(data.ingresos_ventas, { isCurrency: true })}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span>Egresos totales:</span>
-                                    <span className="font-medium">${data.egresos_totales.toLocaleString()}</span>
+                                    <span className="font-medium">{safeNumberFormat(data.egresos_totales, { isCurrency: true })}</span>
                                 </div>
                                 <div className="border-t border-green-200 my-2"></div>
                                 <div className="flex justify-between font-semibold">
                                     <span>Balance neto:</span>
                                     <span className={data.balance >= 0 ? 'text-green-600' : 'text-red-600'}>
-                                        ${data.balance.toLocaleString()}
+                                        {safeNumberFormat(data.balance, { isCurrency: true })}
                                     </span>
                                 </div>
                             </div>
@@ -54,23 +73,23 @@ const ModalesTrazabilidad = ({ modalAbierto, comparando, onCerrarModal }: Modale
                             <div className="space-y-2">
                                 <div className="flex justify-between">
                                     <span>Ingresos totales:</span>
-                                    <span className="font-medium">${data.ingresos_ventas.toLocaleString()}</span>
+                                    <span className="font-medium">{safeNumberFormat(data.ingresos_ventas, { isCurrency: true })}</span>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <p className="text-sm text-gray-500">Costo mano de obra</p>
-                                        <p>${data.costo_mano_obra.toLocaleString()}</p>
+                                        <p>{safeNumberFormat(data.costo_mano_obra, { isCurrency: true })}</p>
                                     </div>
                                     <div>
                                         <p className="text-sm text-gray-500">Egresos por insumos</p>
-                                        <p>${data.egresos_insumos.toLocaleString()}</p>
+                                        <p>{safeNumberFormat(data.egresos_insumos, { isCurrency: true })}</p>
                                     </div>
                                 </div>
                                 <div className="border-t border-blue-200 my-2"></div>
                                 <div className="flex justify-between font-semibold">
                                     <span>Balance final:</span>
                                     <span className={data.balance >= 0 ? 'text-green-600' : 'text-red-600'}>
-                                        ${data.balance.toLocaleString()}
+                                        {safeNumberFormat(data.balance, { isCurrency: true })}
                                     </span>
                                 </div>
                             </div>
@@ -86,11 +105,11 @@ const ModalesTrazabilidad = ({ modalAbierto, comparando, onCerrarModal }: Modale
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <p className="text-sm text-gray-500">Total horas trabajadas</p>
-                                    <p className="text-xl font-bold">{data.total_horas} hrs</p>
+                                    <p className="text-xl font-bold">{safeNumberFormat(data.total_horas)} hrs</p>
                                 </div>
                                 <div>
                                     <p className="text-sm text-gray-500">Total jornales</p>
-                                    <p className="text-xl font-bold">{data.jornales}</p>
+                                    <p className="text-xl font-bold">{safeNumberFormat(data.jornales)}</p>
                                 </div>
                             </div>
                             {data.detalle_actividades?.length > 0 && (
@@ -118,11 +137,11 @@ const ModalesTrazabilidad = ({ modalAbierto, comparando, onCerrarModal }: Modale
                             </div>
                             <div className="bg-gray-50 p-4 rounded-lg">
                                 <p className="text-sm text-gray-500">Tiempo total invertido</p>
-                                <p className="font-medium">{data.total_horas || '0'} horas ({data.jornales || '0'} jornales)</p>
+                                <p className="font-medium">{safeNumberFormat(data.total_horas)} horas ({safeNumberFormat(data.jornales)} jornales)</p>
                             </div>
                             <div className="bg-gray-50 p-4 rounded-lg">
                                 <p className="text-sm text-gray-500">Costo mano de obra</p>
-                                <p className="font-medium">${(data.costo_mano_obra || 0).toLocaleString()}</p>
+                                <p className="font-medium">{safeNumberFormat(data.costo_mano_obra, { isCurrency: true })}</p>
                             </div>
                         </div>
 
@@ -131,21 +150,24 @@ const ModalesTrazabilidad = ({ modalAbierto, comparando, onCerrarModal }: Modale
                             <div className="space-y-2">
                                 <div className="flex justify-between">
                                     <span>Ingresos por ventas:</span>
-                                    <span className="font-medium">${(data.ingresos_ventas || 0).toLocaleString()}</span>
+                                    <span className="font-medium">{safeNumberFormat(data.ingresos_ventas, { isCurrency: true })}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span>Egresos por insumos:</span>
-                                    <span className="font-medium">${(data.egresos_insumos || 0).toLocaleString()}</span>
+                                    <span className="font-medium">{safeNumberFormat(data.egresos_insumos, { isCurrency: true })}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span>Costo mano de obra:</span>
-                                    <span className="font-medium">${(data.costo_mano_obra || 0).toLocaleString()}</span>
+                                    <span className="font-medium">{safeNumberFormat(data.costo_mano_obra, { isCurrency: true })}</span>
                                 </div>
                                 <div className="border-t border-green-200 my-2"></div>
                                 <div className="flex justify-between font-semibold">
                                     <span>Balance total:</span>
                                     <span className={(data.ingresos_ventas || 0) - ((data.costo_mano_obra || 0) + (data.egresos_insumos || 0)) >= 0 ? 'text-green-600' : 'text-red-600'}>
-                                        ${((data.ingresos_ventas || 0) - ((data.costo_mano_obra || 0) + (data.egresos_insumos || 0))).toLocaleString()}
+                                        {safeNumberFormat(
+                                            (data.ingresos_ventas || 0) - ((data.costo_mano_obra || 0) + (data.egresos_insumos || 0)), 
+                                            { isCurrency: true }
+                                        )}
                                     </span>
                                 </div>
                             </div>
@@ -165,12 +187,36 @@ const ModalesTrazabilidad = ({ modalAbierto, comparando, onCerrarModal }: Modale
                     : [data[0], data[data.length - 1]];
 
                 const camposComparacion = [
-                    { key: 'beneficio_costo', label: 'Relación B/C', format: (v: number) => (v || 0).toFixed(2) },
-                    { key: 'ingresos_ventas', label: 'Ingresos', format: (v: number) => `$${(v || 0).toLocaleString()}` },
-                    { key: 'egresos_insumos', label: 'Egresos Insumos', format: (v: number) => `$${(v || 0).toLocaleString()}` },
-                    { key: 'costo_mano_obra', label: 'Costo Mano Obra', format: (v: number) => `$${(v || 0).toLocaleString()}` },
-                    { key: 'total_horas', label: 'Horas Trabajadas', format: (v: number) => (v || 0).toFixed(2) },
-                    { key: 'jornales', label: 'Jornales', format: (v: number) => (v || 0).toFixed(2) }
+                    { 
+                        key: 'beneficio_costo', 
+                        label: 'Relación B/C', 
+                        format: (v: any) => safeNumberFormat(v) 
+                    },
+                    { 
+                        key: 'ingresos_ventas', 
+                        label: 'Ingresos', 
+                        format: (v: any) => safeNumberFormat(v, { isCurrency: true }) 
+                    },
+                    { 
+                        key: 'egresos_insumos', 
+                        label: 'Egresos Insumos', 
+                        format: (v: any) => safeNumberFormat(v, { isCurrency: true }) 
+                    },
+                    { 
+                        key: 'costo_mano_obra', 
+                        label: 'Costo Mano Obra', 
+                        format: (v: any) => safeNumberFormat(v, { isCurrency: true }) 
+                    },
+                    { 
+                        key: 'total_horas', 
+                        label: 'Horas Trabajadas', 
+                        format: (v: any) => safeNumberFormat(v) 
+                    },
+                    { 
+                        key: 'jornales', 
+                        label: 'Jornales', 
+                        format: (v: any) => safeNumberFormat(v) 
+                    }
                 ];
 
                 return (
@@ -198,8 +244,9 @@ const ModalesTrazabilidad = ({ modalAbierto, comparando, onCerrarModal }: Modale
                                         ))}
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             {(() => {
-                                                const diff = Number(snapshotsAComparar[1].datos[campo.key]) - Number(snapshotsAComparar[0].datos[campo.key]);
-                                                return campo.format(isNaN(diff) ? 0 : diff);
+                                                const val1 = Number(snapshotsAComparar[0].datos[campo.key]) || 0;
+                                                const val2 = Number(snapshotsAComparar[1].datos[campo.key]) || 0;
+                                                return campo.format(val2 - val1);
                                             })()}
                                         </td>
                                     </tr>
@@ -238,7 +285,7 @@ const ModalesTrazabilidad = ({ modalAbierto, comparando, onCerrarModal }: Modale
                         <p><strong>Nombre:</strong> {insumoData.nombre || 'Sin nombre'}</p>
                         <p><strong>Tipo:</strong> {insumoData.tipo_insumo || 'Sin tipo'}</p>
                         <p><strong>Cantidad:</strong> {insumoData.cantidad || '0'} {insumoData.unidad_medida || ''}</p>
-                        <p><strong>Costo total:</strong> ${(insumoData.costo_total || 0).toLocaleString()}</p>
+                        <p><strong>Costo total:</strong> {safeNumberFormat(insumoData.costo_total, { isCurrency: true })}</p>
                         {insumoData.actividad_asociada && <p><strong>Actividad asociada:</strong> {insumoData.actividad_asociada}</p>}
                     </div>
                 );
@@ -249,8 +296,8 @@ const ModalesTrazabilidad = ({ modalAbierto, comparando, onCerrarModal }: Modale
                     <div className="space-y-3">
                         <p><strong>Fecha:</strong> {ventaData.fecha || 'Sin fecha'}</p>
                         <p><strong>Cantidad:</strong> {ventaData.cantidad || '0'} {ventaData.unidad_medida || ''}</p>
-                        <p><strong>Precio unitario:</strong> ${(ventaData.precio_unidad || 0).toLocaleString()}</p>
-                        <p><strong>Total:</strong> ${(ventaData.ingreso_total || 0).toLocaleString()}</p>
+                        <p><strong>Precio unitario:</strong> {safeNumberFormat(ventaData.precio_unidad, { isCurrency: true })}</p>
+                        <p><strong>Total:</strong> {safeNumberFormat(ventaData.ingreso_total, { isCurrency: true })}</p>
                     </div>
                 );
 
@@ -278,21 +325,27 @@ const ModalesTrazabilidad = ({ modalAbierto, comparando, onCerrarModal }: Modale
                             <div className="space-y-2">
                                 <div className="flex justify-between">
                                     <span>Relación B/C:</span>
-                                    <span className="font-medium">{(snapshotData.datos.beneficio_costo || 0).toFixed(2)}</span>
+                                    <span className="font-medium">{safeNumberFormat(snapshotData.datos.beneficio_costo)}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span>Ingresos:</span>
-                                    <span className="font-medium">${(snapshotData.datos.ingresos_ventas || 0).toLocaleString()}</span>
+                                    <span className="font-medium">{safeNumberFormat(snapshotData.datos.ingresos_ventas, { isCurrency: true })}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span>Egresos totales:</span>
-                                    <span className="font-medium">${((snapshotData.datos.costo_mano_obra || 0) + (snapshotData.datos.egresos_insumos || 0)).toLocaleString()}</span>
+                                    <span className="font-medium">{safeNumberFormat(
+                                        (snapshotData.datos.costo_mano_obra || 0) + (snapshotData.datos.egresos_insumos || 0), 
+                                        { isCurrency: true }
+                                    )}</span>
                                 </div>
                                 <div className="border-t border-blue-200 my-2"></div>
                                 <div className="flex justify-between font-semibold">
                                     <span>Balance:</span>
                                     <span className={(snapshotData.datos.ingresos_ventas || 0) - ((snapshotData.datos.costo_mano_obra || 0) + (snapshotData.datos.egresos_insumos || 0)) >= 0 ? 'text-green-600' : 'text-red-600'}>
-                                        ${((snapshotData.datos.ingresos_ventas || 0) - ((snapshotData.datos.costo_mano_obra || 0) + (snapshotData.datos.egresos_insumos || 0))).toLocaleString()}
+                                        {safeNumberFormat(
+                                            (snapshotData.datos.ingresos_ventas || 0) - ((snapshotData.datos.costo_mano_obra || 0) + (snapshotData.datos.egresos_insumos || 0)), 
+                                            { isCurrency: true }
+                                        )}
                                     </span>
                                 </div>
                             </div>

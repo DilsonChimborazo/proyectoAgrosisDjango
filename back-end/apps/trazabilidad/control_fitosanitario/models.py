@@ -68,5 +68,5 @@ class Control_fitosanitario(models.Model):
 
     def __str__(self):
         
-        return f"plantacion: {self.fk_id_plantacion}, Insumo: {self.fk_id_insumo.nombre}, Cantidad: {self.cantidad_insumo}, Unidad: {self.fk_unidad_medida.nombre if self.fk_unidad_medida else 'N/A'}, Costo: {self.costo_insumo}pea: {self.fk_id_pea}" 
+        return f"plantacion: {self.fk_id_plantacion}, Insumo: {self.fk_id_insumo.nombre}, Cantidad: {self.cantidad_insumo}, Unidad: {self.fk_unidad_medida.nombre_medida if self.fk_unidad_medida else 'N/A'}, Costo: {self.costo_insumo}pea: {self.fk_id_pea}" 
 

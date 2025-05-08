@@ -15,6 +15,12 @@ interface ResumenTrazabilidadProps {
     onToggleComparar: (versionId: number) => void;
 }
 
+// Función utilitaria para formatear números de manera segura
+const formatNumber = (value: any, decimals: number = 2): string => {
+    const num = typeof value === 'number' ? value : parseFloat(value);
+    return (isNaN(num) ? 0 : num).toFixed(decimals);
+};
+
 const ResumenTrazabilidad = ({
     plantacionSeleccionada,
     isLoading,
@@ -26,50 +32,52 @@ const ResumenTrazabilidad = ({
     onAbrirModal,
     onToggleComparar
 }: ResumenTrazabilidadProps) => {
-    const datosParaTabla = ordenarSnapshots.map((s) => ({
-        versión: `v${s.version}`,
-        fecha: new Date(s.fecha_registro).toLocaleDateString(),
-        
-        'b/c': (s.datos.beneficio_costo || 0).toFixed(2),
-        balance: `$${(
-            (s.datos.ingresos_ventas || 0) - 
-            ((s.datos.costo_mano_obra || 0) + (s.datos.egresos_insumos || 0))
-        ).toLocaleString()}`,
-        acciones: (
-            <div className="flex gap-2">
-                <Button 
-                    text="Ver" 
-                    variant="outline" 
-                    size="xs"
-                    onClick={() => onAbrirModal('snapshot', s)}
-                />
-                <Button 
-                    text={comparando.includes(s.id) ? 'Quitar' : 'Comparar'} 
-                    variant={comparando.includes(s.id) ? 'danger' : 'primary'} 
-                    size="xs"
-                    onClick={() => onToggleComparar(s.id)}
-                    disabled={comparando.length >= 2 && !comparando.includes(s.id)}
-                />
-            </div>
-        )
-    }));
+    // Prepara los datos para la tabla de historial
+    const datosParaTabla = ordenarSnapshots.map((s) => {
+        const ingresos = s.datos.ingresos_ventas || 0;
+        const costos = (s.datos.costo_mano_obra || 0) + (s.datos.egresos_insumos || 0);
+
+        return {
+            versión: `v${s.version}`,
+            fecha: new Date(s.fecha_registro).toLocaleDateString(),
+            'b/c': formatNumber(s.datos.beneficio_costo),
+            balance: `$${(ingresos - costos).toLocaleString()}`,
+            acciones: (
+                <div className="flex gap-2">
+                    <Button
+                        text="Ver"
+                        variant="outline"
+                        size="xs"
+                        onClick={() => onAbrirModal('snapshot', s)}
+                    />
+                    <Button
+                        text={comparando.includes(s.id) ? 'Quitar' : 'Comparar'}
+                        variant={comparando.includes(s.id) ? 'danger' : 'primary'}
+                        size="xs"
+                        onClick={() => onToggleComparar(s.id)}
+                        disabled={comparando.length >= 2 && !comparando.includes(s.id)}
+                    />
+                </div>
+            )
+        };
+    });
 
     const handleCardClick = (tipo: string) => {
         if (!trazabilidadData) return;
-        
+
         const dataToShow = {
             ...trazabilidadData,
-            balance: (trazabilidadData.ingresos_ventas || 0) - 
-                   ((trazabilidadData.costo_mano_obra || 0) + (trazabilidadData.egresos_insumos || 0)),
+            balance: (trazabilidadData.ingresos_ventas || 0) -
+                ((trazabilidadData.costo_mano_obra || 0) + (trazabilidadData.egresos_insumos || 0)),
             egresos_totales: (trazabilidadData.costo_mano_obra || 0) + (trazabilidadData.egresos_insumos || 0),
-            beneficio_costo: parseFloat((trazabilidadData.beneficio_costo || 0).toFixed(2)),
+            beneficio_costo: parseFloat(formatNumber(trazabilidadData.beneficio_costo)),
             ingresos_ventas: trazabilidadData.ingresos_ventas || 0,
             costo_mano_obra: trazabilidadData.costo_mano_obra || 0,
             egresos_insumos: trazabilidadData.egresos_insumos || 0,
             total_horas: trazabilidadData.total_horas || 0,
             jornales: trazabilidadData.jornales || 0
         };
-        
+
         onAbrirModal(tipo, dataToShow);
     };
 
@@ -90,7 +98,7 @@ const ResumenTrazabilidad = ({
                                 <div className="flex justify-between items-start mb-4">
                                     <div>
                                         <h2 className="text-2xl font-semibold text-gray-800">
-                                            {trazabilidadData.cultivo || 'Sin nombre'} 
+                                            {trazabilidadData.cultivo || 'Sin nombre'}
                                             <span className="text-sm text-gray-500 ml-2">
                                                 (Plantado: {trazabilidadData.fecha_plantacion || 'Sin fecha'})
                                             </span>
@@ -103,7 +111,7 @@ const ResumenTrazabilidad = ({
                                         <span className="text-sm text-gray-500">
                                             Versión actual
                                         </span>
-                                        <Button 
+                                        <Button
                                             text="Historial"
                                             variant="outline"
                                             size="sm"
@@ -112,27 +120,27 @@ const ResumenTrazabilidad = ({
                                         />
                                     </div>
                                 </div>
-                                
+
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                                    <div 
-                                        className={`p-4 rounded-lg border ${(trazabilidadData.beneficio_costo || 0) >= 1 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'} cursor-pointer hover:shadow-md transition`}
+                                    <div
+                                        className={`p-4 rounded-lg border ${(parseFloat(formatNumber(trazabilidadData.beneficio_costo))) >= 1 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'} cursor-pointer hover:shadow-md transition`}
                                         onClick={() => handleCardClick('beneficio')}
                                     >
                                         <div className="flex justify-between items-start">
                                             <div>
                                                 <p className="text-sm font-medium text-gray-500">Relación B/C</p>
                                                 <p className="text-2xl font-bold mt-1">
-                                                    {(trazabilidadData.beneficio_costo || 0).toFixed(2)}
+                                                    {formatNumber(trazabilidadData.beneficio_costo)}
                                                 </p>
                                             </div>
-                                            <BarChart2 className={`h-6 w-6 ${(trazabilidadData.beneficio_costo || 0) >= 1 ? 'text-green-600' : 'text-red-600'}`} />
+                                            <BarChart2 className={`h-6 w-6 ${(parseFloat(formatNumber(trazabilidadData.beneficio_costo))) >= 1 ? 'text-green-600' : 'text-red-600'}`} />
                                         </div>
                                         <p className="text-xs mt-2">
-                                            {(trazabilidadData.beneficio_costo || 0) >= 1 ? 'Rentable' : 'No rentable'}
+                                            {(parseFloat(formatNumber(trazabilidadData.beneficio_costo))) >= 1 ? 'Rentable' : 'No rentable'}
                                         </p>
                                     </div>
-                                    
-                                    <div 
+
+                                    <div
                                         className="p-4 rounded-lg border border-blue-200 bg-blue-50 cursor-pointer hover:shadow-md transition"
                                         onClick={() => handleCardClick('finanzas')}
                                     >
@@ -149,8 +157,8 @@ const ResumenTrazabilidad = ({
                                             Ingresos: ${(trazabilidadData.ingresos_ventas || 0).toLocaleString()}
                                         </p>
                                     </div>
-                                    
-                                    <div 
+
+                                    <div
                                         className="p-4 rounded-lg border border-purple-200 bg-purple-50 cursor-pointer hover:shadow-md transition"
                                         onClick={() => handleCardClick('tiempo')}
                                     >
@@ -168,7 +176,7 @@ const ResumenTrazabilidad = ({
                                         </p>
                                     </div>
                                 </div>
-                                
+
                                 {seccionAbierta === 'historial' && (
                                     <div className="mb-6 border rounded-lg overflow-hidden">
                                         <div className="p-4 bg-gray-50 border-b">
@@ -191,9 +199,9 @@ const ResumenTrazabilidad = ({
                                         </div>
                                     </div>
                                 )}
-                                
+
                                 <div className="space-y-4">
-                                    <SeccionDesplegable 
+                                    <SeccionDesplegable
                                         titulo="Actividades realizadas"
                                         icono={<Activity className="h-5 w-5 text-green-600" />}
                                         cantidad={trazabilidadData.detalle_actividades?.length || 0}
@@ -203,11 +211,13 @@ const ResumenTrazabilidad = ({
                                         {trazabilidadData.detalle_actividades?.length > 0 ? (
                                             <Tabla
                                                 title=""
-                                                headers={['Actividad', 'Fecha', 'Duración', 'Estado']}
+                                                headers={['Actividad', 'Fecha', 'Responsable', 'Duración', 'Estado']}
                                                 data={trazabilidadData.detalle_actividades.map((a: any) => ({
                                                     actividad: a.actividad || 'Sin nombre',
-                                                    fecha: a.fecha_realizada || a.fecha_programada || 'Sin fecha',
-                                                    duración: `${a.duracion_minutos || '0'} min`,
+                                                    fecha: a.fecha_realizada ? new Date(a.fecha_realizada).toLocaleDateString() :
+                                                        (a.fecha_programada ? new Date(a.fecha_programada).toLocaleDateString() : 'Sin fecha'),
+                                                    responsable: a.responsable || 'No asignado',
+                                                    duración: `${a.duracion_minutos ? Math.round(a.duracion_minutos) : '0'} min`,
                                                     estado: a.estado || 'Sin estado'
                                                 }))}
                                                 onClickAction={(row) => onAbrirModal('actividad', row)}
@@ -217,8 +227,8 @@ const ResumenTrazabilidad = ({
                                             <p className="text-gray-500 text-center py-4">No hay actividades registradas</p>
                                         )}
                                     </SeccionDesplegable>
-                                    
-                                    <SeccionDesplegable 
+
+                                    <SeccionDesplegable
                                         titulo="Insumos utilizados"
                                         icono={<Package className="h-5 w-5 text-blue-600" />}
                                         cantidad={trazabilidadData.detalle_insumos?.length || 0}
@@ -242,8 +252,8 @@ const ResumenTrazabilidad = ({
                                             <p className="text-gray-500 text-center py-4">No hay insumos registrados</p>
                                         )}
                                     </SeccionDesplegable>
-                                    
-                                    <SeccionDesplegable 
+
+                                    <SeccionDesplegable
                                         titulo="Ventas realizadas"
                                         icono={<DollarSign className="h-5 w-5 text-green-600" />}
                                         cantidad={trazabilidadData.detalle_ventas?.length || 0}
@@ -285,13 +295,13 @@ const ResumenTrazabilidad = ({
     );
 };
 
-const SeccionDesplegable = ({ 
-    titulo, 
-    icono, 
-    cantidad, 
-    abierta, 
-    onToggle, 
-    children 
+const SeccionDesplegable = ({
+    titulo,
+    icono,
+    cantidad,
+    abierta,
+    onToggle,
+    children
 }: {
     titulo: string;
     icono: React.ReactNode;
@@ -302,7 +312,7 @@ const SeccionDesplegable = ({
 }) => {
     return (
         <div className="border rounded-lg overflow-hidden">
-            <button 
+            <button
                 className="w-full flex justify-between items-center p-4 bg-gray-50 hover:bg-gray-100 transition"
                 onClick={onToggle}
             >
@@ -313,7 +323,7 @@ const SeccionDesplegable = ({
                 </div>
                 {abierta ? <ChevronUp /> : <ChevronDown />}
             </button>
-            
+
             {abierta && (
                 <div className="p-4 border-t">
                     {children}
