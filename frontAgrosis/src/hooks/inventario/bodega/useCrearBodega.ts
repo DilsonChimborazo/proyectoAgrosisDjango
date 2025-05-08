@@ -3,15 +3,14 @@ import axios from 'axios';
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
-export interface MovimientoBodegaPayload {
-    fk_id_herramientas: number | null;
-    fk_id_insumo: number | null;
-    fk_id_asignacion: number | null;
-    cantidad_insumo: number | null;
-    cantidad_herramienta: number | null,
-    fecha: string;
-    movimiento: 'Entrada' | 'Salida';
-    
+interface MovimientoBodegaPayload {
+  fk_id_herramientas?: number | number[];
+  fk_id_insumo?: number | number[];
+  cantidad_herramienta?: number | number[];
+  cantidad_insumo?: number | number[];
+  fk_id_asignacion?: number | null;
+  fecha: string;
+  movimiento: "Entrada" | "Salida";
 }
 
 export interface Herramientas {

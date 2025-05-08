@@ -6,6 +6,7 @@ from apps.inventario.unidadMedida.models import UnidadMedida
 from decimal import Decimal
 
 
+
 class Bodega(models.Model):
     movimientos = [
         ('Entrada', 'Entrada'),
@@ -63,10 +64,21 @@ class Bodega(models.Model):
                 else:
                     raise ValueError("La cantidad a retirar excede la cantidad disponible en herramientas")
             elif self.movimiento == 'Entrada':
-                herramienta.cantidad_herramienta += self.cantidad_herramienta
+                herramienta.cantidad_herramienta = self.cantidad_herramienta
                 herramienta.save()
 
+        # Manejo de movimientos de insumos
+        if self.fk_id_insumo and self.cantidad_insumo:
+            insumo = self.fk_id_insumo
+            if self.movimiento == 'Salida':
+                if insumo.cantidad_insumo >= self.cantidad_insumo:
+                    insumo.cantidad_insumo -= self.cantidad_insumo
+                    insumo.save()
+                else:
+                    raise ValueError("La cantidad a retirar excede la cantidad disponible en insumos")
+
         super().save(*args, **kwargs)
+
 
     def __str__(self):
         cantidad = self.cantidad

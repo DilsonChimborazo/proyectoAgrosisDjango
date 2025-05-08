@@ -16,6 +16,11 @@ interface Props {
   onClick: (nuevo: Insumo) => void;
 }
 
+interface ItemSeleccionado {
+  id: number;
+  cantidad: number;
+}
+
 const RegistrarSalidaBodega = ({
   herramientas,
   insumos: insumosIniciales = [],
@@ -26,71 +31,70 @@ const RegistrarSalidaBodega = ({
   const { mutate: crearMovimientoBodega } = useCrearBodega();
   const navigate = useNavigate();
 
-  const [, setMensaje] = useState("");
+  const [mensaje, setMensaje] = useState("");
   const [tipoInsumo, setTipoInsumo] = useState<"simple" | "compuesto">("simple");
   const [insumos] = useState<Insumo[]>(insumosIniciales);
   const [insumosCompuestos, setInsumosCompuestos] = useState<Insumo[]>(insumosCompuestosIniciales);
-  const [herramientaSeleccionada, setHerramientaSeleccionada] = useState<Herramientas | null>(null);
-  const [insumoSeleccionado, setInsumoSeleccionado] = useState<Insumo | null>(null);
+  const [herramientasSeleccionadas, setHerramientasSeleccionadas] = useState<ItemSeleccionado[]>([]);
+  const [insumosSeleccionados, setInsumosSeleccionados] = useState<ItemSeleccionado[]>([]);
   const [mostrarModalHerramienta, setMostrarModalHerramienta] = useState(false);
   const [mostrarModalInsumo, setMostrarModalInsumo] = useState(false);
   const [mostrarCrearCompuesto, setMostrarCrearCompuesto] = useState(false);
   const [tabActual, setTabActual] = useState<"simples" | "compuestos">("simples");
+
   const agregarNuevoInsumo = (nuevo: Insumo) => {
     setInsumosCompuestos([...insumosCompuestos, nuevo]);
-    setInsumoSeleccionado(nuevo);
+    setInsumosSeleccionados([...insumosSeleccionados, { id: nuevo.id, cantidad: 1 }]);
     onClick(nuevo);
   };
-  
+
+  const agregarHerramienta = (herramienta: Herramientas) => {
+    if (!herramientasSeleccionadas.some(h => h.id === herramienta.id)) {
+      setHerramientasSeleccionadas([
+        ...herramientasSeleccionadas,
+        { id: herramienta.id, cantidad: 1 }
+      ]);
+    }
+  };
+
+  const agregarInsumo = (insumo: Insumo) => {
+    if (!insumosSeleccionados.some(i => i.id === insumo.id)) {
+      setInsumosSeleccionados([
+        ...insumosSeleccionados,
+        { id: insumo.id, cantidad: 1 }
+      ]);
+    }
+  };
+
+  const eliminarHerramienta = (id: number) => {
+    setHerramientasSeleccionadas(
+      herramientasSeleccionadas.filter(h => h.id !== id)
+    );
+  };
+
+  const eliminarInsumo = (id: number) => {
+    setInsumosSeleccionados(
+      insumosSeleccionados.filter(i => i.id !== id)
+    );
+  };
+
+  const actualizarCantidadHerramienta = (id: number, cantidad: number) => {
+    setHerramientasSeleccionadas(
+      herramientasSeleccionadas.map(h => 
+        h.id === id ? { ...h, cantidad } : h
+      )
+    );
+  };
+
+  const actualizarCantidadInsumo = (id: number, cantidad: number) => {
+    setInsumosSeleccionados(
+      insumosSeleccionados.map(i => 
+        i.id === id ? { ...i, cantidad } : i
+      )
+    );
+  };
 
   const formFields = [
-    {
-      id: "fk_id_herramientas",
-      label: "Herramienta (opcional)",
-      type: "select",
-      options: herramientas.map((h) => ({
-        value: h.id.toString(),
-        label: h.nombre_h,
-      })),
-      hasExtraButton: true,
-      onExtraButtonClick: () => setMostrarModalHerramienta(true),
-      onChange: (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
-        if (e.target instanceof HTMLSelectElement) {
-          const selected = herramientas.find((h) => h.id.toString() === e.target.value);
-          setHerramientaSeleccionada(selected || null);
-        }
-      }
-    },
-    {
-      id: "cantidad_herramienta",
-      label: "Cantidad de Herramienta",
-      type: "number",
-    },
-    {
-      id: "fk_id_insumo",
-      label: tipoInsumo === "simple" ? "Insumo Simple" : "Insumo Compuesto",
-      type: "select",
-      options: (tipoInsumo === "simple" ? insumos : insumosCompuestos).map((i) => ({
-        value: i.id.toString(),
-        label: i.nombre,
-      })),
-      hasExtraButton: tipoInsumo === "compuesto",
-      onExtraButtonClick: () => setMostrarCrearCompuesto(true),
-      onChange: (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const allInsumos = tipoInsumo === "simple" ? insumos : insumosCompuestos;
-        const selected = allInsumos.find((i) => i.id.toString() === e.target.value);
-        setInsumoSeleccionado(selected || null);
-      }      
-    },
-    ...(tipoInsumo === "simple"
-      ? [
-          {
-            id: "cantidad_insumo",
-            label: "Cantidad de Insumo",
-            type: "number",
-          },
-        ]
-      : []),
     {
       id: "fk_id_asignacion",
       label: "Asignación relacionada",
@@ -108,21 +112,22 @@ const RegistrarSalidaBodega = ({
   ];
 
   const handleSubmit = (formData: any) => {
-    const salida = {
-      fk_id_herramientas: herramientaSeleccionada ? herramientaSeleccionada.id : null,
-      fk_id_insumo: insumoSeleccionado ? insumoSeleccionado.id : null,
-      fk_id_asignacion: formData.fk_id_asignacion ? parseInt(formData.fk_id_asignacion) : null,
-      cantidad_herramienta: Number(formData.cantidad_herramienta) || 0,
-      cantidad_insumo: tipoInsumo === "simple" ? Number(formData.cantidad_insumo) || 0 : 0,
-      fecha: formData.fecha,
-      movimiento: "Salida" as const,
-    };
-
-    if (!salida.fk_id_herramientas && !salida.fk_id_insumo) {
+    if (herramientasSeleccionadas.length === 0 && insumosSeleccionados.length === 0) {
       setMensaje("Debes seleccionar al menos una herramienta o un insumo.");
       return;
     }
-
+  
+    // Transformar los datos al formato esperado por la API
+    const salida = {
+      fk_id_herramientas: herramientasSeleccionadas.map(h => h.id),
+      fk_id_insumo: insumosSeleccionados.map(i => i.id),
+      cantidad_herramienta: herramientasSeleccionadas.map(h => h.cantidad),
+      cantidad_insumo: insumosSeleccionados.map(i => i.cantidad),
+      fk_id_asignacion: formData.fk_id_asignacion ? parseInt(formData.fk_id_asignacion) : null,
+      fecha: formData.fecha,
+      movimiento: "Salida" as const,
+    };
+  
     crearMovimientoBodega(salida, {
       onSuccess: () => {
         setMensaje("Salida registrada exitosamente.");
@@ -138,67 +143,143 @@ const RegistrarSalidaBodega = ({
     <div className="container mx-auto p-4">
       <h2 className="text-xl text-center font-bold mb-6">Registrar Salida de Bodega</h2>
 
+      {mensaje && (
+        <div className="mb-4 p-2 bg-blue-100 text-blue-800 rounded">
+          {mensaje}
+        </div>
+      )}
+
       <div className="mb-6 flex justify-center gap-4 flex-wrap">
         <button
-          className={`px-4 py-2 rounded-md ${herramientaSeleccionada ? 'bg-blue-700' : 'bg-blue-600'} text-white`}
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md"
           onClick={() => setMostrarModalHerramienta(true)}
         >
-          {herramientaSeleccionada ? `Herramienta: ${herramientaSeleccionada.nombre_h}` : "Seleccionar Herramienta"}
+          + Agregar Herramientas
         </button>
 
         <button
-          className={`px-4 py-2 rounded-md ${insumoSeleccionado ? 'bg-green-700' : 'bg-green-600'} text-white`}
+          className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md"
           onClick={() => {
             setMostrarModalInsumo(true);
             setTabActual(tipoInsumo === "compuesto" ? "compuestos" : "simples");
           }}
         >
-          {insumoSeleccionado ? `Insumo: ${insumoSeleccionado.nombre}` : "Seleccionar Insumo"}
+          + Agregar Insumos
         </button>
       </div>
+
+      {/* Lista de herramientas seleccionadas */}
+      {herramientasSeleccionadas.length > 0 && (
+        <div className="mb-6">
+          <h3 className="font-semibold mb-2">Herramientas seleccionadas:</h3>
+          <div className="space-y-2">
+            {herramientasSeleccionadas.map((h) => {
+              const herramienta = herramientas.find(her => her.id === h.id);
+              return (
+                <div key={h.id} className="flex items-center gap-4 p-2 border rounded">
+                  <div className="flex-1">
+                    <span className="font-medium">{herramienta?.nombre_h}</span>
+                    <span className="text-gray-600 ml-2">(Disponibles: {herramienta?.cantidad_herramienta})</span>
+                  </div>
+                  <input
+                    type="number"
+                    min="1"
+                    max={herramienta?.cantidad_herramienta}
+                    value={h.cantidad}
+                    onChange={(e) => actualizarCantidadHerramienta(h.id, parseInt(e.target.value) || 1)}
+                    className="w-20 p-1 border rounded"
+                  />
+                  <button
+                    onClick={() => eliminarHerramienta(h.id)}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Lista de insumos seleccionados */}
+      {insumosSeleccionados.length > 0 && (
+        <div className="mb-6">
+          <h3 className="font-semibold mb-2">Insumos seleccionados:</h3>
+          <div className="space-y-2">
+            {insumosSeleccionados.map((i) => {
+              const insumo = [...insumos, ...insumosCompuestos].find(ins => ins.id === i.id);
+              return (
+                <div key={i.id} className="flex items-center gap-4 p-2 border rounded">
+                  <div className="flex-1">
+                    <span className="font-medium">{insumo?.nombre}</span>
+                    <span className="text-gray-600 ml-2">(Disponibles: {insumo?.cantidad_insumo})</span>
+                  </div>
+                  {tipoInsumo === "simple" && (
+                    <input
+                      type="number"
+                      min="1"
+                      max={insumo?.cantidad_insumo}
+                      value={i.cantidad}
+                      onChange={(e) => actualizarCantidadInsumo(i.id, parseInt(e.target.value) || 1)}
+                      className="w-20 p-1 border rounded"
+                    />
+                  )}
+                  <button
+                    onClick={() => eliminarInsumo(i.id)}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <Formulario 
         fields={formFields} 
         onSubmit={handleSubmit} 
         title="Registrar Salida"
-      >
-      </Formulario>
-
-      {tipoInsumo === "compuesto" && (
-        <div className="mt-6 text-center">
-          <button
-            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md"
-            onClick={() => setMostrarCrearCompuesto(true)}
-          >
-            + Crear Nuevo Insumo Compuesto
-          </button>
-        </div>
-      )}
+      />
 
       <VentanaModal
         isOpen={mostrarModalHerramienta}
         onClose={() => setMostrarModalHerramienta(false)}
-        titulo="Seleccionar Herramienta"
+        titulo="Seleccionar Herramientas"
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {herramientas.map((h) => (
             <div
               key={h.id}
-              className="border p-4 rounded-lg shadow-sm cursor-pointer hover:bg-blue-50 transition-colors"
-              onClick={() => {
-                setHerramientaSeleccionada(h);
-                setMostrarModalHerramienta(false);
-              }}
+              className={`border p-4 rounded-lg shadow-sm cursor-pointer transition-colors ${
+                herramientasSeleccionadas.some(sel => sel.id === h.id) 
+                  ? "bg-blue-100" 
+                  : "hover:bg-blue-50"
+              }`}
+              onClick={() => agregarHerramienta(h)}
             >
               <h4 className="font-semibold text-lg">{h.nombre_h}</h4>
               <p className="text-gray-600">Disponibles: {h.cantidad_herramienta}</p>
+              {herramientasSeleccionadas.some(sel => sel.id === h.id) && (
+                <div className="mt-2 text-green-600">Seleccionada</div>
+              )}
             </div>
           ))}
+        </div>
+        <div className="mt-4 flex justify-end">
+          <button
+            className="px-4 py-2 bg-blue-600 text-white rounded-md"
+            onClick={() => setMostrarModalHerramienta(false)}
+          >
+            Cerrar
+          </button>
         </div>
       </VentanaModal>
 
       <VentanaModal
-        titulo="Seleccionar Insumo"
+        titulo="Seleccionar Insumos"
         isOpen={mostrarModalInsumo}
         onClose={() => setMostrarModalInsumo(false)}
       >
@@ -227,16 +308,43 @@ const RegistrarSalidaBodega = ({
           {(tabActual === "simples" ? insumos : insumosCompuestos).map((i) => (
             <div
               key={i.id}
-              className="border p-4 rounded-lg shadow-sm cursor-pointer hover:bg-green-50 transition-colors"
-              onClick={() => {
-                setInsumoSeleccionado(i);
-                setMostrarModalInsumo(false);
-              }}
+              className={`border p-4 rounded-lg shadow-sm cursor-pointer transition-colors ${
+                insumosSeleccionados.some(sel => sel.id === i.id) 
+                  ? "bg-green-100" 
+                  : "hover:bg-green-50"
+              }`}
+              onClick={() => agregarInsumo(i)}
             >
               <h4 className="font-semibold text-lg">{i.nombre}</h4>
               <p className="text-gray-600">Disponibles: {i.cantidad_insumo}</p>
+              {insumosSeleccionados.some(sel => sel.id === i.id) && (
+                <div className="mt-2 text-green-600">Seleccionado</div>
+              )}
             </div>
           ))}
+        </div>
+
+        {tabActual === "compuestos" && (
+          <div className="mt-4 text-center">
+            <button
+              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md"
+              onClick={() => {
+                setMostrarModalInsumo(false);
+                setMostrarCrearCompuesto(true);
+              }}
+            >
+              + Crear Nuevo Insumo Compuesto
+            </button>
+          </div>
+        )}
+
+        <div className="mt-4 flex justify-end">
+          <button
+            className="px-4 py-2 bg-blue-600 text-white rounded-md"
+            onClick={() => setMostrarModalInsumo(false)}
+          >
+            Cerrar
+          </button>
         </div>
       </VentanaModal>
 
@@ -246,8 +354,9 @@ const RegistrarSalidaBodega = ({
         onClose={() => setMostrarCrearCompuesto(false)}
       >
         <CrearInsumoCompuesto 
-        onSuccess={agregarNuevoInsumo} 
-        onClose={() => setMostrarCrearCompuesto(false)} />
+          onSuccess={agregarNuevoInsumo} 
+          onClose={() => setMostrarCrearCompuesto(false)} 
+        />
       </VentanaModal>
     </div>
   );

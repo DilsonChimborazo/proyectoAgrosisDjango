@@ -71,6 +71,8 @@ interface MovimientoBodega {
     costo_insumo: number | null;
 }
 
+
+
 interface DetalleInsumoCompuesto {
     id: number;
     cantidad_utilizada: number;
@@ -404,7 +406,7 @@ const ListarBodega = () => {
             [tipoSeleccionado === "Herramienta" ? "herramienta" : "insumo"]: nombre,
             asignacion: item.fk_id_asignacion?.fecha_programada 
                 ? formatDateWithoutTimezone(item.fk_id_asignacion.fecha_programada)
-                : "esta monda",
+                : "No aplica",
             cantidad: <span className={bgCantidad}>{cantidad}</span>,
             unidad_medida: unidadMedida,
             cantidad_base: cantidadBase,
