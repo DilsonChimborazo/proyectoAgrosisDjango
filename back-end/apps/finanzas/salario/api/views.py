@@ -7,7 +7,7 @@ from apps.finanzas.salario.api.serializers import (
 )
 
 class SalarioViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    #permission_classes = [IsAuthenticatedOrReadOnly]
     queryset = Salario.objects.all()
 
     def get_serializer_class(self):

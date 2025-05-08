@@ -5,4 +5,4 @@ from apps.finanzas.nomina.models import Salario
 
 @admin.register(Salario)
 class SalarioAdmin(admin.ModelAdmin):
-    list_display = ('jornal', 'precio_jornal')
+    list_display = ('precio_jornal', 'horas_por_jornal','fecha_inicio','fecha_fin','activo')
