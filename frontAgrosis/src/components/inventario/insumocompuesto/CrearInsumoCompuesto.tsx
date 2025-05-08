@@ -16,14 +16,8 @@ const CrearInsumoCompuesto: React.FC<Props> = ({ onSuccess, onClose }) => {
 
   const [nombre, setNombre] = useState("");
   const [fkUnidadMedida, setFkUnidadMedida] = useState<number | "">("");
-  const [detalles, setDetalles] = useState<{
-    insumo: number;
-    cantidad_utilizada: number;
-  }[]>([]);
-  const [selectedInsumos, setSelectedInsumos] = useState<{
-    insumoId: number;
-    cantidad: number;
-  }[]>([]);
+  const [detalles, setDetalles] = useState<{ insumo: number; cantidad_utilizada: number }[]>([]);
+  const [selectedInsumos, setSelectedInsumos] = useState<{ insumoId: number; cantidad: number }[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [insumoErrors, setInsumoErrors] = useState<{ [key: number]: string }>({});
 
@@ -45,9 +39,7 @@ const CrearInsumoCompuesto: React.FC<Props> = ({ onSuccess, onClose }) => {
 
       setSelectedInsumos((prev) =>
         prev.map((item) =>
-          item.insumoId === insumoId
-            ? { ...item, cantidad: cantidadNumero }
-            : item
+          item.insumoId === insumoId ? { ...item, cantidad: cantidadNumero } : item
         )
       );
     }
@@ -75,13 +67,22 @@ const CrearInsumoCompuesto: React.FC<Props> = ({ onSuccess, onClose }) => {
   };
 
   const handleAddDetalle = () => {
-    const nuevosDetalles = selectedInsumos.map((item) => ({
-      insumo: item.insumoId,
-      cantidad_utilizada: item.cantidad,
-    }));
-    setDetalles((prev) => [...prev, ...nuevosDetalles]);
+    setDetalles((prev) => {
+      const nuevos = [...prev];
+      selectedInsumos.forEach((item) => {
+        const index = nuevos.findIndex((detalle) => detalle.insumo === item.insumoId);
+        if (index !== -1) {
+          nuevos[index].cantidad_utilizada = item.cantidad;
+        } else {
+          nuevos.push({ insumo: item.insumoId, cantidad_utilizada: item.cantidad });
+        }
+      });
+      return nuevos;
+    });
+
     setIsModalOpen(false);
     setSelectedInsumos([]);
+    setInsumoErrors({});
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -101,18 +102,16 @@ const CrearInsumoCompuesto: React.FC<Props> = ({ onSuccess, onClose }) => {
 
       const nuevoInsumo = await mutateAsync(datosAEnviar);
       alert("Insumo compuesto creado exitosamente");
-      
-      if (onSuccess) {
-        onSuccess(nuevoInsumo);
-      }
-      
-      if (onClose) {
-        onClose();
-      }
-      
+
+      if (onSuccess) onSuccess(nuevoInsumo);
+      if (onClose) onClose();
+
+      // Reset form
       setNombre("");
       setFkUnidadMedida("");
       setDetalles([]);
+      setSelectedInsumos([]);
+      setInsumoErrors({});
     } catch (error) {
       console.error(error);
       alert("Error al crear el insumo compuesto.");
@@ -202,11 +201,7 @@ const CrearInsumoCompuesto: React.FC<Props> = ({ onSuccess, onClose }) => {
         </div>
       </form>
 
-      <VentanaModal
-        titulo=""
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      >
+      <VentanaModal titulo="" isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <div className="flex flex-col gap-6 w-full max-h-[85vh] overflow-auto p-6 bg-white rounded shadow-lg">
           <div className="w-full overflow-y-auto">
             <h4 className="font-semibold text-xl mb-4 text-gray-700">
@@ -216,8 +211,7 @@ const CrearInsumoCompuesto: React.FC<Props> = ({ onSuccess, onClose }) => {
               {insumos?.map((insumo) => {
                 let cantidadClass = "bg-gray-100";
                 if (insumo.cantidad_insumo < 10) cantidadClass = "bg-red-500";
-                else if (insumo.cantidad_insumo <= 20)
-                  cantidadClass = "bg-orange-500";
+                else if (insumo.cantidad_insumo <= 20) cantidadClass = "bg-orange-500";
                 else cantidadClass = "bg-green-500";
 
                 return (
@@ -238,7 +232,9 @@ const CrearInsumoCompuesto: React.FC<Props> = ({ onSuccess, onClose }) => {
                     >
                       Cantidad disponible: {insumo.cantidad_insumo}
                     </p>
-                    vencimiento: {insumo.fecha_vencimiento}
+                    <p className="text-xs text-gray-600 mt-1">
+                      Vencimiento: {insumo.fecha_vencimiento}
+                    </p>
                   </div>
                 );
               })}
@@ -256,10 +252,7 @@ const CrearInsumoCompuesto: React.FC<Props> = ({ onSuccess, onClose }) => {
                   className="p-3 border rounded shadow-sm bg-gray-50"
                 >
                   <span className="font-semibold text-gray-800 block mb-2">
-                    {
-                      insumos?.find((insumo) => insumo.id === item.insumoId)
-                        ?.nombre
-                    }
+                    {insumos?.find((i) => i.id === item.insumoId)?.nombre}
                   </span>
                   <input
                     type="number"

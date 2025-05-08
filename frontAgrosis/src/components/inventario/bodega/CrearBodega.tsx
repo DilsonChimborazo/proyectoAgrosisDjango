@@ -119,10 +119,14 @@ const RegistrarSalidaBodega = ({
   
     // Transformar los datos al formato esperado por la API
     const salida = {
-      fk_id_herramientas: herramientasSeleccionadas.map(h => h.id),
-      fk_id_insumo: insumosSeleccionados.map(i => i.id),
-      cantidad_herramienta: herramientasSeleccionadas.map(h => h.cantidad),
-      cantidad_insumo: insumosSeleccionados.map(i => i.cantidad),
+      herramientas: herramientasSeleccionadas.map(h => ({
+        id: h.id,
+        cantidad: h.cantidad
+      })),
+      insumos: insumosSeleccionados.map(i => ({
+        id: i.id,
+        cantidad: i.cantidad
+      })),
       fk_id_asignacion: formData.fk_id_asignacion ? parseInt(formData.fk_id_asignacion) : null,
       fecha: formData.fecha,
       movimiento: "Salida" as const,

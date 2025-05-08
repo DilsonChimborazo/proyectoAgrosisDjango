@@ -93,7 +93,7 @@ export const useCrearBodega = () => {
         mutationFn: async (movimiento: MovimientoBodegaPayload) => {
             const token = localStorage.getItem("token");
             if (!token) throw new Error("No se ha encontrado un token de autenticación");
-
+            
             const response = await axios.post(
                 `${apiUrl}bodega/`,
                 movimiento,
@@ -103,6 +103,7 @@ export const useCrearBodega = () => {
                     },
                 }
             );
+            console.log("Datos enviados a la API:", movimiento);
 
             return response.data;
         },

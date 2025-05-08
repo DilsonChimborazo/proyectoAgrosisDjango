@@ -7,11 +7,11 @@ from django.db import transaction
 
 class MovimientoHerramientaSerializer(serializers.Serializer):
     id = serializers.IntegerField()
-    cantidad = serializers.IntegerField(min_value=1)
+    cantidad = serializers.IntegerField()
 
 class MovimientoInsumoSerializer(serializers.Serializer):
     id = serializers.IntegerField()
-    cantidad = serializers.IntegerField(min_value=1)
+    cantidad = serializers.IntegerField()
 
 class LeerBodegaSerializer(serializers.ModelSerializer):
     fk_id_herramientas = HerramientasSerializer()
