@@ -15,7 +15,6 @@ const Lotes = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContenido, setModalContenido] = useState<React.ReactNode>(null);
   const [esAdministrador, setEsAdministrador] = useState(false);
-  const [mensaje, setMensaje] = useState<string | null>(null);
   const navigate = useNavigate();
 
   // Verificar si el usuario es administrador
@@ -28,22 +27,16 @@ const Lotes = () => {
   const handleToggleStatus = async (lote: any) => {
     const token = localStorage.getItem('token');
     if (!token) {
-      setMensaje('Debes iniciar sesión para realizar esta acción.');
-      setTimeout(() => {
-        setMensaje(null);
-        navigate('/login');
-      }, 3000);
+      navigate('/login');
       return;
     }
 
     if (!esAdministrador) {
-      setMensaje('No tienes permisos de administrador para realizar esta acción.');
-      setTimeout(() => setMensaje(null), 3000);
       return;
     }
 
-    const action = lote.estado === "Activo" ? "desactivar" : "activar";
-    const url = `http://localhost:8000/api/lotes/${lote.id}/${action}/`;
+    const action = lote.estado ? "desactivar" : "activar";
+    const url = `${import.meta.env.VITE_API_URL}lote/${lote.id}/${action}/`;
 
     try {
       const response = await fetch(url, {
@@ -55,14 +48,19 @@ const Lotes = () => {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `Error al ${action} el lote`);
+        const contentType = response.headers.get("content-type");
+        let errorMessage = `Error al ${action} el lote`;
+        if (contentType && contentType.includes("application/json")) {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } else {
+          errorMessage = `Error ${response.status}: ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
       }
 
       refetch();
-      setTimeout(() => setMensaje(null), 3000);
-    } catch (error) {
-      setTimeout(() => setMensaje(null), 3000);
+    } catch (error: any) {
       console.error(`Error al ${action} el lote:`, error);
     }
   };
@@ -87,8 +85,6 @@ const Lotes = () => {
 
   const openCreateModal = () => {
     if (!esAdministrador) {
-      setMensaje("No tienes permisos para crear lotes.");
-      setTimeout(() => setMensaje(null), 3000);
       return;
     }
     setSelectedLote(null);
@@ -118,8 +114,6 @@ const Lotes = () => {
 
   const handleUpdateClick = (lote: { id: number }) => {
     if (!esAdministrador) {
-      setMensaje("No tienes permisos para editar lotes.");
-      setTimeout(() => setMensaje(null), 3000);
       return;
     }
     const originalLote = lotes?.find((l: any) => l.id === lote.id);
@@ -128,57 +122,47 @@ const Lotes = () => {
     }
   };
 
-  const headers = ["ID", "Nombre", "Dimencion", "Estado"];
+  const headers = ["ID", "Nombre", "dimencion", "Estado"];
 
   if (isLoading) return <div>Cargando lotes...</div>;
   if (error instanceof Error) {
     return (
       <div>
         Error al cargar lotes: {error.message}
-        {error.message.includes('inicia sesión') && (
-          <button
-            onClick={() => navigate('/login')}
-            className="ml-4 text-blue-600 hover:underline"
-          >
-            Iniciar sesión
-          </button>
-        )}
       </div>
     );
   }
 
   const lotesList = Array.isArray(lotes) ? lotes : [];
 
-  const mappedLotes = lotesList.map((item) => ({
-    id: item.id,
-    nombre: item.nombre_lote,
-    dimencion: item.dimencion,
-    estado: esAdministrador ? (
-      <Switch
-        onChange={() => handleToggleStatus(item)}
-        checked={item.estado}
-        onColor="#2563EB"
-        offColor="#D1D5DB"
-        uncheckedIcon={false}
-        checkedIcon={false}
-        height={20}
-        width={40}
-        handleDiameter={16}
-      />
-    ) : (
-      <span className="text-sm text-gray-500">
-        {item.estado ? "Activo" : "Inactivo"}
-      </span>
-    ),
-  }));
+  const mappedLotes = lotesList
+    .sort((a, b) => (a.estado === b.estado ? 0 : a.estado ? -1 : 1)) // Ordena: activos primero, inactivos después
+    .map((item) => ({
+      id: item.id,
+      nombre: item.nombre_lote,
+      dimencion: item.dimencion,
+      estado: esAdministrador ? (
+        <Switch
+          onChange={() => handleToggleStatus(item)}
+          checked={item.estado}
+          onColor="#2563EB"
+          offColor="#D1D5DB"
+          uncheckedIcon={false}
+          checkedIcon={false}
+          height={20}
+          width={40}
+          handleDiameter={16}
+        />
+      ) : (
+        <span className={`text-sm ${item.estado ? "text-green-500" : "text-red-500"}`}>
+          {item.estado ? "Activo" : "Inactivo"}
+        </span>
+      ),
+      rowClassName: item.estado ? "bg-white" : "bg-gray-100" // Color de fondo según estado
+    }));
 
   return (
     <div className="overflow-x-auto shadow-md rounded-lg">
-      {mensaje && (
-        <div className="mb-2 p-2 bg-yellow-500 text-white text-center rounded-md">
-          {mensaje}
-        </div>
-      )}
       <Tabla
         title="Lotes Registrados"
         headers={headers}
@@ -206,7 +190,7 @@ const Lotes = () => {
               <div className="grid grid-cols-2 gap-4">
                 <p><strong>ID:</strong> {(selectedLote as any).id}</p>
                 <p><strong>Nombre:</strong> {(selectedLote as any).nombre_lote || "Sin nombre"}</p>
-                <p><strong>Dimensión:</strong> {(selectedLote as any).dimencion || "Sin dimención"}</p>
+                <p><strong>Dimensión:</strong> {(selectedLote as any).dimencion || "Sin dimensión"}</p>
                 <p><strong>Estado:</strong> {(selectedLote as any).estado ? "Activo" : "Inactivo"}</p>
               </div>
             ) : (

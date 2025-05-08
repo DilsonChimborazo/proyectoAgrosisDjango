@@ -4,28 +4,39 @@ from django.dispatch import receiver
 from channels.layers import get_channel_layer
 import json
 # Create your models here.
-from django.db import models
 
 class Sensores(models.Model):
     TIPO_SENSOR_CHOICES = [
         ('TEMPERATURA', 'Temperatura'),
         ('HUMEDAD_AMBIENTAL', 'Humedad ambiental'),
-        ('ILUMINACION', 'Iluminacion'),
+        ('ILUMINACION', 'Iluminación'),
         ('HUMEDAD_TERRENO', 'Humedad terreno'),
         ('VELOCIDAD_VIENTO', 'Velocidad viento'),
         ('NIVEL_DE_PH', 'Nivel de pH'),
-        ('PRESION_ATMOSFERICA', 'Presión atmosférica'),  # Nuevo tipo
-        ('RADIACION_SOLAR', 'Radiación solar'),  # Agregado
+        ('PRESION_ATMOSFERICA', 'Presión atmosférica'),
+        ('RADIACION_SOLAR', 'Radiación solar'),
     ]
+
+    UNIDAD_MEDIDA_CHOICES = [
+        ('°C', '°C'),
+        ('%', '%'),
+        ('Lux', 'Lux'),
+        ('m/s', 'm/s'),
+        ('pH', 'pH'),
+        ('hPa', 'hPa'),
+        ('W/m²', 'W/m²'),
+    ]
+
     nombre_sensor = models.CharField(max_length=50)
     tipo_sensor = models.CharField(max_length=50, choices=TIPO_SENSOR_CHOICES, unique=True)
-    unidad_medida = models.CharField(max_length=50)
+    unidad_medida = models.CharField(max_length=10, choices=UNIDAD_MEDIDA_CHOICES)
     descripcion = models.TextField()
     medida_minima = models.IntegerField()
     medida_maxima = models.IntegerField()
 
     def __str__(self):
-        return self.nombre_sensor
+        return self.nombre_sensor 
+
 
 @receiver(post_save, sender=Sensores)
 def enviar_datos_sensores(sender, instance, **kwargs):
