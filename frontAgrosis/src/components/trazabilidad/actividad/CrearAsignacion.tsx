@@ -8,10 +8,12 @@ interface CrearAsignacionModalProps {
   onCancel: () => void;
   realizaList: Realiza[];
   usuarios: Usuario[];
+  onCreateRealiza: () => void;
+  onCreateUsuario: () => void;
 }
 
-const CrearAsignacionModal = ({ onSuccess, onCancel, realizaList, usuarios }: CrearAsignacionModalProps) => {
-  const { mutate: createAsignacion, isLoading, error: mutationError } = useCrearAsignacion();
+const CrearAsignacion = ({ onSuccess, onCancel, realizaList, usuarios, onCreateRealiza, onCreateUsuario }: CrearAsignacionModalProps) => {
+  const { mutate: createAsignacion, isPending, error: mutationError } = useCrearAsignacion();
   const [formData, setFormData] = useState({
     fk_id_realiza: '',
     fk_identificacion: '',
@@ -43,21 +45,24 @@ const CrearAsignacionModal = ({ onSuccess, onCancel, realizaList, usuarios }: Cr
     }
 
     try {
-      await createAsignacion({
-        fk_id_realiza: Number(formData.fk_id_realiza),
-        fk_identificacion: Number(formData.fk_identificacion), // Convertir a número
-        estado: formData.estado as 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada',
-        fecha_programada:(formData.fecha_programada),
-        observaciones: formData.observaciones || '',
-      }, {
-        onSuccess: () => {
-          onSuccess();
+      await createAsignacion(
+        {
+          fk_id_realiza: Number(formData.fk_id_realiza),
+          fk_identificacion: Number(formData.fk_identificacion),
+          estado: formData.estado as 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada',
+          fecha_programada: formData.fecha_programada,
+          observaciones: formData.observaciones || '',
         },
-        onError: (err) => {
-          setError('Error al crear la asignación. Por favor, intenta de nuevo.');
-          console.error('Error creating asignacion:', err.message);
-        },
-      });
+        {
+          onSuccess: () => {
+            onSuccess();
+          },
+          onError: (err) => {
+            setError('Error al crear la asignación. Por favor, intenta de nuevo.');
+            console.error('Error creating asignacion:', err.message);
+          },
+        }
+      );
     } catch (err) {
       setError('Error inesperado al crear la asignación.');
       console.error('Unexpected error:', err);
@@ -73,47 +78,71 @@ const CrearAsignacionModal = ({ onSuccess, onCancel, realizaList, usuarios }: Cr
         </div>
       )}
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="fk_id_realiza" className="block text-sm font-medium text-gray-700">
-            Realiza
-          </label>
-          <select
-            id="fk_id_realiza"
-            name="fk_id_realiza"
-            value={formData.fk_id_realiza}
-            onChange={handleChange}
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-            required
+        <div className="flex items-center space-x-2">
+          <div className="flex-1">
+            <label htmlFor="fk_id_realiza" className="block text-sm font-medium text-gray-700">
+              Realiza
+            </label>
+            <select
+              id="fk_id_realiza"
+              name="fk_id_realiza"
+              value={formData.fk_id_realiza}
+              onChange={handleChange}
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+              required
+              disabled={isPending}
+            >
+              <option value="">Selecciona un realiza</option>
+              {realizaList.map((realiza) => (
+                <option key={realiza.id} value={realiza.id}>
+                  {`${realiza.fk_id_cultivo?.fk_id_especie?.nombre_comun || 'Sin especie'} - ${
+                    realiza.fk_id_cultivo?.nombre_cultivo || 'Sin cultivo'
+                  } - ${realiza.fk_id_actividad?.nombre_actividad || 'Sin actividad'}`}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button
+            type="button"
+            onClick={onCreateRealiza}
+            className="mt-6 bg-green-700 text-white px-3 py-1 rounded hover:bg-green-900"
+            title="Crear nuevo realiza"
+            disabled={isPending}
           >
-            <option value="">Selecciona un realiza</option>
-            {realizaList.map((realiza) => (
-              <option key={realiza.id} value={realiza.id}>
-                {`${realiza.fk_id_cultivo?.fk_id_especie?.nombre_comun || 'Sin especie'} - ${
-                  realiza.fk_id_cultivo?.nombre_cultivo || 'Sin cultivo'
-                } - ${realiza.fk_id_actividad?.nombre_actividad || 'Sin actividad'}`}
-              </option>
-            ))}
-          </select>
+            +
+          </button>
         </div>
-        <div>
-          <label htmlFor="fk_identificacion" className="block text-sm font-medium text-gray-700">
-            Usuario
-          </label>
-          <select
-            id="fk_identificacion"
-            name="fk_identificacion"
-            value={formData.fk_identificacion}
-            onChange={handleChange}
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-            required
+        <div className="flex items-center space-x-2">
+          <div className="flex-1">
+            <label htmlFor="fk_identificacion" className="block text-sm font-medium text-gray-700">
+              Usuario
+            </label>
+            <select
+              id="fk_identificacion"
+              name="fk_identificacion"
+              value={formData.fk_identificacion}
+              onChange={handleChange}
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+              required
+              disabled={isPending}
+            >
+              <option value="">Selecciona un usuario</option>
+              {usuarios.map((usuario) => (
+                <option key={usuario.id} value={usuario.id}>
+                  {`${usuario.nombre} ${usuario.apellido}`}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button
+            type="button"
+            onClick={onCreateUsuario}
+            className="mt-6 bg-green-700 text-white px-3 py-1 rounded hover:bg-green-900"
+            title="Crear nuevo usuario"
+            disabled={isPending}
           >
-            <option value="">Selecciona un usuario</option>
-            {usuarios.map((usuario) => (
-              <option key={usuario.id} value={usuario.id}>
-                {`${usuario.nombre} ${usuario.apellido}`}
-              </option>
-            ))}
-          </select>
+            +
+          </button>
         </div>
         <div>
           <label htmlFor="estado" className="block text-sm font-medium text-gray-700">
@@ -126,6 +155,7 @@ const CrearAsignacionModal = ({ onSuccess, onCancel, realizaList, usuarios }: Cr
             onChange={handleChange}
             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
             required
+            disabled={isPending}
           >
             <option value="Pendiente">Pendiente</option>
             <option value="Completada">Completada</option>
@@ -145,6 +175,7 @@ const CrearAsignacionModal = ({ onSuccess, onCancel, realizaList, usuarios }: Cr
             onChange={handleChange}
             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
             required
+            disabled={isPending}
           />
         </div>
         <div>
@@ -158,6 +189,7 @@ const CrearAsignacionModal = ({ onSuccess, onCancel, realizaList, usuarios }: Cr
             onChange={handleChange}
             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
             rows={4}
+            disabled={isPending}
           />
         </div>
         <div className="flex justify-end space-x-2">
@@ -165,16 +197,16 @@ const CrearAsignacionModal = ({ onSuccess, onCancel, realizaList, usuarios }: Cr
             type="button"
             onClick={onCancel}
             className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
-            disabled={isLoading}
+            disabled={isPending}
           >
             Cancelar
           </button>
           <button
             type="submit"
             className="px-4 py-2 bg-green-700 text-white rounded-md hover:bg-green-900"
-            disabled={isLoading}
+            disabled={isPending}
           >
-            {isLoading ? 'Creando...' : 'Crear'}
+            {isPending ? 'Creando...' : 'Crear'}
           </button>
         </div>
       </form>
@@ -182,4 +214,4 @@ const CrearAsignacionModal = ({ onSuccess, onCancel, realizaList, usuarios }: Cr
   );
 };
 
-export default CrearAsignacionModal;
+export default CrearAsignacion;

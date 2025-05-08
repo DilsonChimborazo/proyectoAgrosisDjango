@@ -58,7 +58,6 @@ import ActualizarSemillero from "./components/trazabilidad/semillero/ActualizarS
 import ActualizarVentaPage from "./pages/finanzas/venta/ActualizarVentaPage";
 import ActualizarInsumos from "./components/inventario/insumos/ActualizarInsumos";
 import Mapa from "./components/trazabilidad/mapa/Mapa";
-import ActualizarAsignacion from "./components/trazabilidad/actividad/ActualizarAsignacion";
 import ListarHerramientas from "./components/inventario/herramientas/ListarHerramientas";
 import ListarInsumos from "./components/inventario/insumos/Insumos";
 import RegistroDiario from "./pages/finanzas/consultas/RegistroDiario";
@@ -123,7 +122,6 @@ function App() {
             <Route path="/unidad" element={<Principal><UnidadMedida /></Principal>} />
             <Route path="/CrearInsumoCompuesto" element={<Principal><CrearInsumoCompuesto /></Principal>} />
 
-
             {/* Rutas módulo trazabilidad */}
             <Route path="/tipoResiduo" element={<Principal><TipoResiduos /></Principal>} />
             <Route path="/actividad" element={<Principal><CalendarPage /></Principal>} />
@@ -145,7 +143,7 @@ function App() {
             <Route path="/actualizarCalendarioLunar/:id" element={<Principal><ActualizarCalendarioLunar/></Principal>}/>
             <Route path="/actualizarEspecie/:id" element={<Principal><ActualizarEspecie/></Principal>}/>
             <Route path="/actualizarSemillero/:id" element={<Principal><ActualizarSemillero/></Principal>}/>
-            <Route path="/actualizarasignacion/:id" element={<Principal><ActualizarAsignacion /></Principal>} />
+
             
             {/* Rutas módulo finanzas */}
             <Route path="/produccion" element={<Principal><ProduccionPage /></Principal>} />

@@ -43,7 +43,7 @@ const ListarMedidas = () => {
         <div>
             <Tabla
                 title="Unidades de Medida"
-                headers={["ID", "Nombre", "Unidad Base", "Factor de Conversión"]}
+                headers={["ID", "Nombre", "Unidad Base", "Factor de Conversion"]}
                 data={mappedUnidades}
                 onClickAction={handleRowClick}
                 onUpdate={handleUpdate}
