@@ -2,7 +2,9 @@ import { useState, useMemo } from 'react';
 import { useCrearRealiza, CrearRealizaDTO } from '@/hooks/trazabilidad/realiza/useCrearRealiza';
 import { useCultivo, Cultivos } from '@/hooks/trazabilidad/cultivo/useCultivo';
 import { useActividad, Actividad } from '@/hooks/trazabilidad/actividad/useActividad';
-import Formulario from '../../globales/Formulario';
+import VentanaModal from '../../globales/VentanasModales';
+import CrearCultivo from '../cultivos/CrearCultivos';
+import CrearActividad from '../actividad/CrearActividad';
 
 interface CrearRealizaProps {
   onSuccess: () => void;
@@ -13,11 +15,14 @@ const CrearRealiza = ({ onSuccess }: CrearRealizaProps) => {
   const { data: cultivos = [], isLoading: isLoadingCultivos, error: errorCultivos } = useCultivo();
   const { data: actividades = [], isLoading: isLoadingActividades, error: errorActividades } = useActividad();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalContent, setModalContent] = useState<React.ReactNode>(null);
+  const [formData, setFormData] = useState({ fk_id_cultivo: '', fk_id_actividad: '' });
 
   const cultivoOptions = useMemo(() => {
     return cultivos.map((cultivo: Cultivos) => ({
       value: cultivo.id.toString(),
-      label: cultivo.nombre_cultivo || 'Sin nombre',
+      label: `${cultivo.fk_id_especie?.nombre_comun || 'Sin especie'} - ${cultivo.nombre_cultivo || 'Sin nombre'}`,
     }));
   }, [cultivos]);
 
@@ -28,24 +33,13 @@ const CrearRealiza = ({ onSuccess }: CrearRealizaProps) => {
     }));
   }, [actividades]);
 
-  const formFields = [
-    {
-      id: 'fk_id_cultivo',
-      label: 'Cultivo',
-      type: 'select',
-      options: cultivoOptions.length > 0 ? cultivoOptions : [{ value: '', label: 'No hay cultivos disponibles' }],
-      placeholder: 'Seleccione un cultivo',
-    },
-    {
-      id: 'fk_id_actividad',
-      label: 'Actividad',
-      type: 'select',
-      options: actividadOptions.length > 0 ? actividadOptions : [{ value: '', label: 'No hay actividades disponibles' }],
-      placeholder: 'Seleccione una actividad',
-    },
-  ];
+  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
-  const handleSubmit = (formData: { [key: string]: string }) => {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     setErrorMessage(null);
 
     const { fk_id_cultivo, fk_id_actividad } = formData;
@@ -68,12 +62,23 @@ const CrearRealiza = ({ onSuccess }: CrearRealizaProps) => {
     mutation.mutate(nuevoRealiza, {
       onSuccess: () => {
         console.log('✅ Realiza creado exitosamente');
+        setFormData({ fk_id_cultivo: '', fk_id_actividad: '' });
         onSuccess();
       },
       onError: (error: any) => {
         setErrorMessage(`❌ Error al crear realiza: ${error.message || 'Error desconocido'}`);
       },
     });
+  };
+
+  const openCreateCultivoModal = () => {
+    setModalContent(<CrearCultivo onSuccess={() => setIsModalOpen(false)} onCancel={() => setIsModalOpen(false)} />);
+    setIsModalOpen(true);
+  };
+
+  const openCreateActividadModal = () => {
+    setModalContent(<CrearActividad onSuccess={() => setIsModalOpen(false)} onCancel={() => setIsModalOpen(false)} />);
+    setIsModalOpen(true);
   };
 
   if (errorCultivos || errorActividades) {
@@ -87,13 +92,84 @@ const CrearRealiza = ({ onSuccess }: CrearRealizaProps) => {
   return (
     <div className="max-w-4xl mx-auto p-4">
       {errorMessage && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{errorMessage}</div>}
-      <Formulario
-        fields={formFields}
-        onSubmit={handleSubmit}
-        isError={mutation.isError}
-        isSuccess={mutation.isSuccess}
-        title="Crear Nuevo Realiza"
-      />
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="flex items-center space-x-2">
+          <div className="flex-1">
+            <label htmlFor="fk_id_cultivo" className="block text-sm font-medium text-gray-700">
+              Cultivo
+            </label>
+            <select
+              id="fk_id_cultivo"
+              name="fk_id_cultivo"
+              value={formData.fk_id_cultivo}
+              onChange={handleChange}
+              className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+              required
+            >
+              <option value="">Seleccione un cultivo</option>
+              {cultivoOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button
+            type="button"
+            onClick={openCreateCultivoModal}
+            className="mt-6 bg-green-700 text-white px-3 py-1 rounded hover:bg-green-900"
+            title="Crear nuevo cultivo"
+          >
+            +
+          </button>
+        </div>
+        <div className="flex items-center space-x-2">
+          <div className="flex-1">
+            <label htmlFor="fk_id_actividad" className="block text-sm font-medium text-gray-700">
+              Actividad
+            </label>
+            <select
+              id="fk_id_actividad"
+              name="fk_id_actividad"
+              value={formData.fk_id_actividad}
+              onChange={handleChange}
+              className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+              required
+            >
+              <option value="">Seleccione una actividad</option>
+              {actividadOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button
+            type="button"
+            onClick={openCreateActividadModal}
+            className="mt-6 bg-green-700 text-white px-3 py-1 rounded hover:bg-green-900"
+            title="Crear nueva actividad"
+          >
+            +
+          </button>
+        </div>
+        <div className="flex justify-end space-x-2">
+          <button
+            type="button"
+            onClick={onSuccess}
+            className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-700"
+          >
+            Crear
+          </button>
+        </div>
+      </form>
+      <VentanaModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} titulo="" contenido={modalContent} />
     </div>
   );
 };

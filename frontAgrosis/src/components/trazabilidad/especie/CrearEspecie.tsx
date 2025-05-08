@@ -1,82 +1,183 @@
-import { Especie } from '@/hooks/trazabilidad/especie/useCrearEspecie';
-import Formulario from '../../globales/Formulario';
-import { useCrearEspecie } from '@/hooks/trazabilidad/especie/useCrearEspecie'; 
-import { useNavigate } from 'react-router-dom';
-import { useEspecie } from '@/hooks/trazabilidad/especie/useEspecie';
+import { useState, FormEvent, useEffect } from 'react';
+import { useCrearEspecie } from '@/hooks/trazabilidad/especie/useCrearEspecie';
+import { useTipoCultivo } from '@/hooks/trazabilidad/tipoCultivo/useTipoCultivo';
+import VentanaModal from '../../globales/VentanasModales';
+import CrearTipoCultivo from '../tipocultivo/CrearTipoCultivo';
 
-const CrearEspecie = () => {
-  const mutation = useCrearEspecie(); // Hook para manejar la creación
-  const { data: especies = [], isLoading: isLoadingCultivo } = useEspecie(); // Hook para obtener las especies
-  const navigate = useNavigate();
+interface CrearEspecieProps {
+  onSuccess: () => void;
+  onCancel: () => void;
+}
 
-  // Mapeo de opciones para el select de tipo de cultivo
-  const tipoCultivoOptions = especies
-    .filter((especie) => especie.fk_id_tipo_cultivo) // Filtrar especies con fk_id_tipo_cultivo válido
-    .map((especie) => ({
-      value: especie.fk_id_tipo_cultivo?.nombre|| '', // Asegurar que value sea un string válido
-      
-    }));
+const CrearEspecie = ({ onSuccess, onCancel }: CrearEspecieProps) => {
+  const [nombreComun, setNombreComun] = useState('');
+  const [nombreCientifico, setNombreCientifico] = useState('');
+  const [descripcion, setDescripcion] = useState('');
+  const [fk_id_tipo_cultivo, setFk_id_tipo_cultivo] = useState('');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const { mutate: createEspecie, isPending, error: mutationError } = useCrearEspecie();
+  const { data: tiposCultivo = [], refetch: refetchTiposCultivo, isLoading: isLoadingTiposCultivo } = useTipoCultivo();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalContent, setModalContent] = useState<React.ReactNode>(null);
 
-  // Definición de los campos del formulario
-  const formFields = [
-    { id: 'nombre_comun', label: 'Nombre Comun', type: 'text' },
-    { id: 'nombre_cientifico', label: 'Nombre Cientifico', type: 'text' },
-    { id: 'descripcion', label: 'Descripcion', type: 'text' },
-    {
-      id: 'fk_id_tipo_cultivo',
-      label: 'Tipo de Cultivo',
-      type: 'select',
-      options: tipoCultivoOptions, // Opciones dinámicas mapeadas desde el hook
-    },
-  ];
+  useEffect(() => {
+    refetchTiposCultivo();
+  }, [refetchTiposCultivo]);
 
-  // Manejo del formulario
-  const handleSubmit = (formData: { [key: string]: string }) => {
-    if (
-      !formData.nombre_comun ||
-      !formData.nombre_cientifico ||
-      !formData.descripcion ||
-      !formData.fk_id_tipo_cultivo
-    ) {
-      console.error("❌ Todos los campos son obligatorios");
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    setErrorMessage(null);
+
+    if (!nombreComun) {
+      setErrorMessage('El nombre común es obligatorio.');
+      return;
+    }
+    if (!nombreCientifico) {
+      setErrorMessage('El nombre científico es obligatorio.');
+      return;
+    }
+    if (!fk_id_tipo_cultivo) {
+      setErrorMessage('Debe seleccionar un tipo de cultivo.');
       return;
     }
 
-    const nuevaEspecie: Especie = {
-      id: 0, // Se define como 0 porque se genera automáticamente en el backend
-      nombre_comun: formData.nombre_comun.trim(),
-      nombre_cientifico: formData.nombre_cientifico.trim(),
-      descripcion: formData.descripcion.trim(),
-      fk_id_tipo_cultivo:formData.fk_id_tipo_cultivo// Relación con tipo de cultivo
+    const tipoCultivoExists = tiposCultivo.some((tipo) => tipo.id === parseInt(fk_id_tipo_cultivo, 10));
+    if (!tipoCultivoExists) {
+      setErrorMessage('El tipo de cultivo seleccionado no es válido.');
+      return;
+    }
+
+    const nuevaEspecie = {
+      nombre_comun: nombreComun,
+      nombre_cientifico: nombreCientifico,
+      descripcion: descripcion || '',
+      fk_id_tipo_cultivo: parseInt(fk_id_tipo_cultivo, 10),
     };
 
-    console.log("🚀 Enviando especie al backend:", nuevaEspecie);
-
-    // Llamada al hook para enviar datos al backend
-    mutation.mutate(nuevaEspecie, {
+    createEspecie(nuevaEspecie, {
       onSuccess: () => {
-        console.log("✅ Especie creada exitosamente");
-        navigate("/especies"); // Redirigir al listado de especies
+        console.log("✅ Callback onSuccess ejecutado en CrearEspecie");
+        setNombreComun('');
+        setNombreCientifico('');
+        setDescripcion('');
+        setFk_id_tipo_cultivo('');
+        onSuccess();
       },
-      onError: (error) => {
-        console.error("❌ Error al crear especie:", error);
+      onError: (err: any) => {
+        const errorDetail = err.response?.data?.detail || err.message || 'Error desconocido';
+        setErrorMessage(`Error al crear la especie: ${errorDetail}`);
       },
     });
   };
 
-  if (isLoadingCultivo) {
+  const openCreateTipoCultivoModal = () => {
+    setModalContent(<CrearTipoCultivo onSuccess={() => { setIsModalOpen(false); refetchTiposCultivo(); }} onCancel={() => setIsModalOpen(false)} />);
+    setIsModalOpen(true);
+  };
+
+  if (isLoadingTiposCultivo) {
     return <div className="text-center text-gray-500">Cargando tipos de cultivo...</div>;
   }
 
   return (
     <div className="max-w-4xl mx-auto p-4">
-      <Formulario
-        fields={formFields}
-        onSubmit={handleSubmit}
-        isError={mutation.isError}
-        isSuccess={mutation.isSuccess}
-        title="Registrar Nueva Especie"
-      />
+      <h2 className="text-xl font-bold mb-4">Crear Nueva Especie</h2>
+      {(errorMessage || mutationError) && (
+        <div className="mb-4 p-2 bg-red-100 text-red-700 rounded-md">
+          {errorMessage || mutationError?.message}
+        </div>
+      )}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label htmlFor="nombreComun" className="block text-sm font-medium text-gray-700">
+            Nombre Común
+          </label>
+          <input
+            type="text"
+            id="nombreComun"
+            value={nombreComun}
+            onChange={(e) => setNombreComun(e.target.value)}
+            className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+            required
+            disabled={isPending}
+          />
+        </div>
+        <div>
+          <label htmlFor="nombreCientifico" className="block text-sm font-medium text-gray-700">
+            Nombre Científico
+          </label>
+          <input
+            type="text"
+            id="nombreCientifico"
+            value={nombreCientifico}
+            onChange={(e) => setNombreCientifico(e.target.value)}
+            className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+            required
+            disabled={isPending}
+          />
+        </div>
+        <div>
+          <label htmlFor="descripcion" className="block text-sm font-medium text-gray-700">
+            Descripción
+          </label>
+          <textarea
+            id="descripcion"
+            value={descripcion}
+            onChange={(e) => setDescripcion(e.target.value)}
+            className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+            disabled={isPending}
+          />
+        </div>
+        <div className="flex items-center space-x-2">
+          <div className="flex-1">
+            <label htmlFor="fk_id_tipo_cultivo" className="block text-sm font-medium text-gray-700">
+              Tipo de Cultivo
+            </label>
+            <select
+              id="fk_id_tipo_cultivo"
+              value={fk_id_tipo_cultivo}
+              onChange={(e) => setFk_id_tipo_cultivo(e.target.value)}
+              className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+              required
+              disabled={isPending}
+            >
+              <option value="">Seleccione un tipo de cultivo</option>
+              {tiposCultivo.map((tipo) => (
+                <option key={tipo.id} value={tipo.id}>
+                  {tipo.nombre}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button
+            type="button"
+            onClick={openCreateTipoCultivoModal}
+            className="mt-6 bg-green-700 text-white px-3 py-1 rounded hover:bg-green-900"
+            title="Crear nuevo tipo de cultivo"
+            disabled={isPending}
+          >
+            +
+          </button>
+        </div>
+        <div className="flex justify-end space-x-2">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+            disabled={isPending}
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-700"
+            disabled={isPending}
+          >
+            {isPending ? 'Creando...' : 'Crear'}
+          </button>
+        </div>
+      </form>
+      <VentanaModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} titulo="" contenido={modalContent} />
     </div>
   );
 };

@@ -5,7 +5,8 @@ const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface UnidadMedida {
     nombre_medida: string;
-    abreviatura: string;
+    unidad_base: 'g' | 'ml' | 'u';  
+    factor_conversion: number;
 }
 
 const crearUnidadMedida = async (unidad: UnidadMedida) => {

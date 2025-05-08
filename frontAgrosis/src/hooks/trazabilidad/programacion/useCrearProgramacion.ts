@@ -1,5 +1,5 @@
-import { useMutation } from '@tanstack/react-query';
-import axios from 'axios';
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -11,43 +11,33 @@ export interface Programacion {
   cantidad_insumo?: number;
   img?: string;
   fk_unidad_medida?: number;
-  estado: 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada';
+  estado: "Pendiente" | "Completada" | "Cancelada" | "Reprogramada";
 }
 
-const crearProgramacion = async (formData: FormData) => {
-  const token = localStorage.getItem('token');
-
-  // Validar que los valores necesarios estén presentes en FormData
-  const requiredFields = ['fk_id_asignacionActividades', 'fecha_realizada', 'duracion', 'cantidad_insumo', 'fk_unidad_medida'];
-  for (const field of requiredFields) {
-    if (!formData.get(field)) {
-      throw new Error(`El campo ${field} es requerido`);
-    }
-  }
-
-  const response = await axios.post(`${apiUrl}programaciones/`, formData, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'multipart/form-data',
-    },
-  });
-
-  const data = response.data;
-
-  // Validar la respuesta del servidor
-  if (!data || typeof data !== 'object') {
-    throw new Error('Respuesta inválida del servidor');
-  }
-
-  // Asegurarse de que no se llame .toString() sobre valores undefined
-  return data as Programacion;
-};
-
 export const useCrearProgramacion = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: crearProgramacion,
+    mutationFn: async (nuevaProgramacion: FormData) => {
+      console.log("🚀 Datos enviados al backend:", nuevaProgramacion);
+      const response = await axios.post(`${apiUrl}programaciones/`, nuevaProgramacion, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      console.log("📩 Respuesta del backend:", response.data);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      console.log("✅ Programación creada con éxito, datos retornados:", data);
+      queryClient.invalidateQueries({ queryKey: ["programaciones"] });
+    },
     onError: (error: any) => {
-      console.error('Error al crear programación:', error.message);
+      console.error("❌ Error al crear programación:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
     },
   });
 };
