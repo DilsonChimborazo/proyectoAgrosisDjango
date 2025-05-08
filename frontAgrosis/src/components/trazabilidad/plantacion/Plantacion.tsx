@@ -17,6 +17,7 @@ const Plantacion = () => {
   const [modalType, setModalType] = useState<'details' | 'create' | 'update' | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContenido, setModalContenido] = useState<React.ReactNode>(null);
+  selectedPlantacion
 
   const openModalHandler = (plantacion: object, type: 'details' | 'update') => {
     setSelectedPlantacion(plantacion);
@@ -119,8 +120,8 @@ const Plantacion = () => {
               modalType === 'details'
                 ? 'Detalles de Plantación'
                 : modalType === 'create'
-                ? 'Crear Plantación'
-                : 'Actualizar Plantación'
+                ? ''
+                : ''
             }
           >
             {modalContenido}

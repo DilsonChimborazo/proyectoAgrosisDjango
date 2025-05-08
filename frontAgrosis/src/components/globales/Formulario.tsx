@@ -17,6 +17,7 @@ interface FormField {
   hasExtraButton?: boolean;
   extraButtonText?: string;
   onExtraButtonClick?: () => void;
+  extraContent?: React.ReactNode; // Nueva propiedad para contenido adicional después del campo
 }
 
 interface FormProps {
@@ -112,6 +113,12 @@ const Formulario: React.FC<FormProps> = ({
                   </button>
                 )}
               </div>
+              {/* Renderizamos el contenido adicional después del campo, si existe */}
+              {field.extraContent && (
+                <div className="mt-2">
+                  {field.extraContent}
+                </div>
+              )}
             </div>
           ) : field.type === 'file' ? (
             <div>
@@ -133,6 +140,12 @@ const Formulario: React.FC<FormProps> = ({
                 }}
                 accept="image/*"
               />
+              {/* Renderizamos el contenido adicional después del campo, si existe */}
+              {field.extraContent && (
+                <div className="mt-2">
+                  {field.extraContent}
+                </div>
+              )}
             </div>
           ) : (
             <div className="relative w-full">
@@ -155,6 +168,12 @@ const Formulario: React.FC<FormProps> = ({
               >
                 {field.label}
               </label>
+              {/* Renderizamos el contenido adicional después del campo, si existe */}
+              {field.extraContent && (
+                <div className="mt-2">
+                  {field.extraContent}
+                </div>
+              )}
             </div>
           )}
         </div>

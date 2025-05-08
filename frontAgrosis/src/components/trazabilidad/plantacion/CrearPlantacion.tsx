@@ -22,6 +22,7 @@ interface FormField {
   hasExtraButton?: boolean;
   extraButtonText?: string;
   onExtraButtonClick?: () => void;
+  extraContent?: React.ReactNode; // Agregamos esta propiedad para usar el nuevo soporte en Formulario
 }
 
 const CrearPlantacion = ({ onSuccess }: CrearPlantacionProps) => {
@@ -35,6 +36,7 @@ const CrearPlantacion = ({ onSuccess }: CrearPlantacionProps) => {
   const [mostrarModalCultivo, setMostrarModalCultivo] = useState(false);
   const [mostrarModalSemillero, setMostrarModalSemillero] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [selectedSemilleroId, setSelectedSemilleroId] = useState<string | null>(null);
 
   const eraOptions = eras.map((era) => ({
     value: String(era.id ?? ""),
@@ -50,6 +52,18 @@ const CrearPlantacion = ({ onSuccess }: CrearPlantacionProps) => {
     value: String(semillero.id ?? ""),
     label: semillero.nombre_semilla ?? "Sin nombre",
   }));
+
+  // Find the selected semillero to get its cantidad
+  const selectedSemillero = semilleros.find(
+    (semillero) => String(semillero.id) === selectedSemilleroId
+  );
+
+  // Handle field changes to update selected semillero
+  const handleFieldChange = (fieldId: string, value: string) => {
+    if (fieldId === "fk_id_semillero") {
+      setSelectedSemilleroId(value);
+    }
+  };
 
   // Formulario con campos
   const formFields: FormField[] = [
@@ -89,6 +103,12 @@ const CrearPlantacion = ({ onSuccess }: CrearPlantacionProps) => {
       hasExtraButton: true,
       extraButtonText: "Crear Semillero",
       onExtraButtonClick: () => setMostrarModalSemillero(true),
+      // Agregamos el letrero como extraContent para que se renderice justo después del campo
+      extraContent: selectedSemillero ? (
+        <div className="text-sm text-green-600 text-center">
+          Cantidad disponible del semillero seleccionado: {selectedSemillero.cantidad ?? 0}
+        </div>
+      ) : null,
     },
   ];
 
@@ -154,6 +174,7 @@ const CrearPlantacion = ({ onSuccess }: CrearPlantacionProps) => {
       <Formulario
         fields={formFields}
         onSubmit={handleSubmit}
+        onFieldChange={handleFieldChange}
         isError={mutation.isError}
         isSuccess={mutation.isSuccess}
         title="Registrar Nueva Plantación"
@@ -178,7 +199,7 @@ const CrearPlantacion = ({ onSuccess }: CrearPlantacionProps) => {
         isOpen={mostrarModalSemillero}
         onClose={cerrarYActualizar}
         titulo=""
-        contenido={<CrearSemillero />}
+        contenido={<CrearSemillero onSuccess={cerrarYActualizar} />}
       />
     </div>
   );
