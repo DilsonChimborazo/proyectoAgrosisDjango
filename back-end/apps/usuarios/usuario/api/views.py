@@ -5,16 +5,17 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from apps.usuarios.usuario.models import Usuarios
 from apps.usuarios.usuario.api.serializer import LeerUsuarioSerializer, EscribirUsuarioSerializer
 from apps.usuarios.rol.models import Rol
+from apps.usuarios.ficha.models import Ficha
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
 
 
+
 class UsuarioViewSet(ModelViewSet):
 
     #permission_classes = [IsAuthenticated] 
-
-    """Maneja la creación, lectura y gestión de usuarios"""
+        
     def get_queryset(self):
         """Retorna solo el usuario autenticado, excepto para los admins que ven todos"""
         if self.request.user.is_staff:

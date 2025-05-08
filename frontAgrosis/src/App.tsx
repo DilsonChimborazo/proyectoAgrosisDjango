@@ -19,6 +19,8 @@ import ErasPage from "./pages/iot/ErasPage";
 import Evapotranspiracion from "./pages/iot/evapotranspiracionPage"; // Importamos el componente
 
 import Fichas from "./components/usuarios/ficha/Ficha";
+import Rol from "./components/usuarios/rol/Rol";
+import CrearRol from "./components/usuarios/rol/crearRol";
 import CrearFicha from "./components/usuarios/ficha/crearFicha";
 import CrearUsuario from "./components/usuarios/usuario/crearUsuario";
 import PerfilUsuario from "./components/usuarios/usuario/PerfilUsuario";
@@ -91,6 +93,8 @@ function App() {
             <Route path="/Home" element={<Principal><HomePage /></Principal>} />
             <Route path="/principal" element={<Principal><HomePage /></Principal>} />
             <Route path="/fichas" element={<Principal><Fichas/></Principal>} />
+            <Route path="/rol" element={<Principal><Rol/></Principal>} />
+            <Route path="/crearRol" element={<Principal><CrearRol/></Principal>} />
             <Route path="/perfil" element={<Principal><PerfilUsuario/></Principal>} />
             <Route path="/crearFicha" element={<Principal><CrearFicha/></Principal>} />
             <Route path="/usuarios" element={<Principal><UsersPage /></Principal>} />

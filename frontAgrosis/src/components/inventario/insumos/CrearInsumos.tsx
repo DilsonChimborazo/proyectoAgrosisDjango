@@ -40,6 +40,8 @@ const CrearInsumos = ({ onSuccess }: { onSuccess?: () => void }) => {
       hasExtraButton: true,
       extraButtonText: "+",
       onExtraButtonClick: abrirModalMedida,
+
+    
     },
     { id: "fecha_vencimiento", label: "Fecha de Vencimiento", type: "date" },
     { id: "img", label: "Imagen", type: "file" },
