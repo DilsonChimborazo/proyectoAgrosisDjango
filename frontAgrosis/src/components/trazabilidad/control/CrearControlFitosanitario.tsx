@@ -160,10 +160,15 @@ const CrearControlFitosanitario = ({ onSuccess }: CrearControlFitosanitarioProps
   };
 
   const cerrarYActualizar = async () => {
+    console.log('Ejecutando cerrarYActualizar para cerrar modal de insumo');
+    
     setMostrarModalPlantacion(false);
     setMostrarModalPea(false);
     setMostrarModalInsumo(false);
     setMostrarModalUsuario(false);
+    // Añadir un pequeño retraso para asegurar que el estado se actualice antes de las operaciones asíncronas
+    await new Promise(resolve => setTimeout(resolve, 100));
+    // Ejecutar las operaciones de refetch después de cerrar el modal
     await Promise.all([
       refetchPlantaciones(),
       refetchPeas(),
@@ -216,7 +221,7 @@ const CrearControlFitosanitario = ({ onSuccess }: CrearControlFitosanitarioProps
         isOpen={mostrarModalUsuario}
         onClose={cerrarYActualizar}
         titulo=""
-        contenido={<CrearUsuario onSuccess={cerrarYActualizar} />}
+        contenido={<CrearUsuario isOpen={mostrarModalUsuario} onClose={cerrarYActualizar} />}
       />
     </div>
   );

@@ -26,7 +26,7 @@ const menuItems = [
     submenu: [
       { name: "Eras", path: "/eras" },
       { name: "Lotes", path: "/lotes" },
-      /*{ name: "Cultivos", path: "/cultivo" }, */
+      { name: "Cultivos", path: "/cultivo" }, 
       { name: "Especies", path: "/especies" },
       { name: "Residuos", path: "/residuos" },
       { name: "Plantacion", path: "/plantacion"},

@@ -51,11 +51,7 @@ const CrearPlantacion = ({ onSuccess }: CrearPlantacionProps) => {
     label: semillero.nombre_semilla ?? "Sin nombre",
   }));
 
-  // Depuración de las opciones
-  console.log("Opciones de Eras:", eraOptions);
-  console.log("Opciones de Cultivos:", cultivoOptions);
-  console.log("Opciones de Semilleros:", semilleroOptions);
-
+  // Formulario con campos
   const formFields: FormField[] = [
     {
       id: "fk_id_eras",
@@ -96,6 +92,7 @@ const CrearPlantacion = ({ onSuccess }: CrearPlantacionProps) => {
     },
   ];
 
+  // Función de envío del formulario
   const handleSubmit = (formData: { [key: string]: string }) => {
     setErrorMessage(null);
 
@@ -141,18 +138,12 @@ const CrearPlantacion = ({ onSuccess }: CrearPlantacionProps) => {
     await refetch();
   };
 
+  // Cargar datos
   if (isLoadingEras || isLoadingCultivos || isLoadingSemilleros) {
     return <div className="text-center text-gray-500">Cargando datos...</div>;
   }
 
-  if (!eraOptions.length || !cultivoOptions.length || !semilleroOptions.length) {
-    return (
-      <div className="text-center text-red-500">
-        No hay eras, cultivos o semilleros disponibles. Crea algunos primero.
-      </div>
-    );
-  }
-
+  // Si no hay datos, permitir crear nuevas opciones
   return (
     <div className="max-w-4xl mx-auto p-4">
       {errorMessage && (
@@ -168,6 +159,7 @@ const CrearPlantacion = ({ onSuccess }: CrearPlantacionProps) => {
         title="Registrar Nueva Plantación"
       />
 
+      {/* Modales para crear Era, Cultivo y Semillero */}
       <VentanaModal
         isOpen={mostrarModalEra}
         onClose={cerrarYActualizar}
