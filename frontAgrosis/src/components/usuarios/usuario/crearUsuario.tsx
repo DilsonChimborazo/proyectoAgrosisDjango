@@ -18,13 +18,14 @@ const CrearUsuario: React.FC<CrearUsuarioProps> = ({ isOpen, onClose }) => {
   const { data: roles = [] } = useRoles();
   const { data: fichas = [] } = UseFicha();
 
-  const [modalAbierto, setModalAbierto] = useState(false);
+  const [modalAbiertoRol, setModalAbiertoRol] = useState(false);
+  const [modalAbiertoFicha, setModalAbiertoFicha] = useState(false)
 
-  const abrirModalFicha = () => setModalAbierto(true);
-  const cerrarModalFicha = () => setModalAbierto(false);
+  const abrirModalFicha = () => setModalAbiertoFicha(true);
+  const cerrarModalFicha = () => setModalAbiertoFicha(false);
 
-  const abrirModalRol = () => setModalAbierto(true);
-  const cerrarModalRol = () => setModalAbierto(false);
+  const abrirModalRol = () => setModalAbiertoRol(true);
+  const cerrarModalRol = () => setModalAbiertoRol(false);
 
   const formFields = [
     { id: 'identificacion', label: 'Identificación', type: 'text' },
@@ -115,7 +116,7 @@ const CrearUsuario: React.FC<CrearUsuarioProps> = ({ isOpen, onClose }) => {
         }
       />
       <VentanaModal
-      isOpen={modalAbierto}
+      isOpen={modalAbiertoRol}
       onClose={cerrarModalRol}
       titulo=""
       size="sm"
@@ -124,7 +125,7 @@ const CrearUsuario: React.FC<CrearUsuarioProps> = ({ isOpen, onClose }) => {
       />
 
       <VentanaModal
-        isOpen={modalAbierto}
+        isOpen={modalAbiertoFicha}
         onClose={cerrarModalFicha}
         titulo=""
         size="sm"
