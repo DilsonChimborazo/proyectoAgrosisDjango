@@ -79,11 +79,11 @@ const CrearInsumos = ({ onSuccess }: { onSuccess?: () => void }) => {
         const movimientoEntrada = {
           fk_id_insumo: insumoCreado.id,
           cantidad_insumo: formData.cantidad_insumo,
-          cantidad_herramienta: null,
+          cantidad_herramienta: undefined,
           movimiento: "Entrada" as const,
           fecha: new Date().toISOString(),
-          fk_id_asignacion: null,
-          fk_id_herramientas: null,
+          fk_id_asignacion: undefined,
+          fk_id_herramientas: undefined,
         };
 
         mutate(movimientoEntrada, {
