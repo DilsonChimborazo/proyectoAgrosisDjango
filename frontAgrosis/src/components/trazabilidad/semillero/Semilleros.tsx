@@ -48,14 +48,6 @@ const ListarSemillero = () => {
         setIsModalOpen(true); 
     };
 
-    if (isLoading) return <div className="text-center text-gray-500">Cargando...</div>;
-
-    if (error) return (
-        <div className="text-center text-red-500">
-            Error al cargar los datos: {error.message}
-        </div>
-    );
-
     const tablaData = (semilleros ?? []).map((semillero) => ({
         id: semillero.id,
         nombre_semilla: semillero.nombre_semilla || 'Sin nombre',
@@ -99,20 +91,20 @@ const ListarSemillero = () => {
                 contenido={<DetalleSemilleroModal item={selectedSemillero!} />}
             />
 
-            {semilleros?.length === 0 ? (
-                <div className="text-center text-gray-500">
+            <Tabla
+                title="Lista de Semilleros"
+                headers={headers}
+                data={tablaData.length > 0 ? tablaData : []} // Se asegura de que la tabla se muestre incluso sin datos
+                onClickAction={handleItemClick}
+                onUpdate={(row) => {}}
+                onCreate={handleCreate}
+                createButtonTitle="Crear Semillero"
+            />
+
+            {semilleros?.length === 0 && (
+                <div className="text-center text-gray-500 mt-4">
                     No hay semilleros registrados. Haz clic en "Crear Semillero" para agregar uno.
                 </div>
-            ) : (
-                <Tabla
-                    title="Lista de Semilleros"
-                    headers={headers}
-                    data={tablaData}
-                    onClickAction={handleItemClick}
-                    onUpdate={(row) => {}}
-                    onCreate={handleCreate}
-                    createButtonTitle="Crear Semillero"
-                />
             )}
         </div>
     );

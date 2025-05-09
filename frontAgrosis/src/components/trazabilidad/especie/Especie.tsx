@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useEspecie } from '@/hooks/trazabilidad/especie/useEspecie';
 import VentanaModal from '../../globales/VentanasModales';
-import CrearEspecie from './CrearEspecie';
 import Tabla from '../../globales/Tabla';
+import CrearEspecie from './CrearEspecie';
+import ActualizarEspecie from './ActualizarEspecie';
 
 interface EspecieTabla {
   id: number;
@@ -13,98 +14,92 @@ interface EspecieTabla {
 }
 
 const ListarEspecie = () => {
+  const { data: especies, error, isLoading, refetch } = useEspecie();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [modalContenido, setModalContenido] = useState<React.ReactNode>(null);
+  const [selectedEspecie, setSelectedEspecie] = useState<EspecieTabla | null>(null);
 
-  const { data: especies, isLoading, error, refetch, isFetching } = useEspecie();
+  const handleItemClick = (item: EspecieTabla) => {
+    setSelectedEspecie(item);
+    setIsDetailModalOpen(true);
+  };
 
-  useEffect(() => {
-    console.log("📊 Especies data received in ListarEspecie:", especies);
-    refetch();
-  }, [refetch]);
+  const closeModal = () => {
+    setSelectedEspecie(null);
+    setModalContenido(null);
+    setIsModalOpen(false);
+    setIsDetailModalOpen(false);
+    setIsUpdateModalOpen(false);
+  };
 
-  const handleCreateEspecie = () => {
+  const handleCreate = () => {
     setModalContenido(
       <CrearEspecie
         onSuccess={() => {
-          console.log("✅ Triggering refetch after creating Especie");
           refetch();
           closeModal();
         }}
-        onCancel={closeModal}
       />
     );
     setIsModalOpen(true);
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setModalContenido(null);
+  const handleUpdateClick = (item: EspecieTabla) => {
+    setSelectedEspecie(item);
+    setModalContenido(<ActualizarEspecie id={item.id} onSuccess={refetch} />);
+    setIsUpdateModalOpen(true);
   };
 
-  const tablaData: EspecieTabla[] = (especies ?? []).map((especie) => {
-    const tipoCultivoNombre = typeof especie.fk_id_tipo_cultivo === 'object' && especie.fk_id_tipo_cultivo
-      ? (especie.fk_id_tipo_cultivo as any).nombre
-      : typeof especie.fk_id_tipo_cultivo === 'number'
-      ? `ID: ${especie.fk_id_tipo_cultivo}`
-      : 'Sin tipo de cultivo';
-    return {
-      id: especie.id,
-      nombre_comun: especie.nombre_comun,
-      nombre_cientifico: especie.nombre_cientifico,
-      descripcion: especie.descripcion || 'Sin descripción',
-      tipo_cultivo: tipoCultivoNombre,
-    };
-  });
+  const tablaData = (especies ?? []).map((especie) => ({
+    id: especie.id,
+    nombre_comun: especie.nombre_comun || 'Sin nombre',
+    nombre_cientifico: especie.nombre_cientifico || 'Sin nombre científico',
+    descripcion: especie.descripcion || 'Sin descripción',
+    tipo_cultivo:
+      typeof especie.fk_id_tipo_cultivo === 'object' && especie.fk_id_tipo_cultivo
+        ? especie.fk_id_tipo_cultivo.nombre
+        : typeof especie.fk_id_tipo_cultivo === 'number'
+        ? `ID: ${especie.fk_id_tipo_cultivo}`
+        : 'Sin tipo de cultivo',
+  }));
 
-  console.log("📋 Tabla data for rendering:", tablaData);
-
-  const headers = [
-    'ID',
-    'Nombre Comun',
-    'Nombre Cientifico',
-    'Descripcion',
-    'Tipo Cultivo',
-  ];
-
-  const renderRow = (item: EspecieTabla) => (
-    <tr key={item.id} className="hover:bg-gray-100">
-      <td className="p-3">{item.id}</td>
-      <td className="p-3">{item.nombre_comun}</td>
-      <td className="p-3">{item.nombre_cientifico}</td>
-      <td className="p-3">{item.descripcion}</td>
-      <td className="p-3">{item.tipo_cultivo}</td>
-    </tr>
-  );
-
-  if (isLoading || isFetching) {
-    return <div className="text-center text-gray-500">Cargando especies...</div>;
-  }
-
-  if (error) {
-    return (
-      <div className="text-center text-red-500">
-        Error al cargar especies: {error.message || 'Por favor, intenta de nuevo.'}
-      </div>
-    );
-  }
+  const headers = ['Nombre Común', 'Nombre Científico', 'Descripción', 'Tipo Cultivo'];
 
   return (
-    <div className="p-4 space-y-6">
-      <VentanaModal isOpen={isModalOpen} onClose={closeModal} titulo="" contenido={modalContenido} />
-      <div className="bg-white rounded-lg shadow p-6">
-        <Tabla
-          title="Lista de Especies"
-          headers={headers}
-          data={tablaData}
-          onCreate={handleCreateEspecie}
-          createButtonTitle="Crear Especie"
-          renderRow={renderRow}
-        />
-        {tablaData.length === 0 && (
-          <div className="text-center text-gray-500 mt-4">No hay especies para mostrar.</div>
-        )}
-      </div>
+    <div className="p-4">
+      <VentanaModal isOpen={isModalOpen} onClose={closeModal} titulo="Crear Especie" contenido={modalContenido} />
+      
+      <VentanaModal isOpen={isDetailModalOpen} onClose={closeModal} titulo="Detalles de la Especie" contenido={
+        selectedEspecie ? (
+          <div className="p-4">
+            <h2 className="text-xl font-bold mb-4">Detalles de la Especie</h2>
+            <div className="space-y-3">
+              <p><span className="font-semibold">Nombre Común:</span> {selectedEspecie.nombre_comun}</p>
+              <p><span className="font-semibold">Nombre Científico:</span> {selectedEspecie.nombre_cientifico}</p>
+              <p><span className="font-semibold">Descripción:</span> {selectedEspecie.descripcion}</p>
+              <p><span className="font-semibold">Tipo Cultivo:</span> {selectedEspecie.tipo_cultivo}</p>
+            </div>
+          </div>
+        ) : null
+      } />
+
+      <VentanaModal isOpen={isUpdateModalOpen} onClose={closeModal} titulo="Actualizar Especie" contenido={modalContenido} />
+
+      <Tabla
+        title="Lista de Especies"
+        headers={headers}
+        data={tablaData.length > 0 ? tablaData : []}
+        onClickAction={handleItemClick}
+        onUpdate={handleUpdateClick} // Ahora se abre el modal de actualización
+        onCreate={handleCreate}
+        createButtonTitle="Crear Especie"
+      />
+
+      {especies?.length === 0 && (
+        <div className="text-center text-gray-500 mt-4">No hay especies registradas.</div>
+      )}
     </div>
   );
 };

@@ -6,9 +6,16 @@ interface CrearTipoCultivoProps {
   onCancel: () => void;
 }
 
+const CICLO_OPCIONES = [
+  { value: 'Perennes', label: 'Perennes' },
+  { value: 'Semiperennes', label: 'Semiperennes' },
+  { value: 'Transitorios', label: 'Transitorios' },
+];
+
 const CrearTipoCultivo = ({ onSuccess, onCancel }: CrearTipoCultivoProps) => {
   const [nombre, setNombre] = useState('');
   const [descripcion, setDescripcion] = useState('');
+  const [cicloDuracion, setCicloDuracion] = useState('Transitorios');
   const { mutate: createTipoCultivo, isPending } = useCrearTipoCultivo();
 
   const handleSubmit = (e: FormEvent) => {
@@ -17,13 +24,17 @@ const CrearTipoCultivo = ({ onSuccess, onCancel }: CrearTipoCultivoProps) => {
       alert('El nombre es obligatorio.');
       return;
     }
-    createTipoCultivo({ nombre, descripcion: descripcion || '' }, {
-      onSuccess: () => {
-        setNombre('');
-        setDescripcion('');
-        onSuccess();
-      },
-    });
+    createTipoCultivo(
+      { nombre, descripcion: descripcion || '', ciclo_duracion: cicloDuracion },
+      {
+        onSuccess: () => {
+          setNombre('');
+          setDescripcion('');
+          setCicloDuracion('Transitorios'); // Resetear al valor por defecto
+          onSuccess();
+        },
+      }
+    );
   };
 
   return (
@@ -55,6 +66,24 @@ const CrearTipoCultivo = ({ onSuccess, onCancel }: CrearTipoCultivoProps) => {
             className="mt-1 block w-full border border-gray-300 rounded-md p-2"
             disabled={isPending}
           />
+        </div>
+        <div>
+          <label htmlFor="cicloDuracion" className="block text-sm font-medium text-gray-700">
+            Ciclo de Duración
+          </label>
+          <select
+            id="cicloDuracion"
+            value={cicloDuracion}
+            onChange={(e) => setCicloDuracion(e.target.value)}
+            className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+            disabled={isPending}
+          >
+            {CICLO_OPCIONES.map((opcion) => (
+              <option key={opcion.value} value={opcion.value}>
+                {opcion.label}
+              </option>
+            ))}
+          </select>
         </div>
         <div className="flex justify-end space-x-2">
           <button

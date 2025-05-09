@@ -7,6 +7,7 @@ export interface TipoCultivo {
     id: number;
     nombre: string;
     descripcion: string;
+    ciclo_duracion: string; // Agregado para manejar el ciclo de duración
 }
 
 export const useCrearTipoCultivo = () => {
@@ -14,7 +15,7 @@ export const useCrearTipoCultivo = () => {
 
     return useMutation({
         mutationFn: async (nuevoTipoCultivo: Omit<TipoCultivo, 'id'>) => {
-            console.log("🚀 Datos enviados al backend:", nuevoTipoCultivo);
+            console.log("🚀 Enviando datos al backend:", nuevoTipoCultivo);
             const { data } = await axios.post(`${apiUrl}tipos_cultivo/`, nuevoTipoCultivo);
             return data;
         },
