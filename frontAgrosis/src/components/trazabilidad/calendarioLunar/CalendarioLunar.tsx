@@ -1,42 +1,43 @@
 import { useState } from "react";
-import { useCalendarioLunar } from "../../../hooks/trazabilidad/calendarioLunar/useCalendarioLunar"; // Hook para cargar los calendarios existentes
-import useCalendarioActivos from "../../../hooks/trazabilidad/calendarioLunar/useCalendariosActivos"; // Hook para generar el PDF
+import { useCalendarioLunar } from "../../../hooks/trazabilidad/calendarioLunar/useCalendarioLunar";
+import useCalendarioActivos from "../../../hooks/trazabilidad/calendarioLunar/useCalendariosActivos";
 import VentanaModal from "../../globales/VentanasModales";
 import Tabla from "../../globales/Tabla";
+import CrearCalendarioLunar from "./CrearCalendarioLunar";
 import { useNavigate } from "react-router-dom";
 
 const CalendariosLunares = () => {
   const { data: calendarios, error, isLoading } = useCalendarioLunar();
-  const { generarPDF } = useCalendarioActivos(); // Función del hook para generar el PDF
+  const { generarPDF } = useCalendarioActivos();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedCalendario, setSelectedCalendario] = useState<any>(null);
-
   const navigate = useNavigate();
 
-  // Abrir modal con la información de un calendario específico
   const openModal = (calendario: any) => {
     setSelectedCalendario(calendario);
     setIsModalOpen(true);
   };
 
-  // Cerrar el modal y limpiar selección
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedCalendario(null);
   };
 
-  // Navegar a la página para actualizar un calendario lunar
+  const openCreateModal = () => {
+    setIsCreateModalOpen(true);
+  };
+
+  const closeCreateModal = () => {
+    setIsCreateModalOpen(false);
+  };
+
   const handleUpdate = (calendario: { id: number }) => {
     if (!calendario.id) {
       console.error("El ID del calendario no está definido.");
       return;
     }
     navigate(`/actualizarcalendariolunar/${calendario.id}`);
-  };
-
-  // Navegar a la página para crear un nuevo calendario lunar
-  const handleCreate = () => {
-    navigate("/CrearCalendarioLunar");
   };
 
   if (isLoading)
@@ -53,7 +54,6 @@ const CalendariosLunares = () => {
       </div>
     );
 
-  // Mapeo de datos para la tabla
   const tablaData = (calendarios ?? []).map((calendario) => ({
     id: calendario.id,
     fecha: calendario.fecha
@@ -75,7 +75,7 @@ const CalendariosLunares = () => {
         <h2 className="text-lg font-bold">Calendarios Lunares</h2>
         <button
           className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
-          onClick={generarPDF} // Llama al hook para generar el PDF
+          onClick={generarPDF}
         >
           Descargar PDF
         </button>
@@ -87,7 +87,7 @@ const CalendariosLunares = () => {
         data={tablaData}
         onClickAction={openModal}
         onUpdate={handleUpdate}
-        onCreate={handleCreate}
+        onCreate={openCreateModal}
         createButtonTitle="Crear"
       />
 
@@ -99,6 +99,13 @@ const CalendariosLunares = () => {
           contenido={selectedCalendario}
         />
       )}
+
+      <VentanaModal
+        isOpen={isCreateModalOpen}
+        onClose={closeCreateModal}
+        titulo="Registra Nuevo Calendario Lunar"
+        contenido={<CrearCalendarioLunar closeModal={closeCreateModal} />}
+      />
     </div>
   );
 };
