@@ -61,10 +61,10 @@ const ListarEspecie = () => {
 
   const headers = [
     'ID',
-    'Nombre Común',
-    'Nombre Científico',
-    'Descripción',
-    'Tipo de Cultivo',
+    'Nombre Comun',
+    'Nombre Cientifico',
+    'Descripcion',
+    'Tipo Cultivo',
   ];
 
   const renderRow = (item: EspecieTabla) => (

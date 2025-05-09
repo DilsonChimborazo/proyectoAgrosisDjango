@@ -115,15 +115,6 @@ const CrearUsuario: React.FC<CrearUsuarioProps> = ({ isOpen, onClose }) => {
         }
       />
       <VentanaModal
-        isOpen={modalAbierto}
-        onClose={cerrarModalFicha}
-        titulo=""
-        size="sm"
-        variant="content"
-        contenido={<CrearFicha onClose={cerrarModalFicha} />}
-      />
-
-      <VentanaModal
       isOpen={modalAbierto}
       onClose={cerrarModalRol}
       titulo=""
@@ -131,7 +122,16 @@ const CrearUsuario: React.FC<CrearUsuarioProps> = ({ isOpen, onClose }) => {
       variant="content"
       contenido={<CrearRol onClose={cerrarModalRol} />}
       />
-    </>
+
+      <VentanaModal
+        isOpen={modalAbierto}
+        onClose={cerrarModalFicha}
+        titulo=""
+        size="sm"
+        variant="content"
+        contenido={<CrearFicha onClose={cerrarModalFicha} />}
+      />
+    </> 
   );
 };
 
