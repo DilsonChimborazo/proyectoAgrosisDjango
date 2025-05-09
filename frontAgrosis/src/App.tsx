@@ -42,6 +42,7 @@ import CrearVentaPage from "./pages/finanzas/venta/CrearVentaPage";
 import CrearInsumos from "./components/inventario/insumos/CrearInsumos";
 import CrearAsignacion from "./components/trazabilidad/actividad/CrearAsignacion";
 
+import CrearSalarioPage from "./pages/finanzas/salario/CrearSalarioPage";
 import CrearProduccionPage from "./pages/finanzas/produccion/CrearProduccionPage";
 import ActualizarProduccionPage from "./pages/finanzas/produccion/ActualizarProduccionPage";
 import CrearEras from "./components/iot/eras/CrearEras";
@@ -154,6 +155,7 @@ function App() {
             <Route path="/registrar-venta" element={<Principal><CrearVentaPage /></Principal>} />
             <Route path="/actualizarproduccion/:id_produccion" element={<Principal><ActualizarProduccionPage /></Principal>} />
             <Route path="/actualizarventa/:id_venta" element={<Principal><ActualizarVentaPage /></Principal>} />
+            <Route path="/CrearSalario" element={<Principal><CrearSalarioPage/></Principal>}/>
 
             <Route path="/diario" element={<Principal><RegistroDiario /></Principal>} />
             <Route path="/insumo-egresos" element={<Principal><ReporteInsumosPage /></Principal>} />
