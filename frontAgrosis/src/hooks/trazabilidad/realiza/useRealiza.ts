@@ -5,8 +5,13 @@ const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface Realiza {
   id: number;
+  fk_id_plantacion: Plantacion | null;
+  fk_id_actividad: Actividad | null;
+}
+
+interface Plantacion {
+  id: number;
   fk_id_cultivo: Cultivo;
-  fk_id_actividad: Actividad;
 }
 
 interface Cultivo {
@@ -46,8 +51,8 @@ const fetchRealiza = async (): Promise<Realiza[]> => {
   try {
     const { data } = await axios.get(`${apiUrl}realiza/`);
     return data;
-  } catch (error) {
-    console.error("Error al obtener los datos de realiza:", error);
+  } catch (error: any) {
+    console.error("Error al obtener los datos de realiza:", error.response?.data || error.message);
     throw new Error("No se pudo obtener la lista de realiza");
   }
 };
@@ -57,5 +62,6 @@ export const useRealiza = () => {
     queryKey: ['Realiza'],
     queryFn: fetchRealiza,
     gcTime: 1000 * 60 * 10,
+    retry: 1, // Reduce retries to avoid spamming the server during debugging
   });
 };

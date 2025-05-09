@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 
 export interface CrearRealizaDTO {
-  fk_id_cultivo: number;
+  fk_id_plantacion: number;
   fk_id_actividad: number;
 }
 

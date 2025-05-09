@@ -56,7 +56,7 @@ const DetalleAsignacionModal = memo(({ item, realizaList, usuarios }: { item: As
   const usuario = usuarios.find((u) => u.id === (typeof item.fk_identificacion === 'object' ? item.fk_identificacion?.id : item.fk_identificacion));
 
   const realizaNombre = realiza
-    ? `${realiza.fk_id_cultivo?.fk_id_especie?.nombre_comun || 'Sin especie'} ${realiza.fk_id_cultivo?.nombre_cultivo || 'Sin cultivo'}`
+    ? `${realiza.fk_id_plantacion?.fk_id_cultivo?.fk_id_especie?.nombre_comun || 'Sin especie'} ${realiza.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo || 'Sin cultivo'}`
     : 'Sin realiza';
   const usuarioNombre = usuario ? `${usuario.nombre} ${usuario.apellido}` : 'Sin usuario';
 
@@ -189,9 +189,9 @@ const ListarAsignacion = () => {
         estado: asignacion.estado as 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada',
         fecha_programada: asignacion.fecha_programada,
         observaciones: asignacion.observaciones || 'Sin observaciones',
-        especie: realiza?.fk_id_cultivo?.fk_id_especie?.nombre_comun || 'Sin especie',
+        especie: realiza?.fk_id_plantacion?.fk_id_cultivo?.fk_id_especie?.nombre_comun || 'Sin especie',
         actividad: realiza?.fk_id_actividad?.nombre_actividad || 'Sin actividad',
-        cultivo: realiza?.fk_id_cultivo?.nombre_cultivo || 'Sin cultivo',
+        cultivo: realiza?.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo || 'Sin cultivo',
         usuario: usuario ? `${usuario.nombre} ${usuario.apellido}` : 'Sin usuario',
         fecha_realizada: programacion?.fecha_realizada || null,
         duracion: programacion?.duracion ?? null,
@@ -200,7 +200,7 @@ const ListarAsignacion = () => {
         unidad_medida: unidadMedida,
       };
     });
-  }, [asignaciones, realizaList, usuarios, programaciones, unidadesMedida]);
+  }, [asignaciones, realizaList, usuarios, programaciones, unidades    unidadesMedida]);
 
   const isLoading = isLoadingAsignaciones || isLoadingRealiza || isLoadingUsuarios || isLoadingProgramaciones || isLoadingUnidadesMedida;
   const error = errorAsignaciones || errorRealiza || errorUsuarios || errorProgramaciones || errorUnidadesMedida;

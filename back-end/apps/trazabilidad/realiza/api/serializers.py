@@ -1,10 +1,10 @@
 from rest_framework.serializers import ModelSerializer
 from apps.trazabilidad.realiza.models import Realiza
-from apps.trazabilidad.cultivo.api.serializers import LeerCultivoSerializer
+from apps.trazabilidad.plantacion.api.serializers import LeerPlantacionSerializer
 from apps.trazabilidad.actividad.api.serializers import LeerActividadSerializer
 
 class LeerRealizaSerializer(ModelSerializer):
-    fk_id_plantacion = LeerCultivoSerializer()
+    fk_id_plantacion = LeerPlantacionSerializer()
     fk_id_actividad = LeerActividadSerializer()
 
     class Meta:
