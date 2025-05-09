@@ -1,10 +1,8 @@
-
 import { useState, FormEvent, useEffect } from 'react';
 import { useCrearEspecie } from '@/hooks/trazabilidad/especie/useCrearEspecie';
 import { useTipoCultivo } from '@/hooks/trazabilidad/tipoCultivo/useTipoCultivo';
 import VentanaModal from '../../globales/VentanasModales';
 import CrearTipoCultivo from '../tipocultivo/CrearTipoCultivo';
-
 
 interface CrearEspecieProps {
   onSuccess: () => void;
@@ -17,49 +15,41 @@ const CrearEspecie = ({ onSuccess, onCancel }: CrearEspecieProps) => {
   const [descripcion, setDescripcion] = useState('');
   const [fk_id_tipo_cultivo, setFk_id_tipo_cultivo] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   const { mutate: createEspecie, isPending, error: mutationError } = useCrearEspecie();
-  const { data: tiposCultivo = [], refetch: refetchTiposCultivo, isLoading: isLoadingTiposCultivo } = useTipoCultivo();
+  const { data: tiposCultivo = [], refetch: refetchTiposCultivo, isLoading } = useTipoCultivo();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState<React.ReactNode>(null);
 
   useEffect(() => {
     refetchTiposCultivo();
-  }, [refetchTiposCultivo]);
-
+  }, []);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
 
-    if (!nombreComun) {
-      setErrorMessage('El nombre común es obligatorio.');
-      return;
-    }
-    if (!nombreCientifico) {
-      setErrorMessage('El nombre científico es obligatorio.');
-      return;
-    }
-    if (!fk_id_tipo_cultivo) {
-      setErrorMessage('Debe seleccionar un tipo de cultivo.');
+    if (!nombreComun || !nombreCientifico || !fk_id_tipo_cultivo) {
+      setErrorMessage('Todos los campos son obligatorios.');
       return;
     }
 
-    const tipoCultivoExists = tiposCultivo.some((tipo) => tipo.id === parseInt(fk_id_tipo_cultivo, 10));
+    const tipoCultivoExists = tiposCultivo.some((tipo) => tipo.id === Number(fk_id_tipo_cultivo));
     if (!tipoCultivoExists) {
       setErrorMessage('El tipo de cultivo seleccionado no es válido.');
       return;
     }
 
     const nuevaEspecie = {
-      nombre_comun: nombreComun,
-      nombre_cientifico: nombreCientifico,
-      descripcion: descripcion || '',
-      fk_id_tipo_cultivo: parseInt(fk_id_tipo_cultivo, 10),
+      nombre_comun: nombreComun.trim(),
+      nombre_cientifico: nombreCientifico.trim(),
+      descripcion: descripcion.trim() || '',
+      fk_id_tipo_cultivo: Number(fk_id_tipo_cultivo),
     };
 
     createEspecie(nuevaEspecie, {
       onSuccess: () => {
-        console.log("✅ Callback onSuccess ejecutado en CrearEspecie");
+        console.log("✅ Especie creada exitosamente.");
         setNombreComun('');
         setNombreCientifico('');
         setDescripcion('');
@@ -78,7 +68,7 @@ const CrearEspecie = ({ onSuccess, onCancel }: CrearEspecieProps) => {
     setIsModalOpen(true);
   };
 
-  if (isLoadingTiposCultivo) {
+  if (isLoading) {
     return <div className="text-center text-gray-500">Cargando tipos de cultivo...</div>;
   }
 
@@ -155,7 +145,7 @@ const CrearEspecie = ({ onSuccess, onCancel }: CrearEspecieProps) => {
           <button
             type="button"
             onClick={openCreateTipoCultivoModal}
-            className="mt-6 bg-green-700 text-white px-3 py-1 rounded hover:bg-green-900"
+            className="mt-6 bg-green-700 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-green-900"
             title="Crear nuevo tipo de cultivo"
             disabled={isPending}
           >
@@ -163,19 +153,10 @@ const CrearEspecie = ({ onSuccess, onCancel }: CrearEspecieProps) => {
           </button>
         </div>
         <div className="flex justify-end space-x-2">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
-            disabled={isPending}
-          >
+          <button type="button" onClick={onCancel} className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400">
             Cancelar
           </button>
-          <button
-            type="submit"
-            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-700"
-            disabled={isPending}
-          >
+          <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-700">
             {isPending ? 'Creando...' : 'Crear'}
           </button>
         </div>
