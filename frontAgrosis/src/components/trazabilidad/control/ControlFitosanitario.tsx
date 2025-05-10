@@ -85,6 +85,7 @@ const ControlFitosanitario = () => {
     pea: control.fk_id_pea ? control.fk_id_pea.nombre_pea : 'Sin PEA',
     insumo: control.fk_id_insumo ? control.fk_id_insumo.nombre : 'Sin insumo',
     cantidad_insumo: control.cantidad_insumo,
+    unidad_medida: control.fk_unidad_medida ? control.fk_unidad_medida.nombre_medida : 'Sin unidad',
     usuario: control.fk_identificacion
       ? control.fk_identificacion.identificacion
       : 'Sin usuario',
@@ -110,6 +111,7 @@ const ControlFitosanitario = () => {
     'PEA',
     'Insumo',
     'Cantidad Insumo',
+    'Unidad Medida',
     'Usuario',
     'img',
   ];
@@ -165,6 +167,7 @@ const ControlFitosanitario = () => {
                 <p><strong>PEA:</strong> {(selectedControl as any).fk_id_pea?.nombre_pea || 'Sin PEA'}</p>
                 <p><strong>Insumo:</strong> {(selectedControl as any).fk_id_insumo?.nombre || 'Sin insumo'}</p>
                 <p><strong>Cantidad Insumo:</strong> {(selectedControl as any).cantidad_insumo || '0'}</p>
+                <p><strong>Unidad Medida:</strong> {(selectedControl as any).fk_unidad_medida?.nombre_medida || 'Sin unidad'}</p>
                 <p><strong>Usuario:</strong> {(selectedControl as any).fk_identificacion?.nombre || 'Sin usuario'}</p>
                 {(selectedControl as any).img && (
                   <p className="col-span-2">

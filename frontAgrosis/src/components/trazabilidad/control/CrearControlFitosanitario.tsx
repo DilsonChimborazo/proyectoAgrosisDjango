@@ -7,9 +7,11 @@ import { useUsuarios } from '@/hooks/usuarios/usuario/useUsuarios';
 import { useState } from 'react';
 import VentanaModal from '../../globales/VentanasModales';
 import CrearPlantacion from '../plantacion/CrearPlantacion';
-import CrearPea from '../peas/CrearPea'; 
-import CrearInsumo from '../../inventario/insumos/CrearInsumos'; 
-import CrearUsuario from '../../usuarios/usuario/crearUsuario'; 
+import CrearPea from '../peas/CrearPea';
+import CrearInsumo from '../../inventario/insumos/CrearInsumos';
+import CrearUsuario from '../../usuarios/usuario/crearUsuario';
+import { useMedidas } from "@/hooks/inventario/unidadMedida/useMedidad";
+import CrearUnidadMedida from "@/components/inventario/unidadMedida/UnidadMedida";
 
 interface CrearControlFitosanitarioProps {
   onSuccess: () => void;
@@ -21,16 +23,14 @@ const CrearControlFitosanitario = ({ onSuccess }: CrearControlFitosanitarioProps
   const { data: peas = [], isLoading: isLoadingPeas, refetch: refetchPeas } = usePea();
   const { data: insumos = [], isLoading: isLoadingInsumos, refetch: refetchInsumos } = useInsumo();
   const { data: usuarios = [], isLoading: isLoadingUsuarios, error: errorUsuarios, refetch: refetchUsuarios } = useUsuarios();
+  const { data: unidades = [], isLoading: isLoadingUnidades, refetch: refetchUnidades } = useMedidas();
 
   const [mostrarModalPlantacion, setMostrarModalPlantacion] = useState(false);
   const [mostrarModalPea, setMostrarModalPea] = useState(false);
   const [mostrarModalInsumo, setMostrarModalInsumo] = useState(false);
   const [mostrarModalUsuario, setMostrarModalUsuario] = useState(false);
-
-  console.log("Usuarios recibidos:", usuarios);
-  if (errorUsuarios) {
-    console.error("Error al cargar usuarios:", errorUsuarios);
-  }
+  const [mostrarModalUnidad, setMostrarModalUnidad] = useState(false);
+  const [selectedInsumoId, setSelectedInsumoId] = useState<string | null>(null);
 
   const tipoControlOptions = [
     { value: 'Control Biologico', label: 'Control Biologico' },
@@ -61,6 +61,23 @@ const CrearControlFitosanitario = ({ onSuccess }: CrearControlFitosanitarioProps
         label: `${usuario.identificacion} ${usuario.nombre}`,
       }))
     : [{ value: '', label: 'No hay usuarios disponibles' }];
+
+  const unidadOptions = unidades.map((unidad) => ({
+    value: String(unidad.id),
+    label: unidad.nombre_medida,
+  }));
+
+  // Find the selected insumo to get its stock
+  const selectedInsumo = insumos.find(
+    (insumo) => String(insumo.id) === selectedInsumoId
+  );
+
+  // Handle field changes to update selected insumo
+  const handleFieldChange = (fieldId: string, value: string) => {
+    if (fieldId === 'fk_id_insumo') {
+      setSelectedInsumoId(value);
+    }
+  };
 
   const formFields = [
     { id: 'fecha_control', label: 'Fecha del Control', type: 'date', required: true },
@@ -96,12 +113,27 @@ const CrearControlFitosanitario = ({ onSuccess }: CrearControlFitosanitarioProps
       hasExtraButton: true,
       extraButtonText: 'Crear Insumo',
       onExtraButtonClick: () => setMostrarModalInsumo(true),
+      extraContent: selectedInsumo ? (
+        <div className="text-sm text-green-600 text-center">
+          Stock disponible del insumo seleccionado: {selectedInsumo.cantidad_insumo ?? 0}
+        </div>
+      ) : null,
     },
     {
       id: 'cantidad_insumo',
       label: 'Cantidad de Insumo',
       type: 'number',
       required: true,
+    },
+    {
+      id: 'fk_unidad_medida',
+      label: 'Unidad Medida',
+      type: 'select',
+      options: unidadOptions,
+      required: true,
+      hasExtraButton: true,
+      extraButtonText: 'Crear Unidad',
+      onExtraButtonClick: () => setMostrarModalUnidad(true),
     },
     {
       id: 'fk_identificacion',
@@ -116,8 +148,6 @@ const CrearControlFitosanitario = ({ onSuccess }: CrearControlFitosanitarioProps
   ];
 
   const handleControlSubmit = (formData: { [key: string]: string | File }) => {
-    console.log("Datos del formulario recibidos:", formData);
-
     if (
       !formData.fecha_control ||
       !formData.duracion ||
@@ -126,6 +156,7 @@ const CrearControlFitosanitario = ({ onSuccess }: CrearControlFitosanitarioProps
       !formData.fk_id_plantacion ||
       !formData.fk_id_pea ||
       !formData.fk_id_insumo ||
+      !formData.fk_unidad_medida ||
       !formData.cantidad_insumo ||
       !formData.img
     ) {
@@ -142,11 +173,10 @@ const CrearControlFitosanitario = ({ onSuccess }: CrearControlFitosanitarioProps
       fk_id_pea: Number(formData.fk_id_pea),
       fk_id_insumo: Number(formData.fk_id_insumo),
       cantidad_insumo: Number(formData.cantidad_insumo),
+      fk_unidad_medida: Number(formData.fk_unidad_medida),
       fk_identificacion: formData.fk_identificacion ? Number(formData.fk_identificacion) : null,
       img: formData.img as File,
     };
-
-    console.log("🚀 Enviando control fitosanitario al backend:", nuevoControl);
 
     mutation.mutate(nuevoControl, {
       onSuccess: () => {
@@ -160,24 +190,22 @@ const CrearControlFitosanitario = ({ onSuccess }: CrearControlFitosanitarioProps
   };
 
   const cerrarYActualizar = async () => {
-    console.log('Ejecutando cerrarYActualizar para cerrar modal de insumo');
-    
     setMostrarModalPlantacion(false);
     setMostrarModalPea(false);
     setMostrarModalInsumo(false);
     setMostrarModalUsuario(false);
-    // Añadir un pequeño retraso para asegurar que el estado se actualice antes de las operaciones asíncronas
+    setMostrarModalUnidad(false);
     await new Promise(resolve => setTimeout(resolve, 100));
-    // Ejecutar las operaciones de refetch después de cerrar el modal
     await Promise.all([
       refetchPlantaciones(),
       refetchPeas(),
       refetchInsumos(),
       refetchUsuarios(),
+      refetchUnidades(),
     ]);
   };
 
-  if (isLoadingPlantaciones || isLoadingPeas || isLoadingInsumos || isLoadingUsuarios) {
+  if (isLoadingPlantaciones || isLoadingPeas || isLoadingInsumos || isLoadingUsuarios || isLoadingUnidades) {
     return <div className="text-center text-gray-500">Cargando datos...</div>;
   }
 
@@ -187,42 +215,20 @@ const CrearControlFitosanitario = ({ onSuccess }: CrearControlFitosanitarioProps
 
   return (
     <div className="max-w-4xl mx-auto p-4">
-      <Formulario 
+      <Formulario
         fields={formFields}
         onSubmit={handleControlSubmit}
+        onFieldChange={handleFieldChange}
         isError={mutation.isError}
         isSuccess={mutation.isSuccess}
         title="Registrar Nuevo Control Fitosanitario"
         multipart={true}
       />
-
-      <VentanaModal
-        isOpen={mostrarModalPlantacion}
-        onClose={cerrarYActualizar}
-        titulo=""
-        contenido={<CrearPlantacion onSuccess={cerrarYActualizar} />}
-      />
-
-      <VentanaModal
-        isOpen={mostrarModalPea}
-        onClose={cerrarYActualizar}
-        titulo=""
-        contenido={<CrearPea onSuccess={cerrarYActualizar} />}
-      />
-
-      <VentanaModal
-        isOpen={mostrarModalInsumo}
-        onClose={cerrarYActualizar}
-        titulo=""
-        contenido={<CrearInsumo onSuccess={cerrarYActualizar} />}
-      />
-
-      <VentanaModal
-        isOpen={mostrarModalUsuario}
-        onClose={cerrarYActualizar}
-        titulo=""
-        contenido={<CrearUsuario isOpen={mostrarModalUsuario} onClose={cerrarYActualizar} />}
-      />
+      <VentanaModal isOpen={mostrarModalPlantacion} onClose={cerrarYActualizar} titulo="" contenido={<CrearPlantacion onSuccess={cerrarYActualizar} />} />
+      <VentanaModal isOpen={mostrarModalPea} onClose={cerrarYActualizar} titulo="" contenido={<CrearPea onSuccess={cerrarYActualizar} />} />
+      <VentanaModal isOpen={mostrarModalInsumo} onClose={cerrarYActualizar} titulo="" contenido={<CrearInsumo onSuccess={cerrarYActualizar} />} />
+      <VentanaModal isOpen={mostrarModalUsuario} onClose={cerrarYActualizar} titulo="" contenido={<CrearUsuario isOpen={mostrarModalUsuario} onClose={cerrarYActualizar} />} />
+      <VentanaModal isOpen={mostrarModalUnidad} onClose={cerrarYActualizar} titulo="" contenido={<CrearUnidadMedida onSuccess={cerrarYActualizar} />} />
     </div>
   );
 };

@@ -13,8 +13,16 @@ export interface ControlFitosanitario {
     fk_id_pea: Pea | null;
     fk_id_insumo: Insumo | null;
     cantidad_insumo: number;
+    fk_unidad_medida: UnidadMedida | null;
     fk_identificacion: Usuario | null;
     img: string | null;
+}
+
+export interface UnidadMedida {
+  id: number;
+  nombre_medida: string;
+  unidad_base: 'g' | 'ml' | 'u';
+  factor_conversion: number;
 }
 
 export interface Pea {
@@ -65,7 +73,7 @@ export interface Insumo {
     nombre: string;
     tipo: string;
     precio_unidad: number;
-    stock: number;
+    cantidad_insumo: number;
     fk_unidad_medida: string;
 }
 
