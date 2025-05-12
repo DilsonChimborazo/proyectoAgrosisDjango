@@ -348,52 +348,54 @@ const ListarBodega = () => {
         // Función para formatear fechas sin problemas de zona horaria
         function formatDateWithoutTimezone(dateInput: string | Date): string {
             const date = new Date(dateInput);
-        
             const day = String(date.getDate()).padStart(2, '0');
             const month = String(date.getMonth() + 1).padStart(2, '0'); 
             const year = date.getFullYear();
-        
             return `${day}/${month}/${year}`;
         }
-        
-    
+
         // Extraer nombre según el tipo seleccionado
         const nombreHerramienta = item.fk_id_herramientas?.nombre_h || "N/A";
         const nombreInsumo = item.fk_id_insumo?.nombre || "N/A";
         const nombre = tipoSeleccionado === "Herramienta" ? nombreHerramienta : nombreInsumo;
-    
+
         // Estilos para movimiento (Entrada/Salida)
         const movimiento = item.movimiento;
         const colorMovimiento = movimiento === "Entrada" 
             ? "text-green-700 font-bold" 
             : "text-red-700 font-bold";
-    
+
+        // Obtener la cantidad correcta (herramienta o insumo)
+        const cantidad = tipoSeleccionado === "Herramienta" 
+            ? item.cantidad_herramienta ?? 0
+            : item.cantidad_insumo ?? 0;
+
         // Estilos para cantidad según disponibilidad
-        const cantidad = item.cantidad_herramienta ?? item.cantidad_insumo ?? 0;
         let bgCantidad = "bg-gray-300 text-black font-bold rounded px-2";
         if (cantidad < 5) bgCantidad = "bg-red-300 text-red-900 font-bold rounded px-2";
         else if (cantidad < 10) bgCantidad = "bg-yellow-300 text-yellow-900 font-bold rounded px-2";
         else bgCantidad = "bg-green-300 text-green-900 font-bold rounded px-2";
-    
+
         // Calcular cantidad en base (para insumos)
         let cantidadBase = "No Aplica";
-        if (tipoSeleccionado === "Insumo") {
-            if (item.fk_id_insumo?.cantidad_en_base) {
+        if (tipoSeleccionado === "Insumo" && item.fk_id_insumo) {
+            if (item.fk_id_insumo.cantidad_en_base) {
                 cantidadBase = `${Math.round(parseFloat(item.fk_id_insumo.cantidad_en_base))} ${
                     item.fk_id_insumo.fk_unidad_medida?.unidad_base || ''
                 }`;
-            } else if (item.cantidad_insumo && item.fk_id_insumo?.fk_unidad_medida?.factor_conversion) {
+            } else if (item.cantidad_insumo && item.fk_id_insumo.fk_unidad_medida?.factor_conversion) {
                 const factor = item.fk_id_insumo.fk_unidad_medida.factor_conversion;
                 cantidadBase = `${Math.round(item.cantidad_insumo * factor)} ${
                     item.fk_id_insumo.fk_unidad_medida?.unidad_base || ''
                 }`;
             }
         }
-    
+
         // Obtener unidad de medida
-        const unidadMedida = tipoSeleccionado === "Insumo" 
-            ? item.fk_id_insumo?.fk_unidad_medida?.nombre_medida || "No Aplica" 
+        const unidadMedida = tipoSeleccionado === "Insumo" && item.fk_id_insumo
+            ? item.fk_id_insumo.fk_unidad_medida?.nombre_medida || "No Aplica" 
             : "No Aplica";
+
         return {
             id: item.id,
             [tipoSeleccionado === "Herramienta" ? "herramienta" : "insumo"]: nombre,
@@ -404,8 +406,8 @@ const ListarBodega = () => {
             unidad_medida: unidadMedida,
             cantidad_base: cantidadBase,
             costo: tipoSeleccionado === "Herramienta" 
-            ? "No Aplica" 
-            : (item.costo_insumo ? `$${parseFloat(item.costo_insumo.toString()).toFixed(2)}` : "—"),
+                ? "No Aplica" 
+                : (item.costo_insumo ? `$${parseFloat(item.costo_insumo.toString()).toFixed(2)}` : "—"),
             fecha: formatDateWithoutTimezone(item.fecha),
             movimiento: <span className={colorMovimiento}>{movimiento}</span>,
             rawData: item
