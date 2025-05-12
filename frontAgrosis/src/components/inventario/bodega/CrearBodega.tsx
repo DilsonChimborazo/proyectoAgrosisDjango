@@ -7,13 +7,12 @@ import { Herramientas, Insumo, Asignacion } from "@/hooks/inventario/bodega/useC
 import CrearInsumoCompuesto from "@/components/inventario/insumocompuesto/CrearInsumoCompuesto";
 
 interface Props {
-  id: string;
   herramientas: Herramientas[];
   insumos: Insumo[];
   insumosCompuestos?: Insumo[];
   asignaciones: Asignacion[];
   onSuccess?: () => void;
-  onClick: (nuevo: Insumo) => void;
+  onClick?: (nuevo: Insumo) => void;
 }
 
 interface ItemSeleccionado {
@@ -26,15 +25,16 @@ const RegistrarSalidaBodega = ({
   insumos: insumosIniciales = [],
   insumosCompuestos: insumosCompuestosIniciales = [],
   asignaciones = [],
+  onSuccess,
   onClick
 }: Props) => {
   const { mutate: crearMovimientoBodega } = useCrearBodega();
   const navigate = useNavigate();
 
-  const [mensaje, setMensaje] = useState("");
+  const [mensaje, setMensaje] = useState<{texto: string, tipo: 'exito' | 'error' | 'info'} | null>(null);
   const [tipoInsumo, setTipoInsumo] = useState<"simple" | "compuesto">("simple");
   const [insumos] = useState<Insumo[]>(insumosIniciales);
-  const [insumosCompuestos, setInsumosCompuestos] = useState<Insumo[]>(insumosCompuestosIniciales);
+  const [insumosCompuestos] = useState<Insumo[]>(insumosCompuestosIniciales);
   const [herramientasSeleccionadas, setHerramientasSeleccionadas] = useState<ItemSeleccionado[]>([]);
   const [insumosSeleccionados, setInsumosSeleccionados] = useState<ItemSeleccionado[]>([]);
   const [mostrarModalHerramienta, setMostrarModalHerramienta] = useState(false);
@@ -43,55 +43,55 @@ const RegistrarSalidaBodega = ({
   const [tabActual, setTabActual] = useState<"simples" | "compuestos">("simples");
 
   const agregarNuevoInsumo = (nuevo: Insumo) => {
-    setInsumosCompuestos([...insumosCompuestos, nuevo]);
-    setInsumosSeleccionados([...insumosSeleccionados, { id: nuevo.id, cantidad: 1 }]);
-    onClick(nuevo);
+    setInsumosSeleccionados(prev => [...prev, { id: nuevo.id, cantidad: 1 }]);
+    onClick?.(nuevo);
+    setMostrarCrearCompuesto(false);
+    setMensaje({texto: "Insumo compuesto agregado correctamente", tipo: 'exito'});
   };
 
   const agregarHerramienta = (herramienta: Herramientas) => {
     if (!herramientasSeleccionadas.some(h => h.id === herramienta.id)) {
-      setHerramientasSeleccionadas([
-        ...herramientasSeleccionadas,
+      setHerramientasSeleccionadas(prev => [
+        ...prev,
         { id: herramienta.id, cantidad: 1 }
       ]);
+      setMensaje(null);
     }
   };
 
   const agregarInsumo = (insumo: Insumo) => {
     if (!insumosSeleccionados.some(i => i.id === insumo.id)) {
-      setInsumosSeleccionados([
-        ...insumosSeleccionados,
+      setInsumosSeleccionados(prev => [
+        ...prev,
         { id: insumo.id, cantidad: 1 }
       ]);
+      setMensaje(null);
     }
   };
 
-  const eliminarHerramienta = (id: number) => {
-    setHerramientasSeleccionadas(
-      herramientasSeleccionadas.filter(h => h.id !== id)
-    );
+  const eliminarItem = <T extends ItemSeleccionado>(
+    items: T[],
+    setItems: React.Dispatch<React.SetStateAction<T[]>>,
+    id: number
+  ) => {
+    setItems(prev => prev.filter(item => item.id !== id));
   };
 
-  const eliminarInsumo = (id: number) => {
-    setInsumosSeleccionados(
-      insumosSeleccionados.filter(i => i.id !== id)
+  const actualizarCantidad = <T extends ItemSeleccionado>(
+    items: T[],
+    setItems: React.Dispatch<React.SetStateAction<T[]>>,
+    id: number, 
+    cantidad: number,
+    maxDisponible?: number
+  ) => {
+    const cantidadFinal = Math.min(
+      Math.max(1, cantidad),
+      maxDisponible || Infinity
     );
-  };
-
-  const actualizarCantidadHerramienta = (id: number, cantidad: number) => {
-    setHerramientasSeleccionadas(
-      herramientasSeleccionadas.map(h => 
-        h.id === id ? { ...h, cantidad } : h
-      )
-    );
-  };
-
-  const actualizarCantidadInsumo = (id: number, cantidad: number) => {
-    setInsumosSeleccionados(
-      insumosSeleccionados.map(i => 
-        i.id === id ? { ...i, cantidad } : i
-      )
-    );
+    
+    setItems(prev => prev.map(item => 
+      item.id === id ? { ...item, cantidad: cantidadFinal } : item
+    ));
   };
 
   const formFields = [
@@ -99,70 +99,165 @@ const RegistrarSalidaBodega = ({
       id: "fk_id_asignacion",
       label: "Asignación relacionada",
       type: "select",
-      options: asignaciones.map((a) => ({
-        value: a.id.toString(),
-        label: `Asignación ${a.fecha_programada}`,
-      })),
+      options: [
+        { value: "", label: "Ninguna" },
+        ...asignaciones.map((a) => ({
+          value: a.id.toString(),
+          label: `Asignación ${new Date(a.fecha_programada).toLocaleDateString()}`,
+        })),
+      ],
     },
     {
       id: "fecha",
       label: "Fecha de salida",
       type: "date",
+      required: true,
+      defaultValue: new Date().toISOString().split('T')[0]
     },
   ];
 
   const handleSubmit = (formData: any) => {
     if (herramientasSeleccionadas.length === 0 && insumosSeleccionados.length === 0) {
-      setMensaje("Debes seleccionar al menos una herramienta o un insumo.");
+      setMensaje({texto: "Debes seleccionar al menos una herramienta o un insumo.", tipo: 'error'});
       return;
     }
-  
-    // Transformar los datos al formato esperado por la API
-    const salida = {
-      herramientas: herramientasSeleccionadas.map(h => ({
-        id: h.id,
-        cantidad: h.cantidad
-      })),
-      insumos: insumosSeleccionados.map(i => ({
-        id: i.id,
-        cantidad: i.cantidad
-      })),
+
+    // Validar cantidades no excedan el stock disponible
+    const errores = [];
+    
+    for (const h of herramientasSeleccionadas) {
+      const herramienta = herramientas.find(her => her.id === h.id);
+      if (herramienta && h.cantidad > herramienta.cantidad_herramienta) {
+        errores.push(`La cantidad de ${herramienta.nombre_h} excede el stock disponible`);
+      }
+    }
+
+    for (const i of insumosSeleccionados) {
+      const insumo = [...insumos, ...insumosCompuestos].find(ins => ins.id === i.id);
+      if (insumo && i.cantidad > (insumo.cantidad_insumo || 0)) {
+        errores.push(`La cantidad de ${insumo.nombre} excede el stock disponible`);
+      }
+    }
+
+    if (errores.length > 0) {
+      setMensaje({texto: errores.join('\n'), tipo: 'error'});
+      return;
+    }
+
+    // Preparar datos para la API
+    const payload = {
       fk_id_asignacion: formData.fk_id_asignacion ? parseInt(formData.fk_id_asignacion) : null,
-      fecha: formData.fecha,
+      fecha: formData.fecha || new Date().toISOString(),
       movimiento: "Salida" as const,
+      herramientas: herramientasSeleccionadas.length > 0 ? 
+        herramientasSeleccionadas.map(h => ({
+          id: h.id,
+          cantidad: h.cantidad
+        })) : undefined,
+      insumos: insumosSeleccionados.length > 0 ? 
+        insumosSeleccionados.map(i => ({
+          id: i.id,
+          cantidad: i.cantidad
+        })) : undefined
     };
-  
-    crearMovimientoBodega(salida, {
+
+    crearMovimientoBodega(payload, {
       onSuccess: () => {
-        setMensaje("Salida registrada exitosamente.");
+        setMensaje({texto: "Salida registrada exitosamente.", tipo: 'exito'});
+        onSuccess?.();
         setTimeout(() => navigate("/bodega"), 1500);
       },
-      onError: (err) => {
-        setMensaje(`Error al registrar salida: ${err.message}`);
+      onError: (error) => {
+        const errorMessage = error.response?.data?.message || 
+                            error.response?.data?.non_field_errors?.join('\n') || 
+                            error.message;
+        setMensaje({texto: `Error al registrar salida: ${errorMessage}`, tipo: 'error'});
       },
     });
   };
 
+  const renderListaItems = (
+    items: ItemSeleccionado[],
+    allItems: Array<Herramientas | Insumo>,
+    onUpdateCantidad: (id: number, cantidad: number, maxDisponible?: number) => void,
+    onRemove: (id: number) => void,
+    tipo: 'herramienta' | 'insumo'
+  ) => (
+    <div className="mb-6">
+      <h3 className="font-semibold mb-2">
+        {tipo === 'herramienta' ? 'Herramientas' : 'Insumos'} seleccionados:
+      </h3>
+      <div className="space-y-2">
+        {items.map((item) => {
+          const originalItem = allItems.find(i => i.id === item.id);
+          if (!originalItem) return null;
+
+          return (
+            <div key={item.id} className="flex items-center gap-4 p-2 border rounded">
+              <div className="flex-1">
+                <span className="font-medium">{
+                  'nombre_h' in originalItem ? originalItem.nombre_h : originalItem.nombre
+                }</span>
+                <span className="text-gray-600 ml-2">
+                  (Disponibles: {'cantidad_herramienta' in originalItem ? 
+                    originalItem.cantidad_herramienta : 
+                    originalItem.cantidad_insumo})
+                </span>
+              </div>
+              <input
+                type="number"
+                min="1"
+                max={'cantidad_herramienta' in originalItem ? 
+                  originalItem.cantidad_herramienta : 
+                  originalItem.cantidad_insumo}
+                value={item.cantidad}
+                onChange={(e) => onUpdateCantidad(
+                  item.id, 
+                  parseInt(e.target.value) || 1,
+                  'cantidad_herramienta' in originalItem ? 
+                    originalItem.cantidad_herramienta : 
+                    originalItem.cantidad_insumo
+                )}
+                className="w-20 p-1 border rounded"
+              />
+              <button
+                onClick={() => onRemove(item.id)}
+                className="text-red-500 hover:text-red-700"
+                aria-label="Eliminar"
+              >
+                Eliminar
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+
   return (
-    <div className="container mx-auto p-4">
-      <h2 className="text-xl text-center font-bold mb-6">Registrar Salida de Bodega</h2>
+    <div className="container mx-auto p-4 max-w-4xl">
+      <h2 className="text-2xl text-center font-bold mb-6">Registrar Salida de Bodega</h2>
 
       {mensaje && (
-        <div className="mb-4 p-2 bg-blue-100 text-blue-800 rounded">
-          {mensaje}
+        <div className={`mb-4 p-3 rounded-md ${
+          mensaje.tipo === 'error' ? 'bg-red-100 text-red-800' :
+          mensaje.tipo === 'exito' ? 'bg-green-100 text-green-800' :
+          'bg-blue-100 text-blue-800'
+        }`}>
+          {mensaje.texto}
         </div>
       )}
 
       <div className="mb-6 flex justify-center gap-4 flex-wrap">
         <button
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md"
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
           onClick={() => setMostrarModalHerramienta(true)}
         >
           + Agregar Herramientas
         </button>
 
         <button
-          className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md"
+          className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors"
           onClick={() => {
             setMostrarModalInsumo(true);
             setTabActual(tipoInsumo === "compuesto" ? "compuestos" : "simples");
@@ -172,109 +267,70 @@ const RegistrarSalidaBodega = ({
         </button>
       </div>
 
-      {/* Lista de herramientas seleccionadas */}
-      {herramientasSeleccionadas.length > 0 && (
-        <div className="mb-6">
-          <h3 className="font-semibold mb-2">Herramientas seleccionadas:</h3>
-          <div className="space-y-2">
-            {herramientasSeleccionadas.map((h) => {
-              const herramienta = herramientas.find(her => her.id === h.id);
-              return (
-                <div key={h.id} className="flex items-center gap-4 p-2 border rounded">
-                  <div className="flex-1">
-                    <span className="font-medium">{herramienta?.nombre_h}</span>
-                    <span className="text-gray-600 ml-2">(Disponibles: {herramienta?.cantidad_herramienta})</span>
-                  </div>
-                  <input
-                    type="number"
-                    min="1"
-                    max={herramienta?.cantidad_herramienta}
-                    value={h.cantidad}
-                    onChange={(e) => actualizarCantidadHerramienta(h.id, parseInt(e.target.value) || 1)}
-                    className="w-20 p-1 border rounded"
-                  />
-                  <button
-                    onClick={() => eliminarHerramienta(h.id)}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    Eliminar
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+      {herramientasSeleccionadas.length > 0 && renderListaItems(
+        herramientasSeleccionadas,
+        herramientas,
+        (id, cantidad, max) => actualizarCantidad(
+          herramientasSeleccionadas,
+          setHerramientasSeleccionadas,
+          id, 
+          cantidad,
+          max
+        ),
+        (id) => eliminarItem(herramientasSeleccionadas, setHerramientasSeleccionadas, id),
+        'herramienta'
       )}
 
-      {/* Lista de insumos seleccionados */}
-      {insumosSeleccionados.length > 0 && (
-        <div className="mb-6">
-          <h3 className="font-semibold mb-2">Insumos seleccionados:</h3>
-          <div className="space-y-2">
-            {insumosSeleccionados.map((i) => {
-              const insumo = [...insumos, ...insumosCompuestos].find(ins => ins.id === i.id);
-              return (
-                <div key={i.id} className="flex items-center gap-4 p-2 border rounded">
-                  <div className="flex-1">
-                    <span className="font-medium">{insumo?.nombre}</span>
-                    <span className="text-gray-600 ml-2">(Disponibles: {insumo?.cantidad_insumo})</span>
-                  </div>
-                  {tipoInsumo === "simple" && (
-                    <input
-                      type="number"
-                      min="1"
-                      max={insumo?.cantidad_insumo}
-                      value={i.cantidad}
-                      onChange={(e) => actualizarCantidadInsumo(i.id, parseInt(e.target.value) || 1)}
-                      className="w-20 p-1 border rounded"
-                    />
-                  )}
-                  <button
-                    onClick={() => eliminarInsumo(i.id)}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    Eliminar
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+      {insumosSeleccionados.length > 0 && renderListaItems(
+        insumosSeleccionados,
+        [...insumos, ...insumosCompuestos],
+        (id, cantidad, max) => actualizarCantidad(
+          insumosSeleccionados,
+          setInsumosSeleccionados,
+          id, 
+          cantidad,
+          max
+        ),
+        (id) => eliminarItem(insumosSeleccionados, setInsumosSeleccionados, id),
+        'insumo'
       )}
 
       <Formulario 
         fields={formFields} 
         onSubmit={handleSubmit} 
-        title="Registrar Salida"
+        title="Confirmar Salida"
       />
 
+      {/* Modal para seleccionar herramientas */}
       <VentanaModal
         isOpen={mostrarModalHerramienta}
         onClose={() => setMostrarModalHerramienta(false)}
         titulo="Seleccionar Herramientas"
+        size="lg"
       >
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 max-h-[60vh] overflow-y-auto p-2">
           {herramientas.map((h) => (
             <div
               key={h.id}
               className={`border p-4 rounded-lg shadow-sm cursor-pointer transition-colors ${
                 herramientasSeleccionadas.some(sel => sel.id === h.id) 
-                  ? "bg-blue-100" 
+                  ? "bg-blue-100 border-blue-300" 
                   : "hover:bg-blue-50"
               }`}
               onClick={() => agregarHerramienta(h)}
             >
               <h4 className="font-semibold text-lg">{h.nombre_h}</h4>
               <p className="text-gray-600">Disponibles: {h.cantidad_herramienta}</p>
+              <p className="text-sm mt-1">Estado: {h.estado}</p>
               {herramientasSeleccionadas.some(sel => sel.id === h.id) && (
-                <div className="mt-2 text-green-600">Seleccionada</div>
+                <div className="mt-2 text-green-600 font-medium">✓ Seleccionada</div>
               )}
             </div>
           ))}
         </div>
-        <div className="mt-4 flex justify-end">
+        <div className="mt-4 flex justify-end border-t pt-4">
           <button
-            className="px-4 py-2 bg-blue-600 text-white rounded-md"
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
             onClick={() => setMostrarModalHerramienta(false)}
           >
             Cerrar
@@ -282,14 +338,16 @@ const RegistrarSalidaBodega = ({
         </div>
       </VentanaModal>
 
+      {/* Modal para seleccionar insumos */}
       <VentanaModal
         titulo="Seleccionar Insumos"
         isOpen={mostrarModalInsumo}
         onClose={() => setMostrarModalInsumo(false)}
+        size="lg"
       >
         <div className="mb-4 flex border-b">
           <button
-            className={`px-4 py-2 font-medium ${tabActual === "simples" ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-500"}`}
+            className={`px-4 py-2 font-medium ${tabActual === "simples" ? "border-b-2 border-green-500 text-green-600" : "text-gray-500"}`}
             onClick={() => {
               setTabActual("simples");
               setTipoInsumo("simple");
@@ -298,7 +356,7 @@ const RegistrarSalidaBodega = ({
             Insumos Simples
           </button>
           <button
-            className={`px-4 py-2 font-medium ${tabActual === "compuestos" ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-500"}`}
+            className={`px-4 py-2 font-medium ${tabActual === "compuestos" ? "border-b-2 border-green-500 text-green-600" : "text-gray-500"}`}
             onClick={() => {
               setTabActual("compuestos");
               setTipoInsumo("compuesto");
@@ -308,21 +366,22 @@ const RegistrarSalidaBodega = ({
           </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 max-h-[50vh] overflow-y-auto p-2">
           {(tabActual === "simples" ? insumos : insumosCompuestos).map((i) => (
             <div
               key={i.id}
               className={`border p-4 rounded-lg shadow-sm cursor-pointer transition-colors ${
                 insumosSeleccionados.some(sel => sel.id === i.id) 
-                  ? "bg-green-100" 
+                  ? "bg-green-100 border-green-300" 
                   : "hover:bg-green-50"
               }`}
               onClick={() => agregarInsumo(i)}
             >
               <h4 className="font-semibold text-lg">{i.nombre}</h4>
               <p className="text-gray-600">Disponibles: {i.cantidad_insumo}</p>
+              {'tipo' in i && <p className="text-sm mt-1">Tipo: {i.tipo}</p>}
               {insumosSeleccionados.some(sel => sel.id === i.id) && (
-                <div className="mt-2 text-green-600">Seleccionado</div>
+                <div className="mt-2 text-green-600 font-medium">✓ Seleccionado</div>
               )}
             </div>
           ))}
@@ -331,7 +390,7 @@ const RegistrarSalidaBodega = ({
         {tabActual === "compuestos" && (
           <div className="mt-4 text-center">
             <button
-              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md"
+              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md transition-colors"
               onClick={() => {
                 setMostrarModalInsumo(false);
                 setMostrarCrearCompuesto(true);
@@ -342,9 +401,9 @@ const RegistrarSalidaBodega = ({
           </div>
         )}
 
-        <div className="mt-4 flex justify-end">
+        <div className="mt-4 flex justify-end border-t pt-4">
           <button
-            className="px-4 py-2 bg-blue-600 text-white rounded-md"
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
             onClick={() => setMostrarModalInsumo(false)}
           >
             Cerrar
@@ -352,10 +411,12 @@ const RegistrarSalidaBodega = ({
         </div>
       </VentanaModal>
 
+      {/* Modal para crear insumo compuesto */}
       <VentanaModal
         titulo="Crear Insumo Compuesto"
         isOpen={mostrarCrearCompuesto}
         onClose={() => setMostrarCrearCompuesto(false)}
+        size="xl"
       >
         <CrearInsumoCompuesto 
           onSuccess={agregarNuevoInsumo} 

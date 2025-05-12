@@ -38,7 +38,6 @@ export const useCrearInsumo = () => {
       return data;
     },
     onSuccess: () => {
-      console.log("✅ Insumo creado con éxito");
       queryClient.invalidateQueries({ queryKey: ["insumo"] });
     },
     onError: (error: any) => {

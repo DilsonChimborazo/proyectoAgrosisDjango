@@ -90,7 +90,6 @@ interface InsumoCompuesto {
     nombre_h?: never;
 }
 
-// Type guards
 function isHerramienta(item: Herramienta | Insumo | InsumoCompuesto): item is Herramienta {
     return 'nombre_h' in item && !('detalles' in item);
 }
@@ -395,12 +394,6 @@ const ListarBodega = () => {
         const unidadMedida = tipoSeleccionado === "Insumo" 
             ? item.fk_id_insumo?.fk_unidad_medida?.nombre_medida || "No Aplica" 
             : "No Aplica";
-            
-        console.log("Item ID:", item.id);
-        console.log("Fecha asignación cruda:", item.fk_id_asignacion?.fecha_programada);
-        console.log("Fecha movimiento cruda:", item.fecha);
-            
-    
         return {
             id: item.id,
             [tipoSeleccionado === "Herramienta" ? "herramienta" : "insumo"]: nombre,
@@ -418,19 +411,6 @@ const ListarBodega = () => {
             rawData: item
         };
     }) || [];
-    
-    // Depuración: Verificar los datos finales mapeados
-    console.log("Datos mapeados:", mappedMovimientos.map(m => ({
-        id: m.id,
-        nombre: m[m.tipoSeleccionado === "Herramienta" ? "herramienta" : "insumo"],
-        fechaAsignacion: m.asignacion,
-        fechaMovimiento: m.fecha,
-        cantidad: m.cantidad,
-        costo: m.costo
-    })));
-
-    
-    
     const itemsFiltrados = filtrarItems(tipoSeleccionado === 'Herramienta' ? herramientas || [] : insumos || []);
 
     // Filtrar insumos compuestos según el término de búsqueda

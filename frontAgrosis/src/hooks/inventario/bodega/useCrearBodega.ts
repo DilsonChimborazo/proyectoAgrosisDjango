@@ -4,13 +4,15 @@ import axios from 'axios';
 const apiUrl = import.meta.env.VITE_API_URL;
 
 interface MovimientoBodegaPayload {
-  fk_id_herramientas?: number | number[];
-  fk_id_insumo?: number | number[];
-  cantidad_herramienta?: number | number[];
-  cantidad_insumo?: number | number[];
+  fk_id_herramientas?: number | null;
+  fk_id_insumo?: number | null;
+  cantidad_herramienta?: number | null;
+  cantidad_insumo?: number | null;
   fk_id_asignacion?: number | null;
   fecha: string;
-  movimiento: "Entrada" | "Salida";
+  movimiento: string | "Entrada" | "Salida"; 
+  fk_unidad_medida?: number | null;
+  costo_insumo?: number | null;
 }
 
 export interface Herramientas {
@@ -87,31 +89,58 @@ export interface Asignacion {
   }
 
 export const useCrearBodega = () => {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn: async (movimiento: MovimientoBodegaPayload) => {
-            const token = localStorage.getItem("token");
-            if (!token) throw new Error("No se ha encontrado un token de autenticación");
-            
-            const response = await axios.post(
-                `${apiUrl}bodega/`,
-                movimiento,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
-            console.log("Datos enviados a la API:", movimiento);
+  return useMutation({
+    mutationFn: async (movimiento: MovimientoBodegaPayload) => {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("No se ha encontrado un token de autenticación");
+      
+      // Reestructurar el payload según lo que espera el backend
+      const payload = {
+        ...movimiento,
+        // Asegurar que los arrays vengan en el formato correcto
+        herramientas: movimiento.fk_id_herramientas ? [{
+          id: movimiento.fk_id_herramientas,
+          cantidad: movimiento.cantidad_herramienta
+        }] : undefined,
+        insumos: movimiento.fk_id_insumo ? [{
+          id: movimiento.fk_id_insumo,
+          cantidad: movimiento.cantidad_insumo
+        }] : undefined
+      };
 
-            return response.data;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["bodega"] });
-        },
-        onError: (error: any) => {
-            console.error("Error al registrar el movimiento en la bodega:", error.message);
-        },
-    });
+      // Limpiar campos undefined
+      const cleanPayload = Object.fromEntries(
+        Object.entries(payload).filter(([_, v]) => v !== undefined)
+      );
+
+      console.log("Payload final a enviar:", cleanPayload);
+
+      const response = await axios.post(
+        `${apiUrl}bodega/`,
+        cleanPayload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["bodega"] });
+      queryClient.invalidateQueries({ queryKey: ["insumos"] });
+      queryClient.invalidateQueries({ queryKey: ["herramientas"] });
+    },
+    onError: (error: any) => {
+      console.error("Error detallado al registrar en bodega:", {
+        status: error.response?.status,
+        data: error.response?.data,
+        request: error.config?.data,
+      });
+      throw error; // Re-lanzar el error para manejarlo en el componente
+    },
+  });
 };

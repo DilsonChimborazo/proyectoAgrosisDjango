@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import Formulario from "../../globales/Formulario";
 import VentanaModal from "@/components/globales/VentanasModales";
 import { useCrearInsumo } from "@/hooks/inventario/insumos/useCrearInsumos";
@@ -7,10 +6,13 @@ import { useCrearBodega } from "@/hooks/inventario/bodega/useCrearBodega";
 import { useMedidas } from "@/hooks/inventario/unidadMedida/useMedidad";
 import CrearUnidadMedida from "@/components/inventario/unidadMedida/UnidadMedida";
 
-const CrearInsumos = ({ onSuccess }: { onSuccess?: () => void }) => {
+interface CrearInsumosProps {
+  onSuccess: () => void;
+}
+
+const CrearInsumos = ({ onSuccess }: CrearInsumosProps) => {
   const mutation = useCrearInsumo();
   const { mutate } = useCrearBodega();
-  const navigate = useNavigate();
   const { data: unidades = [], refetch } = useMedidas();
 
   const [modalAbierto, setModalAbierto] = useState(false);
@@ -25,10 +27,10 @@ const CrearInsumos = ({ onSuccess }: { onSuccess?: () => void }) => {
   };
 
   const formFields = [
-    { id: "nombre", label: "Nombre del Insumo", type: "text" },
-    { id: "tipo", label: "Tipo", type: "text" },
-    { id: "precio_unidad", label: "Precio por Unidad", type: "number" },
-    { id: "cantidad_insumo", label: "Cantidad", type: "number" },
+    { id: "nombre", label: "Nombre del Insumo", type: "text", required: true },
+    { id: "tipo", label: "Tipo", type: "text", required: true },
+    { id: "precio_unidad", label: "Precio por Unidad", type: "number", required: true, min: 0 },
+    { id: "cantidad_insumo", label: "Cantidad", type: "number", required: true, min: 1 },
     {
       id: "fk_unidad_medida",
       label: "Unidad de Medida",
@@ -37,25 +39,19 @@ const CrearInsumos = ({ onSuccess }: { onSuccess?: () => void }) => {
         value: u.id.toString(),
         label: `${u.nombre_medida} (${u.unidad_base})`,
       })),
+      required: true,
       hasExtraButton: true,
       extraButtonText: "+",
       onExtraButtonClick: abrirModalMedida,
-
-    
     },
-    { id: "fecha_vencimiento", label: "Fecha de Vencimiento", type: "date" },
-    { id: "img", label: "Imagen", type: "file" },
+    { id: "fecha_vencimiento", label: "Fecha de Vencimiento", type: "date", required: true },
+    { id: "img", label: "Imagen", type: "file", required: false },
   ];
 
   const handleSubmit = (formData: any) => {
-    if (
-      !formData.nombre ||
-      !formData.tipo ||
-      !formData.precio_unidad ||
-      !formData.cantidad_insumo ||
-      !formData.fecha_vencimiento ||
-      !formData.fk_unidad_medida
-    ) {
+    // Validación de campos requeridos
+    if (!formData.nombre || !formData.tipo || !formData.precio_unidad || 
+        !formData.cantidad_insumo || !formData.fecha_vencimiento || !formData.fk_unidad_medida) {
       console.error("Todos los campos obligatorios deben ser completados.");
       return;
     }
@@ -66,7 +62,7 @@ const CrearInsumos = ({ onSuccess }: { onSuccess?: () => void }) => {
     formDataToSubmit.append("precio_unidad", formData.precio_unidad.toString());
     formDataToSubmit.append("cantidad_insumo", formData.cantidad_insumo.toString());
     formDataToSubmit.append("fecha_vencimiento", formData.fecha_vencimiento);
-    formDataToSubmit.append("fk_unidad_medida", formData.fk_unidad_medida); 
+    formDataToSubmit.append("fk_unidad_medida", formData.fk_unidad_medida);
 
     if (formData.img instanceof File) {
       formDataToSubmit.append("img", formData.img);
@@ -74,30 +70,39 @@ const CrearInsumos = ({ onSuccess }: { onSuccess?: () => void }) => {
 
     mutation.mutate(formDataToSubmit, {
       onSuccess: (insumoCreado) => {
-        console.log("✅ Insumo creado exitosamente:", insumoCreado);
-
         const movimientoEntrada = {
           fk_id_insumo: insumoCreado.id,
-          cantidad_insumo: formData.cantidad_insumo,
-          cantidad_herramienta: undefined,
-          movimiento: "Entrada" as const,
+          cantidad_insumo: Number(formData.cantidad_insumo),
+          movimiento: "Entrada",
           fecha: new Date().toISOString(),
-          fk_id_asignacion: undefined,
-          fk_id_herramientas: undefined,
+          fk_id_asignacion: null,
+          fk_id_herramientas: null,
+          cantidad_herramienta: null,
+          fk_unidad_medida: Number(formData.fk_unidad_medida),
+          costo_insumo: Number(formData.precio_unidad)
         };
+
+        console.log("Datos para movimiento de bodega:", movimientoEntrada);
 
         mutate(movimientoEntrada, {
           onSuccess: () => {
-            if (onSuccess) onSuccess();
-            navigate(-1);
+            onSuccess();
           },
           onError: (error) => {
-            console.error("❌ Error al registrar en bodega:", error?.response?.data || error?.message);
+            console.error("Error al registrar en bodega:", {
+              status: error.response?.status,
+              data: error.response?.data,
+              request: error.config?.data,
+            });
           },
         });
       },
       onError: (error) => {
-        console.error("❌ Error al crear el insumo:", error?.response?.data || error?.message);
+        console.error("Error al crear el insumo:", {
+          status: error.response?.status,
+          data: error.response?.data,
+          request: error.config?.data,
+        });
       },
     });
   };
@@ -112,17 +117,6 @@ const CrearInsumos = ({ onSuccess }: { onSuccess?: () => void }) => {
         title="Crear Insumo"
         multipart
       />
-
-      {mutation.isError && (
-        <div className="text-red-500 mt-2">
-          Hubo un error al crear el insumo. Intenta nuevamente.
-        </div>
-      )}
-      {mutation.isSuccess && (
-        <div className="text-green-500 mt-2">
-          ¡Insumo creado exitosamente!
-        </div>
-      )}
 
       <VentanaModal
         isOpen={modalAbierto}
