@@ -5,6 +5,7 @@ import { usePlantacion } from "@/hooks/trazabilidad/plantacion/usePlantacion";
 import { usePea } from "@/hooks/trazabilidad/pea/usePea";
 import { useInsumo } from "@/hooks/inventario/insumos/useInsumo";
 import { useUsuarios } from "@/hooks/usuarios/usuario/useUsuarios";
+import { useMedidas } from "@/hooks/inventario/unidadMedida/useMedidad";
 import Formulario from "../../globales/Formulario";
 
 interface ActualizarControlFitosanitarioProps {
@@ -18,7 +19,9 @@ const ActualizarControlFitosanitario = ({ id, onSuccess }: ActualizarControlFito
   const { data: plantaciones = [], isLoading: isLoadingPlantaciones } = usePlantacion();
   const { data: peas = [], isLoading: isLoadingPeas } = usePea();
   const { data: insumos = [], isLoading: isLoadingInsumos } = useInsumo();
+  const { data: medidas = [], isLoading: isLoadingMedidas } = useMedidas();
   const { data: usuarios = [], isLoading: isLoadingUsuarios, error: errorUsuarios } = useUsuarios();
+  
 
   const [formData, setFormData] = useState<{ [key: string]: string | File | null }>({
     fecha_control: "",
@@ -29,6 +32,7 @@ const ActualizarControlFitosanitario = ({ id, onSuccess }: ActualizarControlFito
     fk_id_pea: "",
     fk_id_insumo: "",
     cantidad_insumo: "",
+    fk_unidad_medida: "",
     fk_identificacion: "",
     img: null,
   });
@@ -46,6 +50,7 @@ const ActualizarControlFitosanitario = ({ id, onSuccess }: ActualizarControlFito
         fk_id_pea: control.fk_id_pea?.id ? String(control.fk_id_pea.id) : "",
         fk_id_insumo: control.fk_id_insumo?.id ? String(control.fk_id_insumo.id) : "",
         cantidad_insumo: control.cantidad_insumo ? String(control.cantidad_insumo) : "",
+        fk_unidad_medida: control.fk_unidad_medida?.id ? String(control.fk_unidad_medida.id) : "",
         fk_identificacion: control.fk_identificacion?.id ? String(control.fk_identificacion.id) : "",
         img: null,
       });
@@ -79,6 +84,11 @@ const ActualizarControlFitosanitario = ({ id, onSuccess }: ActualizarControlFito
     label: insumo.nombre,
   }));
 
+  const medidaOptions = medidas.map((medida) => ({
+    value: String(medida.id),
+    label: medida.nombre_medida,
+  }))
+
   const usuarioOptions = usuarios.length > 0
     ? usuarios.map((usuario) => ({
         value: String(usuario.id),
@@ -97,7 +107,8 @@ const ActualizarControlFitosanitario = ({ id, onSuccess }: ActualizarControlFito
       !data.fk_id_plantacion ||
       !data.fk_id_pea ||
       !data.fk_id_insumo ||
-      !data.cantidad_insumo
+      !data.cantidad_insumo||
+      !data.fk_unidad_medida 
     ) {
       console.error("Los campos obligatorios no están completos:", data);
       return;
@@ -113,6 +124,7 @@ const ActualizarControlFitosanitario = ({ id, onSuccess }: ActualizarControlFito
       fk_id_pea: parseInt(data.fk_id_pea as string) || 0,
       fk_id_insumo: parseInt(data.fk_id_insumo as string) || 0,
       cantidad_insumo: parseInt(data.cantidad_insumo as string) || 0,
+      fk_unidad_medida: parseInt(data.fk_unidad_medida as string) || 0,
       fk_identificacion: data.fk_identificacion ? parseInt(data.fk_identificacion as string) : null,
       img: data.img || undefined,
     };
@@ -131,7 +143,7 @@ const ActualizarControlFitosanitario = ({ id, onSuccess }: ActualizarControlFito
     });
   };
 
-  if (isLoading || isLoadingPlantaciones || isLoadingPeas || isLoadingInsumos || isLoadingUsuarios) {
+  if (isLoading || isLoadingPlantaciones || isLoadingPeas || isLoadingInsumos || isLoadingMedidas ||isLoadingUsuarios) {
     return <div className="text-center text-gray-500">Cargando datos...</div>;
   }
 
@@ -159,6 +171,7 @@ const ActualizarControlFitosanitario = ({ id, onSuccess }: ActualizarControlFito
           { id: 'fk_id_pea', label: 'PEA', type: 'select', options: peaOptions},
           { id: 'fk_id_insumo', label: 'Insumo', type: 'select', options: insumoOptions},
           { id: 'cantidad_insumo', label: 'Cantidad Insumo', type: 'number'},
+          { id: 'fk_unidad_medida', label: 'Unidad de Medida', type: 'select', options: medidaOptions},
           { id: 'fk_identificacion', label: 'Usuario', type: 'select', options: usuarioOptions },
           { id: 'img', label: 'Imagen', type: 'file', accept: 'image/*'},
         ]}
