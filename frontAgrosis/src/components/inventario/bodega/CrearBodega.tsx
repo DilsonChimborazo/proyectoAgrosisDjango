@@ -147,18 +147,16 @@ const RegistrarSalidaBodega = ({
     // Preparar datos para la API
     const payload = {
       fk_id_asignacion: formData.fk_id_asignacion ? parseInt(formData.fk_id_asignacion) : null,
-      fecha: formData.fecha || new Date().toISOString(),
+      fecha: formData.fecha || new Date().toISOString().split('T')[0],
       movimiento: "Salida" as const,
-      herramientas: herramientasSeleccionadas.length > 0 ? 
-        herramientasSeleccionadas.map(h => ({
-          id: h.id,
-          cantidad: h.cantidad
-        })) : undefined,
-      insumos: insumosSeleccionados.length > 0 ? 
-        insumosSeleccionados.map(i => ({
-          id: i.id,
-          cantidad: i.cantidad
-        })) : undefined
+      herramientas: herramientasSeleccionadas.map(h => ({
+        id: h.id,
+        cantidad: h.cantidad
+      })),
+      insumos: insumosSeleccionados.map(i => ({
+        id: i.id,
+        cantidad: i.cantidad
+      })),
     };
 
     crearMovimientoBodega(payload, {
@@ -167,7 +165,7 @@ const RegistrarSalidaBodega = ({
         onSuccess?.();
         setTimeout(() => navigate("/bodega"), 1500);
       },
-      onError: (error) => {
+      onError: (error: any) => {
         const errorMessage = error.response?.data?.message || 
                             error.response?.data?.non_field_errors?.join('\n') || 
                             error.message;

@@ -13,6 +13,8 @@ interface MovimientoBodegaPayload {
   movimiento: string | "Entrada" | "Salida"; 
   fk_unidad_medida?: number | null;
   costo_insumo?: number | null;
+  herramientas?: { id: number; cantidad: number }[];
+  insumos?: { id: number; cantidad: number }[];
 }
 
 export interface Herramientas {
@@ -28,17 +30,18 @@ export interface UnidadMedida {
     factor_conversion: number;
 }
 
-export interface Insumo{
-    id: number
-    nombre: string
-    tipo: string
-    precio_unidad: number
-    cantidad_insumo: number
-    fecha_vencimiento: string
-    img: string | null | undefined ;
-    fk_unidad_medida: UnidadMedida
+export interface Insumo {
+    id: number;
+    nombre: string;
+    tipo: string;
+    precio_unidad: number;
+    cantidad_insumo: number;
+    fecha_vencimiento: string;
+    img: string | null | undefined;
+    fk_unidad_medida: UnidadMedida;
     precio_por_base: number; 
 }
+
 export interface Asignacion {
     id: number;
     estado: 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada';
@@ -46,47 +49,47 @@ export interface Asignacion {
     observaciones: string;
     fk_id_realiza: Realiza;
     fk_identificacion: Usuario;
-  }
-  
-  export interface Realiza {
+}
+
+export interface Realiza {
     id: number;
     fk_id_cultivo: Cultivo;
     fk_id_actividad: Actividad;
-  }
-  
-  export interface Cultivo {
+}
+
+export interface Cultivo {
     id: number;
     nombre_cultivo: string;
     descripcion: string;
     fk_id_especie: Especie;
-  }
-  
-  export interface Especie {
+}
+
+export interface Especie {
     id: number;
     nombre_cientifico: string;
     nombre_comun: string;
     descripcion: string;
     fk_id_tipo_cultivo: TipoCultivo;
-  }
-  
-  export interface TipoCultivo {
+}
+
+export interface TipoCultivo {
     id: number;
     nombre: string;
     descripcion: string;
-  }
-  
-  export interface Actividad {
+}
+
+export interface Actividad {
     id: number;
     nombre_actividad: string;
     descripcion: string;
-  }
-  
-  export interface Usuario {
+}
+
+export interface Usuario {
     id: number;
     nombre: string;
     apellido: string;
     email: string;
-  }
+}
 
 export const useCrearBodega = () => {
   const queryClient = useQueryClient();
@@ -95,20 +98,34 @@ export const useCrearBodega = () => {
     mutationFn: async (movimiento: MovimientoBodegaPayload) => {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("No se ha encontrado un token de autenticación");
-      
+
       // Reestructurar el payload según lo que espera el backend
       const payload = {
-        ...movimiento,
-        // Asegurar que los arrays vengan en el formato correcto
-        herramientas: movimiento.fk_id_herramientas ? [{
-          id: movimiento.fk_id_herramientas,
-          cantidad: movimiento.cantidad_herramienta
-        }] : undefined,
-        insumos: movimiento.fk_id_insumo ? [{
-          id: movimiento.fk_id_insumo,
-          cantidad: movimiento.cantidad_insumo
-        }] : undefined
+        fk_id_asignacion: movimiento.fk_id_asignacion || null,
+        fecha: movimiento.fecha,
+        movimiento: movimiento.movimiento,
+        herramientas: movimiento.herramientas || [], // Enviar siempre array, incluso vacío
+        insumos: movimiento.insumos || [], // Enviar siempre array, incluso vacío
+        ...(movimiento.fk_id_herramientas && {
+          herramientas: [{
+            id: movimiento.fk_id_herramientas,
+            cantidad: movimiento.cantidad_herramienta || 1,
+          }],
+        }),
+        ...(movimiento.fk_id_insumo && {
+          insumos: [{
+            id: movimiento.fk_id_insumo,
+            cantidad: movimiento.cantidad_insumo || 1,
+          }],
+        }),
+        fk_unidad_medida: movimiento.fk_unidad_medida || null,
+        costo_insumo: movimiento.costo_insumo || null,
       };
+
+      // Validar que haya al menos una herramienta o insumo
+      if (!payload.herramientas.length && !payload.insumos.length) {
+        throw new Error("Debe incluir al menos una herramienta o un insumo");
+      }
 
       // Limpiar campos undefined
       const cleanPayload = Object.fromEntries(
@@ -140,7 +157,7 @@ export const useCrearBodega = () => {
         data: error.response?.data,
         request: error.config?.data,
       });
-      throw error; // Re-lanzar el error para manejarlo en el componente
+      throw error;
     },
   });
 };
