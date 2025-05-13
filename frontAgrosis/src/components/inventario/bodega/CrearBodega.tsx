@@ -31,6 +31,9 @@ const RegistrarSalidaBodega = ({
   const { mutate: crearMovimientoBodega } = useCrearBodega();
   const navigate = useNavigate();
 
+  // Depuración para verificar los insumos compuestos recibidos
+  console.log("Insumos Compuestos:", insumosCompuestosIniciales);
+
   const [mensaje, setMensaje] = useState<{texto: string, tipo: 'exito' | 'error' | 'info'} | null>(null);
   const [tipoInsumo, setTipoInsumo] = useState<"simple" | "compuesto">("simple");
   const [insumos] = useState<Insumo[]>(insumosIniciales);
@@ -304,27 +307,30 @@ const RegistrarSalidaBodega = ({
         isOpen={mostrarModalHerramienta}
         onClose={() => setMostrarModalHerramienta(false)}
         titulo="Seleccionar Herramientas"
-        size="lg"
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 max-h-[60vh] overflow-y-auto p-2">
-          {herramientas.map((h) => (
-            <div
-              key={h.id}
-              className={`border p-4 rounded-lg shadow-sm cursor-pointer transition-colors ${
-                herramientasSeleccionadas.some(sel => sel.id === h.id) 
-                  ? "bg-blue-100 border-blue-300" 
-                  : "hover:bg-blue-50"
-              }`}
-              onClick={() => agregarHerramienta(h)}
-            >
-              <h4 className="font-semibold text-lg">{h.nombre_h}</h4>
-              <p className="text-gray-600">Disponibles: {h.cantidad_herramienta}</p>
-              <p className="text-sm mt-1">Estado: {h.estado}</p>
-              {herramientasSeleccionadas.some(sel => sel.id === h.id) && (
-                <div className="mt-2 text-green-600 font-medium">✓ Seleccionada</div>
-              )}
-            </div>
-          ))}
+          {herramientas.length === 0 ? (
+            <p className="text-gray-500">No hay herramientas disponibles.</p>
+          ) : (
+            herramientas.map((h) => (
+              <div
+                key={h.id}
+                className={`border p-4 rounded-lg shadow-sm cursor-pointer transition-colors ${
+                  herramientasSeleccionadas.some(sel => sel.id === h.id) 
+                    ? "bg-blue-100 border-blue-300" 
+                    : "hover:bg-blue-50"
+                }`}
+                onClick={() => agregarHerramienta(h)}
+              >
+                <h4 className="font-semibold text-lg">{h.nombre_h}</h4>
+                <p className="text-gray-600">Disponibles: {h.cantidad_herramienta}</p>
+                <p className="text-sm mt-1">Estado: {h.estado}</p>
+                {herramientasSeleccionadas.some(sel => sel.id === h.id) && (
+                  <div className="mt-2 text-green-600 font-medium">✓ Seleccionada</div>
+                )}
+              </div>
+            ))
+          )}
         </div>
         <div className="mt-4 flex justify-end border-t pt-4">
           <button
@@ -341,7 +347,6 @@ const RegistrarSalidaBodega = ({
         titulo="Seleccionar Insumos"
         isOpen={mostrarModalInsumo}
         onClose={() => setMostrarModalInsumo(false)}
-        size="lg"
       >
         <div className="mb-4 flex border-b">
           <button
@@ -365,30 +370,36 @@ const RegistrarSalidaBodega = ({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 max-h-[50vh] overflow-y-auto p-2">
-          {(tabActual === "simples" ? insumos : insumosCompuestos).map((i) => (
-            <div
-              key={i.id}
-              className={`border p-4 rounded-lg shadow-sm cursor-pointer transition-colors ${
-                insumosSeleccionados.some(sel => sel.id === i.id) 
-                  ? "bg-green-100 border-green-300" 
-                  : "hover:bg-green-50"
-              }`}
-              onClick={() => agregarInsumo(i)}
-            >
-              <h4 className="font-semibold text-lg">{i.nombre}</h4>
-              <p className="text-gray-600">Disponibles: {i.cantidad_insumo}</p>
-              {'tipo' in i && <p className="text-sm mt-1">Tipo: {i.tipo}</p>}
-              {insumosSeleccionados.some(sel => sel.id === i.id) && (
-                <div className="mt-2 text-green-600 font-medium">✓ Seleccionado</div>
-              )}
-            </div>
-          ))}
+          {tabActual === "compuestos" && insumosCompuestos.length === 0 ? (
+            <p className="text-gray-500">No hay insumos compuestos disponibles.</p>
+          ) : tabActual === "simples" && insumos.length === 0 ? (
+            <p className="text-gray-500">No hay insumos simples disponibles.</p>
+          ) : (
+            (tabActual === "simples" ? insumos : insumosCompuestos).map((i) => (
+              <div
+                key={i.id}
+                className={`border p-4 rounded-lg shadow-sm cursor-pointer transition-colors ${
+                  insumosSeleccionados.some(sel => sel.id === i.id) 
+                    ? "bg-green-100 border-green-300" 
+                    : "hover:bg-green-50"
+                }`}
+                onClick={() => agregarInsumo(i)}
+              >
+                <h4 className="font-semibold text-lg">{i.nombre}</h4>
+                <p className="text-gray-600">Disponibles: {i.cantidad_insumo}</p>
+                {'tipo' in i && <p className="text-sm mt-1">Tipo: {i.tipo}</p>}
+                {insumosSeleccionados.some(sel => sel.id === i.id) && (
+                  <div className="mt-2 text-green-600 font-medium">✓ Seleccionado</div>
+                )}
+              </div>
+            ))
+          )}
         </div>
 
         {tabActual === "compuestos" && (
           <div className="mt-4 text-center">
             <button
-              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md transition-colors"
+              className="px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded-md transition-colors"
               onClick={() => {
                 setMostrarModalInsumo(false);
                 setMostrarCrearCompuesto(true);
@@ -414,7 +425,6 @@ const RegistrarSalidaBodega = ({
         titulo="Crear Insumo Compuesto"
         isOpen={mostrarCrearCompuesto}
         onClose={() => setMostrarCrearCompuesto(false)}
-        size="xl"
       >
         <CrearInsumoCompuesto 
           onSuccess={agregarNuevoInsumo} 

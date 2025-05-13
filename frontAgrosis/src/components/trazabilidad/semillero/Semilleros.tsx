@@ -94,11 +94,11 @@ const ListarSemillero = () => {
             <Tabla
                 title="Lista de Semilleros"
                 headers={headers}
-                data={tablaData.length > 0 ? tablaData : []} // Se asegura de que la tabla se muestre incluso sin datos
+                data={tablaData.length > 0 ? tablaData : []} 
                 onClickAction={handleItemClick}
                 onUpdate={(row) => {}}
                 onCreate={handleCreate}
-                createButtonTitle="Crear Semillero"
+                createButtonTitle = "Crear Semillero"
             />
 
             {semilleros?.length === 0 && (

@@ -4,7 +4,7 @@ import Formulario from '../../globales/Formulario';
 import { useNavigate } from "react-router-dom";
 
 const CrearSemillero = ({ onSuccess }: { onSuccess: () => void }) => {
-    const mutation = useCrearSemillero(); // Hook para manejar la creación
+    const mutation = useCrearSemillero(); 
     const navigate = useNavigate();
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -105,7 +105,7 @@ const CrearSemillero = ({ onSuccess }: { onSuccess: () => void }) => {
                 onSubmit={handleSubmit}
                 isError={mutation.isError}
                 isSuccess={mutation.isSuccess}
-                title="Registrar Nuevo Semillero"
+                title="Registrar Semillero"
             />
         </div>
     );

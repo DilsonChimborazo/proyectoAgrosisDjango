@@ -67,6 +67,19 @@ const CrearInsumoCompuesto: React.FC<Props> = ({ onSuccess, onClose }) => {
   };
 
   const handleAddDetalle = () => {
+    const errores: { [key: number]: string } = {};
+    selectedInsumos.forEach((item) => {
+      const insumo = insumos?.find((i) => i.id === item.insumoId);
+      if (insumo && item.cantidad > insumo.cantidad_insumo) {
+        errores[item.insumoId] = `Cantidad disponible: ${insumo.cantidad_insumo}`;
+      }
+    });
+
+    if (Object.keys(errores).length > 0) {
+      setInsumoErrors(errores);
+      return;
+    }
+
     setDetalles((prev) => {
       const nuevos = [...prev];
       selectedInsumos.forEach((item) => {
@@ -90,6 +103,22 @@ const CrearInsumoCompuesto: React.FC<Props> = ({ onSuccess, onClose }) => {
 
     if (!nombre || !fkUnidadMedida || detalles.length === 0) {
       alert("Todos los campos son obligatorios");
+      return;
+    }
+
+    // Validar stock de insumos antes de enviar
+    const errores: string[] = [];
+    detalles.forEach((detalle) => {
+      const insumo = insumos?.find((i) => i.id === detalle.insumo);
+      if (insumo && detalle.cantidad_utilizada > insumo.cantidad_insumo) {
+        errores.push(
+          `No hay suficiente stock de ${insumo.nombre} (Disponible: ${insumo.cantidad_insumo})`
+        );
+      }
+    });
+
+    if (errores.length > 0) {
+      alert(errores.join("\n"));
       return;
     }
 
@@ -201,7 +230,11 @@ const CrearInsumoCompuesto: React.FC<Props> = ({ onSuccess, onClose }) => {
         </div>
       </form>
 
-      <VentanaModal titulo="" isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+      <VentanaModal
+        titulo=""
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      >
         <div className="flex flex-col gap-6 w-full max-h-[85vh] overflow-auto p-6 bg-white rounded shadow-lg">
           <div className="w-full overflow-y-auto">
             <h4 className="font-semibold text-xl mb-4 text-gray-700">
@@ -211,7 +244,8 @@ const CrearInsumoCompuesto: React.FC<Props> = ({ onSuccess, onClose }) => {
               {insumos?.map((insumo) => {
                 let cantidadClass = "bg-gray-100";
                 if (insumo.cantidad_insumo < 10) cantidadClass = "bg-red-500";
-                else if (insumo.cantidad_insumo <= 20) cantidadClass = "bg-orange-500";
+                else if (insumo.cantidad_insumo <= 20)
+                  cantidadClass = "bg-orange-500";
                 else cantidadClass = "bg-green-500";
 
                 return (
@@ -256,6 +290,7 @@ const CrearInsumoCompuesto: React.FC<Props> = ({ onSuccess, onClose }) => {
                   </span>
                   <input
                     type="number"
+                    step="0.01"
                     value={item.cantidad}
                     onChange={(e) =>
                       handleCantidadChange(item.insumoId, e.target.value)
