@@ -12,6 +12,7 @@ import CrearSemillero from "../semillero/CrearSemillero";
 
 interface CrearPlantacionProps {
   onSuccess: () => void;
+  onCancel?: () => void; // Added to allow closing the modal from the parent
 }
 
 interface FormField {
@@ -22,10 +23,10 @@ interface FormField {
   hasExtraButton?: boolean;
   extraButtonText?: string;
   onExtraButtonClick?: () => void;
-  extraContent?: React.ReactNode; // Agregamos esta propiedad para usar el nuevo soporte en Formulario
+  extraContent?: React.ReactNode;
 }
 
-const CrearPlantacion = ({ onSuccess }: CrearPlantacionProps) => {
+const CrearPlantacion = ({ onSuccess, onCancel }: CrearPlantacionProps) => {
   const mutation = useCrearPlantacion();
   const { refetch } = usePlantacion();
   const { data: eras = [], isLoading: isLoadingEras } = useEras();
@@ -53,19 +54,16 @@ const CrearPlantacion = ({ onSuccess }: CrearPlantacionProps) => {
     label: semillero.nombre_semilla ?? "Sin nombre",
   }));
 
-  // Find the selected semillero to get its cantidad
   const selectedSemillero = semilleros.find(
     (semillero) => String(semillero.id) === selectedSemilleroId
   );
 
-  // Handle field changes to update selected semillero
   const handleFieldChange = (fieldId: string, value: string) => {
     if (fieldId === "fk_id_semillero") {
       setSelectedSemilleroId(value);
     }
   };
 
-  // Formulario con campos
   const formFields: FormField[] = [
     {
       id: "fk_id_eras",
@@ -103,7 +101,6 @@ const CrearPlantacion = ({ onSuccess }: CrearPlantacionProps) => {
       hasExtraButton: true,
       extraButtonText: "Crear Semillero",
       onExtraButtonClick: () => setMostrarModalSemillero(true),
-      // Agregamos el letrero como extraContent para que se renderice justo después del campo
       extraContent: selectedSemillero ? (
         <div className="text-sm text-green-600 text-center">
           Cantidad disponible del semillero seleccionado: {selectedSemillero.cantidad ?? 0}
@@ -112,7 +109,6 @@ const CrearPlantacion = ({ onSuccess }: CrearPlantacionProps) => {
     },
   ];
 
-  // Función de envío del formulario
   const handleSubmit = (formData: { [key: string]: string }) => {
     setErrorMessage(null);
 
@@ -142,7 +138,7 @@ const CrearPlantacion = ({ onSuccess }: CrearPlantacionProps) => {
     mutation.mutate(nuevaPlantacion, {
       onSuccess: () => {
         console.log("✅ Plantación creada exitosamente");
-        onSuccess();
+        onSuccess(); // Rely on the parent to close the modal
       },
       onError: (error) => {
         console.error("❌ Error al crear plantación:", error);
@@ -158,12 +154,10 @@ const CrearPlantacion = ({ onSuccess }: CrearPlantacionProps) => {
     await refetch();
   };
 
-  // Cargar datos
   if (isLoadingEras || isLoadingCultivos || isLoadingSemilleros) {
     return <div className="text-center text-gray-500">Cargando datos...</div>;
   }
 
-  // Si no hay datos, permitir crear nuevas opciones
   return (
     <div className="max-w-4xl mx-auto p-4">
       {errorMessage && (
@@ -178,9 +172,9 @@ const CrearPlantacion = ({ onSuccess }: CrearPlantacionProps) => {
         isError={mutation.isError}
         isSuccess={mutation.isSuccess}
         title="Registrar Nueva Plantación"
+        onCancel={onCancel} // Pass the onCancel prop to Formulario if supported
       />
 
-      {/* Modales para crear Era, Cultivo y Semillero */}
       <VentanaModal
         isOpen={mostrarModalEra}
         onClose={cerrarYActualizar}

@@ -4,46 +4,49 @@ import axios from 'axios';
 const apiUrl = import.meta.env.VITE_API_URL;
 
 // Definición de interfaces para los datos relacionados
-export interface Asignacion {
+export interface Actividad {
   id: number;
-  estado: 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada';
-  fecha_programada: string;
-  observaciones: string;
-  fk_id_realiza: Realiza;
-  fk_identificacion: Usuario;
-}
-
-export interface Realiza {
-  id: number;
-  fk_id_cultivo: Cultivo;
-  fk_id_actividad: Actividad;
-}
-
-export interface Cultivo {
-  id: number;
-  nombre_cultivo: string;
+  nombre_actividad: string;
   descripcion: string;
-  fk_id_especie: Especie;
-}
-
-export interface Especie {
-  id: number;
-  nombre_cientifico: string;
-  nombre_comun: string;
-  descripcion: string;
-  fk_id_tipo_cultivo: TipoCultivo;
 }
 
 export interface TipoCultivo {
   id: number;
   nombre: string;
   descripcion: string;
+  ciclo_duracion?: string;
 }
 
-export interface Actividad {
+export interface Especie {
   id: number;
-  nombre_actividad: string;
+  nombre_comun: string;
+  nombre_cientifico: string;
   descripcion: string;
+  fk_id_tipo_cultivo: TipoCultivo;
+}
+
+export interface Semillero {
+  id: number;
+  nombre_semilla: string;
+  fecha_siembra: Date;
+  fecha_estimada: Date;
+  cantidad: number;
+}
+
+export interface Plantacion {
+  id: number;
+  nombre_cultivo: string;
+  descripcion: string;
+  fk_id_especie: Especie;
+  cantidad_transplante?: number;
+  fk_id_semillero?: Semillero;
+  fecha_plantacion: string;
+}
+
+export interface Realiza {
+  id: number;
+  fk_id_plantacion: Plantacion;
+  fk_id_actividad: Actividad;
 }
 
 export interface Usuario {
@@ -51,6 +54,15 @@ export interface Usuario {
   nombre: string;
   apellido: string;
   email: string;
+}
+
+export interface Asignacion {
+  id: number;
+  estado: 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada';
+  fecha_programada: string;
+  observaciones: string;
+  fk_id_realiza: Realiza;
+  fk_identificacion: Usuario;
 }
 
 // Interfaz para los datos de entrada (POST)

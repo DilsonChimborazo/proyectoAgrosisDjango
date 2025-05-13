@@ -1,30 +1,31 @@
 import { useState, useMemo } from 'react';
 import { useCrearRealiza, CrearRealizaDTO } from '@/hooks/trazabilidad/realiza/useCrearRealiza';
-import { useCultivo, Cultivos } from '@/hooks/trazabilidad/cultivo/useCultivo';
+import { usePlantacion, Plantacion } from '@/hooks/trazabilidad/plantacion/usePlantacion';
 import { useActividad, Actividad } from '@/hooks/trazabilidad/actividad/useActividad';
 import VentanaModal from '../../globales/VentanasModales';
-import CrearCultivo from '../cultivos/CrearCultivos';
+import CrearPlantacion from '../plantacion/CrearPlantacion';
 import CrearActividad from '../actividad/CrearActividad';
 
 interface CrearRealizaProps {
   onSuccess: () => void;
+  onCancel: () => void;
 }
 
-const CrearRealiza = ({ onSuccess }: CrearRealizaProps) => {
+const CrearRealiza = ({ onSuccess, onCancel }: CrearRealizaProps) => {
   const mutation = useCrearRealiza();
-  const { data: cultivos = [], isLoading: isLoadingCultivos, error: errorCultivos } = useCultivo();
+  const { data: plantaciones = [], isLoading: isLoadingPlantaciones, error: errorPlantaciones } = usePlantacion();
   const { data: actividades = [], isLoading: isLoadingActividades, error: errorActividades } = useActividad();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState<React.ReactNode>(null);
-  const [formData, setFormData] = useState({ fk_id_cultivo: '', fk_id_actividad: '' });
+  const [formData, setFormData] = useState({ fk_id_plantacion: '', fk_id_actividad: '' });
 
-  const cultivoOptions = useMemo(() => {
-    return cultivos.map((cultivo: Cultivos) => ({
-      value: cultivo.id.toString(),
-      label: `${cultivo.fk_id_especie?.nombre_comun || 'Sin especie'} - ${cultivo.nombre_cultivo || 'Sin nombre'}`,
+  const plantacionOptions = useMemo(() => {
+    return plantaciones.map((plantacion: Plantacion) => ({
+      value: plantacion.id.toString(),
+      label: `${plantacion.fk_id_cultivo?.fk_id_especie?.nombre_comun || 'Sin especie'} - ${plantacion.fk_id_cultivo?.nombre_cultivo || 'Sin nombre'}`,
     }));
-  }, [cultivos]);
+  }, [plantaciones]);
 
   const actividadOptions = useMemo(() => {
     return actividades.map((actividad: Actividad) => ({
@@ -42,27 +43,22 @@ const CrearRealiza = ({ onSuccess }: CrearRealizaProps) => {
     e.preventDefault();
     setErrorMessage(null);
 
-    const { fk_id_cultivo, fk_id_actividad } = formData;
+    const { fk_id_plantacion, fk_id_actividad } = formData;
 
-    if (!fk_id_cultivo || !fk_id_actividad) {
+    if (!fk_id_plantacion || !fk_id_actividad) {
       setErrorMessage('❌ Ambos campos son obligatorios');
       return;
     }
 
-    if (fk_id_cultivo === '' || fk_id_actividad === '') {
-      setErrorMessage('❌ Debes seleccionar un cultivo y una actividad válidos');
-      return;
-    }
-
     const nuevoRealiza: CrearRealizaDTO = {
-      fk_id_cultivo: parseInt(fk_id_cultivo, 10),
+      fk_id_plantacion: parseInt(fk_id_plantacion, 10),
       fk_id_actividad: parseInt(fk_id_actividad, 10),
     };
 
     mutation.mutate(nuevoRealiza, {
       onSuccess: () => {
         console.log('✅ Realiza creado exitosamente');
-        setFormData({ fk_id_cultivo: '', fk_id_actividad: '' });
+        setFormData({ fk_id_plantacion: '', fk_id_actividad: '' });
         onSuccess();
       },
       onError: (error: any) => {
@@ -71,8 +67,8 @@ const CrearRealiza = ({ onSuccess }: CrearRealizaProps) => {
     });
   };
 
-  const openCreateCultivoModal = () => {
-    setModalContent(<CrearCultivo onSuccess={() => setIsModalOpen(false)} onCancel={() => setIsModalOpen(false)} />);
+  const openCreatePlantacionModal = () => {
+    setModalContent(<CrearPlantacion onSuccess={() => setIsModalOpen(false)} onCancel={() => setIsModalOpen(false)} />);
     setIsModalOpen(true);
   };
 
@@ -81,12 +77,12 @@ const CrearRealiza = ({ onSuccess }: CrearRealizaProps) => {
     setIsModalOpen(true);
   };
 
-  if (errorCultivos || errorActividades) {
-    return <div className="text-center text-red-500">Error al cargar cultivos o actividades</div>;
+  if (errorPlantaciones || errorActividades) {
+    return <div className="text-center text-red-500">Error al cargar plantaciones o actividades</div>;
   }
 
-  if (isLoadingCultivos || isLoadingActividades) {
-    return <div className="text-center text-gray-500">Cargando cultivos y actividades...</div>;
+  if (isLoadingPlantaciones || isLoadingActividades) {
+    return <div className="text-center text-gray-500">Cargando plantaciones y actividades...</div>;
   }
 
   return (
@@ -95,19 +91,19 @@ const CrearRealiza = ({ onSuccess }: CrearRealizaProps) => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="flex items-center space-x-2">
           <div className="flex-1">
-            <label htmlFor="fk_id_cultivo" className="block text-sm font-medium text-gray-700">
-              Cultivo
+            <label htmlFor="fk_id_plantacion" className="block text-sm font-medium text-gray-700">
+              Plantación
             </label>
             <select
-              id="fk_id_cultivo"
-              name="fk_id_cultivo"
-              value={formData.fk_id_cultivo}
+              id="fk_id_plantacion"
+              name="fk_id_plantacion"
+              value={formData.fk_id_plantacion}
               onChange={handleChange}
               className="mt-1 block w-full border border-gray-300 rounded-md p-2"
               required
             >
-              <option value="">Seleccione un cultivo</option>
-              {cultivoOptions.map((option) => (
+              <option value="">Seleccione una plantación</option>
+              {plantacionOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
@@ -116,9 +112,9 @@ const CrearRealiza = ({ onSuccess }: CrearRealizaProps) => {
           </div>
           <button
             type="button"
-            onClick={openCreateCultivoModal}
-            className="mt-6 bg-green-700 text-white px-3 py-1 rounded hover:bg-green-900"
-            title="Crear nuevo cultivo"
+            onClick={openCreatePlantacionModal}
+            className="mt-6 bg-green-700 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-green-900"
+            title="Crear nueva plantación"
           >
             +
           </button>
@@ -147,24 +143,17 @@ const CrearRealiza = ({ onSuccess }: CrearRealizaProps) => {
           <button
             type="button"
             onClick={openCreateActividadModal}
-            className="mt-6 bg-green-700 text-white px-3 py-1 rounded hover:bg-green-900"
+            className="mt-6 bg-green-700 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-green-900"
             title="Crear nueva actividad"
           >
             +
           </button>
         </div>
         <div className="flex justify-end space-x-2">
-          <button
-            type="button"
-            onClick={onSuccess}
-            className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
-          >
+          <button type="button" onClick={onCancel} className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400">
             Cancelar
           </button>
-          <button
-            type="submit"
-            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-700"
-          >
+          <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-700">
             Crear
           </button>
         </div>

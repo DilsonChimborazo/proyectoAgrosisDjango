@@ -16,30 +16,27 @@ export const useActualizarEspecie = () => {
 
     return useMutation({
         mutationFn: async (especieActualizada: Especie) => {
-            const { id, ...datos } = especieActualizada; // Extraer el ID y preparar los datos
-            console.log("📡 Enviando datos para actualizar:", datos); // Depuración
+            const { id, ...datos } = especieActualizada; // Extraer ID y preparar datos
+            console.log("📡 Enviando datos para actualizar:", datos);
 
             try {
-                const { data } = await axios.put(`${apiUrl}especies/${id}/`, datos); // PUT al endpoint
+                const { data } = await axios.put(`${apiUrl}especies/${id}/`, datos);
                 console.log("✅ Respuesta del backend:", data);
                 return data;
             } catch (error: any) {
-                // Manejo robusto de errores
-                if (error.response) {
-                    console.error("❌ Error del backend:", error.response.data);
-                } else if (error.message) {
-                    console.error("❌ Error de red u otra causa:", error.message);
-                } else {
-                    console.error("❌ Error desconocido:", error);
-                }
+                console.error(
+                    "❌ Error al actualizar la especie:",
+                    error.response?.data || error.message || "Error desconocido"
+                );
                 throw error; // Relanzar el error para manejarlo en el componente
             }
         },
         onSuccess: () => {
-            console.log("✅ Especie actualizada con éxito"); // Confirmación
-            queryClient.invalidateQueries({ queryKey: ["Especies"] }); // Refrescar la lista de especies
+            console.log("✅ Especie actualizada con éxito");
+            queryClient.invalidateQueries({ queryKey: ["especies"] }); // Refrescar datos
         },
-       
+        onError: (error) => {
+            console.error("❌ Error en la actualización:", error);
         },
-    )}
-
+    });
+};

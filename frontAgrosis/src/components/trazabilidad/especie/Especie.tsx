@@ -48,7 +48,21 @@ const ListarEspecie = () => {
 
   const handleUpdateClick = (item: EspecieTabla) => {
     setSelectedEspecie(item);
-    setModalContenido(<ActualizarEspecie id={item.id} onSuccess={refetch} />);
+    setModalContenido(
+      <ActualizarEspecie
+        id={item.id}
+        initialValues={{
+          nombre_comun: item.nombre_comun,
+          nombre_cientifico: item.nombre_cientifico,
+          descripcion: item.descripcion,
+          fk_id_tipo_cultivo: item.tipo_cultivo, // Pasamos el valor actual
+        }}
+        onSuccess={() => {
+          refetch();
+          closeModal();
+        }}
+      />
+    );
     setIsUpdateModalOpen(true);
   };
 
@@ -65,7 +79,7 @@ const ListarEspecie = () => {
         : 'Sin tipo de cultivo',
   }));
 
-  const headers = ['Nombre Común', 'Nombre Científico', 'Descripción', 'Tipo Cultivo'];
+  const headers = ['Nombre Comun', 'Nombre Cientifico', 'Descripcion', 'Tipo Cultivo'];
 
   return (
     <div className="p-4">
@@ -92,7 +106,7 @@ const ListarEspecie = () => {
         headers={headers}
         data={tablaData.length > 0 ? tablaData : []}
         onClickAction={handleItemClick}
-        onUpdate={handleUpdateClick} // Ahora se abre el modal de actualización
+        onUpdate={handleUpdateClick} // Ahora se abre el modal con los datos actuales
         onCreate={handleCreate}
         createButtonTitle="Crear Especie"
       />

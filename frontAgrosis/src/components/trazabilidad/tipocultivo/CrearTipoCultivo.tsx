@@ -7,6 +7,7 @@ interface CrearTipoCultivoProps {
 }
 
 const CICLO_OPCIONES = [
+  { value: '', label: 'Seleccione el tipo de cultivo' }, // Nueva opción inicial
   { value: 'Perennes', label: 'Perennes' },
   { value: 'Semiperennes', label: 'Semiperennes' },
   { value: 'Transitorios', label: 'Transitorios' },
@@ -15,7 +16,7 @@ const CICLO_OPCIONES = [
 const CrearTipoCultivo = ({ onSuccess, onCancel }: CrearTipoCultivoProps) => {
   const [nombre, setNombre] = useState('');
   const [descripcion, setDescripcion] = useState('');
-  const [cicloDuracion, setCicloDuracion] = useState('Transitorios');
+  const [cicloDuracion, setCicloDuracion] = useState('');
   const { mutate: createTipoCultivo, isPending } = useCrearTipoCultivo();
 
   const handleSubmit = (e: FormEvent) => {
@@ -24,13 +25,18 @@ const CrearTipoCultivo = ({ onSuccess, onCancel }: CrearTipoCultivoProps) => {
       alert('El nombre es obligatorio.');
       return;
     }
+    if (!cicloDuracion) {
+      alert('Debe seleccionar un ciclo de duración.');
+      return;
+    }
+
     createTipoCultivo(
       { nombre, descripcion: descripcion || '', ciclo_duracion: cicloDuracion },
       {
         onSuccess: () => {
           setNombre('');
           setDescripcion('');
-          setCicloDuracion('Transitorios'); // Resetear al valor por defecto
+          setCicloDuracion('');
           onSuccess();
         },
       }
@@ -76,6 +82,7 @@ const CrearTipoCultivo = ({ onSuccess, onCancel }: CrearTipoCultivoProps) => {
             value={cicloDuracion}
             onChange={(e) => setCicloDuracion(e.target.value)}
             className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+            required
             disabled={isPending}
           >
             {CICLO_OPCIONES.map((opcion) => (
