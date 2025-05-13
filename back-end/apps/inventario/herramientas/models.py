@@ -5,12 +5,12 @@ class Herramientas (models.Model):
     estados = [
         ('Disponible', 'Disponible'),
         ('Prestado', 'Prestado'),
-        ('En reparación', 'En reparación')
+        ('En reparacion', 'En reparacion')
     ]
     nombre_h = models.CharField(max_length=500)
     cantidad_herramienta = models.IntegerField()
     estado = models.CharField(max_length=50 ,choices=estados, null=True)
     
 
-    def _str_(self):
+    def __str__(self):
         return self.nombre_h

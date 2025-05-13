@@ -33,34 +33,39 @@ const ActualizarHerramienta: React.FC<Props> = ({ id, onSuccess }) => {
 
     // Función para manejar el envío del formulario
     const handleSubmit = (data: { [key: string]: string | File }) => {
-        console.log("📦 Datos recibidos del formulario:", data);
-    
-        const herramientaActualizada = {
-            id,
-            nombre_h: (data.nombre_h as string).trim(),
-            estado: (data.estado as string).trim() as "Disponible" | "Prestado" | "En reparacion",
-            cantidad_herramienta: parseInt(data.cantidad_herramienta as string, 10),
-        };
-    
-        if (
-            !herramientaActualizada.nombre_h ||
-            !herramientaActualizada.estado ||
-            isNaN(herramientaActualizada.cantidad_herramienta)
-        ) {
-            console.error("⚠️ Datos inválidos. No se enviará la actualización.");
-            return;
-        }
-    
-        actualizarHerramienta.mutate(herramientaActualizada, {
-            onSuccess: () => {
-                console.log("✅ Herramienta actualizada correctamente");
-                onSuccess();
-            },
-            onError: (error) => {
-                console.error("❌ Error al actualizar la herramienta", error);
-            },
-        });
+    console.log("📦 Datos recibidos del formulario:", data);
+
+    const nuevaCantidad = parseInt(data.cantidad_herramienta as string, 10);
+    const cantidadExistente = herramienta?.cantidad_herramienta || 0;
+    const cantidadTotal = cantidadExistente + nuevaCantidad;
+
+    const herramientaActualizada = {
+        id,
+        nombre_h: (data.nombre_h as string).trim(),
+        estado: (data.estado as string).trim() as "Disponible" | "Prestado" | "En reparacion",
+        cantidad_herramienta: cantidadTotal,
     };
+
+    if (
+        !herramientaActualizada.nombre_h ||
+        !herramientaActualizada.estado ||
+        isNaN(nuevaCantidad)
+    ) {
+        console.error("⚠️ Datos inválidos. No se enviará la actualización.");
+        return;
+    }
+
+    actualizarHerramienta.mutate(herramientaActualizada, {
+        onSuccess: () => {
+            console.log("✅ Herramienta actualizada correctamente");
+            onSuccess();
+        },
+        onError: (error) => {
+            console.error("❌ Error al actualizar la herramienta", error);
+        },
+    });
+};
+
     
 
     // Manejo de estado de carga y error
