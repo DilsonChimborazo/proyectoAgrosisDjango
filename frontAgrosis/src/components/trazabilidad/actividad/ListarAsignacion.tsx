@@ -3,27 +3,20 @@ import { useAsignacion, Asignacion } from '@/hooks/trazabilidad/asignacion/useAs
 import { useRealiza, Realiza } from '@/hooks/trazabilidad/realiza/useRealiza';
 import { useUsuarios, Usuario } from '@/hooks/usuarios/usuario/useUsuarios';
 import { useProgramacion } from '@/hooks/trazabilidad/programacion/useProgramacion';
-import { useMedidas } from '@/hooks/inventario/unidadMedida/useMedidad';
+import { useUnidadMedida } from '@/hooks/inventario/unidadMedida/useCrearMedida';
 import VentanaModal from '../../globales/VentanasModales';
 import Tabla from '../../globales/Tabla';
 import CrearAsignacionModal from './CrearAsignacion';
 import CrearProgramacion from '../programacion/CrearProgramacion';
-import CrearRealiza from '../realiza/CrearRealiza';
-import OriginalCrearUsuario from '../../usuarios/usuario/crearUsuario';
 
-interface CrearUsuarioWrapperProps {
-  onSuccess: () => void;
-  onCancel: () => void;
-}
-
+// Interfaz para los datos de la tabla
 interface AsignacionTabla {
   id: number;
   estado: 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada';
   fecha_programada: string;
   observaciones: string;
-  especie: string;
+  plantacion: string; // Reemplaza especie
   actividad: string;
-  cultivo: string;
   usuario: string;
   fecha_realizada: string | null;
   duracion: number | null;
@@ -32,31 +25,13 @@ interface AsignacionTabla {
   unidad_medida: string;
 }
 
-const CrearUsuarioWrapper = ({ onSuccess, onCancel }: CrearUsuarioWrapperProps) => {
-  const handleSuccess = () => {
-    onSuccess();
-    onCancel();
-  };
-
-  return (
-    <div className="relative">
-      <OriginalCrearUsuario onSuccess={handleSuccess} />
-      <button
-        onClick={onCancel}
-        className="absolute top-4 right-4 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700"
-      >
-        Cerrar
-      </button>
-    </div>
-  );
-};
-
+// Componente para mostrar detalles de la asignación
 const DetalleAsignacionModal = memo(({ item, realizaList, usuarios }: { item: Asignacion; realizaList: Realiza[]; usuarios: Usuario[] }) => {
   const realiza = realizaList.find((r) => r.id === (typeof item.fk_id_realiza === 'object' ? item.fk_id_realiza?.id : item.fk_id_realiza));
   const usuario = usuarios.find((u) => u.id === (typeof item.fk_identificacion === 'object' ? item.fk_identificacion?.id : item.fk_identificacion));
 
   const realizaNombre = realiza
-    ? `${realiza.fk_id_plantacion?.fk_id_cultivo?.fk_id_especie?.nombre_comun || 'Sin especie'} ${realiza.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo || 'Sin cultivo'}`
+    ? `${realiza.fk_id_actividad?.nombre_actividad || 'Sin actividad'} (${realiza.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo || 'Sin cultivo'})`
     : 'Sin realiza';
   const usuarioNombre = usuario ? `${usuario.nombre} ${usuario.apellido}` : 'Sin usuario';
 
@@ -75,6 +50,7 @@ const DetalleAsignacionModal = memo(({ item, realizaList, usuarios }: { item: As
   );
 });
 
+// Componente principal para listar asignaciones
 const ListarAsignacion = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -82,40 +58,29 @@ const ListarAsignacion = () => {
   const [selectedAsignacion, setSelectedAsignacion] = useState<Asignacion | null>(null);
   const [modalContenido, setModalContenido] = useState<React.ReactNode>(null);
 
+  // Hooks para obtener datos
   const { data: asignaciones = [], isLoading: isLoadingAsignaciones, error: errorAsignaciones, refetch: refetchAsignaciones } = useAsignacion();
-  const { data: realizaList = [], isLoading: isLoadingRealiza, error: errorRealiza, refetch: refetchRealiza } = useRealiza();
-  const { data: usuarios = [], isLoading: isLoadingUsuarios, error: errorUsuarios, refetch: refetchUsuarios } = useUsuarios();
+  const { data: realizaList = [], isLoading: isLoadingRealiza, error: errorRealiza } = useRealiza();
+  const { data: usuarios = [], isLoading: isLoadingUsuarios, error: errorUsuarios } = useUsuarios();
   const { data: programaciones = [], isLoading: isLoadingProgramaciones, error: errorProgramaciones, refetch: refetchProgramaciones } = useProgramacion();
-  const { data: unidadesMedida = [], isLoading: isLoadingUnidadesMedida, error: errorUnidadesMedida, refetch: refetchUnidadesMedida } = useMedidas();
+  const { data: unidadesMedida = [], isLoading: isLoadingUnidadesMedida, error: errorUnidadesMedida } = useUnidadMedida();
 
+  // Manejar clic en una fila para ver detalles
   const handleItemClick = (item: AsignacionTabla) => {
     const asignacion = asignaciones.find((a) => a.id === item.id) ?? null;
     setSelectedAsignacion(asignacion);
     setIsDetailModalOpen(true);
   };
 
+  // Manejar actualización de programación
   const handleUpdateClick = (item: AsignacionTabla) => {
-    if (!unidadesMedida.length) {
-      alert('No hay unidades de medida disponibles. Por favor, registra una unidad de medida.');
-      return;
-    }
     const asignacion = asignaciones.find((a) => a.id === item.id);
-    if (!asignacion) {
-      console.error('Asignación no encontrada:', item.id);
-      return;
-    }
-    const programacion = programaciones.find((p) => {
-      const programacionId = typeof p.fk_id_asignacionActividades === 'object'
-        ? p.fk_id_asignacionActividades?.id
-        : p.fk_id_asignacionActividades;
-      return programacionId === asignacion.id;
-    });
-
-    console.log('Abriendo modal de programación para asignacionId:', asignacion.id, 'con programacion:', programacion);
+    if (!asignacion) return;
     setSelectedAsignacion(asignacion);
     setIsProgramacionModalOpen(true);
   };
 
+  // Cerrar modales
   const closeModal = () => {
     setIsModalOpen(false);
     setIsDetailModalOpen(false);
@@ -124,47 +89,25 @@ const ListarAsignacion = () => {
     setSelectedAsignacion(null);
   };
 
+  // Crear nueva asignación
   const handleCreateAsignacion = () => {
     setModalContenido(
       <CrearAsignacionModal
         onSuccess={() => {
           refetchAsignaciones();
-          refetchRealiza();
-          refetchUsuarios();
           closeModal();
         }}
         onCancel={closeModal}
         realizaList={realizaList}
         usuarios={usuarios}
-        onCreateRealiza={() => {
-          setModalContenido(
-            <CrearRealiza
-              onSuccess={() => {
-                refetchRealiza();
-                closeModal();
-              }}
-              onCancel={closeModal}
-            />
-          );
-          setIsModalOpen(true);
-        }}
-        onCreateUsuario={() => {
-          setModalContenido(
-            <CrearUsuarioWrapper
-              onSuccess={() => {
-                refetchUsuarios();
-                closeModal();
-              }}
-              onCancel={closeModal}
-            />
-          );
-          setIsModalOpen(true);
-        }}
+        onCreateRealiza={() => refetchAsignaciones()}
+        onCreateUsuario={() => refetchAsignaciones()}
       />
     );
     setIsModalOpen(true);
   };
 
+  // Mapear datos para la tabla
   const tablaData: AsignacionTabla[] = useMemo(() => {
     return asignaciones.map((asignacion) => {
       const realizaId = typeof asignacion.fk_id_realiza === 'object' ? asignacion.fk_id_realiza?.id : asignacion.fk_id_realiza;
@@ -179,19 +122,19 @@ const ListarAsignacion = () => {
         return programacionId === asignacion.id;
       });
 
-      const unidad = programacion?.fk_unidad_medida
-        ? unidadesMedida.find((um) => um.id === Number(programacion.fk_unidad_medida))
-        : null;
-      const unidadMedida = unidad ? `${unidad.nombre_medida} (${unidad.abreviatura})` : 'Sin unidad';
+      let unidadMedida = 'No asignada';
+      if (programacion?.fk_unidad_medida) {
+        const unidad = unidadesMedida.find((um) => um.id === Number(programacion.fk_unidad_medida));
+        unidadMedida = unidad ? `${unidad.nombre_medida} (${unidad.abreviatura})` : 'Unidad no encontrada';
+      }
 
       return {
         id: asignacion.id,
         estado: asignacion.estado as 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada',
         fecha_programada: asignacion.fecha_programada,
         observaciones: asignacion.observaciones || 'Sin observaciones',
-        especie: realiza?.fk_id_plantacion?.fk_id_cultivo?.fk_id_especie?.nombre_comun || 'Sin especie',
+        plantacion: realiza?.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo || 'Sin cultivo', // Reemplaza especie
         actividad: realiza?.fk_id_actividad?.nombre_actividad || 'Sin actividad',
-        cultivo: realiza?.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo || 'Sin cultivo',
         usuario: usuario ? `${usuario.nombre} ${usuario.apellido}` : 'Sin usuario',
         fecha_realizada: programacion?.fecha_realizada || null,
         duracion: programacion?.duracion ?? null,
@@ -200,47 +143,39 @@ const ListarAsignacion = () => {
         unidad_medida: unidadMedida,
       };
     });
-  }, [asignaciones, realizaList, usuarios, programaciones, unidades    unidadesMedida]);
+  }, [asignaciones, realizaList, usuarios, programaciones, unidadesMedida]);
 
-  const isLoading = isLoadingAsignaciones || isLoadingRealiza || isLoadingUsuarios || isLoadingProgramaciones || isLoadingUnidadesMedida;
+  // Estado de carga y errores
+  const loading = isLoadingAsignaciones || isLoadingRealiza || isLoadingUsuarios || isLoadingProgramaciones || isLoadingUnidadesMedida;
   const error = errorAsignaciones || errorRealiza || errorUsuarios || errorProgramaciones || errorUnidadesMedida;
 
-  if (isLoading) {
-    return <div className="text-center text-gray-500">Cargando asignaciones...</div>;
-  }
+  if (loading) return <div className="text-center text-gray-500">Cargando asignaciones...</div>;
+  if (error) return <div className="text-center text-red-500">Error al cargar datos: {error.message || 'Intenta de nuevo.'}</div>;
 
-  if (error) {
-    return (
-      <div className="text-center text-red-500">
-        Error al cargar datos: {error.message || 'Por favor, intenta de nuevo.'}
-      </div>
-    );
-  }
-
+  // Encabezados de la tabla
   const headers = [
     'ID',
     'Fecha Programada',
     'Usuario',
     'Actividad',
-    'Cultivo',
-    'Especie',
+    'Plantacion', // Reemplaza Especie
     'Observaciones',
     'Fecha Realizada',
     'Duracion',
     'Cantidad Insumo',
-    'Im',
+    'Imagen',
     'Unidad Medida',
     'Estado',
   ];
 
+  // Renderizar filas de la tabla
   const renderRow = (item: AsignacionTabla) => (
     <tr key={item.id} className="hover:bg-gray-100 cursor-pointer">
       <td className="p-3">{item.id}</td>
       <td className="p-3">{item.fecha_programada}</td>
       <td className="p-3">{item.usuario}</td>
       <td className="p-3">{item.actividad}</td>
-      <td className="p-3">{item.cultivo}</td>
-      <td className="p-3">{item.especie}</td>
+      <td className="p-3">{item.plantacion}</td> {/* Reemplaza especie */}
       <td className="p-3">{item.observaciones}</td>
       <td className="p-3">{item.fecha_realizada || '-'}</td>
       <td className="p-3">{item.duracion ?? '-'}</td>

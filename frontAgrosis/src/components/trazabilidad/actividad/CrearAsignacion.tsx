@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { useCrearAsignacion } from '@/hooks/trazabilidad/asignacion/useCrearAsignacion';
 import { Realiza } from '@/hooks/trazabilidad/realiza/useRealiza';
 import { Usuario } from '@/hooks/usuarios/usuario/useUsuarios';
+import VentanaModal from '../../globales/VentanasModales';
+import CrearRealiza from '../realiza/CrearRealiza';
+import CrearUsuario from '../../usuarios/usuario/crearUsuario'; // Importa el componente real
 
 interface CrearAsignacionModalProps {
   onSuccess: () => void;
@@ -12,7 +15,14 @@ interface CrearAsignacionModalProps {
   onCreateUsuario: () => void;
 }
 
-const CrearAsignacion = ({ onSuccess, onCancel, realizaList, usuarios, onCreateRealiza, onCreateUsuario }: CrearAsignacionModalProps) => {
+const CrearAsignacion = ({
+  onSuccess,
+  onCancel,
+  realizaList,
+  usuarios,
+  onCreateRealiza,
+  onCreateUsuario,
+}: CrearAsignacionModalProps) => {
   const { mutate: createAsignacion, isPending, error: mutationError } = useCrearAsignacion();
   const [formData, setFormData] = useState({
     fk_id_realiza: '',
@@ -22,6 +32,8 @@ const CrearAsignacion = ({ onSuccess, onCancel, realizaList, usuarios, onCreateR
     observaciones: '',
   });
   const [error, setError] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalContent, setModalContent] = useState<React.ReactNode>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -58,7 +70,7 @@ const CrearAsignacion = ({ onSuccess, onCancel, realizaList, usuarios, onCreateR
             onSuccess();
           },
           onError: (err) => {
-            setError('Error al crear la asignación. Por favor, intenta de nuevo.');
+            setError('Error al crear la asignación: ' + err.message);
             console.error('Error creating asignacion:', err.message);
           },
         }
@@ -67,6 +79,32 @@ const CrearAsignacion = ({ onSuccess, onCancel, realizaList, usuarios, onCreateR
       setError('Error inesperado al crear la asignación.');
       console.error('Unexpected error:', err);
     }
+  };
+
+  const openCreateRealizaModal = () => {
+    setModalContent(
+      <CrearRealiza
+        onSuccess={() => {
+          setIsModalOpen(false);
+          onCreateRealiza();
+        }}
+        onCancel={() => setIsModalOpen(false)}
+      />
+    );
+    setIsModalOpen(true);
+  };
+
+  const openCreateUsuarioModal = () => {
+    setModalContent(
+      <CrearUsuario
+        isOpen={true} // Modal siempre abierto cuando se renderiza
+        onClose={() => {
+          setIsModalOpen(false);
+          onCreateUsuario(); // Actualiza la lista de usuarios
+        }}
+      />
+    );
+    setIsModalOpen(true);
   };
 
   return (
@@ -95,17 +133,17 @@ const CrearAsignacion = ({ onSuccess, onCancel, realizaList, usuarios, onCreateR
               <option value="">Selecciona un realiza</option>
               {realizaList.map((realiza) => (
                 <option key={realiza.id} value={realiza.id}>
-                  {`${realiza.fk_id_cultivo?.fk_id_especie?.nombre_comun || 'Sin especie'} - ${
-                    realiza.fk_id_cultivo?.nombre_cultivo || 'Sin cultivo'
-                  } - ${realiza.fk_id_actividad?.nombre_actividad || 'Sin actividad'}`}
+                  {`Plantación: ${realiza.fk_id_plantacion?.fk_id_semillero?.nombre_semilla || 'Sin semilla'} - Actividad: ${
+                    realiza.fk_id_actividad?.nombre_actividad || 'Sin actividad'
+                  }`}
                 </option>
               ))}
             </select>
           </div>
           <button
             type="button"
-            onClick={onCreateRealiza}
-            className="mt-6 bg-green-700 text-white px-3 py-1 rounded hover:bg-green-900"
+            onClick={openCreateRealizaModal}
+            className="mt-6 bg-green-700 text-white w-8 h-8 flex items-center justify-center rounded-full hover:bg-green-900"
             title="Crear nuevo realiza"
             disabled={isPending}
           >
@@ -119,7 +157,7 @@ const CrearAsignacion = ({ onSuccess, onCancel, realizaList, usuarios, onCreateR
             </label>
             <select
               id="fk_identificacion"
-              name="fk_identificacion"
+              name="fk_identificacion" // Corregido de fk_id_realiza a fk_identificacion
               value={formData.fk_identificacion}
               onChange={handleChange}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
@@ -136,8 +174,8 @@ const CrearAsignacion = ({ onSuccess, onCancel, realizaList, usuarios, onCreateR
           </div>
           <button
             type="button"
-            onClick={onCreateUsuario}
-            className="mt-6 bg-green-700 text-white px-3 py-1 rounded hover:bg-green-900"
+            onClick={openCreateUsuarioModal}
+            className="mt-6 bg-green-700 text-white w-8 h-8 flex items-center justify-center rounded-full hover:bg-green-900"
             title="Crear nuevo usuario"
             disabled={isPending}
           >
@@ -187,7 +225,7 @@ const CrearAsignacion = ({ onSuccess, onCancel, realizaList, usuarios, onCreateR
             name="observaciones"
             value={formData.observaciones}
             onChange={handleChange}
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+            classoutcome="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
             rows={4}
             disabled={isPending}
           />
@@ -210,6 +248,12 @@ const CrearAsignacion = ({ onSuccess, onCancel, realizaList, usuarios, onCreateR
           </button>
         </div>
       </form>
+      <VentanaModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        titulo=""
+        contenido={modalContent}
+      />
     </div>
   );
 };

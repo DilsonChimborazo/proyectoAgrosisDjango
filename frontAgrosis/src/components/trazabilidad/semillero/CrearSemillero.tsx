@@ -83,7 +83,7 @@ const CrearSemillero = ({ onSuccess }: { onSuccess: () => void }) => {
             onSuccess: () => {
                 console.log("✅ Semillero creado exitosamente");
                 onSuccess();
-                navigate("/semilleros");
+                navigate("");
             },
             onError: (error: any) => {
                 const errorMsg = error.message || "Error desconocido al crear el semillero";
