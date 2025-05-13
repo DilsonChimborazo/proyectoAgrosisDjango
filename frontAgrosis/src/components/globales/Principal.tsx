@@ -130,7 +130,7 @@ export default function Principal({ children }: LayoutProps) {
             className="w-16 shadow-sm"
           />       
           <img 
-            src="/logo_proyecto-removebg-preview.png" 
+            src="/agrosoft.png" 
             alt="logo" 
             className="w-32  shadow-sm"
           />

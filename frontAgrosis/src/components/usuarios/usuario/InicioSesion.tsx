@@ -3,7 +3,7 @@ import { Eye, EyeOff, Facebook, MessageCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useCustomForm } from "@/hooks/validaciones/useCustomForm";
 import { loginSchema, LoginData } from "@/hooks/validaciones/useSchemas"; 
-import logoAgrosis from "../../../../public/logo_proyecto-removebg-preview.png";
+import logoAgrosis from "../../../../public/agrosoft.png";
 import logoSena from "../../../../public/logoSena.png";
 
 export default function Login() {

@@ -1,85 +1,88 @@
-import { useState, useEffect } from "react";
-import { useActualizarProduccion } from "../../../hooks/finanzas/produccion/useActualizarProduccion";
-import { useNavigate, useParams } from "react-router-dom";
-import { useProduccionId } from "../../../hooks/finanzas/produccion/useProduccionId";
-import Formulario from "../../globales/Formulario";
+import { useState } from 'react';
+import { useProduccion } from '../../../hooks/finanzas/produccion/useProduccion';
+import Tabla from '../../globales/Tabla';
+import VentanaModal from '../../globales/VentanasModales';
+import { useNavigate } from "react-router-dom";
+import Button from '@/components/globales/Button';
 
-const ActualizarProduccion = () => {
-    const { id_produccion } = useParams(); // Obtener ID de la URL
-    const { data: produccion, isLoading, error } = useProduccionId(id_produccion);
-    const actualizarProduccion = useActualizarProduccion();
-    const navigate = useNavigate();
+const ProduccionComponent = () => {
+  const navigate = useNavigate();
+  const { data: producciones, isLoading, error } = useProduccion();
+  const [selectedProduccion, setSelectedProduccion] = useState<object | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // Estado inicial vacío
-    const [formData, setFormData] = useState({
-        fk_id_plantacion: "",
-        nombre_produccion: "",
-        cantidad_producida: "",
-        fecha: "",
-        fk_unidad_medida: "",
-        cantidad_en_base: ""
-    });
+  const openModalHandler = (produccion: object) => {
+    setSelectedProduccion(produccion);
+    setIsModalOpen(true);
+  };
 
-    // Cargar datos cuando la API responda
-    useEffect(() => {
-        if (produccion) {
-            setFormData({
-                fk_id_plantacion: produccion.fk_id_plantacion?.id ? String(produccion.fk_id_plantacion.id) : "",
-                nombre_produccion: produccion.nombre_produccion ?? "",
-                cantidad_producida: produccion.cantidad_producida ? String(produccion.cantidad_producida) : "",
-                fecha: produccion.fecha ?? "",
-                fk_unidad_medida: produccion.fk_unidad_medida?.id ? String(produccion.fk_unidad_medida.id) : "",
-                cantidad_en_base: produccion.cantidad_en_base ? String(produccion.cantidad_en_base) : ""
-            });
-        }
-    }, [produccion]);
+  const handleRowClick = (produccion: { id: number }) => {
+    openModalHandler(produccion);
+  };
 
-    // Manejo del envío del formulario
-    const handleSubmit = (data: { [key: string]: string }) => {
-        if (!id_produccion) return;
+  const closeModal = () => {
+    setSelectedProduccion(null);
+    setIsModalOpen(false);
+  };
 
-        const produccionActualizada = {
-            id_produccion: Number(id_produccion),
-            nombre_produccion: data.nombre_produccion || "",
-            fk_id_plantacion: data.fk_id_plantacion ? parseInt(data.fk_id_plantacion, 10) : null,
-            cantidad_producida: parseFloat(data.cantidad_producida) || 0,
-            fecha: data.fecha,
-            fk_unidad_medida: data.fk_unidad_medida ? parseInt(data.fk_unidad_medida, 10) : null,
-            cantidad_en_base: data.cantidad_en_base ? parseFloat(data.cantidad_en_base) : null
-        };
+  const handleUpdate = (produccion: { id: number }) => {
+    navigate(`/actualizarproduccion/${produccion.id}`);
+  };
 
-        actualizarProduccion.mutate(produccionActualizada, {
-            onSuccess: () => {
-                setTimeout(() => navigate("/produccion"), 500);
-            },
-            onError: (error) => console.error("❌ Error al actualizar producción:", error),
-        });
-    };
+  const handleCreate = () => {
+    navigate("/Registrar-Produccion");
+  };
 
-    if (isLoading) return <div className="text-gray-500">Cargando datos...</div>;
-    if (error) return <div className="text-red-500">Error al cargar la producción</div>;
+  if (isLoading) return <div className="text-center text-gray-500">Cargando producciones...</div>;
+  if (error) return <div className="text-center text-red-500">Error al cargar los datos: {error.message}</div>;
 
-    return (
-        <div className="max-w-4xl mx-auto p-4">
-            {produccion && (
-                <Formulario 
-                    fields={[
-                        { id: 'fk_id_plantacion', label: 'ID Plantación', type: 'number' },
-                        { id: 'nombre_produccion', label: 'Nombre Producción', type: 'text' },
-                        { id: 'cantidad_producida', label: 'Cantidad Producida', type: 'number' },
-                        { id: 'fecha', label: 'Fecha', type: 'date' },
-                        { id: 'fk_unidad_medida', label: 'Unidad de Medida', type: 'number' },
-                        { id: 'cantidad_en_base', label: 'Cantidad en Base', type: 'number' },
-                    ]} 
-                    onSubmit={handleSubmit} 
-                    isError={actualizarProduccion.isError} 
-                    isSuccess={actualizarProduccion.isSuccess}
-                    title="Actualizar Producción"  
-                    initialValues={formData}  
-                />
-            )}
-        </div>
-    );
+  const produccionesList = Array.isArray(producciones) ? producciones : [];
+  const mappedProducciones = produccionesList.map((produccion) => ({
+    id: produccion.id,
+    nombre_produccion: produccion.nombre_produccion,
+    cantidad_producida: produccion.cantidad_producida,
+    unidad_medida: produccion.fk_unidad_medida?.nombre_medida ?? 'No disponible',
+    fecha: produccion.fecha,
+    stock_disponible: produccion.stock_disponible ?? 0,
+    cultivo: produccion.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo ?? 'Sin cultivo',
+    fecha_plantacion: produccion.fk_id_plantacion?.fecha_plantacion ?? 'Sin fecha',
+  }));
+
+  const headers = [
+    "ID", "Nombre Produccion", "Cantidad Producida", "Unidad Medida", "Fecha", 
+    "Stock Disponible", "Cultivo", "Fecha Plantacion"
+  ];
+
+  return (
+    <div className="mx-auto p-4">
+      <div className="flex gap-4 my-4">
+        <Button 
+          text="Registrar Producción" 
+          onClick={handleCreate} 
+          variant="green" 
+        />
+      </div>
+
+      <Tabla 
+        title="Lista de Producciones" 
+        headers={headers} 
+        data={mappedProducciones} 
+        onClickAction={handleRowClick} 
+        onUpdate={handleUpdate}
+        onCreate={handleCreate}
+        createButtonTitle="Crear"
+      />
+
+      {selectedProduccion && (
+        <VentanaModal
+          isOpen={isModalOpen}
+          onClose={closeModal}
+          titulo="Detalles de Producción"
+          contenido={selectedProduccion}
+        />
+      )}
+    </div>
+  );
 };
 
-export default ActualizarProduccion;
+export default ProduccionComponent;
