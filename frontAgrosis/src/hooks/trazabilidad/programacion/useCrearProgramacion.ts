@@ -7,7 +7,7 @@ export interface Programacion {
   id?: number;
   fk_id_asignacionActividades: number;
   fecha_realizada?: string;
-  duracion?: number;
+  duracion?: number | null ;
   cantidad_insumo?: number;
   img?: string;
   fk_unidad_medida?: number;

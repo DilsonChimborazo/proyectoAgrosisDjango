@@ -9,7 +9,7 @@ import Tabla from '../../globales/Tabla';
 import CrearAsignacionModal from './CrearAsignacion';
 import CrearProgramacion from '../programacion/CrearProgramacion';
 
-// Corrige el nombre de la interfaz (typo en 'Medidad' a 'Medida')
+
 interface AsignacionTabla {
   id: number;
   estado: 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada';
@@ -21,7 +21,7 @@ interface AsignacionTabla {
   fecha_realizada: string | null;
   duracion: number | null;
   cantidad_insumo: number | null;
-  img: string | null;
+  img: File | null;
   unidad_medida: string;
 }
 
