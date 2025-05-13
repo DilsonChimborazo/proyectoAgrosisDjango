@@ -41,7 +41,7 @@ const VentaComponent = () => {
 
   const ventasList = Array.isArray(ventas) ? ventas : [];
   const mappedVentas = ventasList.map((venta) => {
-    const cantidadProduccion = venta.fk_id_produccion?.cantidad_produccion ?? 0;
+    const cantidadProduccion = venta.fk_id_produccion?.cantidad_producida ?? 0;
     const cantidadVendida = venta.cantidad ?? 0;
     const stock = cantidadProduccion > cantidadVendida ? cantidadProduccion - cantidadVendida : 0;
 

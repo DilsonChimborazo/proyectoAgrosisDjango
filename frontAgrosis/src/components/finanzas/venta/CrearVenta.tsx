@@ -6,47 +6,48 @@ import { useProduccion } from "@/hooks/finanzas/produccion/useProduccion";
 import { useMedidas } from "@/hooks/inventario/unidadMedida/useMedidad";
 import { NuevaVenta } from "@/hooks/finanzas/venta/useCrearVenta";
 import { Produccion } from "@/hooks/finanzas/venta/useVenta";
+import CrearUnidadMedida from "@/components/inventario/unidadMedida/UnidadMedida";
+import CrearProduccion from "@/components/finanzas/produccion/CrearProduccion";
+import VentanaModal from "@/components/globales/VentanasModales";
 
-// Definimos las props que recibirá el componente
 interface CrearVentaProps {
-  onClose?: () => void; // Función opcional para cerrar el modal
-  onSuccess?: () => void; // Función opcional para manejar éxito
+  onClose?: () => void;
+  onSuccess?: () => void;
 }
 
 const CrearVenta = ({ onClose, onSuccess }: CrearVentaProps) => {
   const mutation = useCrearVenta();
   const navigate = useNavigate();
 
-  // Obtener producciones y unidades de medida
-  const { data: producciones = [], isLoading: isLoadingProducciones } = useProduccion();
-  const { data: unidadesMedida = [], isLoading: isLoadingUnidades } = useMedidas();
+  const { data: producciones = [], refetch: refetchProduccion, isLoading: isLoadingProducciones } = useProduccion();
+  const { data: unidades = [], refetch: refetchUnidades, isLoading: isLoadingUnidades } = useMedidas();
 
+  const [modalMedidaAbierto, setModalMedidaAbierto] = useState(false);
+  const [modalProduccionAbierto, setModalProduccionAbierto] = useState(false);
   const [stockSeleccionado, setStockSeleccionado] = useState<number | null>(null);
   const [produccionSeleccionada, setProduccionSeleccionada] = useState<Produccion | null>(null);
 
-  // Opciones para los selects
-  const produccionOptions = producciones.map((produccion: Produccion) => ({
-    value: String(produccion.id),
-    label: `${produccion.nombre_produccion} - ${produccion.fecha}`
-  }));
+  const abrirModalMedida = () => setModalMedidaAbierto(true);
+  const cerrarModalMedida = () => {
+    setModalMedidaAbierto(false);
+    refetchUnidades();
+  };
 
-  const unidadMedidaOptions = unidadesMedida.map((unidad) => ({
-    value: String(unidad.id),
-    label: `${unidad.nombre_medida} (${unidad.unidad_base})`
-  }));
+  const abrirModalProduccion = () => setModalProduccionAbierto(true);
+  const cerrarModalProduccion = () => {
+    setModalProduccionAbierto(false);
+    refetchProduccion();
+  };
 
-  // Función para manejar el cambio de producción
   const handleProduccionChange = (idProduccion: string) => {
     const id = Number(idProduccion);
     const produccion = producciones.find((p: Produccion) => p.id === id);
-
     if (produccion) {
       setProduccionSeleccionada(produccion);
       setStockSeleccionado(produccion.stock_disponible);
     }
   };
 
-  // Función para manejar el envío del formulario
   const handleSubmit = (formData: { [key: string]: string | File }) => {
     if (!produccionSeleccionada) {
       console.error("Error: Debe seleccionar una producción");
@@ -57,14 +58,8 @@ const CrearVenta = ({ onClose, onSuccess }: CrearVentaProps) => {
     const precioUnidad = parseFloat(formData.precio_unidad as string);
     const unidadMedidaId = parseInt(formData.fk_unidad_medida as string, 10);
 
-    // Validaciones
-    if (cantidad <= 0) {
-      console.error("Error: La cantidad debe ser mayor a cero");
-      return;
-    }
-
-    if (precioUnidad <= 0) {
-      console.error("Error: El precio por unidad debe ser mayor a cero");
+    if (cantidad <= 0 || precioUnidad <= 0) {
+      console.error("Error: Cantidad y precio deben ser mayores a cero");
       return;
     }
 
@@ -73,12 +68,12 @@ const CrearVenta = ({ onClose, onSuccess }: CrearVentaProps) => {
       return;
     }
 
-    const unidadSeleccionada = unidadesMedida.find(u => u.id === unidadMedidaId);
-    const factorConversion = unidadSeleccionada?.factor_conversion || 1;
+    const unidadSeleccionada = unidades.find((u) => u.id === unidadMedidaId);
+    const factorConversion = unidadSeleccionada?.factor_conversion ?? 1;
 
     const nuevaVenta: NuevaVenta = {
       fk_id_produccion: produccionSeleccionada.id,
-      cantidad: cantidad,
+      cantidad,
       precio_unidad: precioUnidad,
       fecha: formData.fecha as string,
       fk_unidad_medida: unidadMedidaId,
@@ -87,13 +82,7 @@ const CrearVenta = ({ onClose, onSuccess }: CrearVentaProps) => {
 
     mutation.mutate(nuevaVenta, {
       onSuccess: () => {
-        // Ejecutamos onSuccess si existe, sino navegamos a /stock
-        if (onSuccess) {
-          onSuccess();
-        } else {
-          navigate("/stock");
-        }
-        // También cerramos el modal si existe la función onClose
+        onSuccess ? onSuccess() : navigate("/stock");
         onClose?.();
       },
       onError: (error) => {
@@ -106,12 +95,20 @@ const CrearVenta = ({ onClose, onSuccess }: CrearVentaProps) => {
     return <div className="text-center text-gray-500">Cargando opciones...</div>;
   }
 
+  const produccionOptions = producciones.map((p) => ({
+    value: String(p.id),
+    label: `${p.nombre_produccion} - ${p.fecha}`,
+  }));
+
   const formFields = [
     {
       id: "fk_id_produccion",
       label: "Producción",
       type: "select",
       options: produccionOptions,
+      hasExtraButton: true,
+      extraButtonText: "+",
+      onExtraButtonClick: abrirModalProduccion,
       required: true,
     },
     {
@@ -127,7 +124,13 @@ const CrearVenta = ({ onClose, onSuccess }: CrearVentaProps) => {
       id: "fk_unidad_medida",
       label: "Unidad de Medida",
       type: "select",
-      options: unidadMedidaOptions,
+      options: unidades.map((u: any) => ({
+        value: u.id.toString(),
+        label: `${u.nombre_medida} (${u.unidad_base})`,
+      })),
+      hasExtraButton: true,
+      extraButtonText: "+",
+      onExtraButtonClick: abrirModalMedida,
       required: true,
     },
     {
@@ -147,7 +150,7 @@ const CrearVenta = ({ onClose, onSuccess }: CrearVentaProps) => {
   ];
 
   return (
-    <div className="max-w-4xl mx-auto ">
+    <div className="max-w-4xl mx-auto">
       {stockSeleccionado !== null && (
         <div className="mb-4 p-3 bg-blue-50 text-blue-800 rounded-lg">
           <p className="font-semibold">Stock disponible: {stockSeleccionado}</p>
@@ -159,15 +162,29 @@ const CrearVenta = ({ onClose, onSuccess }: CrearVentaProps) => {
         fields={formFields}
         onSubmit={handleSubmit}
         onFieldChange={(id, value) => {
-          if (id === "fk_id_produccion") {
-            handleProduccionChange(value);
-          }
+          if (id === "fk_id_produccion") handleProduccionChange(value);
         }}
         stockMessage={
           stockSeleccionado !== null
             ? `Stock disponible: ${stockSeleccionado} unidades`
             : ""
         }
+      />
+
+      {/* Modal de unidad de medida */}
+      <VentanaModal
+        isOpen={modalMedidaAbierto}
+        onClose={cerrarModalMedida}
+        contenido={<CrearUnidadMedida onSuccess={cerrarModalMedida} />}
+        titulo="Crear Unidad de Medida"
+      />
+
+      {/* Modal de producción */}
+      <VentanaModal
+        isOpen={modalProduccionAbierto}
+        onClose={cerrarModalProduccion}
+        contenido={<CrearProduccion onSuccess={cerrarModalProduccion} />}
+        titulo="Crear Producción"
       />
 
       {mutation.isError && (
