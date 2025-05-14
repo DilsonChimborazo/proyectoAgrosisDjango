@@ -11,7 +11,7 @@ interface Programacion {
   duracion?: string;
   cantidad_insumo?: string;
   fk_unidad_medida?: string;
-  img?: File | null;
+  img?: File | null | string;
   estado: 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada';
 }
 
@@ -32,11 +32,12 @@ const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess,
     duracion: '',
     cantidad_insumo: '',
     fk_unidad_medida: '',
-    img: null as File | null,
+    img: null,
     fk_id_asignacionActividades: asignacionId,
   });
   const [error, setError] = useState<string | null>(null);
   const [isUnidadModalOpen, setIsUnidadModalOpen] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   // Prefill form data if existingProgramacion is provided
   useEffect(() => {
@@ -51,12 +52,15 @@ const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess,
     }
   }, [existingProgramacion, asignacionId]);
 
-  // Depuración: Verificar el valor inicial de asignacionId y unidadesMedida
-  console.log('Valor inicial de asignacionId:', asignacionId);
-  console.log('Datos de unidadesMedida:', unidadesMedida);
-  console.log('Cargando unidades:', isLoadingUnidades);
-  console.log('Error en unidades:', errorUnidades);
-  console.log('Existing Programacion:', existingProgramacion);
+  // Generar vista previa de la imagen seleccionada
+  useEffect(() => {
+    if (formData.img instanceof File) {
+      const url = URL.createObjectURL(formData.img);
+      setPreviewUrl(url);
+      return () => URL.revokeObjectURL(url); // Liberar la URL al cambiar la imagen o desmontar
+    }
+    setPreviewUrl(null);
+  }, [formData.img]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, files } = e.target as HTMLInputElement;
@@ -99,7 +103,7 @@ const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess,
     formDataToSend.append('fk_id_asignacionActividades', asignacionId.toString());
     formDataToSend.append('cantidad_insumo', formData.cantidad_insumo);
     formDataToSend.append('fk_unidad_medida', formData.fk_unidad_medida);
-    if (formData.img) {
+    if (formData.img instanceof File) {
       formDataToSend.append('img', formData.img);
     }
 
@@ -214,7 +218,7 @@ const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess,
               <option value="">Selecciona una unidad</option>
               {unidadesMedida?.map((unidad) => (
                 <option key={unidad.id} value={unidad.id.toString()}>
-                  {unidad.nombre_medida || unidad.nombre_medida || 'Unidad sin nombre'}
+                  {unidad.nombre_medida || 'Unidad sin nombre'}
                 </option>
               ))}
             </select>
@@ -239,6 +243,13 @@ const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess,
             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
             accept="image/*"
           />
+          {previewUrl && (
+            <img
+              src={previewUrl}
+              alt="Vista previa"
+              className="mt-2 w-32 h-32 object-cover rounded"
+            />
+          )}
         </div>
         <div className="flex justify-end space-x-2">
           <button

@@ -12,7 +12,7 @@ import CrearSemillero from "../semillero/CrearSemillero";
 
 interface CrearPlantacionProps {
   onSuccess: () => void;
-  onCancel?: () => void; // Added to allow closing the modal from the parent
+  onCancel?: () => void;
 }
 
 interface FormField {
@@ -41,7 +41,7 @@ const CrearPlantacion = ({ onSuccess, onCancel }: CrearPlantacionProps) => {
 
   const eraOptions = eras.map((era) => ({
     value: String(era.id ?? ""),
-    label: era.descripcion ?? "Sin descripción",
+    label: era.nombre ?? "Sin nombre",
   }));
 
   const cultivoOptions = cultivos.map((cultivo) => ({
@@ -138,7 +138,7 @@ const CrearPlantacion = ({ onSuccess, onCancel }: CrearPlantacionProps) => {
     mutation.mutate(nuevaPlantacion, {
       onSuccess: () => {
         console.log("✅ Plantación creada exitosamente");
-        onSuccess(); // Rely on the parent to close the modal
+        onSuccess();
       },
       onError: (error) => {
         console.error("❌ Error al crear plantación:", error);
@@ -172,7 +172,7 @@ const CrearPlantacion = ({ onSuccess, onCancel }: CrearPlantacionProps) => {
         isError={mutation.isError}
         isSuccess={mutation.isSuccess}
         title="Registrar Nueva Plantación"
-        onCancel={onCancel} // Pass the onCancel prop to Formulario if supported
+        onCancel={onCancel}
       />
 
       <VentanaModal

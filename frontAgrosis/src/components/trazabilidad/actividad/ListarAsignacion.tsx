@@ -1,4 +1,4 @@
-import { useState, useMemo, memo } from 'react';
+import { useState, useMemo, memo, useEffect } from 'react';
 import { useAsignacion, Asignacion } from '@/hooks/trazabilidad/asignacion/useAsignacion';
 import { useRealiza, Realiza } from '@/hooks/trazabilidad/realiza/useRealiza';
 import { useUsuarios, Usuario } from '@/hooks/usuarios/usuario/useUsuarios';
@@ -9,6 +9,8 @@ import Tabla from '../../globales/Tabla';
 import CrearAsignacionModal from './CrearAsignacion';
 import CrearProgramacion from '../programacion/CrearProgramacion';
 
+// URL base del servidor donde se almacenan las imágenes
+const BASE_URL = 'http://tudominio.com'; // Reemplaza con la URL real de tu servidor
 
 interface AsignacionTabla {
   id: number;
@@ -21,7 +23,7 @@ interface AsignacionTabla {
   fecha_realizada: string | null;
   duracion: number | null;
   cantidad_insumo: number | null;
-  img: File | null;
+  img: string | null | React.ReactNode; // Puede ser una URL, null o un elemento JSX
   unidad_medida: string;
 }
 
@@ -55,6 +57,7 @@ const ListarAsignacion = () => {
   const [isProgramacionModalOpen, setIsProgramacionModalOpen] = useState(false);
   const [selectedAsignacion, setSelectedAsignacion] = useState<Asignacion | null>(null);
   const [modalContenido, setModalContenido] = useState<React.ReactNode>(null);
+  const [imagenAmpliada, setImagenAmpliada] = useState<string | null>(null);
 
   const { data: asignaciones = [], isLoading: isLoadingAsignaciones, error: errorAsignaciones, refetch: refetchAsignaciones } = useAsignacion();
   const { data: realizaList = [], isLoading: isLoadingRealiza, error: errorRealiza } = useRealiza();
@@ -123,6 +126,32 @@ const ListarAsignacion = () => {
         unidadMedida = unidad ? unidad.nombre_medida : `Unidad no encontrada (ID: ${unidadMedidaId})`;
       }
 
+      // Transformar el campo img en un elemento <img>
+      let imgElement: React.ReactNode = 'Sin imagen';
+      let imgUrl: string | null = null;
+      if (programacion?.img) {
+        if (typeof programacion.img === 'string') {
+          imgUrl = programacion.img.startsWith('http') ? programacion.img : `${BASE_URL}${programacion.img}`;
+        } else if (programacion.img instanceof File) {
+          imgUrl = URL.createObjectURL(programacion.img);
+        }
+        if (imgUrl) {
+          imgElement = (
+            <img
+              src={imgUrl}
+              alt={`Imagen de programación ${asignacion.id}`}
+              className="min-w-[3rem] w-12 h-12 rounded-full object-cover mx-auto cursor-pointer hover:scale-105 transition-transform"
+              onError={(e) => {
+                e.currentTarget.src = '/placeholder-image.png';
+                e.currentTarget.alt = 'Imagen no disponible';
+              }}
+              onClick={() => setImagenAmpliada(imgUrl)}
+              loading="lazy"
+            />
+          );
+        }
+      }
+
       return {
         id: asignacion.id,
         estado: asignacion.estado as 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada',
@@ -134,11 +163,22 @@ const ListarAsignacion = () => {
         fecha_realizada: programacion?.fecha_realizada || null,
         duracion: programacion?.duracion ?? null,
         cantidad_insumo: programacion?.cantidad_insumo ?? null,
-        img: programacion?.img || null,
+        img: imgElement,
         unidad_medida: unidadMedida,
       };
     });
   }, [asignaciones, realizaList, usuarios, programaciones, unidadesMedida]);
+
+  // Liberar URLs temporales
+  useEffect(() => {
+    return () => {
+      tablaData.forEach((item) => {
+        if (typeof item.img === 'string' && item.img.startsWith('blob:')) {
+          URL.revokeObjectURL(item.img);
+        }
+      });
+    };
+  }, [tablaData]);
 
   const loading = isLoadingAsignaciones || isLoadingRealiza || isLoadingUsuarios || isLoadingProgramaciones || isLoadingUnidadesMedida;
   const error = errorAsignaciones || errorRealiza || errorUsuarios || errorProgramaciones || errorUnidadesMedida;
@@ -173,22 +213,7 @@ const ListarAsignacion = () => {
       <td className="p-3">{item.duracion ?? '-'}</td>
       <td className="p-3">{item.cantidad_insumo ?? '-'}</td>
       <td className="p-3">{item.unidad_medida}</td>
-      <td className="p-3">
-        {item.img ? (
-          <img
-            src={item.img}
-            alt={`Imagen de programación ${item.id}`}
-            className="w-16 h-16 object-cover rounded"
-            onError={(e) => {
-              e.currentTarget.src = '/placeholder-image.png'; // Imagen de respaldo
-              e.currentTarget.alt = 'Imagen no disponible';
-            }}
-            loading="lazy" // Optimización de carga
-          />
-        ) : (
-          <span className="text-gray-500">Sin imagen</span>
-        )}
-      </td>
+      <td className="p-3">{item.img}</td>
       <td className="p-3">{item.estado}</td>
     </tr>
   );
@@ -248,6 +273,20 @@ const ListarAsignacion = () => {
           <div className="text-center text-gray-500 mt-4">No hay asignaciones para mostrar.</div>
         )}
       </div>
+
+      {/* Imagen ampliada */}
+      {imagenAmpliada && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
+          onClick={() => setImagenAmpliada(null)}
+        >
+          <img
+            src={imagenAmpliada}
+            alt="Imagen ampliada"
+            className="max-w-4xl max-h-[90vh] rounded-lg shadow-lg border-4 border-white"
+          />
+        </div>
+      )}
     </div>
   );
 };
