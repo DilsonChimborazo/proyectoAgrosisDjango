@@ -118,7 +118,7 @@ export default function Principal({ children }: LayoutProps) {
     </div>
       {/* Sidebar */}
       <div
-        className={`bg-white p-2 overflow-auto sm:p-4 flex flex-col w-48 sm:w-64 h-full fixed top-0 left-0 z-50 border-t-4 border-r-4 rounded-tr-3xl rounded-br-3xl transition-all duration-300 ${
+        className={`bg-white p-2 overflow-auto sm:p-4 flex flex-col w-48 sm:w-64 h-full fixed top-0 left-0 z-50 border-t-4 border-r-4 rounded-tr-3xl transition-all duration-300 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-48 sm:-translate-x-64"
         }`}
       >
