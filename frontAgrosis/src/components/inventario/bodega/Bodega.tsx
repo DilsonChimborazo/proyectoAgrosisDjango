@@ -11,6 +11,7 @@ import CrearHerramientas from "../herramientas/CrearHerramientas";
 import ActualizarHerramienta from "../herramientas/ActualizarHerramientas";
 import CrearInsumos from "../insumos/CrearInsumos";
 import RegistrarSalidaBodega from "./CrearBodega";
+import ActualizarInsumos from "../insumos/ActualizarInsumos";
 
 // Hooks
 import { useHerramientas } from "@/hooks/inventario/herramientas/useHerramientas";
@@ -70,8 +71,6 @@ interface MovimientoBodega {
     cantidad_en_base: number | null;
     costo_insumo: number | null;
 }
-
-
 
 interface DetalleInsumoCompuesto {
     id: number;
@@ -257,6 +256,17 @@ const ListarBodega = () => {
                     id={movimiento.fk_id_herramientas.id} 
                     onSuccess={() => {
                         refetchHerramientas();
+                        refetchMovimientos();
+                        closeModal();       
+                    }}
+                />
+            );
+        } else if (tipoSeleccionado === "Insumo" && movimiento.fk_id_insumo) {
+            setModalContenido(
+                <ActualizarInsumos 
+                    id={String(movimiento.fk_id_insumo.id)} // Pasar el id del insumo
+                    onSuccess={() => {
+                        refetchInsumos();
                         refetchMovimientos();
                         closeModal();       
                     }}
@@ -622,6 +632,18 @@ const ListarBodega = () => {
                                                             );
                                                             if (movimientoRelacionado) {
                                                                 handleRowClick(movimientoRelacionado);
+                                                            } else if (esInsumo) {
+                                                                // Abrir ActualizarInsumos directamente con el id del insumo
+                                                                setModalContenido(
+                                                                    <ActualizarInsumos 
+                                                                        id={String(item.id)} 
+                                                                        onSuccess={() => {
+                                                                            refetchInsumos();
+                                                                            closeModal();
+                                                                        }}
+                                                                    />
+                                                                );
+                                                                setIsModalOpen(true);
                                                             }
                                                         }}
                                                         className="p-1 rounded-full hover:bg-gray-200"
@@ -682,7 +704,7 @@ const ListarBodega = () => {
                                                     <button
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            // Lógica para editar si es necesario
+                                                            // Lógica para editar insumos compuestos si está implementada
                                                         }}
                                                         className="p-1 rounded-full hover:bg-gray-200"
                                                         title="Editar"

@@ -2,20 +2,24 @@ import { useState, useEffect } from "react";
 import { useActualizarInsumos } from "../../../hooks/inventario/insumos/useActualizarInsumos";
 import { useInsumoPorId } from "../../../hooks/inventario/insumos/useInsumoPorId";
 import Formulario from "../../globales/Formulario";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
-const ActualizarInsumos = () => {
-    const { id } = useParams();
+interface ActualizarInsumosProps {
+    id: string;
+    onSuccess?: () => void;
+}
+
+const ActualizarInsumos = ({ id, onSuccess }: ActualizarInsumosProps) => {
     const navigate = useNavigate();
 
-    const { data: insumo, isLoading, error } = useInsumoPorId(id!);
+    const { data: insumo, isLoading, error } = useInsumoPorId(id);
     const actualizarInsumo = useActualizarInsumos();
 
     const [formData, setFormData] = useState({
         nombre: "",
         tipo: "",
         precio_unidad: "",
-        cantidad: "",
+        cantidad_insumo: "",
         fecha_vencimiento: "",
     });
 
@@ -25,7 +29,7 @@ const ActualizarInsumos = () => {
                 nombre: insumo.nombre || "",
                 tipo: insumo.tipo || "",
                 precio_unidad: insumo.precio_unidad?.toString() || "",
-                cantidad: insumo.cantidad?.toString() || "",
+                cantidad_insumo: insumo.cantidad_insumo?.toString() || "",
                 fecha_vencimiento: insumo.fecha_vencimiento || "",
             });
         }
@@ -39,21 +43,27 @@ const ActualizarInsumos = () => {
             nombre: (data.nombre as string).trim(),
             tipo: (data.tipo as string).trim(),
             precio_unidad: parseFloat(data.precio_unidad as string),
-            cantidad: parseFloat(data.cantidad as string),
-            fk_unidad_medida: insumo?.fk_unidad_medida, // conservamos la unidad existente
+            cantidad_insumo:
+                (insumo?.cantidad_insumo || 0) + parseFloat(data.cantidad_insumo as string),
+            fk_unidad_medida: insumo?.fk_unidad_medida,
             fecha_vencimiento: data.fecha_vencimiento as string,
             img: data.img instanceof File ? data.img : null,
         };
+        console.log('insumo actualizado', insumoActualizado);
 
         actualizarInsumo.mutate(insumoActualizado, {
             onSuccess: () => {
-                navigate("/insumos");
+                if (onSuccess) {
+                    onSuccess();
+                } else {
+                    navigate("/insumos");
+                }
             },
         });
     };
 
     const handleFieldChange = (id: string, value: string | File) => {
-        setFormData(prev => ({
+        setFormData((prev) => ({
             ...prev,
             [id]: value,
         }));
@@ -70,7 +80,7 @@ const ActualizarInsumos = () => {
                     { id: "nombre", label: "Nombre", type: "text" },
                     { id: "tipo", label: "Tipo", type: "text" },
                     { id: "precio_unidad", label: "Precio por unidad", type: "number" },
-                    { id: "cantidad", label: "Cantidad", type: "number" },
+                    { id: "cantidad_insumo", label: "cantidad_insumo", type: "number" },
                     { id: "fecha_vencimiento", label: "Fecha de Vencimiento", type: "date" },
                 ]}
                 onSubmit={handleSubmit}

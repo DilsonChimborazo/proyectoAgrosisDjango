@@ -16,6 +16,7 @@ class InsumoCreateSerializer(ModelSerializer):
         model = Insumo
         fields = '__all__'
 
+
 class ReporteEgresosSerializer(ModelSerializer):
     actividad = serializers.CharField(source='nombre_actividad')
     insumos = serializers.SerializerMethodField()

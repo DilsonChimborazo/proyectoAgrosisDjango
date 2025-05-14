@@ -4,8 +4,8 @@ import { useHerramientaPorId } from "../../../hooks/inventario/herramientas/useH
 import Formulario from "../../globales/Formulario";
 
 interface Props {
-    id: number;  // ID de la herramienta que se actualizará
-    onSuccess: () => void;  // Callback que se ejecuta después de una actualización exitosa
+    id: number;  
+    onSuccess: () => void;  
 }
 
 const ActualizarHerramienta: React.FC<Props> = ({ id, onSuccess }) => {

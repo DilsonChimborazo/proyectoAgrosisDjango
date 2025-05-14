@@ -16,8 +16,8 @@ export interface Insumo {
     precio_unidad: number;
     cantidad_insumo: number;
     fecha_vencimiento?: string | null;
-    img?: File | null; // Puede ser un archivo nuevo o no enviar nada
-    fk_unidad_medida: UnidadMedida | number; // Puede venir como objeto o solo el ID
+    img?: File | null;
+    fk_unidad_medida: UnidadMedida | number;
 }
 
 export const useActualizarInsumos = () => {
@@ -46,7 +46,7 @@ export const useActualizarInsumos = () => {
             formData.append("nombre", datosSinUnidad.nombre);
             formData.append("tipo", datosSinUnidad.tipo);
             formData.append("precio_unidad", String(datosSinUnidad.precio_unidad));
-            formData.append("cantidad", String(datosSinUnidad.cantidad_insumo));
+            formData.append("cantidad_insumo", String(datosSinUnidad.cantidad_insumo)); // Cambiado de "cantidad" a "cantidad_insumo"
             formData.append("fecha_vencimiento", datosSinUnidad.fecha_vencimiento || "");
 
             // Enviar ID o extraerlo del objeto

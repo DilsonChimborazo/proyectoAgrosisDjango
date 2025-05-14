@@ -83,7 +83,6 @@ const ListarInsumos = () => {
     : 'N/A'
   })) || [];
 
-  console.log("prueba",mappedInsumos)
 
   return (
     <div className="container mx-auto p-4">
@@ -125,7 +124,7 @@ const ListarInsumos = () => {
                 
                 <div className="bg-gray-50 p-3 rounded-lg">
                   <p className="font-semibold">Stock disponible:</p>
-                  <p>{selectedInsumo.cantidad || '0'}</p>
+                  <p>{selectedInsumo.cantidad_insumo || '0'}</p>
                 </div>
                 
                 <div className="bg-gray-50 p-3 rounded-lg">
