@@ -238,21 +238,18 @@ export default function Principal({ children }: LayoutProps) {
 
         </div>
         <div className="flex flex-col min-h-[calc(100vh-3rem)] mt-12 sm:mt-16m z-20">
-          <div className="flex-1 p-2 sm:p-6 overflow-auto">
+          <div className="flex-1 p-2 sm:p-6 mb-10 overflow-auto">
             {children}
-          </div>
-          
-          {/* Footer ajustado */}
-          <footer className="fixed bottom-0 left-0 w-full bg-green-700 text-white p-2 text-center text-sm z-40">
-            <div className="flex flex-col items-center justify-center text-md">
-              <div className="flex items-center gap-1">
-                Centro de Gestión y Desarrollo Sostenible Surcolombiano <Copyright size={12} />
+            <footer className="fixed mt-32 bottom-0 left-0 w-full bg-green-700 text-white p-2 text-center text-sm z-40">
+              <div className="flex flex-col items-center justify-center text-md">
+                <div className="flex items-center gap-1">
+                  Centro de Gestión y Desarrollo Sostenible Surcolombiano <Copyright size={12} />
+                </div>
+                <div>Regional Pitalito-Huila</div>
               </div>
-              <div>Regional Pitalito-Huila</div>
-            </div>
-          </footer>
+            </footer>
+          </div>
         </div>
-
       </div>
     </div>
   );
