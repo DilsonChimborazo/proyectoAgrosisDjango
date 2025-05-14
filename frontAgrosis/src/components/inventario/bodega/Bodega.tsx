@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Pencil, Hammer, TestTube2, List, MoveRight, Plus, PackagePlus, Search } from 'lucide-react';
+import { Pencil, Hammer, TestTube2, List, MoveRight, Plus, PackagePlus, Search, Package } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { useDebounce } from 'use-debounce';
@@ -264,7 +264,7 @@ const ListarBodega = () => {
         } else if (tipoSeleccionado === "Insumo" && movimiento.fk_id_insumo) {
             setModalContenido(
                 <ActualizarInsumos 
-                    id={String(movimiento.fk_id_insumo.id)} // Pasar el id del insumo
+                    id={String(movimiento.fk_id_insumo.id)}
                     onSuccess={() => {
                         refetchInsumos();
                         refetchMovimientos();
@@ -349,13 +349,7 @@ const ListarBodega = () => {
             : item.fk_id_insumo !== null
     );
 
-    
-    // Depuración: Verificar los datos originales y filtrados
-    console.log("Datos originales de movimientos:", movimientos);
-    console.log("Movimientos filtrados:", filteredMovimientos);
-    
     const mappedMovimientos = filteredMovimientos?.map(item => {
-        // Función para formatear fechas sin problemas de zona horaria
         function formatDateWithoutTimezone(dateInput: string | Date): string {
             const date = new Date(dateInput);
             const day = String(date.getDate()).padStart(2, '0');
@@ -364,29 +358,24 @@ const ListarBodega = () => {
             return `${day}/${month}/${year}`;
         }
 
-        // Extraer nombre según el tipo seleccionado
         const nombreHerramienta = item.fk_id_herramientas?.nombre_h || "N/A";
         const nombreInsumo = item.fk_id_insumo?.nombre || "N/A";
         const nombre = tipoSeleccionado === "Herramienta" ? nombreHerramienta : nombreInsumo;
 
-        // Estilos para movimiento (Entrada/Salida)
         const movimiento = item.movimiento;
         const colorMovimiento = movimiento === "Entrada" 
             ? "text-green-700 font-bold" 
             : "text-red-700 font-bold";
 
-        // Obtener la cantidad correcta (herramienta o insumo)
         const cantidad = tipoSeleccionado === "Herramienta" 
             ? item.cantidad_herramienta ?? 0
             : item.cantidad_insumo ?? 0;
 
-        // Estilos para cantidad según disponibilidad
         let bgCantidad = "bg-gray-300 text-black font-bold rounded px-2";
         if (cantidad < 5) bgCantidad = "bg-red-300 text-red-900 font-bold rounded px-2";
         else if (cantidad < 10) bgCantidad = "bg-yellow-300 text-yellow-900 font-bold rounded px-2";
         else bgCantidad = "bg-green-300 text-green-900 font-bold rounded px-2";
 
-        // Calcular cantidad en base (para insumos)
         let cantidadBase = "No Aplica";
         if (tipoSeleccionado === "Insumo" && item.fk_id_insumo) {
             if (item.fk_id_insumo.cantidad_en_base) {
@@ -401,7 +390,6 @@ const ListarBodega = () => {
             }
         }
 
-        // Obtener unidad de medida
         const unidadMedida = tipoSeleccionado === "Insumo" && item.fk_id_insumo
             ? item.fk_id_insumo.fk_unidad_medida?.nombre_medida || "No Aplica" 
             : "No Aplica";
@@ -423,9 +411,8 @@ const ListarBodega = () => {
             rawData: item
         };
     }) || [];
-    const itemsFiltrados = filtrarItems(tipoSeleccionado === 'Herramienta' ? herramientas || [] : insumos || []);
 
-    // Filtrar insumos compuestos según el término de búsqueda
+    const itemsFiltrados = filtrarItems(tipoSeleccionado === 'Herramienta' ? herramientas || [] : insumos || []);
     const insumosCompuestosFiltrados = insumosCompuestos?.filter(ic => 
         ic.nombre.toLowerCase().includes(terminoDebounced.toLowerCase())
     ) || [];
@@ -515,13 +502,12 @@ const ListarBodega = () => {
                         </button>
                     </div>
 
-                    
                     {tipoSeleccionado === 'Insumo' && viewMode === 'items' && (
                         <div className="relative">
                             <select
                                 value={filtroInsumo}
                                 onChange={(e) => setFiltroInsumo(e.target.value as 'todos' | 'normales' | 'compuestos')}
-                                className="appearance-none bg-white  rounded-lg pl-4 pr-8 py-2 focus:outline-none focus:ring-2"
+                                className="appearance-none bg-white rounded-lg pl-4 pr-8 py-2 focus:outline-none focus:ring-2"
                             >
                                 <option value="todos">Todos los insumos</option>
                                 <option value="normales">Insumos normales</option>
@@ -560,7 +546,6 @@ const ListarBodega = () => {
 
             {viewMode === 'items' ? (
                 <div className="space-y-8">
-                    {/* Sección de Herramientas/Insumos normales */}
                     {(tipoSeleccionado === 'Herramienta' || filtroInsumo !== 'compuestos') && (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                             {itemsFiltrados.length > 0 ? (
@@ -593,13 +578,20 @@ const ListarBodega = () => {
                                             onClick={() => handleItemClick(item)}
                                         >
                                             <div className="flex flex-col h-full">
-                                                {esInsumo && item.img && (
-                                                    <SafeImage 
-                                                        src={item.img}
-                                                        alt={`Imagen de ${item.nombre}`}
-                                                        className="w-full h-32 object-contain rounded-t-lg mb-3"
-                                                    />
-                                                )}
+                                                {/* Contenedor de imagen/icono consistente */}
+                                                <div className="w-full h-32 flex items-center justify-center mb-3 bg-gray-100 rounded-lg">
+                                                    {esInsumo && item.img ? (
+                                                        <SafeImage 
+                                                            src={item.img}
+                                                            alt={`Imagen de ${item.nombre}`}
+                                                            className="w-full h-full object-contain rounded-t-lg"
+                                                        />
+                                                    ) : esHerramienta ? (
+                                                        <Hammer size={48} className="text-blue-600" />
+                                                    ) : (
+                                                        <TestTube2 size={48} className="text-purple-600" />
+                                                    )}
+                                                </div>
 
                                                 <h3 className="font-semibold text-lg mb-2 line-clamp-2">
                                                     {esHerramienta ? item.nombre_h : item.nombre}
@@ -633,7 +625,6 @@ const ListarBodega = () => {
                                                             if (movimientoRelacionado) {
                                                                 handleRowClick(movimientoRelacionado);
                                                             } else if (esInsumo) {
-                                                                // Abrir ActualizarInsumos directamente con el id del insumo
                                                                 setModalContenido(
                                                                     <ActualizarInsumos 
                                                                         id={String(item.id)} 
@@ -666,7 +657,6 @@ const ListarBodega = () => {
                         </div>
                     )}
 
-                    {/* Sección para Insumos Compuestos */}
                     {tipoSeleccionado === 'Insumo' && (filtroInsumo === 'todos' || filtroInsumo === 'compuestos') && insumosCompuestosFiltrados.length > 0 && (
                         <div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
@@ -689,6 +679,11 @@ const ListarBodega = () => {
                                             onClick={() => handleItemClick(insumoCompuesto)}
                                         >
                                             <div className="flex flex-col h-full">
+                                                {/* Icono para insumos compuestos */}
+                                                <div className="w-full h-32 flex items-center justify-center mb-3 bg-gray-100 rounded-lg">
+                                                    <Package size={48} className="text-orange-600" />
+                                                </div>
+
                                                 <h3 className="font-semibold text-lg mb-2 line-clamp-2">
                                                     {insumoCompuesto.nombre}
                                                 </h3>
@@ -698,19 +693,6 @@ const ListarBodega = () => {
                                                     <div className={cantidadClass}>
                                                         {cantidad} unidades
                                                     </div>
-                                                </div>
-
-                                                <div className="flex justify-end mt-3">
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            // Lógica para editar insumos compuestos si está implementada
-                                                        }}
-                                                        className="p-1 rounded-full hover:bg-gray-200"
-                                                        title="Editar"
-                                                    >
-                                                        <Pencil size={16} className="text-white bg-green-600 rounded-full p-1.5 w-7 h-7" />
-                                                    </button>
                                                 </div>
                                             </div>
                                         </div>

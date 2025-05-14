@@ -11,7 +11,6 @@ interface ActualizarInsumosProps {
 
 const ActualizarInsumos = ({ id, onSuccess }: ActualizarInsumosProps) => {
     const navigate = useNavigate();
-
     const { data: insumo, isLoading, error } = useInsumoPorId(id);
     const actualizarInsumo = useActualizarInsumos();
 
@@ -19,7 +18,7 @@ const ActualizarInsumos = ({ id, onSuccess }: ActualizarInsumosProps) => {
         nombre: "",
         tipo: "",
         precio_unidad: "",
-        cantidad_insumo: "",
+        cantidad_a_sumar: "0",
         fecha_vencimiento: "",
     });
 
@@ -29,35 +28,34 @@ const ActualizarInsumos = ({ id, onSuccess }: ActualizarInsumosProps) => {
                 nombre: insumo.nombre || "",
                 tipo: insumo.tipo || "",
                 precio_unidad: insumo.precio_unidad?.toString() || "",
-                cantidad_insumo: insumo.cantidad_insumo?.toString() || "",
+                cantidad_a_sumar: "0",
                 fecha_vencimiento: insumo.fecha_vencimiento || "",
             });
         }
     }, [insumo]);
 
     const handleSubmit = (data: { [key: string]: string | File }) => {
-        if (!id) return;
+        if (!id || !insumo) return;
+
+        const cantidadASumar = parseFloat(data.cantidad_a_sumar as string) || 0;
+        const nuevaCantidad = insumo.cantidad_insumo + cantidadASumar;
 
         const insumoActualizado = {
             id: Number(id),
             nombre: (data.nombre as string).trim(),
             tipo: (data.tipo as string).trim(),
             precio_unidad: parseFloat(data.precio_unidad as string),
-            cantidad_insumo:
-                (insumo?.cantidad_insumo || 0) + parseFloat(data.cantidad_insumo as string),
-            fk_unidad_medida: insumo?.fk_unidad_medida,
+            cantidad_insumo: nuevaCantidad,  // Enviamos la cantidad total
+            cantidad_a_sumar: cantidadASumar, // Enviamos la cantidad a sumar para el hook
+            fk_unidad_medida: insumo.fk_unidad_medida,
             fecha_vencimiento: data.fecha_vencimiento as string,
             img: data.img instanceof File ? data.img : null,
         };
-        console.log('insumo actualizado', insumoActualizado);
 
         actualizarInsumo.mutate(insumoActualizado, {
             onSuccess: () => {
-                if (onSuccess) {
-                    onSuccess();
-                } else {
-                    navigate("/insumos");
-                }
+                if (onSuccess) onSuccess();
+                else navigate("/insumos");
             },
         });
     };
@@ -80,7 +78,11 @@ const ActualizarInsumos = ({ id, onSuccess }: ActualizarInsumosProps) => {
                     { id: "nombre", label: "Nombre", type: "text" },
                     { id: "tipo", label: "Tipo", type: "text" },
                     { id: "precio_unidad", label: "Precio por unidad", type: "number" },
-                    { id: "cantidad_insumo", label: "cantidad_insumo", type: "number" },
+                    { 
+                        id: "cantidad_a_sumar", 
+                        label: "Cantidad a sumar", 
+                        type: "number",
+                    },
                     { id: "fecha_vencimiento", label: "Fecha de Vencimiento", type: "date" },
                 ]}
                 onSubmit={handleSubmit}
