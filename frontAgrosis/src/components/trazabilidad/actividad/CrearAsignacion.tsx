@@ -26,7 +26,7 @@ const CrearAsignacion = ({
   const { mutate: createAsignacion, isPending, error: mutationError } = useCrearAsignacion();
   const [formData, setFormData] = useState({
     fk_id_realiza: '',
-    fk_identificacion: [] as number[],
+    fk_identificacion: '', // Cambiado a string para un solo usuario
     estado: 'Pendiente',
     fecha_programada: '',
     observaciones: '',
@@ -37,35 +37,13 @@ const CrearAsignacion = ({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    if (name === 'fk_identificacion') {
-      const selectedOptions = Array.from((e.target as HTMLSelectElement).selectedOptions).map((option) =>
-        Number(option.value)
-      );
-      console.log('Usuarios seleccionados:', selectedOptions); // Depuración
-      setFormData((prev) => ({ ...prev, fk_identificacion: selectedOptions }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
+    setFormData((prev) => ({ ...prev, [name]: value }));
     setError(null);
   };
-
-  // Alternativa con checkboxes (descomentar si prefieres)
-  /*
-  const handleCheckboxChange = (userId: number) => {
-    setFormData((prev) => {
-      const newSelection = prev.fk_identificacion.includes(userId)
-        ? prev.fk_identificacion.filter((id) => id !== userId)
-        : [...prev.fk_identificacion, userId];
-      console.log('Usuarios seleccionados (checkbox):', newSelection); // Depuración
-      return { ...prev, fk_identificacion: newSelection };
-    });
-    setError(null);
-  };
-  */
 
   const validateForm = () => {
     if (!formData.fk_id_realiza) return 'Debe seleccionar un realiza';
-    if (formData.fk_identificacion.length === 0) return 'Debe seleccionar al menos un usuario';
+    if (!formData.fk_identificacion) return 'Debe seleccionar un usuario';
     if (!formData.fecha_programada) return 'Debe ingresar una fecha programada';
     return null;
   };
@@ -80,29 +58,25 @@ const CrearAsignacion = ({
       return;
     }
 
-    console.log('Enviando asignaciones con datos:', formData); // Depuración
+    console.log('Enviando asignación con datos:', formData); // Depuración
     try {
-      const promises = formData.fk_identificacion.map((usuarioId) =>
-        createAsignacion(
-          {
-            fk_id_realiza: Number(formData.fk_id_realiza),
-            fk_identificacion: usuarioId,
-            estado: formData.estado as 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada',
-            fecha_programada: formData.fecha_programada,
-            observaciones: formData.observaciones || '',
+      await createAsignacion(
+        {
+          fk_id_realiza: Number(formData.fk_id_realiza),
+          fk_identificacion: Number(formData.fk_identificacion),
+          estado: formData.estado as 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada',
+          fecha_programada: formData.fecha_programada,
+          observaciones: formData.observaciones || '',
+        },
+        {
+          onError: (err) => {
+            throw new Error(`Error al crear asignación: ${err.message}`);
           },
-          {
-            onError: (err) => {
-              throw new Error(`Error al crear asignación para usuario ${usuarioId}: ${err.message}`);
-            },
-          }
-        )
+        }
       );
-
-      await Promise.all(promises);
       onSuccess();
     } catch (err: any) {
-      setError(err.message || 'Error inesperado al crear las asignaciones.');
+      setError(err.message || 'Error inesperado al crear la asignación.');
       console.error('Unexpected error:', err);
     }
   };
@@ -179,44 +153,24 @@ const CrearAsignacion = ({
         <div className="flex items-center space-x-2">
           <div className="flex-1">
             <label htmlFor="fk_identificacion" className="block text-sm font-medium text-gray-700">
-              Usuarios
+              Usuario
             </label>
             <select
               id="fk_identificacion"
               name="fk_identificacion"
-              multiple
-              value={formData.fk_identificacion.map(String)}
+              value={formData.fk_identificacion}
               onChange={handleChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 h-32"
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
               required
               disabled={isPending}
             >
+              <option value="">Selecciona un usuario</option>
               {usuarios.map((usuario) => (
                 <option key={usuario.id} value={usuario.id}>
-                  {`${usuario.nombre} ${usuario.apellido}`}
+                  {`${usuario.nombre} ${usuario.apellido} - Ficha: ${usuario.numero_ficha || 'Sin ficha'}`}
                 </option>
               ))}
             </select>
-            {/* Alternativa con checkboxes */}
-            {/*
-            <div className="mt-1 border border-gray-300 rounded-md shadow-sm p-2 max-h-32 overflow-y-auto">
-              {usuarios.map((usuario) => (
-                <div key={usuario.id} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id={`usuario-${usuario.id}`}
-                    checked={formData.fk_identificacion.includes(usuario.id)}
-                    onChange={() => handleCheckboxChange(usuario.id)}
-                    className="mr-2"
-                    disabled={isPending}
-                  />
-                  <label htmlFor={`usuario-${usuario.id}`}>
-                    {`${usuario.nombre} ${usuario.apellido}`}
-                  </label>
-                </div>
-              ))}
-            </div>
-            */}
           </div>
           <button
             type="button"
