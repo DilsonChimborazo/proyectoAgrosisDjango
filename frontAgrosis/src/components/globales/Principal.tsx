@@ -1,8 +1,9 @@
 import { ReactNode, useState, useEffect } from "react";
 import { Button, Input } from "@heroui/react";
-import { Menu, Search, Bell as Notification, ChevronDown, ChevronUp } from "lucide-react";
-import { Home, User, Calendar, Map, Leaf, DollarSign, Bug, LogOut, Clipboard, Cpu, Copyright } from "lucide-react";
+import { Menu, Search, ChevronDown, ChevronUp, LogOut, Copyright } from "lucide-react";
+import { Home, User, Calendar, Map, Leaf, DollarSign, Bug, Clipboard, Cpu } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import Notification from '@/components/trazabilidad/notificacion/Notificacion';
 
 interface LayoutProps {
   children: ReactNode;
@@ -29,8 +30,8 @@ const menuItems = [
       { name: "Cultivos", path: "/cultivo" }, 
       { name: "Especies", path: "/especies" },
       { name: "Residuos", path: "/residuos" },
-      { name: "Plantacion", path: "/plantacion"},
-      { name: "Semilleros", path: "/semilleros"},
+      { name: "Plantacion", path: "/plantacion" },
+      { name: "Semilleros", path: "/semilleros" },
     ],
   },
   {
@@ -63,15 +64,15 @@ const menuItems = [
     icon: <Cpu size={18} />,
     path: "/iot",
     submenu: [
-      {name: "Sensores", path: "/iot/sensores"}
+      { name: "Sensores", path: "/iot/sensores" },
     ],
   },
   { name: "Reportes", icon: <Cpu size={18} />, path: "/reportes" },
 ];
 
 export default function Principal({ children }: LayoutProps) {
-  const [usuario, setUsuario] = useState<{ nombre: string; apellido: string; img_url?: string; } | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(false); 
+  const [usuario, setUsuario] = useState<{ nombre: string; apellido: string; img_url?: string } | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [active, setActive] = useState<string>("");
   const [openMenus, setOpenMenus] = useState<{ [key: string]: boolean }>({});
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -84,8 +85,6 @@ export default function Principal({ children }: LayoutProps) {
     } else {
       setUsuario(null);
     }
-
-   
   }, []);
 
   const toggleMenu = (name: string) => {
@@ -96,7 +95,7 @@ export default function Principal({ children }: LayoutProps) {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     localStorage.removeItem("refreshToken");
-    alert("Sesión finalizada. Por favor, vuelve a iniciar sesión."); 
+    alert("Sesión finalizada. Por favor, vuelve a iniciar sesión.");
     navigate("/");
   };
 
@@ -110,18 +109,19 @@ export default function Principal({ children }: LayoutProps) {
   };
 
   return (
-    <div className="relative flex h-screen w-full  overflow-x-hidden">
-    {/* Imagen de fondo con opacidad */}
-    <div className="absolute inset-0">
-      <img src="/fondo.jpg" alt="Fondo" className="w-full h-full object-cover" />
-      <div className="absolute inset-0 bg-black opacity-50"></div>
-    </div>
+    <div className="relative flex h-screen w-full overflow-x-hidden">
+      {/* Imagen de fondo con opacidad */}
+      <div className="absolute inset-0">
+        <img src="/fondo.jpg" alt="Fondo" className="w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-black opacity-50"></div>
+      </div>
       {/* Sidebar */}
       <div
         className={`bg-white p-2 overflow-auto sm:p-4 flex flex-col w-48 sm:w-64 h-full fixed top-0 left-0 z-50 border-t-4 border-r-4 rounded-tr-3xl transition-all duration-300 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-48 sm:-translate-x-64"
         }`}
       >
+
         {/*logos del proyecto*/ }
         <div className="flex items-center justify-center p-4 bg-white rounded-lg ">
           <img 
@@ -135,7 +135,6 @@ export default function Principal({ children }: LayoutProps) {
             className="w-32  shadow-sm"
           />
         </div>
-
 
         <nav className="mt-4 text-center text-base sm:text-lg flex-1 overflow-y-auto z-30">
           {menuItems.map((item) => (
@@ -196,7 +195,7 @@ export default function Principal({ children }: LayoutProps) {
             </Button>
             <form onSubmit={handleSearchSubmit}>
               <Input
-                className="w-48 sm:w-64 ml-2 "
+                className="w-48 sm:w-64 ml-2"
                 endContent={<Search size={20} className="ml-2 text-green-700" />}
                 placeholder="Buscar..."
                 value={searchQuery}
@@ -205,10 +204,7 @@ export default function Principal({ children }: LayoutProps) {
             </form>
           </div>
           <div className="flex items-center space-x-2 sm:space-x-4">
-            
-            <div><Notification size={20} className="text-white" 
-            onClick={() => navigate("/usuarios")}/></div>
-            
+            <Notification />
             <p className="hidden sm:block"> | </p>
             <img
               src={usuario?.img_url || 'http://localhost:8000/media/imagenes/defecto.png'}
@@ -226,16 +222,17 @@ export default function Principal({ children }: LayoutProps) {
               className="text-white cursor-pointer hover:text-yellow-100 text-sm sm:text-base"
               onClick={() => navigate("/perfil")}
             >
-              {usuario ? `${usuario?.nombre || "Nombre no disponible"} ${usuario?.apellido || "Apellido no disponible"}` : "Usuario no identificado"}
+              {usuario
+                ? `${usuario?.nombre || "Nombre no disponible"} ${usuario?.apellido || "Apellido no disponible"}`
+                : "Usuario no identificado"}
             </span>
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-2  hover:text-yellow-100 text-white"
+              className="flex items-center gap-2 px-4 py-2 hover:text-yellow-100 text-white"
             >
               <LogOut size={18} />
             </button>
           </div>
-
         </div>
         <div className="flex flex-col min-h-[calc(100vh-3rem)] mt-12 sm:mt-16m z-20">
           <div className="flex-1 p-2 sm:p-6 mb-10 overflow-auto">

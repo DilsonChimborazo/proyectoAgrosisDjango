@@ -1,15 +1,8 @@
-from rest_framework.serializers import ModelSerializer
-from apps.trazabilidad.notificacion.models import Notificacion
-from apps.trazabilidad.programacion.api.serializers import LeerProgramacionSerializer
+from rest_framework import serializers
+from ..models import Notificacion
 
-class LeerNotificacionSerializer(ModelSerializer):
-    fk_id_programacion = LeerProgramacionSerializer()
-
+class NotificacionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notificacion
-        fields = '__all__'
-
-class EscribirNotificacionSerializer(ModelSerializer):
-    class Meta:
-        model = Notificacion
-        fields = '__all__'
+        fields = ['id', 'usuario', 'titulo', 'mensaje', 'fecha_notificacion', 'leida']
+        read_only_fields = ['fecha_notificacion', 'usuario']
