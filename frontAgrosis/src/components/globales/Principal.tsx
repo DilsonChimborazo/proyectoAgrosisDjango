@@ -4,6 +4,8 @@ import { Menu, Search, ChevronDown, ChevronUp, LogOut, Copyright } from "lucide-
 import { Home, User, Calendar, Map, Leaf, DollarSign, Bug, Clipboard, Cpu } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import Notification from '@/components/trazabilidad/notificacion/Notificacion';
+import { useAuth } from "@/context/AuthContext";
+
 
 interface LayoutProps {
   children: ReactNode;
@@ -71,21 +73,36 @@ const menuItems = [
 ];
 
 export default function Principal({ children }: LayoutProps) {
-  const [usuario, setUsuario] = useState<{ nombre: string; apellido: string; img_url?: string } | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { usuario, setUsuario } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(false); 
   const [active, setActive] = useState<string>("");
   const [openMenus, setOpenMenus] = useState<{ [key: string]: boolean }>({});
   const [searchQuery, setSearchQuery] = useState<string>("");
   const navigate = useNavigate();
 
   useEffect(() => {
-    const usuarioGuardado = localStorage.getItem("user");
+  const handleStorageChange = () => {
+    const usuarioGuardado = localStorage.getItem('user');
     if (usuarioGuardado) {
       setUsuario(JSON.parse(usuarioGuardado));
     } else {
       setUsuario(null);
     }
-  }, []);
+
+  };
+
+  // Escuchar cambios en localStorage
+  window.addEventListener('storage', handleStorageChange);
+
+  // Llamar a la función al montar el componente
+  handleStorageChange();
+
+  return () => {
+    // Limpiar el listener cuando el componente se desmonte
+    window.removeEventListener('storage', handleStorageChange);
+  };
+}, []);
+
 
   const toggleMenu = (name: string) => {
     setOpenMenus((prev) => ({ ...prev, [name]: !prev[name] }));

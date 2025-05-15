@@ -3,6 +3,7 @@ from rest_framework.serializers import ModelSerializer
 from apps.usuarios.usuario.models import Usuarios
 from apps.usuarios.rol.api.serializer import RolSerializer
 from apps.usuarios.ficha.api.serializer import FichaSerializer
+from apps.usuarios.ficha.models import Ficha    
 
 class LeerUsuarioSerializer(serializers.ModelSerializer):
     fk_id_rol = RolSerializer()
@@ -23,6 +24,12 @@ class LeerUsuarioSerializer(serializers.ModelSerializer):
 class EscribirUsuarioSerializer(ModelSerializer):
     img = serializers.ImageField(max_length=None, use_url=True, allow_null=True, required=False)
 
+    ficha = serializers.PrimaryKeyRelatedField(
+        queryset=Ficha.objects.all(),
+        required=False,
+        allow_null=True
+    )
+
     class Meta:
         model = Usuarios
         fields = '__all__'
@@ -33,9 +40,25 @@ class EscribirUsuarioSerializer(ModelSerializer):
         }
 
     def create(self, validated_data):
+        groups_data = validated_data.pop('groups', None)
+        user_permissions_data = validated_data.pop('user_permissions', None)
+
+        password = validated_data.pop('password', None)
+
         usuario = Usuarios(**validated_data)
-        usuario.set_password(validated_data['password'])
+
+        if password:
+            usuario.set_password(password)
+
+        usuario.is_active = True  # 👈 Activar el usuario
+
         usuario.save()
+
+        if groups_data is not None:
+            usuario.groups.set(groups_data)
+        if user_permissions_data is not None:
+            usuario.user_permissions.set(user_permissions_data)
+
         return usuario
 
     def update(self, instance, validated_data):
