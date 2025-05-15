@@ -6,6 +6,7 @@ const apiUrl = import.meta.env.VITE_API_URL;
 export interface Herramientas {
     id: number
     nombre_h: string
+    cantidad_en_base: string | null; 
     cantidad_herramienta: number
     estado: 'Disponible' | 'Prestado' | 'En reparacion'
 }

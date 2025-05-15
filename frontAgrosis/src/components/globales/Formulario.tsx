@@ -11,6 +11,7 @@ interface FormField {
   id: string;
   label: string;
   type: string;
+  disabled?: boolean;
   options?: Option[];
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;

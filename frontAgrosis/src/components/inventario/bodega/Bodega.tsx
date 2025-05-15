@@ -371,10 +371,9 @@ const ListarBodega = () => {
             ? item.cantidad_herramienta ?? 0
             : item.cantidad_insumo ?? 0;
 
-        let bgCantidad = "bg-gray-300 text-black font-bold rounded px-2";
-        if (cantidad < 5) bgCantidad = "bg-red-300 text-red-900 font-bold rounded px-2";
-        else if (cantidad < 10) bgCantidad = "bg-yellow-300 text-yellow-900 font-bold rounded px-2";
-        else bgCantidad = "bg-green-300 text-green-900 font-bold rounded px-2";
+        const bgCantidad = movimiento === "Entrada" 
+            ? "bg-green-500 text-white text-semibold font-bold rounded px-2"
+            : "bg-red-500 text-white text-semibold font-bold rounded px-2";
 
         let cantidadBase = "No Aplica";
         if (tipoSeleccionado === "Insumo" && item.fk_id_insumo) {

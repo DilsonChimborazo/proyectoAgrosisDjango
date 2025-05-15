@@ -44,15 +44,18 @@ class Bodega(models.Model):
 
     def save(self, *args, **kwargs):
         # Calcular la cantidad en base si hay unidad de medida
-        cantidad = self.cantidad
-        if self.fk_unidad_medida and cantidad:
-            self.cantidad_en_base = self.fk_unidad_medida.convertir_a_base(cantidad)
+        if self.fk_id_insumo and self.cantidad_insumo and self.fk_unidad_medida:
+            self.cantidad_en_base = self.fk_unidad_medida.convertir_a_base(self.cantidad_insumo)
+        else:
+            self.cantidad_en_base = None
 
         # Calcular el costo total del insumo
-        if self.fk_id_insumo and self.cantidad_insumo:
-            precio = self.fk_id_insumo.precio_unidad
+        if self.fk_id_insumo and self.cantidad_en_base:
+            precio = self.fk_id_insumo.precio_por_base or self.fk_id_insumo.precio_unidad
             if precio:
-                self.costo_insumo = Decimal(self.cantidad_insumo) * precio
+                self.costo_insumo = self.cantidad_en_base * Decimal(str(precio))
+            else:
+                self.costo_insumo = None
 
         # Manejo de movimientos de herramientas
         if self.fk_id_herramientas and self.cantidad_herramienta:
@@ -64,23 +67,43 @@ class Bodega(models.Model):
                 else:
                     raise ValueError("La cantidad a retirar excede la cantidad disponible en herramientas")
             elif self.movimiento == 'Entrada':
-                herramienta.cantidad_herramienta = self.cantidad_herramienta
+                herramienta.cantidad_herramienta += self.cantidad_herramienta
                 herramienta.save()
 
         # Manejo de movimientos de insumos
         if self.fk_id_insumo and self.cantidad_insumo:
             insumo = self.fk_id_insumo
             if self.movimiento == 'Salida':
-                if insumo.cantidad_insumo >= self.cantidad_insumo:
-                    insumo.cantidad_insumo -= self.cantidad_insumo
+                # Convertir cantidad_insumo a cantidad_en_base
+                cantidad_en_base = self.fk_unidad_medida.convertir_a_base(self.cantidad_insumo) if self.fk_unidad_medida else Decimal(self.cantidad_insumo)
+                if insumo.cantidad_en_base is None:
+                    insumo.cantidad_en_base = Decimal('0')
+                if insumo.cantidad_en_base >= cantidad_en_base:
+                    insumo.cantidad_en_base -= cantidad_en_base
+                    # Recalcular cantidad_insumo si hay unidad de medida
+                    if insumo.fk_unidad_medida and insumo.fk_unidad_medida.factor_conversion:
+                        insumo.cantidad_insumo = int(insumo.cantidad_en_base / insumo.fk_unidad_medida.factor_conversion)
+                    else:
+                        insumo.cantidad_insumo -= self.cantidad_insumo
                     insumo.save()
                 else:
-                    raise ValueError("La cantidad a retirar excede la cantidad disponible en insumos")
+                    raise ValueError(f"La cantidad a retirar ({cantidad_en_base} {self.fk_unidad_medida.unidad_base if self.fk_unidad_medida else 'unidades'}) excede la cantidad disponible ({insumo.cantidad_en_base} {insumo.fk_unidad_medida.unidad_base if insumo.fk_unidad_medida else 'unidades'})")
+            elif self.movimiento == 'Entrada':
+                # Para entradas, sumar a cantidad_en_base
+                cantidad_en_base = self.fk_unidad_medida.convertir_a_base(self.cantidad_insumo) if self.fk_unidad_medida else Decimal(self.cantidad_insumo)
+                if insumo.cantidad_en_base is None:
+                    insumo.cantidad_en_base = Decimal('0')
+                insumo.cantidad_en_base += cantidad_en_base
+                # Recalcular cantidad_insumo
+                if insumo.fk_unidad_medida and insumo.fk_unidad_medida.factor_conversion:
+                    insumo.cantidad_insumo = int(insumo.cantidad_en_base / insumo.fk_unidad_medida.factor_conversion)
+                else:
+                    insumo.cantidad_insumo += self.cantidad_insumo
+                insumo.save()
 
         super().save(*args, **kwargs)
 
-
     def __str__(self):
-        cantidad = self.cantidad
-        unidad = self.fk_unidad_medida.nombre if self.fk_unidad_medida else "sin unidad"
+        cantidad = self.cantidad_en_base or self.cantidad
+        unidad = self.fk_unidad_medida.unidad_base if self.fk_unidad_medida else "sin unidad"
         return f"{self.movimiento} - {cantidad} {unidad} - {self.fecha.strftime('%Y-%m-%d %H:%M')}"

@@ -18,6 +18,7 @@ interface Props {
 interface ItemSeleccionado {
   id: number;
   cantidad: number;
+  esInsumoSimple?: boolean; 
 }
 
 const RegistrarSalidaBodega = ({
@@ -31,7 +32,6 @@ const RegistrarSalidaBodega = ({
   const { mutate: crearMovimientoBodega } = useCrearBodega();
   const navigate = useNavigate();
 
-  // Depuración para verificar los insumos compuestos recibidos
   console.log("Insumos Compuestos:", insumosCompuestosIniciales);
 
   const [mensaje, setMensaje] = useState<{texto: string, tipo: 'exito' | 'error' | 'info'} | null>(null);
@@ -46,7 +46,7 @@ const RegistrarSalidaBodega = ({
   const [tabActual, setTabActual] = useState<"simples" | "compuestos">("simples");
 
   const agregarNuevoInsumo = (nuevo: Insumo) => {
-    setInsumosSeleccionados(prev => [...prev, { id: nuevo.id, cantidad: 1 }]);
+    setInsumosSeleccionados(prev => [...prev, { id: nuevo.id, cantidad: 1, esInsumoSimple: false }]);
     onClick?.(nuevo);
     setMostrarCrearCompuesto(false);
     setMensaje({texto: "Insumo compuesto agregado correctamente", tipo: 'exito'});
@@ -62,11 +62,11 @@ const RegistrarSalidaBodega = ({
     }
   };
 
-  const agregarInsumo = (insumo: Insumo) => {
+  const agregarInsumo = (insumo: Insumo, esSimple: boolean) => {
     if (!insumosSeleccionados.some(i => i.id === insumo.id)) {
       setInsumosSeleccionados(prev => [
         ...prev,
-        { id: insumo.id, cantidad: 1 }
+        { id: insumo.id, cantidad: 1, esInsumoSimple: esSimple }
       ]);
       setMensaje(null);
     }
@@ -125,7 +125,6 @@ const RegistrarSalidaBodega = ({
       return;
     }
 
-    // Validar cantidades no excedan el stock disponible
     const errores = [];
     
     for (const h of herramientasSeleccionadas) {
@@ -137,8 +136,13 @@ const RegistrarSalidaBodega = ({
 
     for (const i of insumosSeleccionados) {
       const insumo = [...insumos, ...insumosCompuestos].find(ins => ins.id === i.id);
-      if (insumo && i.cantidad > (insumo.cantidad_insumo || 0)) {
-        errores.push(`La cantidad de ${insumo.nombre} excede el stock disponible`);
+      if (insumo) {
+        const stockDisponible = i.esInsumoSimple && insumo.cantidad_en_base
+          ? parseFloat(insumo.cantidad_en_base)
+          : insumo.cantidad_insumo || 0;
+        if (i.cantidad > stockDisponible) {
+          errores.push(`La cantidad de ${insumo.nombre} excede el stock disponible`);
+        }
       }
     }
 
@@ -147,7 +151,6 @@ const RegistrarSalidaBodega = ({
       return;
     }
 
-    // Preparar datos para la API
     const payload = {
       fk_id_asignacion: formData.fk_id_asignacion ? parseInt(formData.fk_id_asignacion) : null,
       fecha: formData.fecha || new Date().toISOString().split('T')[0],
@@ -193,6 +196,17 @@ const RegistrarSalidaBodega = ({
           const originalItem = allItems.find(i => i.id === item.id);
           if (!originalItem) return null;
 
+          const esInsumoSimple = item.esInsumoSimple ?? false;
+          const stockDisponible = tipo === 'herramienta' 
+            ? ('cantidad_herramienta' in originalItem ? originalItem.cantidad_herramienta : 0)
+            : esInsumoSimple && originalItem.cantidad_en_base
+              ? parseFloat(originalItem.cantidad_en_base)
+              : originalItem.cantidad_insumo || 0;
+
+          const unidadMedida = tipo === 'insumo' && 'fk_unidad_medida' in originalItem 
+            ? originalItem.fk_unidad_medida?.unidad_base || 'unidades'
+            : 'unidades';
+
           return (
             <div key={item.id} className="flex items-center gap-4 p-2 border rounded">
               <div className="flex-1">
@@ -200,24 +214,22 @@ const RegistrarSalidaBodega = ({
                   'nombre_h' in originalItem ? originalItem.nombre_h : originalItem.nombre
                 }</span>
                 <span className="text-gray-600 ml-2">
-                  (Disponibles: {'cantidad_herramienta' in originalItem ? 
-                    originalItem.cantidad_herramienta : 
-                    originalItem.cantidad_insumo})
+                  (Disponibles: {tipo === 'herramienta' 
+                    ? stockDisponible 
+                    : esInsumoSimple && originalItem.cantidad_en_base
+                      ? `${Math.round(parseFloat(originalItem.cantidad_en_base))} ${unidadMedida}`
+                      : `${stockDisponible} ${unidadMedida}`})
                 </span>
               </div>
               <input
                 type="number"
                 min="1"
-                max={'cantidad_herramienta' in originalItem ? 
-                  originalItem.cantidad_herramienta : 
-                  originalItem.cantidad_insumo}
+                max={stockDisponible}
                 value={item.cantidad}
                 onChange={(e) => onUpdateCantidad(
                   item.id, 
                   parseInt(e.target.value) || 1,
-                  'cantidad_herramienta' in originalItem ? 
-                    originalItem.cantidad_herramienta : 
-                    originalItem.cantidad_insumo
+                  stockDisponible
                 )}
                 className="w-20 p-1 border rounded"
               />
@@ -383,10 +395,14 @@ const RegistrarSalidaBodega = ({
                     ? "bg-green-100 border-green-300" 
                     : "hover:bg-green-50"
                 }`}
-                onClick={() => agregarInsumo(i)}
+                onClick={() => agregarInsumo(i, tabActual === "simples")}
               >
                 <h4 className="font-semibold text-lg">{i.nombre}</h4>
-                <p className="text-gray-600">Disponibles: {i.cantidad_insumo}</p>
+                <p className="text-gray-600">
+                  Disponibles: {tabActual === "simples" && i.cantidad_en_base 
+                    ? `${Math.round(parseFloat(i.cantidad_en_base))} ${i.fk_unidad_medida?.unidad_base || 'unidades'}`
+                    : `${i.cantidad_insumo || 0} ${i.fk_unidad_medida?.unidad_base || 'unidades'}`}
+                </p>
                 {'tipo' in i && <p className="text-sm mt-1">Tipo: {i.tipo}</p>}
                 {insumosSeleccionados.some(sel => sel.id === i.id) && (
                   <div className="mt-2 text-green-600 font-medium">✓ Seleccionado</div>

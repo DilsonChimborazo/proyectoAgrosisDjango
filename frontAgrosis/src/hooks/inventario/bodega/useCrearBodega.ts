@@ -20,6 +20,8 @@ interface MovimientoBodegaPayload {
 export interface Herramientas {
     id: number;
     nombre_h: string;
+    cantidad_en_base?: string | null; 
+    cantidad_insumo?: number | null;
     cantidad_herramienta: number;
     estado: 'Disponible' | 'Prestado' | 'En reparacion';
 }
@@ -36,6 +38,7 @@ export interface Insumo {
     tipo: string;
     precio_unidad: number;
     cantidad_insumo: number;
+    cantidad_en_base: string | null; 
     fecha_vencimiento: string;
     img: string | null | undefined;
     fk_unidad_medida: UnidadMedida;

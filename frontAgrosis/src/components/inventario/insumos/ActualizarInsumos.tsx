@@ -22,6 +22,8 @@ const ActualizarInsumos = ({ id, onSuccess }: ActualizarInsumosProps) => {
         fecha_vencimiento: "",
     });
 
+    const [unidadMedida, setUnidadMedida] = useState("");
+
     useEffect(() => {
         if (insumo) {
             setFormData({
@@ -31,6 +33,8 @@ const ActualizarInsumos = ({ id, onSuccess }: ActualizarInsumosProps) => {
                 cantidad_a_sumar: "0",
                 fecha_vencimiento: insumo.fecha_vencimiento || "",
             });
+
+            setUnidadMedida(insumo.fk_unidad_medida?.nombre_medida || "");
         }
     }, [insumo]);
 
@@ -45,8 +49,8 @@ const ActualizarInsumos = ({ id, onSuccess }: ActualizarInsumosProps) => {
             nombre: (data.nombre as string).trim(),
             tipo: (data.tipo as string).trim(),
             precio_unidad: parseFloat(data.precio_unidad as string),
-            cantidad_insumo: nuevaCantidad,  // Enviamos la cantidad total
-            cantidad_a_sumar: cantidadASumar, // Enviamos la cantidad a sumar para el hook
+            cantidad_insumo: nuevaCantidad,
+            cantidad_a_sumar: cantidadASumar,
             fk_unidad_medida: insumo.fk_unidad_medida,
             fecha_vencimiento: data.fecha_vencimiento as string,
             img: data.img instanceof File ? data.img : null,
@@ -72,17 +76,21 @@ const ActualizarInsumos = ({ id, onSuccess }: ActualizarInsumosProps) => {
 
     return (
         <div className="p-6">
+            <h2 className="text-xl font-semibold mb-2 text-gray-700">Actualizar Insumo</h2>
+            
+            {unidadMedida && (
+                <div className="ms-6 text-sm text-gray-600">
+                    Debe ingresar la cantidad en la unidad de medida principal <span className="font-bold text-large text-red-600">{unidadMedida}</span>
+                </div>
+            )}
+
             <Formulario
-                title="Actualizar Insumo"
+                title=""
                 fields={[
                     { id: "nombre", label: "Nombre", type: "text" },
                     { id: "tipo", label: "Tipo", type: "text" },
                     { id: "precio_unidad", label: "Precio por unidad", type: "number" },
-                    { 
-                        id: "cantidad_a_sumar", 
-                        label: "Cantidad a sumar", 
-                        type: "number",
-                    },
+                    { id: "cantidad_a_sumar", label: "Cantidad a sumar", type: "number" },
                     { id: "fecha_vencimiento", label: "Fecha de Vencimiento", type: "date" },
                 ]}
                 onSubmit={handleSubmit}
