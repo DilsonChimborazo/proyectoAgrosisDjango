@@ -37,6 +37,22 @@ class Bodega(models.Model):
         help_text="Costo total del insumo en base a la cantidad base y precio por base"
     )
 
+    def calcular_costo_salida_insumo(self):
+        """
+        Calcula el costo total de un movimiento de salida de insumo.
+        La cantidad ya está en unidad base. Se calcula el precio por unidad base
+        dividiendo el precio_unidad por la cantidad_base del insumo.
+        """
+        if self.fk_id_insumo and self.movimiento == 'Salida':
+            precio_unidad = self.fk_id_insumo.precio_unidad
+            cantidad_base = self.fk_id_insumo.cantidad_en_base
+
+            if precio_unidad and cantidad_base:
+                precio_base = Decimal(precio_unidad) / Decimal(cantidad_base)
+                return Decimal(self.cantidad_insumo) * precio_base
+
+        return Decimal('0.0')
+
     @property
     def cantidad(self):
         """Propiedad para compatibilidad con código existente que usa 'cantidad'"""
@@ -48,6 +64,10 @@ class Bodega(models.Model):
             self.cantidad_en_base = self.fk_unidad_medida.convertir_a_base(self.cantidad_insumo)
         else:
             self.cantidad_en_base = None
+
+        if self.fk_id_insumo and self.movimiento == 'Salida':
+            self.costo_insumo = self.calcular_costo_salida_insumo()
+
 
         # Calcular el costo total del insumo
         if self.fk_id_insumo and self.cantidad_en_base:
@@ -102,6 +122,8 @@ class Bodega(models.Model):
                 insumo.save()
 
         super().save(*args, **kwargs)
+
+
 
     def __str__(self):
         cantidad = self.cantidad_en_base or self.cantidad

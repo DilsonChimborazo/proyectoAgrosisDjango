@@ -3,6 +3,7 @@ from apps.inventario.bodega.models import Bodega
 from apps.inventario.herramientas.api.serializers import HerramientasSerializer
 from apps.inventario.insumo.api.serializers import InsumoSerializer
 from apps.trazabilidad.asignacion_actividades.api.serializers import LeerAsignacion_actividadesSerializer
+from apps.inventario.unidadMedida.models import UnidadMedida
 from django.db import transaction
 
 class MovimientoHerramientaSerializer(serializers.Serializer):
@@ -22,13 +23,15 @@ class LeerBodegaSerializer(serializers.ModelSerializer):
         model = Bodega
         fields = '__all__'
 
+
 class EscribirBodegaSerializer(serializers.ModelSerializer):
     herramientas = MovimientoHerramientaSerializer(many=True, required=False)
     insumos = MovimientoInsumoSerializer(many=True, required=False)
-    
+    fk_unidad_medida = serializers.PrimaryKeyRelatedField(queryset=UnidadMedida.objects.all(), required=False)
+
     class Meta:
         model = Bodega
-        fields = ['herramientas', 'insumos', 'fk_id_asignacion', 'fecha', 'movimiento']
+        fields = ['herramientas', 'insumos', 'fk_id_asignacion', 'fecha', 'movimiento', 'fk_unidad_medida']
 
     def validate(self, data):
         if not data.get('herramientas') and not data.get('insumos'):

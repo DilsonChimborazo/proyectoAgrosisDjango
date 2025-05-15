@@ -1,4 +1,6 @@
 from django.db import models
+from decimal import Decimal
+
 from apps.inventario.unidadMedida.models import UnidadMedida
 
 # Create your models here.
@@ -38,8 +40,9 @@ class Insumo (models.Model):
             self.cantidad_en_base = self.fk_unidad_medida.convertir_a_base(self.cantidad_insumo)
 
             if self.cantidad_en_base and self.cantidad_en_base > 0:
-                self.precio_por_base = self.precio_unidad / self.cantidad_en_base
-        
+                total_precio = self.precio_unidad * self.cantidad_insumo
+                self.precio_por_base = total_precio / self.cantidad_en_base
+
         super().save(*args, **kwargs)
 
     def __str__(self):
