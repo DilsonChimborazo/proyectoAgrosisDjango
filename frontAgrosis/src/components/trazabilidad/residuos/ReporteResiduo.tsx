@@ -11,12 +11,12 @@ const ReporteResiduos = () => {
     return Array.isArray(residuos) ? residuos : [];
   }, [residuos]);
 
-  const columnasPDF = ['Fecha', 'Tipo de Residuo', 'Cultivo'];
+  const columnasPDF = ['Fecha', 'Cultivo', 'Residuo'];
   const datosPDF = useMemo(() => {
     return residuosList.map(residuo => [
-      residuo.fecha || 'Sin fecha',
-      residuo.tipo_residuo || 'Sin tipo',
-      residuo.cultivo || 'Sin cultivo'
+      residuo.fecha ? new Date(residuo.fecha).toLocaleDateString() : 'Sin fecha',
+      residuo.cultivo || 'Sin cultivo',
+      residuo.residuo || 'Sin residuo'
     ]);
   }, [residuosList]);
 
@@ -25,14 +25,16 @@ const ReporteResiduos = () => {
 
   return (
     <div className="p-4">
-      <Tabla
-        title="Reporte de Residuos"
+     
+
+ <Tabla
+        title=" Reporte de Residuos"
         headers={columnasPDF}
         data={residuosList.map((residuo, index) => ({
           id: index,
-          fecha: residuo.fecha || 'Sin fecha',
-          tipo_de_residuo: residuo.tipo_residuo || 'Sin tipo',
-          cultivo: residuo.cultivo || 'Sin cultivo'
+          fecha: residuo.fecha ? new Date(residuo.fecha).toLocaleDateString() : 'Sin fecha',
+          cultivo: residuo.cultivo || 'Sin cultivo',
+          residuo: residuo.residuo || 'Sin residuo'
         }))}
         onClickAction={(row) => console.log('Detalle:', row)}
         onUpdate={(row) => console.log('Actualizar:', row)}
@@ -47,7 +49,6 @@ const ReporteResiduos = () => {
           />
         }
       />
-
       <div className="mt-4 text-sm text-gray-500">
         Total de residuos registrados: {residuosList.length}
       </div>
