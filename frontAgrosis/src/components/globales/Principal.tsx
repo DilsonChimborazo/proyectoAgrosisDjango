@@ -42,7 +42,7 @@ const menuItems = [
     submenu: [
       { name: "Stock", path: "/stock" },
       { name: "Beneficio Costo", path: "/diario" },
-      { name: "Salario", path: "/crearsalario" },
+      { name: "Pagos", path: "/nomina" },
     ],
   },
   {
