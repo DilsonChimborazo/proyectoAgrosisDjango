@@ -18,6 +18,8 @@ import LotesPage from "./pages/iot/LotesPage";
 import ErasPage from "./pages/iot/ErasPage";
 import Evapotranspiracion from "./pages/iot/evapotranspiracionPage"; // Importamos el componente
 
+import NotificacionPage from "./pages/trazabilidad/NotificacionPage";
+
 import Fichas from "./components/usuarios/ficha/Ficha";
 import CrearFicha from "./components/usuarios/ficha/crearFicha";
 import CrearUsuario from "./components/usuarios/usuario/crearUsuario";
@@ -138,6 +140,7 @@ function App() {
             <Route path="/calendario-lunar" element={<Principal><CalendarioLunarPage /></Principal>} />
             <Route path="/CrearAsignacion" element={<Principal><CrearAsignacion /></Principal>} />
             <Route path="/CrearCalendarioLunar" element={<Principal><CrearCalendarioLunar /></Principal>}/>
+            <Route path="/notificaciones" element={<Principal><NotificacionPage /></Principal>} />
             
             <Route path="/CrearEspecie" element={<Principal><CrearEspecie/></Principal>}/>
             <Route path="/CrearSemillero" element={<Principal><CrearSemillero/></Principal>}/>
