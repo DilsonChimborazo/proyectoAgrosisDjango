@@ -11,12 +11,14 @@ const ReporteControlFitosanitario = () => {
     return Array.isArray(controles) ? controles : [];
   }, [controles]);
 
-  const columnasPDF = ['Cultivo', 'PEA', 'Tipo de Control'];
+  const columnasPDF = ['Fecha Control', 'PlantaciOn', 'PEA', 'Tipo de Control', 'DescripciOn'];
   const datosPDF = useMemo(() => {
     return controlesList.map(control => [
-      control.cultivo || 'Sin cultivo',
+      control.fecha_control || 'Sin fecha',
+      control.plantacion || 'Sin plantación',
       control.pea || 'Sin PEA',
-      control.tipo_control || 'Sin tipo'
+      control.tipo_control || 'Sin tipo',
+      control.descripcion || 'Sin descripción'
     ]);
   }, [controlesList]);
 
@@ -26,13 +28,15 @@ const ReporteControlFitosanitario = () => {
   return (
     <div className="p-4">
       <Tabla
-        title="🌱 Reporte de Controles Fitosanitarios"
+        title=" Reporte de Controles Fitosanitarios"
         headers={columnasPDF}
         data={controlesList.map((control, index) => ({
           id: index,
-          cultivo: control.cultivo || 'Sin cultivo',
+          fecha_control: control.fecha_control || 'Sin fecha',
+          plantacion: control.plantacion || 'Sin plantación',
           pea: control.pea || 'Sin PEA',
-          tipo_de_control: control.tipo_control || 'Sin tipo'
+          tipo_de_control: control.tipo_control || 'Sin tipo',
+          descripcion: control.descripcion || 'Sin descripción'
         }))}
         onClickAction={(row) => console.log('Detalle:', row)}
         onUpdate={(row) => console.log('Actualizar:', row)}
@@ -47,7 +51,6 @@ const ReporteControlFitosanitario = () => {
           />
         }
       />
-
       <div className="mt-4 text-sm text-gray-500">
         Total de controles: {controlesList.length}
       </div>
