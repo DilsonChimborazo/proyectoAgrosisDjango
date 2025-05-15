@@ -1,15 +1,18 @@
+// src/hooks/trazabilidad/programacion/useProgramacion.ts
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface Programacion {
+  id?: number;
   fk_id_asignacionActividades: number;
   fecha_realizada: string;
   duracion: number;
   cantidad_insumo: number;
-  img: File | null;
+  img: string | null; // Aseguramos que img es una URL
   fk_unidad_medida: number;
+  estado: 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada';
 }
 
 const fetchProgramaciones = async (): Promise<Programacion[]> => {
@@ -20,7 +23,7 @@ const fetchProgramaciones = async (): Promise<Programacion[]> => {
       'Content-Type': 'application/json',
     },
   });
-  return data.map((p: any) => ({ ...p, img: p.img ? new File([], p.img) : null })); // Convert img to File if needed
+  return data; // Devolvemos los datos tal cual, con img como URL desde el backend
 };
 
 export const useProgramacion = () => {

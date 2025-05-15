@@ -14,6 +14,7 @@ export interface Plantacion {
 
 export interface Eras {
     id: number;
+    nombre:string;
     descripcion: string;
     fk_id_lote: Lote;
     estado: boolean;

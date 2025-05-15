@@ -13,6 +13,7 @@ export interface Lote {
 
 export interface Eras {
     id: number;
+    nombre:string,
     descripcion: string;
     fk_id_lote: Lote | null;
     estado: boolean;

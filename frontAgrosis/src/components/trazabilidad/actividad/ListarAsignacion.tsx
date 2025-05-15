@@ -1,31 +1,32 @@
-import { useState, useMemo, memo } from 'react';
+import { useState, useMemo, memo, useEffect } from 'react';
 import { useAsignacion, Asignacion } from '@/hooks/trazabilidad/asignacion/useAsignacion';
 import { useRealiza, Realiza } from '@/hooks/trazabilidad/realiza/useRealiza';
 import { useUsuarios, Usuario } from '@/hooks/usuarios/usuario/useUsuarios';
 import { useProgramacion } from '@/hooks/trazabilidad/programacion/useProgramacion';
-import { useUnidadMedida } from '@/hooks/inventario/unidadMedida/useCrearMedida';
+import { useMedidas } from '@/hooks/inventario/unidadMedida/useMedidad';
 import VentanaModal from '../../globales/VentanasModales';
 import Tabla from '../../globales/Tabla';
 import CrearAsignacionModal from './CrearAsignacion';
 import CrearProgramacion from '../programacion/CrearProgramacion';
 
-// Interfaz para los datos de la tabla
+// URL base del servidor donde se almacenan las imágenes
+const BASE_URL = 'http://tudominio.com'; // Reemplaza con la URL real de tu servidor
+
 interface AsignacionTabla {
   id: number;
   estado: 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada';
   fecha_programada: string;
   observaciones: string;
-  plantacion: string; // Reemplaza especie
+  plantacion: string;
   actividad: string;
   usuario: string;
   fecha_realizada: string | null;
   duracion: number | null;
   cantidad_insumo: number | null;
-  img: string | null;
+  img: string | null | React.ReactNode; // Puede ser una URL, null o un elemento JSX
   unidad_medida: string;
 }
 
-// Componente para mostrar detalles de la asignación
 const DetalleAsignacionModal = memo(({ item, realizaList, usuarios }: { item: Asignacion; realizaList: Realiza[]; usuarios: Usuario[] }) => {
   const realiza = realizaList.find((r) => r.id === (typeof item.fk_id_realiza === 'object' ? item.fk_id_realiza?.id : item.fk_id_realiza));
   const usuario = usuarios.find((u) => u.id === (typeof item.fk_identificacion === 'object' ? item.fk_identificacion?.id : item.fk_identificacion));
@@ -50,29 +51,26 @@ const DetalleAsignacionModal = memo(({ item, realizaList, usuarios }: { item: As
   );
 });
 
-// Componente principal para listar asignaciones
 const ListarAsignacion = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isProgramacionModalOpen, setIsProgramacionModalOpen] = useState(false);
   const [selectedAsignacion, setSelectedAsignacion] = useState<Asignacion | null>(null);
   const [modalContenido, setModalContenido] = useState<React.ReactNode>(null);
+  const [imagenAmpliada, setImagenAmpliada] = useState<string | null>(null);
 
-  // Hooks para obtener datos
   const { data: asignaciones = [], isLoading: isLoadingAsignaciones, error: errorAsignaciones, refetch: refetchAsignaciones } = useAsignacion();
   const { data: realizaList = [], isLoading: isLoadingRealiza, error: errorRealiza } = useRealiza();
   const { data: usuarios = [], isLoading: isLoadingUsuarios, error: errorUsuarios } = useUsuarios();
   const { data: programaciones = [], isLoading: isLoadingProgramaciones, error: errorProgramaciones, refetch: refetchProgramaciones } = useProgramacion();
-  const { data: unidadesMedida = [], isLoading: isLoadingUnidadesMedida, error: errorUnidadesMedida } = useUnidadMedida();
+  const { data: unidadesMedida = [], isLoading: isLoadingUnidadesMedida, error: errorUnidadesMedida } = useMedidas();
 
-  // Manejar clic en una fila para ver detalles
   const handleItemClick = (item: AsignacionTabla) => {
     const asignacion = asignaciones.find((a) => a.id === item.id) ?? null;
     setSelectedAsignacion(asignacion);
     setIsDetailModalOpen(true);
   };
 
-  // Manejar actualización de programación
   const handleUpdateClick = (item: AsignacionTabla) => {
     const asignacion = asignaciones.find((a) => a.id === item.id);
     if (!asignacion) return;
@@ -80,7 +78,6 @@ const ListarAsignacion = () => {
     setIsProgramacionModalOpen(true);
   };
 
-  // Cerrar modales
   const closeModal = () => {
     setIsModalOpen(false);
     setIsDetailModalOpen(false);
@@ -89,7 +86,6 @@ const ListarAsignacion = () => {
     setSelectedAsignacion(null);
   };
 
-  // Crear nueva asignación
   const handleCreateAsignacion = () => {
     setModalContenido(
       <CrearAsignacionModal
@@ -107,7 +103,6 @@ const ListarAsignacion = () => {
     setIsModalOpen(true);
   };
 
-  // Mapear datos para la tabla
   const tablaData: AsignacionTabla[] = useMemo(() => {
     return asignaciones.map((asignacion) => {
       const realizaId = typeof asignacion.fk_id_realiza === 'object' ? asignacion.fk_id_realiza?.id : asignacion.fk_id_realiza;
@@ -123,9 +118,38 @@ const ListarAsignacion = () => {
       });
 
       let unidadMedida = 'No asignada';
-      if (programacion?.fk_unidad_medida) {
-        const unidad = unidadesMedida.find((um) => um.id === Number(programacion.fk_unidad_medida));
-        unidadMedida = unidad ? `${unidad.nombre_medida} (${unidad.abreviatura})` : 'Unidad no encontrada';
+      if (programacion?.fk_unidad_medida != null) {
+        const unidadMedidaId = typeof programacion.fk_unidad_medida === 'object'
+          ? programacion.fk_unidad_medida.id
+          : Number(programacion.fk_unidad_medida);
+        const unidad = unidadesMedida.find((um) => um.id === unidadMedidaId);
+        unidadMedida = unidad ? unidad.nombre_medida : `Unidad no encontrada (ID: ${unidadMedidaId})`;
+      }
+
+      // Transformar el campo img en un elemento <img>
+      let imgElement: React.ReactNode = 'Sin imagen';
+      let imgUrl: string | null = null;
+      if (programacion?.img) {
+        if (typeof programacion.img === 'string') {
+          imgUrl = programacion.img.startsWith('http') ? programacion.img : `${BASE_URL}${programacion.img}`;
+        } else if (programacion.img instanceof File) {
+          imgUrl = URL.createObjectURL(programacion.img);
+        }
+        if (imgUrl) {
+          imgElement = (
+            <img
+              src={imgUrl}
+              alt={`Imagen de programación ${asignacion.id}`}
+              className="min-w-[3rem] w-12 h-12 rounded-full object-cover mx-auto cursor-pointer hover:scale-105 transition-transform"
+              onError={(e) => {
+                e.currentTarget.src = '/placeholder-image.png';
+                e.currentTarget.alt = 'Imagen no disponible';
+              }}
+              onClick={() => setImagenAmpliada(imgUrl)}
+              loading="lazy"
+            />
+          );
+        }
       }
 
       return {
@@ -133,63 +157,63 @@ const ListarAsignacion = () => {
         estado: asignacion.estado as 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada',
         fecha_programada: asignacion.fecha_programada,
         observaciones: asignacion.observaciones || 'Sin observaciones',
-        plantacion: realiza?.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo || 'Sin cultivo', // Reemplaza especie
+        plantacion: realiza?.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo || 'Sin cultivo',
         actividad: realiza?.fk_id_actividad?.nombre_actividad || 'Sin actividad',
         usuario: usuario ? `${usuario.nombre} ${usuario.apellido}` : 'Sin usuario',
         fecha_realizada: programacion?.fecha_realizada || null,
         duracion: programacion?.duracion ?? null,
         cantidad_insumo: programacion?.cantidad_insumo ?? null,
-        img: programacion?.img || null,
+        img: imgElement,
         unidad_medida: unidadMedida,
       };
     });
   }, [asignaciones, realizaList, usuarios, programaciones, unidadesMedida]);
 
-  // Estado de carga y errores
+  // Liberar URLs temporales
+  useEffect(() => {
+    return () => {
+      tablaData.forEach((item) => {
+        if (typeof item.img === 'string' && item.img.startsWith('blob:')) {
+          URL.revokeObjectURL(item.img);
+        }
+      });
+    };
+  }, [tablaData]);
+
   const loading = isLoadingAsignaciones || isLoadingRealiza || isLoadingUsuarios || isLoadingProgramaciones || isLoadingUnidadesMedida;
   const error = errorAsignaciones || errorRealiza || errorUsuarios || errorProgramaciones || errorUnidadesMedida;
 
   if (loading) return <div className="text-center text-gray-500">Cargando asignaciones...</div>;
   if (error) return <div className="text-center text-red-500">Error al cargar datos: {error.message || 'Intenta de nuevo.'}</div>;
 
-  // Encabezados de la tabla
   const headers = [
     'ID',
     'Fecha Programada',
     'Usuario',
     'Actividad',
-    'Plantacion', // Reemplaza Especie
+    'Plantacion',
     'Observaciones',
     'Fecha Realizada',
     'Duracion',
     'Cantidad Insumo',
-    'Imagen',
     'Unidad Medida',
+    'Img',
     'Estado',
   ];
 
-  // Renderizar filas de la tabla
   const renderRow = (item: AsignacionTabla) => (
     <tr key={item.id} className="hover:bg-gray-100 cursor-pointer">
       <td className="p-3">{item.id}</td>
       <td className="p-3">{item.fecha_programada}</td>
       <td className="p-3">{item.usuario}</td>
       <td className="p-3">{item.actividad}</td>
-      <td className="p-3">{item.plantacion}</td> {/* Reemplaza especie */}
+      <td className="p-3">{item.plantacion}</td>
       <td className="p-3">{item.observaciones}</td>
       <td className="p-3">{item.fecha_realizada || '-'}</td>
       <td className="p-3">{item.duracion ?? '-'}</td>
       <td className="p-3">{item.cantidad_insumo ?? '-'}</td>
-      <td className="p-3">
-        {item.img ? (
-          <a href={item.img} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
-            Ver imagen
-          </a>
-        ) : (
-          '-'
-        )}
-      </td>
       <td className="p-3">{item.unidad_medida}</td>
+      <td className="p-3">{item.img}</td>
       <td className="p-3">{item.estado}</td>
     </tr>
   );
@@ -230,6 +254,11 @@ const ListarAsignacion = () => {
         </>
       )}
       <div className="bg-white rounded-lg shadow p-6">
+        {unidadesMedida.length === 0 && !isLoadingUnidadesMedida && !errorUnidadesMedida && (
+          <div className="text-center text-yellow-500 mb-4">
+            No hay unidades de medida disponibles. Por favor, crea algunas unidades de medida para asignarlas a las programaciones.
+          </div>
+        )}
         <Tabla
           title="Lista de Asignaciones"
           headers={headers}
@@ -244,6 +273,20 @@ const ListarAsignacion = () => {
           <div className="text-center text-gray-500 mt-4">No hay asignaciones para mostrar.</div>
         )}
       </div>
+
+      {/* Imagen ampliada */}
+      {imagenAmpliada && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
+          onClick={() => setImagenAmpliada(null)}
+        >
+          <img
+            src={imagenAmpliada}
+            alt="Imagen ampliada"
+            className="max-w-4xl max-h-[90vh] rounded-lg shadow-lg border-4 border-white"
+          />
+        </div>
+      )}
     </div>
   );
 };

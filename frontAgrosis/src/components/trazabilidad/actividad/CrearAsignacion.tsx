@@ -4,7 +4,7 @@ import { Realiza } from '@/hooks/trazabilidad/realiza/useRealiza';
 import { Usuario } from '@/hooks/usuarios/usuario/useUsuarios';
 import VentanaModal from '../../globales/VentanasModales';
 import CrearRealiza from '../realiza/CrearRealiza';
-import CrearUsuario from '../../usuarios/usuario/crearUsuario'; // Importa el componente real
+import CrearUsuario from '../../usuarios/usuario/crearUsuario';
 
 interface CrearAsignacionModalProps {
   onSuccess: () => void;
@@ -26,7 +26,7 @@ const CrearAsignacion = ({
   const { mutate: createAsignacion, isPending, error: mutationError } = useCrearAsignacion();
   const [formData, setFormData] = useState({
     fk_id_realiza: '',
-    fk_identificacion: '',
+    fk_identificacion: '', // Cambiado a string para un solo usuario
     estado: 'Pendiente',
     fecha_programada: '',
     observaciones: '',
@@ -50,12 +50,15 @@ const CrearAsignacion = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+
     const validationError = validateForm();
     if (validationError) {
       setError(validationError);
       return;
     }
 
+    console.log('Enviando asignación con datos:', formData); // Depuración
     try {
       await createAsignacion(
         {
@@ -66,17 +69,14 @@ const CrearAsignacion = ({
           observaciones: formData.observaciones || '',
         },
         {
-          onSuccess: () => {
-            onSuccess();
-          },
           onError: (err) => {
-            setError('Error al crear la asignación: ' + err.message);
-            console.error('Error creating asignacion:', err.message);
+            throw new Error(`Error al crear asignación: ${err.message}`);
           },
         }
       );
-    } catch (err) {
-      setError('Error inesperado al crear la asignación.');
+      onSuccess();
+    } catch (err: any) {
+      setError(err.message || 'Error inesperado al crear la asignación.');
       console.error('Unexpected error:', err);
     }
   };
@@ -97,10 +97,10 @@ const CrearAsignacion = ({
   const openCreateUsuarioModal = () => {
     setModalContent(
       <CrearUsuario
-        isOpen={true} // Modal siempre abierto cuando se renderiza
+        isOpen={true}
         onClose={() => {
           setIsModalOpen(false);
-          onCreateUsuario(); // Actualiza la lista de usuarios
+          onCreateUsuario();
         }}
       />
     );
@@ -157,7 +157,7 @@ const CrearAsignacion = ({
             </label>
             <select
               id="fk_identificacion"
-              name="fk_identificacion" // Corregido de fk_id_realiza a fk_identificacion
+              name="fk_identificacion"
               value={formData.fk_identificacion}
               onChange={handleChange}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
@@ -167,7 +167,7 @@ const CrearAsignacion = ({
               <option value="">Selecciona un usuario</option>
               {usuarios.map((usuario) => (
                 <option key={usuario.id} value={usuario.id}>
-                  {`${usuario.nombre} ${usuario.apellido}`}
+                  {`${usuario.nombre} ${usuario.apellido} - Ficha: ${usuario.numero_ficha || 'Sin ficha'}`}
                 </option>
               ))}
             </select>
@@ -225,7 +225,7 @@ const CrearAsignacion = ({
             name="observaciones"
             value={formData.observaciones}
             onChange={handleChange}
-            classoutcome="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
             rows={4}
             disabled={isPending}
           />

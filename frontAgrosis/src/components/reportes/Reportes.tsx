@@ -5,10 +5,12 @@ import useLotesActivos from '@/hooks/iot/lote/useLotesActivos';
 import { useReporteHerramientas } from '@/hooks/inventario/herramientas/useReporteHerramientas';
 import { useReporteInsumos } from '@/hooks/inventario/insumos/useReporteInsumos';
 import { useReporteControles } from '@/hooks/trazabilidad/control/useReporteControl';
+import { useReporteAsignaciones } from '@/hooks/trazabilidad/asignacion/useReportesAsignacion';
 import ReporteHerramientas from '@/components/inventario/herramientas/ReporteHerramientas';
 import Tabla from '@/components/globales/Tabla';
 import ReporteInsumosBajoStock from '../inventario/insumos/ReporteInsumo';
 import ReportesControl from '@/components/trazabilidad/control/ReportesControl';
+import ReporteAsignacion from '@/components/trazabilidad/actividad/ReportesAsignacion';
 import { useReporteResiduos } from '@/hooks/trazabilidad/residuo/useReporteResiduos';
 import ReporteResiduos from '../trazabilidad/residuos/ReporteResiduo';
 
@@ -48,7 +50,8 @@ const Reportes = () => {
   const { data: herramientas, isLoading: loadingHerramientas, error: errorHerramientas } = useReporteHerramientas();
   const { data: insumosBajoStock, isLoading: loadingInsumos, error: errorInsumos } = useReporteInsumos();
   const { data: controles, isLoading: loadingControles, error: errorControles } = useReporteControles();
-  const { data: residuos, isLoading, isError } = useReporteResiduos();
+  const { data: asignaciones, isLoading: loadingAsignaciones, error: errorAsignaciones } = useReporteAsignaciones();
+  const { data: residuos, isLoading: loadingResiduos, isError: errorResiduos } = useReporteResiduos();
   
   // Configuración de módulos y reportes disponibles
   const modulos: Modulo[] = [
@@ -97,13 +100,23 @@ const Reportes = () => {
                       />
         },
         {
-          id: 'Residuos',
+          id: 'asignaciones',
+          nombre: 'Reporte de Asignaciones',
+          requiereFechas: false,
+          componente: <ReporteAsignacion 
+                        data={asignaciones} 
+                        loading={loadingAsignaciones} 
+                        error={errorAsignaciones} 
+                      />
+        },
+        {
+          id: 'residuos',
           nombre: 'Reporte Residuos',
           requiereFechas: false,
           componente: <ReporteResiduos 
                         data={residuos} 
-                        loading={isLoading} 
-                        error={isError} 
+                        loading={loadingResiduos} 
+                        error={errorResiduos} 
                       />
         }
       ]
