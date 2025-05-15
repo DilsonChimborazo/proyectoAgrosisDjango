@@ -22,6 +22,7 @@ interface TablaProps<T extends Record<string, any>> {
   hiddenColumnsByDefault?: string[];
   renderCell?: (row: T, columnKey: string) => React.ReactNode;
   onRowClick?: (row: T) => void;
+  rowClassName?: (row: T) => string;
 }
 
 const Tabla = <T extends Record<string, any>>({
@@ -36,7 +37,8 @@ const Tabla = <T extends Record<string, any>>({
   extraButton,
   hiddenColumnsByDefault = ['id'],
   renderCell,
-  onRowClick
+  onRowClick,
+  rowClassName
 }: TablaProps<T>) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState("");
@@ -246,52 +248,57 @@ const Tabla = <T extends Record<string, any>>({
               </tr>
             </thead>
             <tbody className="px-20">
-              {paginatedData.map((row, index) => (
-                <tr
-                  key={row.id || index}
-                  className={`${index % 2 === 0 ? "bg-gray-50" : "bg-white"} hover:bg-green-100 transition duration-300 ease-in-out ${onRowClick ? 'cursor-pointer' : ''}`}
-                  onClick={() => onRowClick && onRowClick(row)}
-                >
-                  {visibleColumnsData.map((column, cellIndex) => (
-                    <td
-                      key={cellIndex}
-                      className="px-8 py-3 sm:py-4 text-xs sm:text-sm text-gray-800 max-w-[100px] sm:max-w-xs truncate"
-                    >
-                      {renderCell ? renderCell(row, column.key) :
-                        (row[column.key] !== null && row[column.key] !== undefined ? row[column.key] : "—")}
-                    </td>
-                  ))}
-                  {(onClickAction || onUpdate) && (
-                    <td className="px-2">
-                      <Dropdown>
-                        <DropdownTrigger>
-                          <HerouiButton
-                            variant="bordered"
-                            className="p-2 rounded-full"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <MoreVertical size={18} />
-                          </HerouiButton>
-                        </DropdownTrigger>
-                        <DropdownMenu aria-label="Acciones">
-                          {[
-                            onClickAction && (
-                              <DropdownItem key="details" onClick={() => onClickAction(row)}>
-                                Ver detalles
-                              </DropdownItem>
-                            ),
-                            onUpdate && (
-                              <DropdownItem key="update" onClick={() => onUpdate(row)}>
-                                Actualizar
-                              </DropdownItem>
-                            )
-                          ].filter(Boolean) as React.ReactElement[]}
-                        </DropdownMenu>
-                      </Dropdown>
-                    </td>
-                  )}
-                </tr>
-              ))}
+              {paginatedData.map((row, index) => {
+                const rowClass = rowClassName ? rowClassName(row) : 
+                  `${index % 2 === 0 ? "bg-gray-50" : "bg-white"} hover:bg-green-100`;
+                
+                return (
+                  <tr
+                    key={row.id || index}
+                    className={`${rowClass} transition duration-300 ease-in-out ${onRowClick ? 'cursor-pointer' : ''}`}
+                    onClick={() => onRowClick && onRowClick(row)}
+                  >
+                    {visibleColumnsData.map((column, cellIndex) => (
+                      <td
+                        key={cellIndex}
+                        className="px-8 py-3 sm:py-4 text-xs sm:text-sm text-gray-800 max-w-[100px] sm:max-w-xs truncate"
+                      >
+                        {renderCell ? renderCell(row, column.key) :
+                          (row[column.key] !== null && row[column.key] !== undefined ? row[column.key] : "—")}
+                      </td>
+                    ))}
+                    {(onClickAction || onUpdate) && (
+                      <td className="px-2">
+                        <Dropdown>
+                          <DropdownTrigger>
+                            <HerouiButton
+                              variant="bordered"
+                              className="p-2 rounded-full"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <MoreVertical size={18} />
+                            </HerouiButton>
+                          </DropdownTrigger>
+                          <DropdownMenu aria-label="Acciones">
+                            {[
+                              onClickAction && (
+                                <DropdownItem key="details" onClick={() => onClickAction(row)}>
+                                  Ver detalles
+                                </DropdownItem>
+                              ),
+                              onUpdate && (
+                                <DropdownItem key="update" onClick={() => onUpdate(row)}>
+                                  Actualizar
+                                </DropdownItem>
+                              )
+                            ].filter(Boolean) as React.ReactElement[]}
+                          </DropdownMenu>
+                        </Dropdown>
+                      </td>
+                    )}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

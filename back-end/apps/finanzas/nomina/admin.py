@@ -5,4 +5,4 @@ from apps.finanzas.nomina.models import Nomina
 
 @admin.register(Nomina)
 class NominaAdmin(admin.ModelAdmin):
-    list_display = ('fk_id_programacion', 'fk_id_salario', 'pago_total')
+    list_display = ('fk_id_programacion', 'fk_id_salario', 'pago_total','fecha_pago', 'pagado')
