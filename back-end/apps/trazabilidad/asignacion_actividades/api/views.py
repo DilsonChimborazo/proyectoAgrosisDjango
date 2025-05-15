@@ -2,10 +2,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from apps.trazabilidad.asignacion_actividades.models import Asignacion_actividades
-from apps.trazabilidad.asignacion_actividades.api.serializers import (
-    LeerUsuarioSerializer,
-    LeerActividadSerializer
-)
+from apps.trazabilidad.asignacion_actividades.api.serializers import LeerAsignacion_actividadesSerializer
 
 class Asignacion_actividadesModelViewSet(ModelViewSet):
     queryset = Asignacion_actividades.objects.select_related(
@@ -16,8 +13,8 @@ class Asignacion_actividadesModelViewSet(ModelViewSet):
 
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve']:
-            return LeerUsuarioSerializer
-        return LeerActividadSerializer
+            return LeerAsignacion_actividadesSerializer
+        return LeerAsignacion_actividadesSerializer
 
     @action(detail=False, methods=['get'], url_path='reporte-asignaciones')
     def reporte_asignaciones(self, request):
