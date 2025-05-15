@@ -553,22 +553,30 @@ const ListarBodega = () => {
                                     const esHerramienta = isHerramienta(item);
                                     const esInsumo = isInsumo(item);
 
-                                    let cantidad = 0;
-                                    if (esHerramienta) {
-                                        cantidad = Number(item.cantidad_herramienta) || 0;
-                                    } else if (esInsumo) {
-                                        cantidad = item.cantidad_insumo !== null ? Number(item.cantidad_insumo) : 0;
-                                    }
+                                    let cantidad = esHerramienta ? Number(item.cantidad_herramienta) || 0 : 0;
+                                    let cantidadBase = esInsumo && item.cantidad_en_base 
+                                        ? parseFloat(item.cantidad_en_base) 
+                                        : 0;
 
                                     const fechaVencimiento = esInsumo ? item.fecha_vencimiento : null;
 
                                     let cantidadClass = "text-white font-bold rounded-full px-3 py-1 text-center ";
-                                    if (cantidad <= 5) {
-                                        cantidadClass += "bg-red-500";
-                                    } else if (cantidad <= 10) {
-                                        cantidadClass += "bg-yellow-500";
-                                    } else {
-                                        cantidadClass += "bg-green-500";
+                                    if (esHerramienta) {
+                                        if (cantidad <= 5) {
+                                            cantidadClass += "bg-red-500";
+                                        } else if (cantidad <= 10) {
+                                            cantidadClass += "bg-yellow-500";
+                                        } else {
+                                            cantidadClass += "bg-green-500";
+                                        }
+                                    } else if (esInsumo) {
+                                        if (cantidadBase <= 5) {
+                                            cantidadClass += "bg-red-500";
+                                        } else if (cantidadBase <= 10) {
+                                            cantidadClass += "bg-yellow-500";
+                                        } else {
+                                            cantidadClass += "bg-green-500";
+                                        }
                                     }
 
                                     return (
@@ -578,7 +586,6 @@ const ListarBodega = () => {
                                             onClick={() => handleItemClick(item)}
                                         >
                                             <div className="flex flex-col h-full">
-                                                {/* Contenedor de imagen/icono consistente */}
                                                 <div className="w-full h-32 flex items-center justify-center mb-3 bg-gray-100 rounded-lg">
                                                     {esInsumo && item.img ? (
                                                         <SafeImage 
@@ -600,7 +607,10 @@ const ListarBodega = () => {
                                                 <div className="mt-2 mb-3">
                                                     <p className="text-sm text-gray-600">Cantidad en stock:</p>
                                                     <div className={cantidadClass}>
-                                                        {cantidad} unidades
+                                                        {esHerramienta ? `${cantidad} unidades` : 
+                                                         esInsumo && item.cantidad_en_base 
+                                                            ? `${Math.round(cantidadBase)} ${item.fk_unidad_medida?.unidad_base || ''}`
+                                                            : 'N/A'}
                                                     </div>
                                                 </div>
 
@@ -679,7 +689,6 @@ const ListarBodega = () => {
                                             onClick={() => handleItemClick(insumoCompuesto)}
                                         >
                                             <div className="flex flex-col h-full">
-                                                {/* Icono para insumos compuestos */}
                                                 <div className="w-full h-32 flex items-center justify-center mb-3 bg-gray-100 rounded-lg">
                                                     <Package size={48} className="text-orange-600" />
                                                 </div>
@@ -691,7 +700,9 @@ const ListarBodega = () => {
                                                 <div className="mt-2 mb-3">
                                                     <p className="text-sm text-gray-600">Cantidad en stock:</p>
                                                     <div className={cantidadClass}>
-                                                        {cantidad} unidades
+                                                        {insumoCompuesto.cantidad_insumo 
+                                                            ? `${insumoCompuesto.cantidad_insumo} ${insumoCompuesto.unidad_medida_info?.unidad_base || 'unidades'}`
+                                                            : 'N/A'}
                                                     </div>
                                                 </div>
                                             </div>
