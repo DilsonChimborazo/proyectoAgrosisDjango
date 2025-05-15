@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import axios from 'axios'
 
-const apiUrl = import.meta.env.VITE_API_URL
+const apiUrl = import.meta.env.VITE_API_URL.replace(/\/+$/, '') // Elimina cualquier barra final
 
 interface ReporteResiduo {
   fecha: string

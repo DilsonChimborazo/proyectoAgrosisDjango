@@ -14,7 +14,7 @@ const ReporteResiduos = () => {
   const columnasPDF = ['Fecha', 'Cultivo', 'Residuo'];
   const datosPDF = useMemo(() => {
     return residuosList.map(residuo => [
-      residuo.fecha || 'Sin fecha',
+      residuo.fecha ? new Date(residuo.fecha).toLocaleDateString() : 'Sin fecha',
       residuo.cultivo || 'Sin cultivo',
       residuo.residuo || 'Sin residuo'
     ]);
@@ -25,12 +25,14 @@ const ReporteResiduos = () => {
 
   return (
     <div className="p-4">
-      <Tabla
+     
+
+ <Tabla
         title=" Reporte de Residuos"
         headers={columnasPDF}
         data={residuosList.map((residuo, index) => ({
           id: index,
-          fecha: residuo.fecha || 'Sin fecha',
+          fecha: residuo.fecha ? new Date(residuo.fecha).toLocaleDateString() : 'Sin fecha',
           cultivo: residuo.cultivo || 'Sin cultivo',
           residuo: residuo.residuo || 'Sin residuo'
         }))}

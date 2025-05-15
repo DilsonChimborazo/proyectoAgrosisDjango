@@ -91,7 +91,7 @@ const Reportes = () => {
           nombre: 'Controles Fitosanitarios',
           requiereFechas: false,
           componente: <ReportesControl 
-                        data={residuos} 
+                        data={controles} 
                         loading={loadingControles} 
                         error={errorControles} 
                       />
@@ -101,7 +101,7 @@ const Reportes = () => {
           nombre: 'Reporte Residuos',
           requiereFechas: false,
           componente: <ReporteResiduos 
-                        data={controles} 
+                        data={residuos} 
                         loading={isLoading} 
                         error={isError} 
                       />
