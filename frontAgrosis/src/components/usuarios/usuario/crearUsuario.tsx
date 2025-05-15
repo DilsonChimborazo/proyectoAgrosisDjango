@@ -5,6 +5,7 @@ import Formulario from '@/components/globales/Formulario';
 import { useRoles } from '@/hooks/usuarios/rol/useRol';
 import { UseFicha } from '@/hooks/usuarios/ficha/useFicha';
 import CrearFicha from '../ficha/crearFicha';
+import CargaMasivaUsuarios from './CargaMasiva';
 import VentanaModal from '@/components/globales/VentanasModales';
 import CrearRol from '../rol/crearRol';
 
@@ -19,13 +20,17 @@ const CrearUsuario: React.FC<CrearUsuarioProps> = ({ isOpen, onClose }) => {
   const { data: fichas = [] } = UseFicha();
 
   const [modalAbiertoRol, setModalAbiertoRol] = useState(false);
-  const [modalAbiertoFicha, setModalAbiertoFicha] = useState(false)
+  const [modalAbiertoFicha, setModalAbiertoFicha] = useState(false);
+  const [modalAbiertoCargaMasiva, setModalAbiertoCargaMasiva] = useState(false)
 
   const abrirModalFicha = () => setModalAbiertoFicha(true);
   const cerrarModalFicha = () => setModalAbiertoFicha(false);
 
   const abrirModalRol = () => setModalAbiertoRol(true);
   const cerrarModalRol = () => setModalAbiertoRol(false);
+
+  const abrirModalCargaMasiva = () => setModalAbiertoCargaMasiva(true);;
+  const cerrarModalCargaMasiva = () => setModalAbiertoCargaMasiva(false);
 
   const formFields = [
     { id: 'identificacion', label: 'Identificación', type: 'text' },
@@ -56,6 +61,14 @@ const CrearUsuario: React.FC<CrearUsuarioProps> = ({ isOpen, onClose }) => {
       extraButtonText: '+',
       onExtraButtonClick: abrirModalFicha,
     },
+    {
+      id: 'carga_masiva',
+      label: 'Carga masiva',
+      type: 'select', 
+      hasExtraButton: true,
+      extraButtonText: 'carga masiva',
+      onExtraButtonClick: abrirModalCargaMasiva,
+    },
   ];
 
   const handleSubmit = (formData: { [key: string]: string }) => {
@@ -65,8 +78,8 @@ const CrearUsuario: React.FC<CrearUsuarioProps> = ({ isOpen, onClose }) => {
       !formData.nombre ||
       !formData.apellido ||
       !formData.password ||
-      !formData.fk_id_rol ||
-      !formData.ficha
+      !formData.fk_id_rol 
+      
     ) {
       console.error('Campos faltantes');
       return;
@@ -76,7 +89,7 @@ const CrearUsuario: React.FC<CrearUsuarioProps> = ({ isOpen, onClose }) => {
     const fk_id_rol = parseInt(formData.fk_id_rol, 10);
     const ficha = parseInt(formData.ficha, 10);
 
-    if (isNaN(identificacion) || isNaN(fk_id_rol) || isNaN(ficha)) {
+    if (isNaN(identificacion) || isNaN(fk_id_rol)) {
       console.error('Identificación, rol o ficha inválido');
       return;
     }
@@ -90,9 +103,13 @@ const CrearUsuario: React.FC<CrearUsuarioProps> = ({ isOpen, onClose }) => {
       fk_id_rol,
     };
 
+    if (!isNaN(ficha)) {
+      newUsuario.ficha = ficha;
+    }
+
     mutation.mutate(newUsuario, {
       onSuccess: () => {
-        onClose(); // Cierra la modal principal
+        onClose(); 
       },
     });
   };
@@ -132,6 +149,15 @@ const CrearUsuario: React.FC<CrearUsuarioProps> = ({ isOpen, onClose }) => {
         variant="content"
         contenido={<CrearFicha onClose={cerrarModalFicha} />}
       />
+      <VentanaModal
+        isOpen={modalAbiertoCargaMasiva}
+        onClose={cerrarModalCargaMasiva}
+        titulo="Carga Masiva de Usuarios"
+        size="sm"
+        variant="content"
+        contenido={<CargaMasivaUsuarios onClose={cerrarModalCargaMasiva} />}
+      />
+
     </> 
   );
 };

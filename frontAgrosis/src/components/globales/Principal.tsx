@@ -3,6 +3,7 @@ import { Button, Input } from "@heroui/react";
 import { Menu, Search, Bell as Notification, ChevronDown, ChevronUp } from "lucide-react";
 import { Home, User, Calendar, Map, Leaf, DollarSign, Bug, LogOut, Clipboard, Cpu, Copyright } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 
 interface LayoutProps {
   children: ReactNode;
@@ -70,7 +71,7 @@ const menuItems = [
 ];
 
 export default function Principal({ children }: LayoutProps) {
-  const [usuario, setUsuario] = useState<{ nombre: string; apellido: string; img_url?: string; } | null>(null);
+  const { usuario, setUsuario } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false); 
   const [active, setActive] = useState<string>("");
   const [openMenus, setOpenMenus] = useState<{ [key: string]: boolean }>({});
@@ -78,15 +79,26 @@ export default function Principal({ children }: LayoutProps) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const usuarioGuardado = localStorage.getItem("user");
+  const handleStorageChange = () => {
+    const usuarioGuardado = localStorage.getItem('user');
     if (usuarioGuardado) {
       setUsuario(JSON.parse(usuarioGuardado));
     } else {
       setUsuario(null);
     }
+  };
 
-   
-  }, []);
+  // Escuchar cambios en localStorage
+  window.addEventListener('storage', handleStorageChange);
+
+  // Llamar a la función al montar el componente
+  handleStorageChange();
+
+  return () => {
+    // Limpiar el listener cuando el componente se desmonte
+    window.removeEventListener('storage', handleStorageChange);
+  };
+}, []);
 
   const toggleMenu = (name: string) => {
     setOpenMenus((prev) => ({ ...prev, [name]: !prev[name] }));

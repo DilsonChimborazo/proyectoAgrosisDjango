@@ -80,7 +80,6 @@ const queryClient = new QueryClient();
 
 function App() {
   return (
-    <HeroUIProvider>
       <Provider>
       <QueryClientProvider client={queryClient}>
         <AuthChecker>  
@@ -169,7 +168,6 @@ function App() {
         </AuthChecker> 
       </QueryClientProvider>
       </Provider> 
-    </HeroUIProvider>
   );
 }
 
