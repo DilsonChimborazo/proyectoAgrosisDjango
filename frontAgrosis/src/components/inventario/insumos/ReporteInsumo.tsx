@@ -10,7 +10,7 @@ interface Props {
 }
 
 const ReporteInsumosBajoStock = ({ data, loading, error }: Props) => {
-  const columnasPDF = ["Nombre", "Tipo", "Precio Unidad", "Stock", "Unidad Medida"];
+  const columnasPDF = ["Nombre", "Tipo", "Precio Unidad", "cantidad en base", "fk unidad medida"];
 
   const datosPDF = useMemo(() => {
     return (
@@ -18,11 +18,14 @@ const ReporteInsumosBajoStock = ({ data, loading, error }: Props) => {
         item.nombre,
         item.tipo,
         `$${item.precio_unidad}`,
-        item.stock,
-        item.unidad_medida,
+        item.cantidad_en_base,
+        item.fk_unidad_medida
+          ? `${item.fk_unidad_medida.nombre_medida} (${item.fk_unidad_medida.unidad_base})`
+          : "N/A",
       ]) || []
     );
   }, [data]);
+  console.log(data)
 
   if (loading) return <div className="p-4">Cargando reporte...</div>;
   if (error)

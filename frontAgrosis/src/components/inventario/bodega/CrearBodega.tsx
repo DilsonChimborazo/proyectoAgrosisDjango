@@ -1,9 +1,8 @@
-import { useCrearBodega } from "@/hooks/inventario/bodega/useCrearBodega";
+import { useCrearBodega, Herramientas, Insumo, Asignacion } from "@/hooks/inventario/bodega/useCrearBodega";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import Formulario from "@/components/globales/Formulario";
 import VentanaModal from "@/components/globales/VentanasModales";
-import { Herramientas, Insumo, Asignacion } from "@/hooks/inventario/bodega/useCrearBodega";
 import CrearInsumoCompuesto from "@/components/inventario/insumocompuesto/CrearInsumoCompuesto";
 
 interface Props {
@@ -18,8 +17,13 @@ interface Props {
 interface ItemSeleccionado {
   id: number;
   cantidad: number;
-  esInsumoSimple?: boolean; 
+  esInsumoSimple?: boolean;
 }
+
+// Type guard to check if an item is an Insumo
+const isInsumo = (item: Herramientas | Insumo): item is Insumo => {
+  return 'fk_unidad_medida' in item;
+};
 
 const RegistrarSalidaBodega = ({
   herramientas,
@@ -34,7 +38,7 @@ const RegistrarSalidaBodega = ({
 
   console.log("Insumos Compuestos:", insumosCompuestosIniciales);
 
-  const [mensaje, setMensaje] = useState<{texto: string, tipo: 'exito' | 'error' | 'info'} | null>(null);
+  const [mensaje, setMensaje] = useState<{ texto: string, tipo: 'exito' | 'error' | 'info' } | null>(null);
   const [tipoInsumo, setTipoInsumo] = useState<"simple" | "compuesto">("simple");
   const [insumos] = useState<Insumo[]>(insumosIniciales);
   const [insumosCompuestos] = useState<Insumo[]>(insumosCompuestosIniciales);
@@ -49,7 +53,7 @@ const RegistrarSalidaBodega = ({
     setInsumosSeleccionados(prev => [...prev, { id: nuevo.id, cantidad: 1, esInsumoSimple: false }]);
     onClick?.(nuevo);
     setMostrarCrearCompuesto(false);
-    setMensaje({texto: "Insumo compuesto agregado correctamente", tipo: 'exito'});
+    setMensaje({ texto: "Insumo compuesto agregado correctamente", tipo: 'exito' });
   };
 
   const agregarHerramienta = (herramienta: Herramientas) => {
@@ -83,7 +87,7 @@ const RegistrarSalidaBodega = ({
   const actualizarCantidad = <T extends ItemSeleccionado>(
     items: T[],
     setItems: React.Dispatch<React.SetStateAction<T[]>>,
-    id: number, 
+    id: number,
     cantidad: number,
     maxDisponible?: number
   ) => {
@@ -91,8 +95,8 @@ const RegistrarSalidaBodega = ({
       Math.max(1, cantidad),
       maxDisponible || Infinity
     );
-    
-    setItems(prev => prev.map(item => 
+
+    setItems(prev => prev.map(item =>
       item.id === id ? { ...item, cantidad: cantidadFinal } : item
     ));
   };
@@ -121,33 +125,33 @@ const RegistrarSalidaBodega = ({
 
   const handleSubmit = (formData: any) => {
     if (herramientasSeleccionadas.length === 0 && insumosSeleccionados.length === 0) {
-      setMensaje({texto: "Debes seleccionar al menos una herramienta o un insumo.", tipo: 'error'});
+      setMensaje({ texto: "Debes seleccionar al menos una herramienta o un insumo.", tipo: 'error' });
       return;
     }
 
-    const errores = [];
-    
+    const errores: string[] = [];
+
     for (const h of herramientasSeleccionadas) {
       const herramienta = herramientas.find(her => her.id === h.id);
       if (herramienta && h.cantidad > herramienta.cantidad_herramienta) {
-        errores.push(`La cantidad de ${herramienta.nombre_h} excede el stock disponible`);
+        errores.push(`La cantidad de ${herramienta.nombre_h} excede el stock disponible (${herramienta.cantidad_herramienta})`);
       }
     }
 
     for (const i of insumosSeleccionados) {
       const insumo = [...insumos, ...insumosCompuestos].find(ins => ins.id === i.id);
-      if (insumo) {
+      if (insumo && isInsumo(insumo)) {
         const stockDisponible = i.esInsumoSimple && insumo.cantidad_en_base
           ? parseFloat(insumo.cantidad_en_base)
           : insumo.cantidad_insumo || 0;
         if (i.cantidad > stockDisponible) {
-          errores.push(`La cantidad de ${insumo.nombre} excede el stock disponible`);
+          errores.push(`La cantidad de ${insumo.nombre} excede el stock disponible (${stockDisponible} ${insumo.fk_unidad_medida?.unidad_base || 'unidades'})`);
         }
       }
     }
 
     if (errores.length > 0) {
-      setMensaje({texto: errores.join('\n'), tipo: 'error'});
+      setMensaje({ texto: errores.join('\n'), tipo: 'error' });
       return;
     }
 
@@ -167,15 +171,16 @@ const RegistrarSalidaBodega = ({
 
     crearMovimientoBodega(payload, {
       onSuccess: () => {
-        setMensaje({texto: "Salida registrada exitosamente.", tipo: 'exito'});
+        setMensaje({ texto: "Salida registrada exitosamente.", tipo: 'exito' });
         onSuccess?.();
         setTimeout(() => navigate("/bodega"), 1500);
       },
       onError: (error: any) => {
-        const errorMessage = error.response?.data?.message || 
-                            error.response?.data?.non_field_errors?.join('\n') || 
-                            error.message;
-        setMensaje({texto: `Error al registrar salida: ${errorMessage}`, tipo: 'error'});
+        const errorMessage = error.response?.data?.detail ||
+                            error.response?.data?.non_field_errors?.join('\n') ||
+                            error.message ||
+                            "Error desconocido al registrar la salida";
+        setMensaje({ texto: `Error al registrar salida: ${errorMessage}`, tipo: 'error' });
       },
     });
   };
@@ -197,26 +202,27 @@ const RegistrarSalidaBodega = ({
           if (!originalItem) return null;
 
           const esInsumoSimple = item.esInsumoSimple ?? false;
-          const stockDisponible = tipo === 'herramienta' 
-            ? ('cantidad_herramienta' in originalItem ? originalItem.cantidad_herramienta : 0)
+          const isHerramienta = !isInsumo(originalItem);
+          const stockDisponible = isHerramienta
+            ? originalItem.cantidad_herramienta
             : esInsumoSimple && originalItem.cantidad_en_base
               ? parseFloat(originalItem.cantidad_en_base)
               : originalItem.cantidad_insumo || 0;
 
-          const unidadMedida = tipo === 'insumo' && 'fk_unidad_medida' in originalItem 
+          const unidadMedida = isInsumo(originalItem)
             ? originalItem.fk_unidad_medida?.unidad_base || 'unidades'
             : 'unidades';
 
           return (
             <div key={item.id} className="flex items-center gap-4 p-2 border rounded">
               <div className="flex-1">
-                <span className="font-medium">{
-                  'nombre_h' in originalItem ? originalItem.nombre_h : originalItem.nombre
-                }</span>
+                <span className="font-medium">
+                  {isHerramienta ? originalItem.nombre_h : originalItem.nombre}
+                </span>
                 <span className="text-gray-600 ml-2">
-                  (Disponibles: {tipo === 'herramienta' 
-                    ? stockDisponible 
-                    : esInsumoSimple && originalItem.cantidad_en_base
+                  (Disponibles: {isHerramienta
+                    ? stockDisponible
+                    : esInsumoSimple && isInsumo(originalItem) && originalItem.cantidad_en_base
                       ? `${Math.round(parseFloat(originalItem.cantidad_en_base))} ${unidadMedida}`
                       : `${stockDisponible} ${unidadMedida}`})
                 </span>
@@ -227,7 +233,7 @@ const RegistrarSalidaBodega = ({
                 max={stockDisponible}
                 value={item.cantidad}
                 onChange={(e) => onUpdateCantidad(
-                  item.id, 
+                  item.id,
                   parseInt(e.target.value) || 1,
                   stockDisponible
                 )}
@@ -286,7 +292,7 @@ const RegistrarSalidaBodega = ({
         (id, cantidad, max) => actualizarCantidad(
           herramientasSeleccionadas,
           setHerramientasSeleccionadas,
-          id, 
+          id,
           cantidad,
           max
         ),
@@ -300,7 +306,7 @@ const RegistrarSalidaBodega = ({
         (id, cantidad, max) => actualizarCantidad(
           insumosSeleccionados,
           setInsumosSeleccionados,
-          id, 
+          id,
           cantidad,
           max
         ),
@@ -308,9 +314,9 @@ const RegistrarSalidaBodega = ({
         'insumo'
       )}
 
-      <Formulario 
-        fields={formFields} 
-        onSubmit={handleSubmit} 
+      <Formulario
+        fields={formFields}
+        onSubmit={handleSubmit}
         title="Confirmar Salida"
       />
 
@@ -328,8 +334,8 @@ const RegistrarSalidaBodega = ({
               <div
                 key={h.id}
                 className={`border p-4 rounded-lg shadow-sm cursor-pointer transition-colors ${
-                  herramientasSeleccionadas.some(sel => sel.id === h.id) 
-                    ? "bg-blue-100 border-blue-300" 
+                  herramientasSeleccionadas.some(sel => sel.id === h.id)
+                    ? "bg-blue-100 border-blue-300"
                     : "hover:bg-blue-50"
                 }`}
                 onClick={() => agregarHerramienta(h)}
@@ -391,15 +397,15 @@ const RegistrarSalidaBodega = ({
               <div
                 key={i.id}
                 className={`border p-4 rounded-lg shadow-sm cursor-pointer transition-colors ${
-                  insumosSeleccionados.some(sel => sel.id === i.id) 
-                    ? "bg-green-100 border-green-300" 
+                  insumosSeleccionados.some(sel => sel.id === i.id)
+                    ? "bg-green-100 border-green-300"
                     : "hover:bg-green-50"
                 }`}
                 onClick={() => agregarInsumo(i, tabActual === "simples")}
               >
                 <h4 className="font-semibold text-lg">{i.nombre}</h4>
                 <p className="text-gray-600">
-                  Disponibles: {tabActual === "simples" && i.cantidad_en_base 
+                  Disponibles: {tabActual === "simples" && i.cantidad_en_base
                     ? `${Math.round(parseFloat(i.cantidad_en_base))} ${i.fk_unidad_medida?.unidad_base || 'unidades'}`
                     : `${i.cantidad_insumo || 0} ${i.fk_unidad_medida?.unidad_base || 'unidades'}`}
                 </p>
@@ -442,9 +448,9 @@ const RegistrarSalidaBodega = ({
         isOpen={mostrarCrearCompuesto}
         onClose={() => setMostrarCrearCompuesto(false)}
       >
-        <CrearInsumoCompuesto 
-          onSuccess={agregarNuevoInsumo} 
-          onClose={() => setMostrarCrearCompuesto(false)} 
+        <CrearInsumoCompuesto
+          onSuccess={agregarNuevoInsumo}
+          onClose={() => setMostrarCrearCompuesto(false)}
         />
       </VentanaModal>
     </div>

@@ -8,11 +8,18 @@ export interface InsumoBajoStock {
   nombre: string;
   tipo: string;
   precio_unidad: string;
-  stock: number;
-  unidad_medida: string;
+  cantidad_en_base: number;
+  fk_unidad_medida: UnidadMedida;
 }
 
-export const useReporteInsumos = (umbral: number = 500) => {
+export interface UnidadMedida {
+    id: number;
+    nombre_medida: string;
+    unidad_base: 'g' | 'ml' | 'u';  
+    factor_conversion: number;
+}
+
+export const useReporteInsumos = (umbral: number = 2000) => {
   return useQuery<InsumoBajoStock[]>({
     queryKey: ["reporte_insumos_bajo_stock", umbral],
     queryFn: async () => {
