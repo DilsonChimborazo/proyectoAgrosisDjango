@@ -38,7 +38,7 @@ const DescargarTablaPDF: React.FC<DescargarTablaPDFProps> = ({
   
     // Cargar logos
     const logoSena = await cargarImagenComoBase64("/logoSena.png");
-    const logoKaizen = await cargarImagenComoBase64("/logo_proyecto-removebg-preview.png");
+    const logoKaizen = await cargarImagenComoBase64("/agrosoft.png");
   
     const pageWidth = doc.internal.pageSize.getWidth();
     const headerTop = 10;
