@@ -4,6 +4,8 @@ import Tabla from '@/components/globales/Tabla';
 import DescargarTablaPDF from '@/components/globales/DescargarTablaPDF';
 import { CheckCircle2, XCircle, Filter, Check, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import CrearSalario from "@/components/finanzas/salario/CrearSalario"
+import VentanaModal from '@/components/globales/VentanasModales';
 
 // Definición de tipos
 type Filtros = {
@@ -42,7 +44,7 @@ type PagoDetallado = {
 };
 
 const TablaPagosDetallados: React.FC = () => {
-  const { data, isLoading, error } = usePagosDetallados();
+  const { data, isLoading, error, refetch } = usePagosDetallados();
   const { mutate: marcarPago, isPending } = useMarcarPago();
   const [filtros, setFiltros] = useState<Filtros>({
     persona: '',
@@ -51,10 +53,17 @@ const TablaPagosDetallados: React.FC = () => {
   });
   const [pagoAMarcar, setPagoAMarcar] = useState<number | null>(null);
 
+  const [isSalarioModalOpen, setIsSalarioModalOpen] = useState(false);
+
+  const cerrarModalConExito = () => {
+    setIsSalarioModalOpen(false);
+    refetch(); // Refresca los datos del stock
+  };
+
   // Función para confirmar el pago
   const handleConfirmarPago = () => {
     if (!pagoAMarcar) return;
-    
+
     toast.promise(
       new Promise((resolve, reject) => {
         marcarPago(pagoAMarcar, {
@@ -77,16 +86,16 @@ const TablaPagosDetallados: React.FC = () => {
   const datosFiltrados = useMemo(() => {
     if (!data) return [];
     return data.filter((pago: PagoDetallado) => {
-      const cumplePersona = filtros.persona === '' || 
+      const cumplePersona = filtros.persona === '' ||
         `${pago.usuario?.nombre} ${pago.usuario?.apellido}`
           .toLowerCase()
           .includes(filtros.persona.toLowerCase());
 
-      const cumpleActividad = filtros.actividad === '' || 
+      const cumpleActividad = filtros.actividad === '' ||
         (pago.actividad || '').toLowerCase().includes(filtros.actividad.toLowerCase());
 
-      const cumpleEstado = filtros.estado === 'todos' || 
-        (filtros.estado === 'pagado' && pago.pagado) || 
+      const cumpleEstado = filtros.estado === 'todos' ||
+        (filtros.estado === 'pagado' && pago.pagado) ||
         (filtros.estado === 'pendiente' && !pago.pagado);
 
       return cumplePersona && cumpleActividad && cumpleEstado;
@@ -206,15 +215,24 @@ const TablaPagosDetallados: React.FC = () => {
 
       {/* Encabezado */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <button
+          onClick={() => setIsSalarioModalOpen(true)}
+          className="bg-green-600 hover:bg-green-800 text-white font-bold py-2 px-4 rounded mr-4"
+        >
+          Registrar Salario
+        </button>
         <h2 className="text-2xl font-bold text-gray-800 flex items-center">
           <Filter className="mr-2" size={24} /> Detalle de Pagos
         </h2>
-        <DescargarTablaPDF 
-          nombreArchivo="reporte_pagos.pdf" 
-          columnas={pdfColumns} 
-          datos={pdfData} 
-          titulo="Reporte de Pagos" 
+
+        <DescargarTablaPDF
+          nombreArchivo="reporte_pagos.pdf"
+          columnas={pdfColumns}
+          datos={pdfData}
+          titulo="Reporte de Pagos"
+          className="bg-green-600 text-white hover:bg-green-700"
         />
+
       </div>
 
       {/* Filtros */}
@@ -223,7 +241,7 @@ const TablaPagosDetallados: React.FC = () => {
           <label className="block text-sm font-medium text-gray-700 mb-1">Filtrar por persona</label>
           <select
             value={filtros.persona}
-            onChange={(e) => setFiltros({...filtros, persona: e.target.value})}
+            onChange={(e) => setFiltros({ ...filtros, persona: e.target.value })}
             className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
           >
             <option value="">Todas las personas</option>
@@ -237,7 +255,7 @@ const TablaPagosDetallados: React.FC = () => {
           <label className="block text-sm font-medium text-gray-700 mb-1">Filtrar por actividad</label>
           <select
             value={filtros.actividad}
-            onChange={(e) => setFiltros({...filtros, actividad: e.target.value})}
+            onChange={(e) => setFiltros({ ...filtros, actividad: e.target.value })}
             className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
           >
             <option value="">Todas las actividades</option>
@@ -251,7 +269,7 @@ const TablaPagosDetallados: React.FC = () => {
           <label className="block text-sm font-medium text-gray-700 mb-1">Filtrar por estado</label>
           <select
             value={filtros.estado}
-            onChange={(e) => setFiltros({...filtros, estado: e.target.value as 'todos' | 'pagado' | 'pendiente'})}
+            onChange={(e) => setFiltros({ ...filtros, estado: e.target.value as 'todos' | 'pagado' | 'pendiente' })}
             className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
           >
             <option value="todos">Todos los estados</option>
@@ -291,12 +309,25 @@ const TablaPagosDetallados: React.FC = () => {
         hiddenColumnsByDefault={['id']}
         rowsPerPageOptions={[10, 25, 50, 100]}
         renderCell={renderCell}
-        rowClassName={(row: { esPagado: any; }) => 
-          row.esPagado 
-            ? 'bg-green-50 hover:bg-green-100' 
+        rowClassName={(row: { esPagado: any; }) =>
+          row.esPagado
+            ? 'bg-green-50 hover:bg-green-100'
             : 'bg-red-50 hover:bg-red-100'
         }
       />
+      {isSalarioModalOpen && (
+        <VentanaModal
+          isOpen={isSalarioModalOpen}
+          onClose={cerrarModalConExito}
+          titulo=""
+          contenido={
+            <CrearSalario
+              onClose={cerrarModalConExito}
+              onSuccess={cerrarModalConExito}
+            />
+          }
+        />
+      )}
     </div>
   );
 };
