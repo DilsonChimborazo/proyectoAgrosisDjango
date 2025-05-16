@@ -214,7 +214,6 @@ const TablaPagosDetallados: React.FC = () => {
           columnas={pdfColumns} 
           datos={pdfData} 
           titulo="Reporte de Pagos" 
-          className="bg-green-600 text-white hover:bg-green-700"
         />
       </div>
 
