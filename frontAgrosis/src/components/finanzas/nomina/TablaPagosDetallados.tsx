@@ -125,10 +125,10 @@ const TablaPagosDetallados: React.FC = () => {
   }, [data]);
 
   // Preparar datos para la tabla
-  const headers = ['ID', 'Fecha', 'Usuario', 'Actividad', 'Tipo', 'Pago Total', 'Estado'];
+  const headers = ['ID', 'Fecha Pago', 'Usuario', 'Actividad', 'Tipo', 'Pago Total', 'Estado'];
   const rows: FilaPago[] = datosFiltrados.map((pago: PagoDetallado) => ({
     id: pago.id,
-    fecha: pago.fecha_pago || 'No especificada',
+    fecha_pago: pago.fecha_pago || 'No especificada',
     usuario: `${pago.usuario?.nombre || 'N/A'} ${pago.usuario?.apellido || ''}`.trim(),
     actividad: pago.actividad || 'Desconocida',
     tipo: pago.tipo_actividad || 'No especificado',
