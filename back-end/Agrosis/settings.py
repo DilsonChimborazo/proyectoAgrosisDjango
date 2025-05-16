@@ -38,7 +38,7 @@ ALLOWED_HOSTS = ["*"]
 # Application definition
 
 INSTALLED_APPS = [
-    "daphne",
+    'daphne',
     'django_extensions',
     'corsheaders',
     'django.contrib.admin',

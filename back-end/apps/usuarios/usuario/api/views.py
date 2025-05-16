@@ -13,10 +13,10 @@ from rest_framework.parsers import MultiPartParser
 import csv
 import io
 import pandas as pd
+import traceback
 
 
 class UsuarioViewSet(ModelViewSet):
-
     #permission_classes = [IsAuthenticated] 
 
     parser_classes = [MultiPartParser]
@@ -24,13 +24,14 @@ class UsuarioViewSet(ModelViewSet):
     @action(detail=False, methods=['post'], permission_classes=[IsAdminUser])
     def carga_masiva(self, request):
         archivo = request.FILES.get('file')
-    
+        print("Archivos recibidos:", request.FILES)
+
         if not archivo:
             return Response({'error': 'Debes subir un archivo'}, status=400)
-    
+
         creados = []
         errores = []
-    
+
         try:
             # Si el archivo es CSV
             if archivo.name.endswith('.csv'):
@@ -38,21 +39,21 @@ class UsuarioViewSet(ModelViewSet):
                 io_string = io.StringIO(data_set)
                 reader = csv.DictReader(io_string)
                 filas = list(reader)
-    
+
             # Si el archivo es Excel
             elif archivo.name.endswith('.xlsx'):
                 df = pd.read_excel(archivo)
                 filas = df.to_dict(orient='records')
-    
+
             else:
                 return Response({'error': 'Formato no soportado. Usa .csv o .xlsx'}, status=400)
-    
+
             for fila in filas:
                 try:
                     rol = Rol.objects.get(rol=fila["rol"])
                     ficha_id = fila.get("ficha")
                     ficha = Ficha.objects.get(id=ficha_id) if ficha_id else None
-    
+
                     user_data = {
                         "identificacion": fila["identificacion"],
                         "email": fila["email"],
@@ -62,26 +63,28 @@ class UsuarioViewSet(ModelViewSet):
                         "fk_id_rol": rol.id,
                         "ficha": ficha.id if ficha else None,
                     }
-    
+
                     serializer = EscribirUsuarioSerializer(data=user_data, context={'request': request})
                     if serializer.is_valid():
                         serializer.save()
                         creados.append(fila["email"])
                     else:
                         errores.append({"email": fila["email"], "errores": serializer.errors})
-    
+
                 except Rol.DoesNotExist:
                     errores.append({"email": fila.get("email", ""), "error": f"Rol '{fila['rol']}' no existe"})
                 except Ficha.DoesNotExist:
                     errores.append({"email": fila.get("email", ""), "error": f"Ficha ID '{fila['ficha']}' no existe"})
                 except Exception as e:
                     errores.append({"email": fila.get("email", ""), "error": str(e)})
-    
+
             return Response({"creados": creados, "errores": errores}, status=201)
-    
+
         except Exception as e:
-            return Response({"error": str(e)}, status=500)  
-        
+            print("Error general en carga masiva:", e)
+            traceback.print_exc()  # Imprime la traza completa del error en consola
+            return Response({"error": str(e)}, status=500)
+
     def get_queryset(self):
         """Retorna solo el usuario autenticado, excepto para los admins que ven todos"""
         if self.request.user.is_staff:
