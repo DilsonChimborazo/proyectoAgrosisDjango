@@ -76,6 +76,7 @@ import NominaPage from "./pages/finanzas/nomina/Nomina"
 
 import StockPage from "./pages/finanzas/stock/StockPage"
 import CrearInsumoCompuesto from "./components/inventario/insumocompuesto/CrearInsumoCompuesto";
+import CrearTipoCultivo from "./components/trazabilidad/tipocultivo/CrearTipoCultivo";
 
 
 const queryClient = new QueryClient();
@@ -130,6 +131,7 @@ function App() {
 
             {/* Rutas módulo trazabilidad */}
             <Route path="/tipoResiduo" element={<Principal><TipoResiduos /></Principal>} />
+            <Route path="/tipocultivo" element={<Principal><CrearTipoCultivo /></Principal>} />
             <Route path="/actividad" element={<Principal><CalendarPage /></Principal>} />
             <Route path="/cultivo" element={<Principal><CultivosPage /></Principal>} />
             <Route path="/plantacion" element={<Principal><PlantacionPage /></Principal>} />
@@ -164,7 +166,8 @@ function App() {
             <Route path="/diario" element={<Principal><RegistroDiario /></Principal>} />
             <Route path="/insumo-egresos" element={<Principal><ReporteInsumosPage /></Principal>} />
             <Route path="/stock" element={<Principal><StockPage /></Principal>} />
-             <Route path="/nomina" element={<Principal><NominaPage /></Principal>} />
+            <Route path="/nomina" element={<Principal><NominaPage /></Principal>} />
+
 
             {/* Ruta por defecto para manejar errores 404 */}
             <Route path="*" element={<h1>404 - Página no encontrada</h1>} />
