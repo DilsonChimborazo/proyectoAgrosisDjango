@@ -3,17 +3,16 @@ import { useCrearTipoCultivo } from '@/hooks/trazabilidad/tipoCultivo/useCrearTi
 
 interface CrearTipoCultivoProps {
   onSuccess: () => void;
-  onCancel: () => void;
 }
 
 const CICLO_OPCIONES = [
-  { value: '', label: 'Seleccione el tipo de cultivo' }, // Nueva opción inicial
+  { value: '', label: 'Seleccione el tipo de cultivo' },
   { value: 'Perennes', label: 'Perennes' },
   { value: 'Semiperennes', label: 'Semiperennes' },
   { value: 'Transitorios', label: 'Transitorios' },
 ];
 
-const CrearTipoCultivo = ({ onSuccess, onCancel }: CrearTipoCultivoProps) => {
+const CrearTipoCultivo = ({ onSuccess }: CrearTipoCultivoProps) => {
   const [nombre, setNombre] = useState('');
   const [descripcion, setDescripcion] = useState('');
   const [cicloDuracion, setCicloDuracion] = useState('');
@@ -37,7 +36,7 @@ const CrearTipoCultivo = ({ onSuccess, onCancel }: CrearTipoCultivoProps) => {
           setNombre('');
           setDescripcion('');
           setCicloDuracion('');
-          onSuccess();
+          onSuccess(); // Esto cerrará el modal desde el componente padre
         },
       }
     );
@@ -92,21 +91,13 @@ const CrearTipoCultivo = ({ onSuccess, onCancel }: CrearTipoCultivoProps) => {
             ))}
           </select>
         </div>
-        <div className="flex justify-end space-x-2">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
-            disabled={isPending}
-          >
-            Cancelar
-          </button>
+        <div className="flex justify-center">
           <button
             type="submit"
-            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-700"
+            className="px-4 py-2 bg-white text-green-600 border border-green-600 rounded-md hover:bg-green-600 hover:text-white"
             disabled={isPending}
           >
-            {isPending ? 'Creando...' : 'Crear'}
+            {isPending ? 'Creando...' : 'Registrar'}
           </button>
         </div>
       </form>

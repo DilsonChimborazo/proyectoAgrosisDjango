@@ -6,10 +6,9 @@ import CrearTipoCultivo from '../tipocultivo/CrearTipoCultivo';
 
 interface CrearEspecieProps {
   onSuccess?: () => void;
-  onCancel?: () => void;
 }
 
-const CrearEspecie = ({ onSuccess, onCancel }: CrearEspecieProps) => {
+const CrearEspecie = ({ onSuccess }: CrearEspecieProps) => {
   const mutation = useCrearEspecie();
   const { data: tiposCultivo = [], isLoading: isLoadingTiposCultivo, error: errorTiposCultivo } = useTipoCultivo();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -60,12 +59,9 @@ const CrearEspecie = ({ onSuccess, onCancel }: CrearEspecieProps) => {
         setSuccessMessage('✅ Especie registrada con éxito');
         setTimeout(() => setSuccessMessage(null), 3000);
         setFormData({ nombre_comun: '', nombre_cientifico: '', descripcion: '', fk_id_tipo_cultivo: '' });
-
+        setIsModalOpen(false); // Cierra el modal al registrar la especie
         if (typeof onSuccess === 'function') {
           onSuccess();
-        }
-        if (typeof onCancel === 'function') {
-          onCancel();
         }
       },
       onError: (error: any) => {
@@ -75,7 +71,7 @@ const CrearEspecie = ({ onSuccess, onCancel }: CrearEspecieProps) => {
   };
 
   const openCreateTipoCultivoModal = () => {
-    setModalContent(<CrearTipoCultivo onSuccess={() => setIsModalOpen(false)} onCancel={() => setIsModalOpen(false)} />);
+    setModalContent(<CrearTipoCultivo onSuccess={() => setIsModalOpen(false)} />);
     setIsModalOpen(true);
   };
 
@@ -136,28 +132,37 @@ const CrearEspecie = ({ onSuccess, onCancel }: CrearEspecieProps) => {
           <label htmlFor="fk_id_tipo_cultivo" className="block text-sm font-medium text-gray-700">
             Tipo de Cultivo
           </label>
-          <select
-            id="fk_id_tipo_cultivo"
-            name="fk_id_tipo_cultivo"
-            value={formData.fk_id_tipo_cultivo}
-            onChange={handleChange}
-            className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-            required
-          >
-            <option value="">Seleccione un tipo de cultivo</option>
-            {tipoCultivoOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+          <div className="flex items-center space-x-2">
+            <select
+              id="fk_id_tipo_cultivo"
+              name="fk_id_tipo_cultivo"
+              value={formData.fk_id_tipo_cultivo}
+              onChange={handleChange}
+              className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+              required
+            >
+              <option value="">Seleccione un tipo de cultivo</option>
+              {tipoCultivoOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={openCreateTipoCultivoModal}
+              className="mt-1 p-2 bg-green-500 text-white rounded-full hover:bg-green-600 flex items-center justify-center w-8 h-8"
+            >
+              +
+            </button>
+          </div>
         </div>
-        <div className="flex justify-end space-x-2">
-          <button type="button" onClick={onCancel} className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400">
-            Cancelar
-          </button>
-          <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-700">
-            {mutation.isPending ? 'Creando...' : 'Registrar'}
+        <div className="flex justify-center">
+          <button
+            type="submit"
+            className="px-4 py-2 bg-white text-green-600 border border-green-600 rounded-md hover:bg-green-600 hover:text-white"
+          >
+            Registrar
           </button>
         </div>
       </form>
