@@ -2,7 +2,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from apps.trazabilidad.asignacion_actividades.models import Asignacion_actividades
-from apps.trazabilidad.asignacion_actividades.api.serializers import LeerAsignacion_actividadesSerializer
+from apps.trazabilidad.asignacion_actividades.api.serializers import LeerAsignacion_actividadesSerializer 
+  
 
 class Asignacion_actividadesModelViewSet(ModelViewSet):
     queryset = Asignacion_actividades.objects.select_related(

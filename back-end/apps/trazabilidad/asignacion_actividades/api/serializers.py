@@ -4,7 +4,7 @@ from apps.trazabilidad.realiza.api.serializers import LeerRealizaSerializer
 from apps.usuarios.usuario.api.serializer import LeerUsuarioSerializer
 
 class LeerAsignacion_actividadesSerializer(ModelSerializer):
-    fk_id_actividad = LeerRealizaSerializer
+    fk_id_realiza = LeerRealizaSerializer
     fk_identificacion = LeerUsuarioSerializer
     
     class Meta:
