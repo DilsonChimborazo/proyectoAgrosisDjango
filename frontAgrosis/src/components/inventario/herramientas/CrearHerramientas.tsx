@@ -2,6 +2,7 @@ import { useCrearHerramientas } from "@/hooks/inventario/herramientas/useCrearHe
 import { useNavigate } from "react-router-dom";
 import Formulario from "../../globales/Formulario";
 import { useCrearBodega } from "@/hooks/inventario/bodega/useCrearBodega";  
+import { addToast } from "@heroui/react"; // ✅ aquí se importa correctamente
 
 const CrearHerramientas = ({ onSuccess }: { onSuccess?: () => void }) => {
     const mutation = useCrearHerramientas();
@@ -27,39 +28,49 @@ const CrearHerramientas = ({ onSuccess }: { onSuccess?: () => void }) => {
             cantidad_herramienta: Number(formData.cantidad_herramienta),
         };
 
-        // Primero creamos la herramienta
         mutation.mutate(nuevaHerramienta, {
             onSuccess: (data) => {
                 console.log("Herramienta creada exitosamente:", nuevaHerramienta);
-                
 
-                // Crear movimiento de entrada en la bodega después de la creación de la herramienta
                 const movimientoEntrada = {
                     fk_id_herramientas: data.data.id, 
                     cantidad_herramienta: nuevaHerramienta.cantidad_herramienta,
                     cantidad_insumo: 0,
-                    movimiento: 'Entrada'as const, 
+                    movimiento: 'Entrada' as const, 
                     fecha: new Date().toISOString(),
                     fk_id_asignacion: null, 
                     fk_id_insumo: null,  
                 };
 
-                // Registrar el movimiento de entrada en la bodega
                 mutate(movimientoEntrada, {
-                    onSuccess: (response) => {
-                        console.log("este es el movimiento de entrada",response)
+                    onSuccess: () => {
+                        addToast({
+                            title: "Herramienta registrada",
+                            description: "La herramienta y el movimiento en bodega fueron creados exitosamente.",
+                            timeout: 4000,
+                        });
                         if (onSuccess) {
                             onSuccess();
                         }
-                        navigate("/bodega"); // Redirigir a la página de bodega
+                        navigate("/bodega");
                     },
                     onError: (error) => {
                         console.error("Error al registrar el movimiento en la bodega:", error?.response?.data || error?.message);
+                        addToast({
+                            title: "Error al registrar en bodega",
+                            description: error?.response?.data?.detail || "Ocurrió un error al registrar el movimiento en bodega.",
+                            timeout: 4000,
+                        });
                     },
                 });
             },
             onError: (error) => {
                 console.error("Error al crear la herramienta:", error?.response?.data || error?.message);
+                addToast({
+                    title: "Error al crear herramienta",
+                    description: error?.response?.data?.detail || "No se pudo registrar la herramienta.",
+                    timeout: 4000,
+                });
             },
         });
     };
@@ -73,12 +84,6 @@ const CrearHerramientas = ({ onSuccess }: { onSuccess?: () => void }) => {
                 isSuccess={mutation.isSuccess}
                 title="Crear Herramienta"
             />
-            {mutation.isError && (
-                <div className="text-red-500 mt-2">Hubo un error al crear la herramienta. Intenta nuevamente.</div>
-            )}
-            {mutation.isSuccess && (
-                <div className="text-green-500 mt-2">Herramienta creada exitosamente!</div>
-            )}
         </div>
     );
 };

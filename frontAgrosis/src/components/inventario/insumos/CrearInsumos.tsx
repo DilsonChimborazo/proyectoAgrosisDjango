@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { addToast } from "@heroui/react";
 import Formulario from "../../globales/Formulario";
 import VentanaModal from "@/components/globales/VentanasModales";
 import { useCrearInsumo } from "@/hooks/inventario/insumos/useCrearInsumos";
@@ -49,10 +50,19 @@ const CrearInsumos = ({ onSuccess }: CrearInsumosProps) => {
   ];
 
   const handleSubmit = (formData: any) => {
-    // Validación de campos requeridos
-    if (!formData.nombre || !formData.tipo || !formData.precio_unidad || 
-        !formData.cantidad_insumo || !formData.fecha_vencimiento || !formData.fk_unidad_medida) {
-      console.error("Todos los campos obligatorios deben ser completados.");
+    if (
+      !formData.nombre ||
+      !formData.tipo ||
+      !formData.precio_unidad ||
+      !formData.cantidad_insumo ||
+      !formData.fecha_vencimiento ||
+      !formData.fk_unidad_medida
+    ) {
+      addToast({
+        title: "Campos incompletos",
+        description: "Todos los campos obligatorios deben ser completados.",
+        timeout: 4000,
+      });
       return;
     }
 
@@ -73,22 +83,30 @@ const CrearInsumos = ({ onSuccess }: CrearInsumosProps) => {
         const movimientoEntrada = {
           fk_id_insumo: insumoCreado.id,
           cantidad_insumo: Number(formData.cantidad_insumo),
-          movimiento: "Entrada",
+          movimiento: "Entrada" as "Entrada",
           fecha: new Date().toISOString(),
           fk_id_asignacion: null,
           fk_id_herramientas: null,
           cantidad_herramienta: null,
           fk_unidad_medida: Number(formData.fk_unidad_medida),
-          costo_insumo: Number(formData.precio_unidad)
+          costo_insumo: Number(formData.precio_unidad),
         };
-
-        console.log("Datos para movimiento de bodega:", movimientoEntrada);
 
         mutate(movimientoEntrada, {
           onSuccess: () => {
+            addToast({
+              title: "Insumo creado exitosamente",
+              description: "El insumo ha sido registrado en la bodega.",
+              timeout: 4000,
+            });
             onSuccess();
           },
           onError: (error) => {
+            addToast({
+              title: "Error al registrar en bodega",
+              description: error.response?.data?.detail || "Ocurrió un error al registrar el movimiento.",
+              timeout: 5000,
+            });
             console.error("Error al registrar en bodega:", {
               status: error.response?.status,
               data: error.response?.data,
@@ -98,6 +116,11 @@ const CrearInsumos = ({ onSuccess }: CrearInsumosProps) => {
         });
       },
       onError: (error) => {
+        addToast({
+          title: "Error al crear insumo",
+          description: error.response?.data?.detail || "Ocurrió un error al crear el insumo.",
+          timeout: 5000,
+        });
         console.error("Error al crear el insumo:", {
           status: error.response?.status,
           data: error.response?.data,
