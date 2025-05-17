@@ -13,7 +13,7 @@ interface CrearInsumosProps {
 
 const CrearInsumos = ({ onSuccess }: CrearInsumosProps) => {
   const mutation = useCrearInsumo();
-  const { mutate } = useCrearBodega();
+  const { mutate: crearMovimientoBodega } = useCrearBodega();
   const { data: unidades = [], refetch } = useMedidas();
 
   const [modalAbierto, setModalAbierto] = useState(false);
@@ -81,18 +81,19 @@ const CrearInsumos = ({ onSuccess }: CrearInsumosProps) => {
     mutation.mutate(formDataToSubmit, {
       onSuccess: (insumoCreado) => {
         const movimientoEntrada = {
-          fk_id_insumo: insumoCreado.id,
-          cantidad_insumo: Number(formData.cantidad_insumo),
-          movimiento: "Entrada" as "Entrada",
-          fecha: new Date().toISOString(),
           fk_id_asignacion: null,
-          fk_id_herramientas: null,
-          cantidad_herramienta: null,
-          fk_unidad_medida: Number(formData.fk_unidad_medida),
-          costo_insumo: Number(formData.precio_unidad),
+          fecha: new Date().toISOString().split("T")[0], // Formato YYYY-MM-DD
+          movimiento: "Entrada" as "Entrada",
+          herramientas: [], // No se incluyen herramientas
+          insumos: [
+            {
+              id: insumoCreado.id, // ID del insumo recién creado
+              cantidad: Number(formData.cantidad_insumo),
+            },
+          ],
         };
 
-        mutate(movimientoEntrada, {
+        crearMovimientoBodega(movimientoEntrada, {
           onSuccess: () => {
             addToast({
               title: "Insumo creado exitosamente",
@@ -101,7 +102,7 @@ const CrearInsumos = ({ onSuccess }: CrearInsumosProps) => {
             });
             onSuccess();
           },
-          onError: (error) => {
+          onError: (error: any) => {
             addToast({
               title: "Error al registrar en bodega",
               description: error.response?.data?.detail || "Ocurrió un error al registrar el movimiento.",
@@ -115,7 +116,7 @@ const CrearInsumos = ({ onSuccess }: CrearInsumosProps) => {
           },
         });
       },
-      onError: (error) => {
+      onError: (error: any) => {
         addToast({
           title: "Error al crear insumo",
           description: error.response?.data?.detail || "Ocurrió un error al crear el insumo.",
