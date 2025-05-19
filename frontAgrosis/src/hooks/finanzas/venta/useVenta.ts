@@ -55,7 +55,7 @@ export interface Produccion {
   fecha: string;
   stock_disponible: number;
   fk_id_plantacion: Plantacion | null;
-  fk_unidad_medida: UnidadMedida | null;
+  fk_unidad_medida: UnidadMedida;
   cantidad_en_base: number | null;
 }
 

@@ -22,6 +22,7 @@ interface FormField {
   hasExtraButton?: boolean;
   extraButtonText?: string;
   onExtraButtonClick?: () => void;
+  extraContent?: React.ReactNode; // Agregamos esta propiedad para usar el nuevo soporte en Formulario
 }
 
 const CrearPlantacion = ({ onSuccess }: CrearPlantacionProps) => {
@@ -35,6 +36,7 @@ const CrearPlantacion = ({ onSuccess }: CrearPlantacionProps) => {
   const [mostrarModalCultivo, setMostrarModalCultivo] = useState(false);
   const [mostrarModalSemillero, setMostrarModalSemillero] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [selectedSemilleroId, setSelectedSemilleroId] = useState<string | null>(null);
 
   const eraOptions = eras.map((era) => ({
     value: String(era.id ?? ""),
@@ -51,11 +53,19 @@ const CrearPlantacion = ({ onSuccess }: CrearPlantacionProps) => {
     label: semillero.nombre_semilla ?? "Sin nombre",
   }));
 
-  // Depuración de las opciones
-  console.log("Opciones de Eras:", eraOptions);
-  console.log("Opciones de Cultivos:", cultivoOptions);
-  console.log("Opciones de Semilleros:", semilleroOptions);
+  // Find the selected semillero to get its cantidad
+  const selectedSemillero = semilleros.find(
+    (semillero) => String(semillero.id) === selectedSemilleroId
+  );
 
+  // Handle field changes to update selected semillero
+  const handleFieldChange = (fieldId: string, value: string) => {
+    if (fieldId === "fk_id_semillero") {
+      setSelectedSemilleroId(value);
+    }
+  };
+
+  // Formulario con campos
   const formFields: FormField[] = [
     {
       id: "fk_id_eras",
@@ -93,9 +103,16 @@ const CrearPlantacion = ({ onSuccess }: CrearPlantacionProps) => {
       hasExtraButton: true,
       extraButtonText: "Crear Semillero",
       onExtraButtonClick: () => setMostrarModalSemillero(true),
+      // Agregamos el letrero como extraContent para que se renderice justo después del campo
+      extraContent: selectedSemillero ? (
+        <div className="text-sm text-green-600 text-center">
+          Cantidad disponible del semillero seleccionado: {selectedSemillero.cantidad ?? 0}
+        </div>
+      ) : null,
     },
   ];
 
+  // Función de envío del formulario
   const handleSubmit = (formData: { [key: string]: string }) => {
     setErrorMessage(null);
 
@@ -141,18 +158,12 @@ const CrearPlantacion = ({ onSuccess }: CrearPlantacionProps) => {
     await refetch();
   };
 
+  // Cargar datos
   if (isLoadingEras || isLoadingCultivos || isLoadingSemilleros) {
     return <div className="text-center text-gray-500">Cargando datos...</div>;
   }
 
-  if (!eraOptions.length || !cultivoOptions.length || !semilleroOptions.length) {
-    return (
-      <div className="text-center text-red-500">
-        No hay eras, cultivos o semilleros disponibles. Crea algunos primero.
-      </div>
-    );
-  }
-
+  // Si no hay datos, permitir crear nuevas opciones
   return (
     <div className="max-w-4xl mx-auto p-4">
       {errorMessage && (
@@ -163,11 +174,13 @@ const CrearPlantacion = ({ onSuccess }: CrearPlantacionProps) => {
       <Formulario
         fields={formFields}
         onSubmit={handleSubmit}
+        onFieldChange={handleFieldChange}
         isError={mutation.isError}
         isSuccess={mutation.isSuccess}
         title="Registrar Nueva Plantación"
       />
 
+      {/* Modales para crear Era, Cultivo y Semillero */}
       <VentanaModal
         isOpen={mostrarModalEra}
         onClose={cerrarYActualizar}
@@ -186,7 +199,7 @@ const CrearPlantacion = ({ onSuccess }: CrearPlantacionProps) => {
         isOpen={mostrarModalSemillero}
         onClose={cerrarYActualizar}
         titulo=""
-        contenido={<CrearSemillero />}
+        contenido={<CrearSemillero onSuccess={cerrarYActualizar} />}
       />
     </div>
   );

@@ -5,15 +5,39 @@ import { useNavigate } from "react-router-dom";
 import { useProduccion } from "@/hooks/finanzas/produccion/useProduccion";
 import { useMedidas } from "@/hooks/inventario/unidadMedida/useMedidad";
 import { NuevaVenta } from "@/hooks/finanzas/venta/useCrearVenta";
-import { Produccion } from "@/hooks/finanzas/venta/useVenta";
 import CrearUnidadMedida from "@/components/inventario/unidadMedida/UnidadMedida";
 import CrearProduccion from "@/components/finanzas/produccion/CrearProduccion";
 import VentanaModal from "@/components/globales/VentanasModales";
+import { addToast } from "@heroui/react";
 
 interface CrearVentaProps {
   onClose?: () => void;
   onSuccess?: () => void;
 }
+
+interface FormField {
+  id: string;
+  label: string;
+  type: "text" | "date" | "number" | "select";
+  options?: { value: string; label: string }[];
+  hasExtraButton?: boolean;
+  extraButtonText?: string;
+  onExtraButtonClick?: () => void;
+  extraContent?: React.ReactNode;
+  required?: boolean;
+  min?: number;
+  max?: number;
+  step?: string;
+  placeholder?: string;
+}
+
+// Función para formatear números con separadores de miles (p.ej. 1000 -> 1.000)
+const formatearNumero = (num: number | string) => {
+  if (num === null || num === undefined || num === "") return "";
+  const numero = typeof num === "string" ? parseFloat(num) : num;
+  if (isNaN(numero)) return "";
+  return numero.toLocaleString("es-ES"); // formato español, separador de miles es punto
+};
 
 const CrearVenta = ({ onClose, onSuccess }: CrearVentaProps) => {
   const mutation = useCrearVenta();
@@ -24,8 +48,13 @@ const CrearVenta = ({ onClose, onSuccess }: CrearVentaProps) => {
 
   const [modalMedidaAbierto, setModalMedidaAbierto] = useState(false);
   const [modalProduccionAbierto, setModalProduccionAbierto] = useState(false);
-  const [stockSeleccionado, setStockSeleccionado] = useState<number | null>(null);
-  const [produccionSeleccionada, setProduccionSeleccionada] = useState<Produccion | null>(null);
+  const [selectedProduccionId, setSelectedProduccionId] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Encontrar la producción seleccionada para obtener su stock
+  const selectedProduccion = producciones.find(
+    (produccion) => String(produccion.id) === selectedProduccionId
+  );
 
   const abrirModalMedida = () => setModalMedidaAbierto(true);
   const cerrarModalMedida = () => {
@@ -39,18 +68,38 @@ const CrearVenta = ({ onClose, onSuccess }: CrearVentaProps) => {
     refetchProduccion();
   };
 
-  const handleProduccionChange = (idProduccion: string) => {
-    const id = Number(idProduccion);
-    const produccion = producciones.find((p: Produccion) => p.id === id);
-    if (produccion) {
-      setProduccionSeleccionada(produccion);
-      setStockSeleccionado(produccion.stock_disponible);
+  const handleFieldChange = (fieldId: string, value: string) => {
+    if (fieldId === "fk_id_produccion") {
+      setSelectedProduccionId(value);
     }
   };
 
   const handleSubmit = (formData: { [key: string]: string | File }) => {
-    if (!produccionSeleccionada) {
-      console.error("Error: Debe seleccionar una producción");
+    setErrorMessage(null);
+
+    const errors: string[] = [];
+    if (!formData.fk_id_produccion) errors.push("Producción es obligatoria");
+    if (!formData.cantidad || parseFloat(formData.cantidad as string) <= 0) {
+      errors.push("Cantidad debe ser mayor a cero");
+    }
+    if (!formData.fk_unidad_medida) errors.push("Unidad de medida es obligatoria");
+    if (!formData.precio_unidad || parseFloat(formData.precio_unidad as string) <= 0) {
+      errors.push("Precio por unidad debe ser mayor a cero");
+    }
+    if (!formData.fecha) errors.push("Fecha de venta es obligatoria");
+
+    if (selectedProduccion && formData.cantidad &&
+      parseFloat(formData.cantidad as string) > selectedProduccion.stock_disponible) {
+      errors.push(`La cantidad no puede superar el stock disponible (${formatearNumero(selectedProduccion.stock_disponible)})`);
+    }
+
+    if (errors.length > 0) {
+      setErrorMessage(errors.join(", "));
+      return;
+    }
+
+    if (!selectedProduccion) {
+      setErrorMessage("Seleccione una producción válida");
       return;
     }
 
@@ -58,21 +107,11 @@ const CrearVenta = ({ onClose, onSuccess }: CrearVentaProps) => {
     const precioUnidad = parseFloat(formData.precio_unidad as string);
     const unidadMedidaId = parseInt(formData.fk_unidad_medida as string, 10);
 
-    if (cantidad <= 0 || precioUnidad <= 0) {
-      console.error("Error: Cantidad y precio deben ser mayores a cero");
-      return;
-    }
-
-    if (stockSeleccionado !== null && cantidad > stockSeleccionado) {
-      console.error("Error: La cantidad no puede ser mayor al stock disponible");
-      return;
-    }
-
     const unidadSeleccionada = unidades.find((u) => u.id === unidadMedidaId);
     const factorConversion = unidadSeleccionada?.factor_conversion ?? 1;
 
     const nuevaVenta: NuevaVenta = {
-      fk_id_produccion: produccionSeleccionada.id,
+      fk_id_produccion: selectedProduccion.id,
       cantidad,
       precio_unidad: precioUnidad,
       fecha: formData.fecha as string,
@@ -82,11 +121,25 @@ const CrearVenta = ({ onClose, onSuccess }: CrearVentaProps) => {
 
     mutation.mutate(nuevaVenta, {
       onSuccess: () => {
+        addToast({
+          title: "Venta creada exitosamente",
+          description: "La venta ha sido registrada correctamente",
+          timeout: 4000
+        });
+
+        // Refrescar producciones para actualizar el stock
+        refetchProduccion();
+
         onSuccess ? onSuccess() : navigate("/stock");
         onClose?.();
       },
       onError: (error) => {
-        console.error("Error al crear la venta:", error.message);
+        addToast({
+          title: "Error al crear venta",
+          description: error.message || "Ocurrió un error al procesar la venta",
+          timeout: 5000
+        });
+        setErrorMessage("Error al crear la venta. Intente de nuevo.");
       },
     });
   };
@@ -100,7 +153,7 @@ const CrearVenta = ({ onClose, onSuccess }: CrearVentaProps) => {
     label: `${p.nombre_produccion} - ${p.fecha}`,
   }));
 
-  const formFields = [
+  const formFields: FormField[] = [
     {
       id: "fk_id_produccion",
       label: "Producción",
@@ -110,6 +163,14 @@ const CrearVenta = ({ onClose, onSuccess }: CrearVentaProps) => {
       extraButtonText: "+",
       onExtraButtonClick: abrirModalProduccion,
       required: true,
+      extraContent: selectedProduccion && (
+        <div className="mt-2 p-2 bg-blue-50 text-blue-800 rounded-lg text-sm">
+          <p className="font-semibold">
+            Stock disponible: {formatearNumero(selectedProduccion.stock_disponible)}{" "}
+            {selectedProduccion.fk_unidad_medida?.unidad_base || ""}
+          </p>
+        </div>
+      )
     },
     {
       id: "cantidad",
@@ -118,7 +179,8 @@ const CrearVenta = ({ onClose, onSuccess }: CrearVentaProps) => {
       min: 0.01,
       step: "any",
       required: true,
-      max: stockSeleccionado || undefined,
+      max: selectedProduccion?.stock_disponible,
+      placeholder: selectedProduccion ? `Máximo ${formatearNumero(selectedProduccion.stock_disponible)} unidades` : ""
     },
     {
       id: "fk_unidad_medida",
@@ -150,10 +212,11 @@ const CrearVenta = ({ onClose, onSuccess }: CrearVentaProps) => {
   ];
 
   return (
-    <div className="max-w-4xl mx-auto">
-      {stockSeleccionado !== null && (
-        <div className="mb-4 p-3 bg-blue-50 text-blue-800 rounded-lg">
-          <p className="font-semibold">Stock disponible: {stockSeleccionado}</p>
+    <div className="max-w-4xl mx-auto p-4">
+      {errorMessage && (
+        <div className="mb-4 p-3 bg-red-50 text-red-800 rounded-lg">
+          <p className="font-semibold">Error:</p>
+          <p>{errorMessage}</p>
         </div>
       )}
 
@@ -161,14 +224,7 @@ const CrearVenta = ({ onClose, onSuccess }: CrearVentaProps) => {
         title="Crear Venta"
         fields={formFields}
         onSubmit={handleSubmit}
-        onFieldChange={(id, value) => {
-          if (id === "fk_id_produccion") handleProduccionChange(value);
-        }}
-        stockMessage={
-          stockSeleccionado !== null
-            ? `Stock disponible: ${stockSeleccionado} unidades`
-            : ""
-        }
+        onFieldChange={handleFieldChange}
       />
 
       {/* Modal de unidad de medida */}
@@ -186,13 +242,6 @@ const CrearVenta = ({ onClose, onSuccess }: CrearVentaProps) => {
         contenido={<CrearProduccion onSuccess={cerrarModalProduccion} />}
         titulo="Crear Producción"
       />
-
-      {mutation.isError && (
-        <div className="mt-4 p-3 bg-red-50 text-red-800 rounded-lg">
-          <p className="font-semibold">Error:</p>
-          <p>{mutation.error.message}</p>
-        </div>
-      )}
     </div>
   );
 };
