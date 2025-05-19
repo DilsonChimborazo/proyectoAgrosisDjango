@@ -9,15 +9,15 @@ def registrar_salida_stock(sender, instance, created, **kwargs):
     if created:
         produccion = instance.fk_id_produccion
         if produccion:
-            if produccion.stock_disponible >= instance.cantidad:
-                produccion.stock_disponible -= instance.cantidad
+            cantidad_a_descontar = instance.cantidad_en_base or 0
+            if produccion.stock_disponible >= cantidad_a_descontar:
+                produccion.stock_disponible -= cantidad_a_descontar
                 produccion.save(update_fields=["stock_disponible"])
-                
+
                 Stock.objects.create(
                     fk_id_venta=instance,
-                    cantidad=instance.cantidad,
+                    cantidad=cantidad_a_descontar,
                     movimiento='Salida'
                 )
             else:
-                # Opcional: manejar el error si la venta excede el stock disponible
                 print(f"⚠️ No hay suficiente stock disponible en la producción {produccion.id}")
