@@ -2,7 +2,7 @@ import { useCrearHerramientas } from "@/hooks/inventario/herramientas/useCrearHe
 import { useNavigate } from "react-router-dom";
 import Formulario from "../../globales/Formulario";
 import { useCrearBodega } from "@/hooks/inventario/bodega/useCrearBodega";
-import { addToast } from "@heroui/react";
+import { showToast } from "@/components/globales/Toast";
 
 const CrearHerramientas = ({ onSuccess }: { onSuccess?: () => void }) => {
   const mutation = useCrearHerramientas();
@@ -35,26 +35,25 @@ const CrearHerramientas = ({ onSuccess }: { onSuccess?: () => void }) => {
       onSuccess: (data) => {
         console.log("Herramienta creada exitosamente:", nuevaHerramienta);
 
-        // Crear el payload para el movimiento en bodega
         const movimientoEntrada = {
           fk_id_asignacion: null,
-          fecha: new Date().toISOString().split("T")[0], // Formato YYYY-MM-DD
+          fecha: new Date().toISOString().split("T")[0], 
           movimiento: "Entrada" as "Entrada",
           herramientas: [
             {
-              id: data.data.id, // ID de la herramienta recién creada
+              id: data.data.id, 
               cantidad: Number(formData.cantidad_herramienta),
             },
           ],
-          insumos: [], // No se incluyen insumos
+          insumos: [], 
         };
 
         crearMovimientoBodega(movimientoEntrada, {
           onSuccess: () => {
-            addToast({
+            showToast({
               title: "Herramienta registrada",
               description: "La herramienta y el movimiento en bodega fueron creados exitosamente.",
-              timeout: 4000,
+              variant: "success"
             });
             if (onSuccess) {
               onSuccess();
@@ -63,20 +62,20 @@ const CrearHerramientas = ({ onSuccess }: { onSuccess?: () => void }) => {
           },
           onError: (error: any) => {
             console.error("Error al registrar el movimiento en la bodega:", error?.response?.data || error?.message);
-            addToast({
+            showToast({
               title: "Error al registrar en bodega",
               description: error?.response?.data?.detail || "Ocurrió un error al registrar el movimiento en bodega.",
-              timeout: 4000,
+              variant: "error"
             });
           },
         });
       },
       onError: (error: any) => {
         console.error("Error al crear la herramienta:", error?.response?.data || error?.message);
-        addToast({
+        showToast({
           title: "Error al crear herramienta",
           description: error?.response?.data?.detail || "No se pudo registrar la herramienta.",
-          timeout: 4000,
+          variant: "error"
         });
       },
     });

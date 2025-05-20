@@ -17,10 +17,10 @@ export function Provider({ children }: { children: React.ReactNode }) {
 
   return (
     <HeroUIProvider navigate={navigate} useHref={useHref}>
-      <ToastProvider placement="top-right"/>
-      <AuthProvider>
-      {children}
-      </AuthProvider>
+      <ToastProvider placement="top-right" toastOffset={80}/>
+        <AuthProvider>
+          {children}
+        </AuthProvider>
     </HeroUIProvider>
   );
 }

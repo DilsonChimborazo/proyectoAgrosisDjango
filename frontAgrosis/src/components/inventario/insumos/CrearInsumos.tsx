@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { addToast } from "@heroui/react";
+import { showToast } from "@/components/globales/Toast";
 import Formulario from "../../globales/Formulario";
 import VentanaModal from "@/components/globales/VentanasModales";
 import { useCrearInsumo } from "@/hooks/inventario/insumos/useCrearInsumos";
@@ -58,11 +58,6 @@ const CrearInsumos = ({ onSuccess }: CrearInsumosProps) => {
       !formData.fecha_vencimiento ||
       !formData.fk_unidad_medida
     ) {
-      addToast({
-        title: "Campos incompletos",
-        description: "Todos los campos obligatorios deben ser completados.",
-        timeout: 4000,
-      });
       return;
     }
 
@@ -82,12 +77,12 @@ const CrearInsumos = ({ onSuccess }: CrearInsumosProps) => {
       onSuccess: (insumoCreado) => {
         const movimientoEntrada = {
           fk_id_asignacion: null,
-          fecha: new Date().toISOString().split("T")[0], // Formato YYYY-MM-DD
+          fecha: new Date().toISOString().split("T")[0], 
           movimiento: "Entrada" as "Entrada",
-          herramientas: [], // No se incluyen herramientas
+          herramientas: [],
           insumos: [
             {
-              id: insumoCreado.id, // ID del insumo recién creado
+              id: insumoCreado.id, 
               cantidad: Number(formData.cantidad_insumo),
             },
           ],
@@ -95,18 +90,20 @@ const CrearInsumos = ({ onSuccess }: CrearInsumosProps) => {
 
         crearMovimientoBodega(movimientoEntrada, {
           onSuccess: () => {
-            addToast({
+            showToast({
               title: "Insumo creado exitosamente",
               description: "El insumo ha sido registrado en la bodega.",
               timeout: 4000,
+              variant: "success",
             });
             onSuccess();
           },
           onError: (error: any) => {
-            addToast({
+            showToast({
               title: "Error al registrar en bodega",
               description: error.response?.data?.detail || "Ocurrió un error al registrar el movimiento.",
               timeout: 5000,
+              variant: "error"
             });
             console.error("Error al registrar en bodega:", {
               status: error.response?.status,
@@ -117,10 +114,11 @@ const CrearInsumos = ({ onSuccess }: CrearInsumosProps) => {
         });
       },
       onError: (error: any) => {
-        addToast({
+        showToast({
           title: "Error al crear insumo",
           description: error.response?.data?.detail || "Ocurrió un error al crear el insumo.",
           timeout: 5000,
+          variant: "error"
         });
         console.error("Error al crear el insumo:", {
           status: error.response?.status,
