@@ -72,11 +72,6 @@ const CrearHerramientas = ({ onSuccess }: { onSuccess?: () => void }) => {
       },
       onError: (error: any) => {
         console.error("Error al crear la herramienta:", error?.response?.data || error?.message);
-        showToast({
-          title: "Error al crear herramienta",
-          description: error?.response?.data?.detail || "No se pudo registrar la herramienta.",
-          variant: "error"
-        });
       },
     });
   };
