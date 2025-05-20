@@ -14,13 +14,13 @@ class NotificationInsumoConsumer(AsyncWebsocketConsumer):
         self.user = self.scope['user']
         self.group_name = f'notificaciones_{self.user.id}'
 
-        if self.user.is_authenticated and await self.is_admin(self.user):
+        if await self.is_admin(self.user):
             await self.channel_layer.group_add(
                 self.group_name,
                 self.channel_name
             )
             await self.accept()
-            await self.check_insumo_status()  # Verificar insumos al conectar
+            await self.check_insumo_status()  
         else:
             await self.close()
 
@@ -194,4 +194,4 @@ class NotificationInsumoConsumer(AsyncWebsocketConsumer):
 
     @sync_to_async
     def is_admin(self, user):
-        return hasattr(user, 'rol') and user.rol == 'admin'
+        return hasattr(user, 'rol') and user.rol == 'Administrador'
