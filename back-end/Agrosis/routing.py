@@ -19,7 +19,7 @@ websocket_urlpatterns = [
     re_path(r'ws/api/sensores/$', SensorConsumer.as_asgi()),
     re_path(r"ws/api/evapotranspiracion/$", EvapotranspiracionConsumer.as_asgi()),
     re_path(r"ws/api/notificaciones/$", NotificacionConsumer.as_asgi()),
-    re_path(r"ws/api/notificaciones/$", NotificationInsumoConsumer.as_asgi()),
+    re_path(r"ws/api/insumo/$", NotificationInsumoConsumer.as_asgi()),
 
 ]
 

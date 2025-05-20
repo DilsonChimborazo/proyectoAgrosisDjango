@@ -14,15 +14,15 @@ class NotificationInsumoConsumer(AsyncWebsocketConsumer):
         self.user = self.scope['user']
         self.group_name = f'notificaciones_{self.user.id}'
 
-        await self.channel_layer.group_add(
-            self.group_name,
-            self.channel_name
-        )
-        await self.accept()
-
-        # Solo ejecuta verificación si el usuario tiene rol 'admin'
         if self.user.is_authenticated and await self.is_admin(self.user):
-            await self.check_expiring_insumos()
+            await self.channel_layer.group_add(
+                self.group_name,
+                self.channel_name
+            )
+            await self.accept()
+            await self.check_insumo_status()  # Verificar insumos al conectar
+        else:
+            await self.close()
 
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(
@@ -35,7 +35,7 @@ class NotificationInsumoConsumer(AsyncWebsocketConsumer):
         titulo = data.get('titulo')
         mensaje = data.get('mensaje')
 
-        if titulo and mensaje and self.user.is_authenticated:
+        if titulo and mensaje and self.user.is_authenticated and await self.is_admin(self.user):
             notificacion = await sync_to_async(Notificacion.objects.create)(
                 usuario=self.user,
                 titulo=titulo,
@@ -72,26 +72,85 @@ class NotificationInsumoConsumer(AsyncWebsocketConsumer):
             'leida': event['leida']
         }))
 
-    async def check_expiring_insumos(self):
+    async def check_insumo_status(self):
         expiration_threshold = timezone.now().date() + timedelta(days=7)
+        low_stock_threshold = 10  # Umbral para stock bajo
 
-        insumos = await sync_to_async(list)(
+        # Obtener insumos próximos a vencer
+        insumos_expiring = await sync_to_async(list)(
             Insumo.objects.filter(
                 fecha_vencimiento__lte=expiration_threshold,
                 fecha_vencimiento__gte=timezone.now().date()
             )
         )
 
-        usuarios_admin = await sync_to_async(list)(
-            Usuarios.objects.filter(rol='admin')  
+        # Obtener insumos con stock bajo
+        insumos_low_stock = await sync_to_async(list)(
+            Insumo.objects.filter(
+                cantidad_en_base__lt=low_stock_threshold,
+                cantidad_en_base__gt=0
+            )
         )
 
-        for insumo in insumos:
+        # Obtener administradores
+        usuarios_admin = await sync_to_async(list)(
+            Usuarios.objects.filter(rol='admin')
+        )
+
+        # Procesar insumos próximos a vencer
+        for insumo in insumos_expiring:
             days_until_expiry = (insumo.fecha_vencimiento - timezone.now().date()).days
             titulo = f"Insumo a punto de vencer: {insumo.nombre}"
             mensaje = (
-                f"El insumo {insumo.nombre} vencerá en {days_until_expiry} día(s), "
+                f"El insumo '{insumo.nombre}' vencerá en {days_until_expiry} día(s), "
                 f"el {insumo.fecha_vencimiento.strftime('%Y-%m-%d')}."
+            )
+
+            for usuario in usuarios_admin:
+                notification_exists = await sync_to_async(Notificacion.objects.filter)(
+                    usuario=usuario,
+                    titulo=titulo,
+                    mensaje=mensaje
+                )
+
+                if await sync_to_async(notification_exists.exists)():
+                    continue
+
+                notificacion = await sync_to_async(Notificacion.objects.create)(
+                    usuario=usuario,
+                    titulo=titulo,
+                    mensaje=mensaje
+                )
+
+                try:
+                    await sync_to_async(send_mail)(
+                        subject=titulo,
+                        message=mensaje,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[usuario.email],
+                        fail_silently=False,
+                    )
+                except Exception as e:
+                    print(f"Error al enviar correo a {usuario.email}: {str(e)}")
+
+                group_name = f'notificaciones_{usuario.id}'
+                await self.channel_layer.group_send(
+                    group_name,
+                    {
+                        'type': 'send_notification',
+                        'titulo': titulo,
+                        'mensaje': mensaje,
+                        'fecha': notificacion.fecha_notificacion.isoformat(),
+                        'leida': notificacion.leida
+                    }
+                )
+
+        # Procesar insumos con stock bajo
+        for insumo in insumos_low_stock:
+            titulo = f"Stock bajo: {insumo.nombre}"
+            mensaje = (
+                f"El insumo '{insumo.nombre}' tiene bajo stock: "
+                f"{insumo.cantidad_en_base} {insumo.fk_unidad_medida.unidad_base if insumo.fk_unidad_medida else 'unidades'} restantes."
             )
 
             for usuario in usuarios_admin:
