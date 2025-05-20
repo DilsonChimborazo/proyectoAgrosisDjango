@@ -16,6 +16,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   });
   const [loading, setLoading] = useState(true);
 
+  // Sincronizar el usuario entre pestañas
   useEffect(() => {
     const syncUsuario = () => {
       const stored = localStorage.getItem('user');
@@ -26,20 +27,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => window.removeEventListener('storage', syncUsuario);
   }, []);
 
-  // Cada vez que el usuario cambia, se guarda en localStorage
+  // Guardar el usuario en localStorage cuando cambia
   useEffect(() => {
-  if (usuario) {
-    // Primero, eliminar cualquier posible duplicado en el localStorage
-    localStorage.removeItem('user');
-    localStorage.setItem('user', JSON.stringify(usuario));
-  } else {
-    localStorage.removeItem('user');
-  }
-  setLoading(false); // Una vez que se haya establecido el usuario, podemos dejar de mostrar "loading"
-}, [usuario]);
+    if (usuario) {
+      localStorage.setItem('user', JSON.stringify(usuario));
+    } else {
+      localStorage.removeItem('user');
+    }
+  }, [usuario]);
+
+  // Establecer loading como false al montar
+  useEffect(() => {
+    setLoading(false);
+  }, []);
 
   if (loading) {
-    return <div>Loading...</div>; // Puedes reemplazar esto con tu propio componente de carga
+    return <div>Loading...</div>; // Puedes reemplazar esto con un spinner personalizado si deseas
   }
 
   return (
