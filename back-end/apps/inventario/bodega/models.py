@@ -5,8 +5,6 @@ from apps.trazabilidad.asignacion_actividades.models import Asignacion_actividad
 from apps.inventario.unidadMedida.models import UnidadMedida
 from decimal import Decimal
 
-
-
 class Bodega(models.Model):
     movimientos = [
         ('Entrada', 'Entrada'),
@@ -65,17 +63,20 @@ class Bodega(models.Model):
         else:
             self.cantidad_en_base = None
 
-        if self.fk_id_insumo and self.movimiento == 'Salida':
-            self.costo_insumo = self.calcular_costo_salida_insumo()
-
-
         # Calcular el costo total del insumo
-        if self.fk_id_insumo and self.cantidad_en_base:
-            precio = self.fk_id_insumo.precio_por_base or self.fk_id_insumo.precio_unidad
-            if precio:
-                self.costo_insumo = self.cantidad_en_base * Decimal(str(precio))
-            else:
-                self.costo_insumo = None
+        if self.fk_id_insumo and self.cantidad_insumo:
+            if self.movimiento == 'Entrada':
+                precio_unidad = self.fk_id_insumo.precio_unidad
+                if precio_unidad:
+                    self.costo_insumo = Decimal(self.cantidad_insumo) * Decimal(precio_unidad)
+                else:
+                    self.costo_insumo = None
+            elif self.movimiento == 'Salida':
+                precio_por_base = self.fk_id_insumo.precio_por_base
+                if precio_por_base:
+                    self.costo_insumo = Decimal(self.cantidad_insumo) * Decimal(precio_por_base)
+                else:
+                    self.costo_insumo = None
 
         # Manejo de movimientos de herramientas
         if self.fk_id_herramientas and self.cantidad_herramienta:
@@ -122,8 +123,6 @@ class Bodega(models.Model):
                 insumo.save()
 
         super().save(*args, **kwargs)
-
-
 
     def __str__(self):
         cantidad = self.cantidad_en_base or self.cantidad

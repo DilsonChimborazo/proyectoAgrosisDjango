@@ -39,7 +39,7 @@ class Insumo (models.Model):
         if self.fk_unidad_medida:
             self.cantidad_en_base = self.fk_unidad_medida.convertir_a_base(self.cantidad_insumo)
 
-            if self.cantidad_en_base and self.cantidad_en_base > 0:
+            if self.cantidad_en_base > 0:
                 total_precio = self.precio_unidad * self.cantidad_insumo
                 self.precio_por_base = total_precio / self.cantidad_en_base
 
