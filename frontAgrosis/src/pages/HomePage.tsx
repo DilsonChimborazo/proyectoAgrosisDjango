@@ -157,17 +157,23 @@ interface SensorDisplayData {
   nombre: string;
   valor: string;
   icon: string;
+  nombre_era: string;
+  nombre_cultivo: string;
 }
 
 interface ChartDataPoint {
   fecha: string;
   valor: number;
   sensor?: string;
+  nombre_era?: string;
+  nombre_cultivo?: string;
 }
 
 interface RealTimeData {
   valor: number;
   fecha: string;
+  nombre_era?: string;
+  nombre_cultivo?: string;
 }
 
 const icons: { [key: string]: string } = {
@@ -290,7 +296,7 @@ const HomePage = () => {
         setSensorDisplayData((prev) => {
           if (prev.some((sensor) => sensor.id === newSensor.id)) return prev;
           const icon = icons[newSensor.tipo_sensor.toLowerCase()] || icons.default;
-          return [...prev, { id: newSensor.id, nombre: newSensor.nombre_sensor, valor: "Esperando datos...", icon }];
+          return [...prev, { id: newSensor.id, nombre: newSensor.nombre_sensor, valor: "Esperando datos...", icon, nombre_era: "Sin Era", nombre_cultivo: "Sin Cultivo" }];
         });
       } catch (error) {
         console.error("⚠ Error al procesar datos del WebSocket de sensores:", error);
@@ -316,6 +322,8 @@ const HomePage = () => {
         nombre: sensor.nombre_sensor,
         valor,
         icon: icons[sensor.tipo_sensor.toLowerCase()] || icons.default,
+        nombre_era: realTimeEntry?.nombre_era || "Sin Era",
+        nombre_cultivo: realTimeEntry?.nombre_cultivo || "Sin Cultivo",
       };
     });
     setSensorDisplayData(initialSensorData);
@@ -333,7 +341,7 @@ const HomePage = () => {
           const formattedValue = sensorInfo
             ? formatSensorValue(realTimeEntry.valor, sensorInfo.tipo_sensor)
             : realTimeEntry.valor.toString();
-          return { ...sensor, valor: formattedValue };
+          return { ...sensor, valor: formattedValue, nombre_era: realTimeEntry.nombre_era || "Sin Era", nombre_cultivo: realTimeEntry.nombre_cultivo || "Sin Cultivo" };
         }
         return sensor;
       })
@@ -347,18 +355,20 @@ const HomePage = () => {
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        if (!data?.fk_id_sensor || !data?.valor_medicion || !data?.fecha_medicion) return;
+        if (!data?.fk_id_sensor || !data?.valor_medicion || !data?.fecha_medicion || !data?.fk_id_plantacion) return;
 
         const sensorId = data.fk_id_sensor;
         const horaRecibida = data.fecha_medicion;
 
         setRealTimeData((prev) => {
-          const newData = { 
-            ...prev, 
-            [sensorId]: { 
-              valor: data.valor_medicion, 
-              fecha: horaRecibida 
-            } 
+          const newData = {
+            ...prev,
+            [sensorId]: {
+              valor: data.valor_medicion,
+              fecha: horaRecibida,
+              nombre_era: data.nombre_era || "Sin Era",
+              nombre_cultivo: data.nombre_cultivo || "Sin Cultivo",
+            },
           };
           saveRealTimeData(newData);
           console.log("Datos en tiempo real actualizados:", newData);
@@ -366,9 +376,12 @@ const HomePage = () => {
         });
 
         setChartsData((prev) => {
-          const newDataPoint: ChartDataPoint = { 
+          const newDataPoint: ChartDataPoint = {
             fecha: formatDateTime(horaRecibida),
-            valor: data.valor_medicion 
+            valor: data.valor_medicion,
+            sensor: getSensorName(sensorId),
+            nombre_era: data.nombre_era || "Sin Era",
+            nombre_cultivo: data.nombre_cultivo || "Sin Cultivo",
           };
           const updatedData = [...(prev[sensorId] || []), newDataPoint].slice(-50);
           const newChartsData = { ...prev, [sensorId]: updatedData };
@@ -395,6 +408,8 @@ const HomePage = () => {
           fecha: formatDateTime(reading.fecha_medicion),
           valor: reading.valor_medicion,
           sensor: sensor.nombre_sensor,
+          nombre_era: reading.nombre_era,
+          nombre_cultivo: reading.nombre_cultivo,
         });
       }
     });
@@ -441,7 +456,7 @@ const HomePage = () => {
         return {
           formattedValue,
           value: realTimeEntry.valor,
-          name: sensor.nombre_sensor,
+          name: `${sensor.nombre_sensor} (${realTimeEntry.nombre_cultivo} - ${realTimeEntry.nombre_era})`,
         };
       })
       .filter((entry) => entry !== null && entry.value !== 0);
@@ -523,6 +538,7 @@ const HomePage = () => {
                     Activo
                   </span>
                 </div>
+                <p className="text-sm">{sensor.nombre_cultivo} - {sensor.nombre_era}</p>
                 <p className="text-2xl font-bold mb-3 measurement">{sensor.valor}</p>
                 <div className="w-full h-20">
                   <p className="text-xs text-center">Esperando datos...</p>
@@ -546,7 +562,7 @@ const HomePage = () => {
                   Activo
                 </span>
               </div>
-
+              <p className="text-sm">{sensor.nombre_cultivo} - {sensor.nombre_era}</p>
               <p className="text-2xl font-bold mb-3 measurement">{sensor.valor}</p>
 
               <div className="w-full h-20 flex justify-center relative">
@@ -705,7 +721,7 @@ const HomePage = () => {
                 {Object.keys(chartsData).map((sensorId) => (
                   <CarouselItem key={sensorId}>
                     <h3 className="text-lg font-semibold text-center mb-4">
-                      {getSensorName(Number(sensorId))}
+                      {getSensorName(Number(sensorId))} ({chartsData[Number(sensorId)][0]?.nombre_cultivo} - {chartsData[Number(sensorId)][0]?.nombre_era})
                     </h3>
                     <ResponsiveContainer width="100%" height={200}>
                       <LineChart data={chartsData[Number(sensorId)] || []}>
