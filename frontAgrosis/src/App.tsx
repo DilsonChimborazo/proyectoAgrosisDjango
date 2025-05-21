@@ -77,6 +77,7 @@ import NominaPage from "./pages/finanzas/nomina/Nomina"
 import StockPage from "./pages/finanzas/stock/StockPage"
 import CrearInsumoCompuesto from "./components/inventario/insumocompuesto/CrearInsumoCompuesto";
 import CrearTipoCultivo from "./components/trazabilidad/tipocultivo/CrearTipoCultivo";
+import InsumoNotifications from '@/components/inventario/insumos/InsumosNotificacion';
 
 
 const queryClient = new QueryClient();
@@ -86,6 +87,7 @@ function App() {
       <Provider>
       <QueryClientProvider client={queryClient}>
         <AuthChecker>  
+          <InsumoNotifications/>
           <Routes>
             <Route path="/" element={<Login />} />
             <Route path="/reportes" element={<Principal><ReportesPage /></Principal>} />
