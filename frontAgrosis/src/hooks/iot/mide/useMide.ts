@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 const apiUrl = import.meta.env.VITE_API_URL;
 const wsUrl = import.meta.env.VITE_WS_URL;
 
-const WS_URL = `${wsUrl}/mide`; 
+const WS_URL = `${wsUrl}/mide`;
 const WS_SENSORES_URL = `${wsUrl}/sensores`;
 const API_SENSORES = `${apiUrl}sensores/`;
 const API_MEDICIONES = `${apiUrl}mide/`;
@@ -22,7 +22,9 @@ export interface Sensor {
 export interface Mide {
   fk_id_sensor: number;
   nombre_sensor: string;
-  fk_id_era: number;
+  fk_id_plantacion: number;
+  nombre_era: string;
+  nombre_cultivo: string;
   valor_medicion: number;
   fecha_medicion: string;
 }
@@ -50,10 +52,14 @@ export function useMide() {
     try {
       const response = await fetch(API_MEDICIONES);
       if (!response.ok) throw new Error("Error al obtener mediciones");
-      const data: Mide[] = await response.json();
+      const data = await response.json();
       console.log("📥 Datos históricos recibidos:", data);
-      const processedData = data.map((item) => ({
-        ...item,
+      const processedData = data.map((item: any) => ({
+        fk_id_sensor: item.fk_id_sensor?.id || item.fk_id_sensor,
+        nombre_sensor: item.fk_id_sensor?.nombre_sensor || "Desconocido",
+        fk_id_plantacion: item.fk_id_plantacion?.id || item.fk_id_plantacion,
+        nombre_era: item.fk_id_plantacion?.fk_id_eras?.descripcion || "Sin Era",
+        nombre_cultivo: item.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo || "Sin Cultivo",
         valor_medicion: Number(item.valor_medicion),
         fecha_medicion: parseDate(item.fecha_medicion).toISOString(),
       }));
@@ -90,20 +96,30 @@ export function useMide() {
 
     socket.onmessage = (event: MessageEvent) => {
       try {
-        const data: Mide = JSON.parse(event.data);
+        const data = JSON.parse(event.data);
         console.log("📥 Mensaje WebSocket recibido:", data);
-        if (data.fk_id_sensor && data.valor_medicion !== undefined && data.fecha_medicion) {
+        if (
+          data.fk_id_sensor &&
+          data.valor_medicion !== undefined &&
+          data.fecha_medicion &&
+          data.fk_id_plantacion
+        ) {
           setSensorData((prev) => {
             const exists = prev.some(
               (item) =>
                 item.fecha_medicion === data.fecha_medicion &&
-                item.fk_id_sensor === data.fk_id_sensor
+                item.fk_id_sensor === data.fk_id_sensor &&
+                item.fk_id_plantacion === data.fk_id_plantacion
             );
             if (exists) return prev;
             const newData = [
               ...prev,
               {
-                ...data,
+                fk_id_sensor: data.fk_id_sensor,
+                nombre_sensor: data.nombre_sensor || "Desconocido",
+                fk_id_plantacion: data.fk_id_plantacion,
+                nombre_era: data.nombre_era || "Sin Era",
+                nombre_cultivo: data.nombre_cultivo || "Sin Cultivo",
                 valor_medicion: Number(data.valor_medicion),
                 fecha_medicion: parseDate(data.fecha_medicion).toISOString(),
               },
