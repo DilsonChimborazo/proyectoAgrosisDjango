@@ -8,9 +8,10 @@ import { showToast } from '@/components/globales/Toast';
 
 interface CrearEspecieProps {
   onSuccess?: () => void;
+  onCancel?: () => void;
 }
 
-const CrearEspecie = ({ onSuccess }: CrearEspecieProps) => {
+const CrearEspecie = ({ onSuccess, onCancel }: CrearEspecieProps) => {
   const mutation = useCrearEspecie();
   const { data: tiposCultivo = [], isLoading: isLoadingTiposCultivo, refetch: refetchTiposCultivo } = useTipoCultivo();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -83,6 +84,7 @@ const CrearEspecie = ({ onSuccess }: CrearEspecieProps) => {
           timeout: 4000,
           variant: 'success',
         });
+        console.log('✅ onSuccess de CrearEspecie ejecutado');
         if (typeof onSuccess === 'function') {
           onSuccess();
         }

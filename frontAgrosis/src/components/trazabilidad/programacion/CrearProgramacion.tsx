@@ -26,7 +26,7 @@ interface CrearProgramacionModalProps {
 const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess, onCancel }: CrearProgramacionModalProps) => {
   const { mutate: createProgramacion, isLoading: isLoadingProgramacion } = useCrearProgramacion();
   const { mutate: actualizarAsignacion, isLoading: isLoadingAsignacion } = useActualizarAsignacion();
-  const { data: unidadesMedida, isLoading: isLoadingUnidades } = useMedidas();
+  const { data: unidadesMedida, isLoading: isLoadingUnidades, refetch: refetchUnidades } = useMedidas();
   const [formData, setFormData] = useState<Programacion>({
     estado: 'Completada' as 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada',
     fecha_realizada: '',
@@ -170,6 +170,7 @@ const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess,
 
   const handleUnidadSuccess = () => {
     setIsUnidadModalOpen(false);
+    refetchUnidades();
   };
 
   return (
@@ -225,13 +226,13 @@ const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess,
           <label htmlFor="fk_unidad_medida" className="block text-sm font-medium text-gray-700">
             Unidad de Medida
           </label>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 mt-1">
             <select
               id="fk_unidad_medida"
               name="fk_unidad_medida"
               value={formData.fk_unidad_medida}
               onChange={handleChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+              className="block w-full border border-gray-300 rounded-md shadow-sm p-2"
               required
               disabled={isLoadingUnidades}
             >
@@ -245,7 +246,9 @@ const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess,
             <button
               type="button"
               onClick={handleOpenUnidadModal}
-              className="mt-1 w-10 h-10 bg-green-500 text-white rounded-full flex items-center justify-center hover:bg-green-600"
+              className="bg-green-700 text-white w-10 h-10 flex items-center justify-center rounded-full hover:bg-green-900 border border-green-800"
+              title="Crear nueva unidad de medida"
+              disabled={isLoadingUnidades}
             >
               +
             </button>
@@ -293,7 +296,10 @@ const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess,
       {isUnidadModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-md">
-            <CrearUnidadMedidaModal onSuccess={handleUnidadSuccess} onCancel={handleCloseUnidadModal} />
+            <CrearUnidadMedidaModal 
+              onSuccess={handleUnidadSuccess} 
+              onCancel={handleCloseUnidadModal} 
+            />
           </div>
         </div>
       )}
