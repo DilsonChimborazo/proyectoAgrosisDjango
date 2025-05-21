@@ -33,9 +33,60 @@ export const contactoSchema = z.object({
 
 // Esquema para el formulario de perfil (ejemplo adicional)
 export const perfilSchema = z.object({
-  edad: z.number().min(18, { message: "Debes ser mayor de 18" }).max(120, { message: "Edad no válida" }),
-  telefono: z.string().regex(/^\d{9}$/, { message: "Debe ser un número de 9 dígitos" }),
-  direccion: z.string().min(5, { message: "La dirección debe tener al menos 5 caracteres" }).optional(),
+  identificacion: z
+    .string()
+    .min(5, 'La identificación debe tener al menos 5 caracteres')
+    .max(20, 'La identificación no debe exceder los 20 caracteres'),
+
+  nombre: z
+    .string()
+    .min(2, 'El nombre debe tener al menos 2 caracteres')
+    .max(50, 'El nombre no debe exceder los 50 caracteres'),
+
+  apellido: z
+    .string()
+    .min(2, 'El apellido debe tener al menos 2 caracteres')
+    .max(50, 'El apellido no debe exceder los 50 caracteres'),
+
+  email: z
+    .string()
+    .email('Debe ser un correo valido'),
+
+  password: z
+    .string()
+    .min(6, 'La contraseña debe tener al menos 6 caracteres')
+    .optional()
+    .or(z.literal('')), // Permite contraseña vacía si no se desea cambiar
+
+  img: z
+    .any()
+    .optional()
+    .refine((file) => file instanceof File || file === null || file === undefined, {
+      message: 'La imagen debe ser un archivo válido',
+    }),
+});
+
+export const usuarioSchema = z.object({
+  identificacion: z
+    .string()
+    .min(5, "La identificación debe tener al menos 5 dígitos")
+    .regex(/^\d+$/, "La identificación debe contener solo números"),
+
+  email: z.string().email("Correo electrónico no válido"),
+
+  nombre: z
+    .string()
+    .min(2, "El nombre debe tener al menos 2 caracteres")
+    .max(50, "El nombre no puede tener más de 50 caracteres"),
+
+  apellido: z
+    .string()
+    .min(2, "El apellido debe tener al menos 2 caracteres")
+    .max(50, "El apellido no puede tener más de 50 caracteres"),
+
+  fk_id_rol: z
+    .string()
+    .regex(/^\d+$/, "Selecciona un rol válido"),
 });
 
 // Tipos generados a partir de los esquemas
@@ -43,3 +94,4 @@ export type LoginData = z.infer<typeof loginSchema>;
 export type RegistroData = z.infer<typeof registroSchema>;
 export type ContactoData = z.infer<typeof contactoSchema>;
 export type PerfilData = z.infer<typeof perfilSchema>;
+export type UsuariolData = z.infer<typeof usuarioSchema>;

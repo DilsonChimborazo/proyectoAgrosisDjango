@@ -62,10 +62,15 @@ class EscribirUsuarioSerializer(ModelSerializer):
         return usuario
 
     def update(self, instance, validated_data):
-        if 'password' in validated_data:
-            instance.set_password(validated_data['password'])
+        print("VALIDATED DATA EN UPDATE:", validated_data)
+    
+        password = validated_data.pop('password', None)
+        if password:
+            print("SETEANDO CONTRASEÑA HASH")
+            instance.set_password(password)
+    
         for attr, value in validated_data.items():
-            if attr != 'password':
-                setattr(instance, attr, value)
+            setattr(instance, attr, value)
+    
         instance.save()
         return instance

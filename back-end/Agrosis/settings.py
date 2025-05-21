@@ -233,7 +233,7 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'agrosofSena@gmail.com'
 EMAIL_HOST_PASSWORD = 'epcv duva nhwm hzlj'  
 
-FRONTEND_URL = "http://localhost:5173"
+FRONTEND_URL = "http://192.168.88.102:5173"
 
 
 

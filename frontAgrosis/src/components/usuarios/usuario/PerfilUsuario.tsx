@@ -1,9 +1,14 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { usePerfilUsuario } from '../../../hooks/usuarios/usuario/usePerfilUsuarios';
 import { FormData } from '../../../hooks/usuarios/usuario/usePerfilUsuarios';
+import { perfilSchema } from '@/hooks/validaciones/useSchemas';
+import { Eye, EyeOff } from "lucide-react";
+
+
 
 const PerfilUsuario: React.FC = () => {
   const { perfil, isLoading, error, updatePerfil, isUpdating } = usePerfilUsuario();
+
 
   const [formData, setFormData] = useState<FormData>({
     identificacion: '',
@@ -13,7 +18,7 @@ const PerfilUsuario: React.FC = () => {
     password: '',
     img: null,
   });
-
+  const [showPassword, setShowPassword] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -25,7 +30,7 @@ const PerfilUsuario: React.FC = () => {
         nombre: perfil.nombre,
         apellido: perfil.apellido,
         email: perfil.email,
-        password: perfil.password,
+        password:'',
         img: null,
       });
     }
@@ -64,19 +69,24 @@ const PerfilUsuario: React.FC = () => {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!formData.identificacion || !formData.nombre || !formData.apellido || !formData.email || !formData.password) {
-      setFormError('Por favor, completa todos los campos');
-      return;
-    }
+    
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      setFormError('Por favor, ingresa un correo válido');
-      return;
-    }
+    const result = perfilSchema.safeParse(formData);
 
-    updatePerfil(formData);
-  };
+  if (!result.success) {
+    // Extraer el primer error
+    const firstError = Object.values(result.error.flatten().fieldErrors)[0]?.[0];
+    setFormError(firstError || 'Datos inválidos');
+    return;
+  }
+
+  const dataToUpdate = { ...formData };
+  if (!formData.password) {
+    delete dataToUpdate.password;
+  }
+
+  updatePerfil(dataToUpdate);
+};
 
   const imageUrl = useMemo(() => {
     if (preview) return preview;
@@ -86,6 +96,8 @@ const PerfilUsuario: React.FC = () => {
   if (isLoading) return <div className="text-center text-gray-500">Cargando...</div>;
   if (error) return <div className="text-center text-red-500">Error: {error.message}</div>;
   if (!perfil) return null;
+
+  
 
   return (
     <div className="max-w-4xl mx-auto my-10 flex bg-white shadow-lg rounded-xl overflow-hidden">
@@ -209,6 +221,31 @@ const PerfilUsuario: React.FC = () => {
             Email
             </label>
           </div>
+          <div className="relative w-full">
+            <input
+              type={showPassword ? "text" : "password"}
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder=" "
+              className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-gray-900 bg-transparent border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+            />
+            <label
+              htmlFor="password"
+              className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 start-1"
+            >
+              New password
+            </label>
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="absolute inset-y-0 end-2 flex items-center pr-3 text-gray-500 hover:text-gray-700 focus:outline-none"
+              tabIndex={-1}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+        </div>
           <button
             type="submit"
             disabled={isUpdating}
