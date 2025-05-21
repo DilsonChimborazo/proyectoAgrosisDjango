@@ -231,7 +231,8 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'agrosofSena@gmail.com'
-EMAIL_HOST_PASSWORD = 'epcv duva nhwm hzlj'  
+EMAIL_HOST_PASSWORD = 'epcv duva nhwm hzlj'  # Usa una contraseña de aplicación
+DEFAULT_FROM_EMAIL = 'agrosofSena@gmail.com'  # Asegúrate de definir esto
 
 FRONTEND_URL = "http://localhost:5173"
 

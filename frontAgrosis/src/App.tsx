@@ -77,45 +77,58 @@ import NominaPage from "./pages/finanzas/nomina/Nomina"
 import StockPage from "./pages/finanzas/stock/StockPage"
 import CrearInsumoCompuesto from "./components/inventario/insumocompuesto/CrearInsumoCompuesto";
 import CrearTipoCultivo from "./components/trazabilidad/tipocultivo/CrearTipoCultivo";
+import InsumoNotifications from '@/components/inventario/insumos/InsumosNotificacion';
 
 
 const queryClient = new QueryClient();
 
 function App() {
   return (
-          <QueryClientProvider client={queryClient}>
-            <AuthChecker>  
-              <Routes>
-                <Route path="/" element={<Login />} />
-                <Route path="/reportes" element={<Principal><ReportesPage /></Principal>} />
-                <Route path="/register" element={<RegisterForm/>} />
-                <Route path="/solicitarRecuperacion" element={<SolicitarRecuperacion />} />
-                <Route path="/resetearContrasena" element={<ResetearContrasena />} />
-                <Route path="/Home" element={<Principal><HomePage /></Principal>} />
-                <Route path="/principal" element={<Principal><HomePage /></Principal>} />
-                <Route path="/fichas" element={<Principal><Fichas/></Principal>} />
-                <Route path="/rol" element={<Principal><Rol/></Principal>} />
-                <Route path="/crearRol" element={<Principal><CrearRol/></Principal>} />
-                <Route path="/perfil" element={<Principal><PerfilUsuario/></Principal>} />
-                <Route path="/crearFicha" element={<Principal><CrearFicha/></Principal>} />
-                <Route path="/usuarios" element={<Principal><UsersPage /></Principal>} />
-                <Route path="/crearUsuarios" element={<Principal><CrearUsuario /></Principal>} />
-                <Route path="/editarUsuario/:id" element={<Principal><ActualizarUsuario/></Principal>} />
-                <Route path="/mapa" element={<Principal><Mapa /></Principal>} />
-                {/* Rutas módulo IOT */}
-                <Route path="/iot" element={<Principal><IOtPage /></Principal>} />
-                <Route path="/iot/principal" element={<Principal><HomePage /></Principal>} />
-                <Route path="/iot/sensores" element={<Principal><SensorPage /></Principal>} />
-                <Route path="/crear-sensor" element={<Principal><CrearSensor /></Principal>} />
-                <Route path="/EditarSensor/:id" element={<Principal><EditarSensor /></Principal>} />
-                <Route path="/lotes" element={<Principal><LotesPage /></Principal>} />
-                <Route path="/crear-lote" element={<Principal><CrearLote /></Principal>} />
-                <Route path="/Editarlote/:id" element={<Principal><EditarLote /></Principal>} />
-                <Route path="/eras" element={<Principal><ErasPage /></Principal>} />
-                <Route path="/crear-eras" element={<Principal><CrearEras /></Principal>} />
-                <Route path="/EditarEras/:id" element={<Principal><EditarEras /></Principal>} />
-                <Route path="/historical/:sensorId" element={<Principal><HistoricalDataPage /></Principal>} />
-                <Route path="/iot/evapotranspiracion" element={<Principal><Evapotranspiracion /></Principal>} />
+        <QueryClientProvider client={queryClient}>
+          <AuthChecker>  
+            <InsumoNotifications/>
+            <Routes>
+              <Route path="/" element={<Login />} />
+              <Route path="/reportes" element={<Principal><ReportesPage /></Principal>} />
+              <Route path="/register" element={<RegisterForm/>} />
+              <Route path="/solicitarRecuperacion" element={<SolicitarRecuperacion />} />
+              <Route path="/resetearContrasena" element={<ResetearContrasena />} />
+              <Route path="/Home" element={<Principal><HomePage /></Principal>} />
+              <Route path="/principal" element={<Principal><HomePage /></Principal>} />
+              <Route path="/fichas" element={<Principal><Fichas/></Principal>} />
+              <Route path="/rol" element={<Principal><Rol/></Principal>} />
+              <Route path="/crearRol" element={<Principal><CrearRol/></Principal>} />
+              <Route path="/perfil" element={<Principal><PerfilUsuario/></Principal>} />
+              <Route path="/crearFicha" element={<Principal><CrearFicha/></Principal>} />
+              <Route path="/usuarios" element={<Principal><UsersPage /></Principal>} />
+              <Route path="/crearUsuarios" element={<Principal><CrearUsuario /></Principal>} />
+              <Route path="/editarUsuario/:id" element={<Principal><ActualizarUsuario/></Principal>} />
+              <Route path="/mapa" element={<Principal><Mapa /></Principal>} />
+              {/* Rutas módulo IOT */}
+              <Route path="/iot" element={<Principal><IOtPage /></Principal>} />
+              <Route path="/iot/principal" element={<Principal><HomePage /></Principal>} />
+              <Route path="/iot/sensores" element={<Principal><SensorPage /></Principal>} />
+              <Route path="/crear-sensor" element={<Principal><CrearSensor /></Principal>} />
+              <Route path="/EditarSensor/:id" element={<Principal><EditarSensor /></Principal>} />
+              <Route path="/lotes" element={<Principal><LotesPage /></Principal>} />
+              <Route path="/crear-lote" element={<Principal><CrearLote /></Principal>} />
+              <Route path="/Editarlote/:id" element={<Principal><EditarLote /></Principal>} />
+              <Route path="/eras" element={<Principal><ErasPage /></Principal>} />
+              <Route path="/crear-eras" element={<Principal><CrearEras /></Principal>} />
+              <Route path="/EditarEras/:id" element={<Principal><EditarEras /></Principal>} />
+              <Route path="/historical/:sensorId" element={<Principal><HistoricalDataPage /></Principal>} />
+              <Route path="/iot/evapotranspiracion" element={<Principal><Evapotranspiracion /></Principal>} />
+              
+              {/* Rutas módulo inventario */}
+              <Route path="/herramientas" element={<Principal><HerramientasPage /></Principal>} />
+              <Route path="/insumos" element={<Principal><InsumoPage /></Principal>} />
+              <Route path="/CrearInsumos" element={<Principal><CrearInsumos /></Principal>} />
+              <Route path="/ActualizarInsumos/:id" element={<Principal><ActualizarInsumos /></Principal>} />
+              <Route path="/herramientas" element={<Principal><ListarHerramientas /></Principal>} />
+              <Route path="/insumos" element={<Principal><ListarInsumos /></Principal>} />
+              <Route path="/bodega" element={<Principal><BodegaPage /></Principal>} />
+              <Route path="/unidad" element={<Principal><UnidadMedida /></Principal>} />
+              <Route path="/CrearInsumoCompuesto" element={<Principal><CrearInsumoCompuesto /></Principal>} />
 
                 {/* Rutas módulo inventario */}
                 <Route path="/herramientas" element={<Principal><HerramientasPage /></Principal>} />
