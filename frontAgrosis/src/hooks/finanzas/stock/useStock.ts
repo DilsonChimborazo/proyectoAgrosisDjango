@@ -82,13 +82,21 @@ export interface Stock {
 // Función para obtener los datos de Stock
 const fetchStock = async (): Promise<Stock[]> => {
   try {
-    const { data } = await axios.get(`${apiUrl}stock/`);
+    const token = localStorage.getItem('token'); // Ajusta según cómo lo guardes
+
+    const { data } = await axios.get(`${apiUrl}stock/`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
     return data;
   } catch (error) {
     console.error("Error al obtener los datos de stock:", error);
     throw new Error("No se pudo obtener la lista de stock");
   }
 };
+
 
 // Hook para manejar las operaciones con Stock
 export const useStock = () => {
