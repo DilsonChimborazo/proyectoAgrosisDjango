@@ -39,7 +39,7 @@ export interface FormData {
   nombre: string;
   apellido: string;
   email: string;
-  password: string;
+  password?: string;
   img?: File | null;
 }
 
@@ -70,6 +70,9 @@ const updatePerfil = async (formData: FormData): Promise<Usuario> => {
   if (formData.img) {
     data.append('img', formData.img);
   }
+  if (formData.password !== undefined && formData.password !== '') {
+  data.append('password', formData.password);
+}
 
   try {
     const response = await axios.put(`${apiUrl}usuario/img/`, data, {

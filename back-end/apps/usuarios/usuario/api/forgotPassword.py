@@ -1,21 +1,21 @@
 from itsdangerous import URLSafeTimedSerializer
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth import get_user_model
-from django.core.mail import send_mail
+from django.core.mail import EmailMessage
+from django.utils.html import format_html
 from django.conf import settings
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework import status
 
 User = get_user_model()
-serializer = URLSafeTimedSerializer(settings.SECRET_KEY) 
+serializer = URLSafeTimedSerializer(settings.SECRET_KEY)
 
 def generar_link_recuperacion(usuario):
     """Genera un token encriptado con tiempo de expiración."""
     data = {"id": usuario.id, "token": default_token_generator.make_token(usuario)}
-    token = serializer.dumps(data) 
-    return f"{settings.FRONTEND_URL}/resetearContrasena/?token={token}&id={data}"
-
+    token = serializer.dumps(data)
+    return f"{settings.FRONTEND_URL}/resetearContrasena/?token={token}&id={usuario.id}"
 
 @api_view(["POST"])
 def solicitar_recuperacion(request):
@@ -32,13 +32,25 @@ def solicitar_recuperacion(request):
 
     reset_link = generar_link_recuperacion(usuario)
 
-    send_mail(
-        "Recuperación de contraseña",
-        f"Para restablecer tu contraseña, haz clic en el siguiente enlace: {reset_link}",
-        settings.EMAIL_HOST_USER,
-        [email],
-        fail_silently=False,
+    # Enviar correo en HTML con el token oculto visualmente
+    html_content = format_html(
+        """
+        <p>Hola,</p>
+        <p>Has solicitado restablecer tu contraseña. Haz clic en el siguiente botón para continuar:</p>
+        <p><a href="{}" style="background-color:#4CAF50;color:white;padding:10px 20px;text-decoration:none;border-radius:5px;">Restablecer contraseña</a></p>
+        <p>Este enlace expirará en 24 horas.</p>
+        """,
+        reset_link
     )
+
+    email_message = EmailMessage(
+        subject="Recuperación de contraseña",
+        body=html_content,
+        from_email=settings.EMAIL_HOST_USER,
+        to=[email]
+    )
+    email_message.content_subtype = "html"
+    email_message.send()
 
     return Response({"message": "Se ha enviado un correo con instrucciones"}, status=status.HTTP_200_OK)
 
@@ -51,7 +63,6 @@ def validar_token(token):
             return usuario
     except Exception:
         return None
-
 
 @api_view(["POST"])
 def resetear_contraseña(request):
@@ -70,4 +81,3 @@ def resetear_contraseña(request):
     usuario.save()
 
     return Response({"message": "Contraseña actualizada correctamente"}, status=status.HTTP_200_OK)
-

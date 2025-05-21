@@ -234,7 +234,7 @@ EMAIL_HOST_USER = 'agrosofSena@gmail.com'
 EMAIL_HOST_PASSWORD = 'epcv duva nhwm hzlj'  # Usa una contraseña de aplicación
 DEFAULT_FROM_EMAIL = 'agrosofSena@gmail.com'  # Asegúrate de definir esto
 
-FRONTEND_URL = "http://localhost:5173"
+FRONTEND_URL = "http://192.168.88.102:5173"
 
 
 
