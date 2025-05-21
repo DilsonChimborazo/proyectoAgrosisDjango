@@ -3,6 +3,7 @@ import { useCrearProgramacion } from '@/hooks/trazabilidad/programacion/useCrear
 import { useActualizarAsignacion } from '@/hooks/trazabilidad/asignacion/useActualizarAsignacion';
 import { useMedidas } from '@/hooks/inventario/unidadMedida/useMedidad';
 import CrearUnidadMedidaModal from '../../inventario/unidadMedida/UnidadMedida';
+import { showToast } from '@/components/globales/Toast';
 
 interface Programacion {
   id?: number;
@@ -23,9 +24,9 @@ interface CrearProgramacionModalProps {
 }
 
 const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess, onCancel }: CrearProgramacionModalProps) => {
-  const { mutate: createProgramacion, isLoading: isLoadingProgramacion, error: mutationErrorProgramacion } = useCrearProgramacion();
-  const { mutate: actualizarAsignacion, isLoading: isLoadingAsignacion, error: mutationErrorAsignacion } = useActualizarAsignacion();
-  const { data: unidadesMedida, isLoading: isLoadingUnidades, error: errorUnidades } = useMedidas();
+  const { mutate: createProgramacion, isLoading: isLoadingProgramacion } = useCrearProgramacion();
+  const { mutate: actualizarAsignacion, isLoading: isLoadingAsignacion } = useActualizarAsignacion();
+  const { data: unidadesMedida, isLoading: isLoadingUnidades, refetch: refetchUnidades } = useMedidas();
   const [formData, setFormData] = useState<Programacion>({
     estado: 'Completada' as 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada',
     fecha_realizada: '',
@@ -35,11 +36,9 @@ const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess,
     img: null,
     fk_id_asignacionActividades: asignacionId,
   });
-  const [error, setError] = useState<string | null>(null);
   const [isUnidadModalOpen, setIsUnidadModalOpen] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  // Prefill form data if existingProgramacion is provided
   useEffect(() => {
     if (existingProgramacion) {
       setFormData({
@@ -52,12 +51,11 @@ const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess,
     }
   }, [existingProgramacion, asignacionId]);
 
-  // Generar vista previa de la imagen seleccionada
   useEffect(() => {
     if (formData.img instanceof File) {
       const url = URL.createObjectURL(formData.img);
       setPreviewUrl(url);
-      return () => URL.revokeObjectURL(url); // Liberar la URL al cambiar la imagen o desmontar
+      return () => URL.revokeObjectURL(url);
     }
     setPreviewUrl(null);
   }, [formData.img]);
@@ -69,7 +67,6 @@ const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess,
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
-    setError(null);
   };
 
   const validateForm = () => {
@@ -82,17 +79,25 @@ const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess,
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
 
     const validationError = validateForm();
     if (validationError) {
-      setError(validationError);
+      showToast({
+        title: 'Error al crear programación',
+        description: validationError,
+        timeout: 5000,
+        variant: 'error',
+      });
       return;
     }
 
     if (typeof asignacionId === 'undefined' || asignacionId === null) {
-      console.log('Error: asignacionId es undefined o null:', asignacionId);
-      setError('ID de asignación no proporcionado. Asegúrate de que el componente padre pase un ID válido.');
+      showToast({
+        title: 'Error al crear programación',
+        description: 'ID de asignación no proporcionado. Asegúrate de que el componente padre pase un ID válido.',
+        timeout: 5000,
+        variant: 'error',
+      });
       return;
     }
 
@@ -117,21 +122,41 @@ const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess,
             },
             {
               onSuccess: () => {
+                showToast({
+                  title: 'Programación creada exitosamente',
+                  description: 'La programación y la asignación han sido registradas en el sistema',
+                  timeout: 4000,
+                  variant: 'success',
+                });
                 onSuccess();
               },
               onError: (err: any) => {
-                setError(`Error al actualizar la asignación: ${err.message || 'Por favor, intenta de nuevo.'}`);
+                showToast({
+                  title: 'Error al actualizar asignación',
+                  description: err.message || 'Por favor, intenta de nuevo.',
+                  timeout: 5000,
+                  variant: 'error',
+                });
               },
             }
           );
         },
         onError: (err: any) => {
-          setError(`Error al crear la programación: ${err.message || 'Por favor, intenta de nuevo.'}`);
+          showToast({
+            title: 'Error al crear programación',
+            description: err.message || 'Por favor, intenta de nuevo.',
+            timeout: 5000,
+            variant: 'error',
+          });
         },
       });
     } catch (err) {
-      setError('Error inesperado al crear la programación.');
-      console.error('Unexpected error:', err);
+      showToast({
+        title: 'Error al crear programación',
+        description: 'Error inesperado al crear la programación.',
+        timeout: 5000,
+        variant: 'error',
+      });
     }
   };
 
@@ -145,16 +170,12 @@ const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess,
 
   const handleUnidadSuccess = () => {
     setIsUnidadModalOpen(false);
+    refetchUnidades();
   };
 
   return (
     <div className="p-6">
       <h2 className="text-xl font-bold mb-4">Registrar Programación (Finalizar Asignación)</h2>
-      {(error || mutationErrorProgramacion || mutationErrorAsignacion || errorUnidades) && (
-        <div className="mb-4 p-2 bg-red-100 text-red-700 rounded-md">
-          {error || mutationErrorProgramacion?.message || mutationErrorAsignacion?.message || errorUnidades?.message}
-        </div>
-      )}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="fecha_realizada" className="block text-sm font-medium text-gray-700">
@@ -205,13 +226,13 @@ const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess,
           <label htmlFor="fk_unidad_medida" className="block text-sm font-medium text-gray-700">
             Unidad de Medida
           </label>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 mt-1">
             <select
               id="fk_unidad_medida"
               name="fk_unidad_medida"
               value={formData.fk_unidad_medida}
               onChange={handleChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+              className="block w-full border border-gray-300 rounded-md shadow-sm p-2"
               required
               disabled={isLoadingUnidades}
             >
@@ -225,7 +246,9 @@ const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess,
             <button
               type="button"
               onClick={handleOpenUnidadModal}
-              className="mt-1 w-10 h-10 bg-green-500 text-white rounded-full flex items-center justify-center hover:bg-green-600"
+              className="bg-green-700 text-white w-10 h-10 flex items-center justify-center rounded-full hover:bg-green-900 border border-green-800"
+              title="Crear nueva unidad de medida"
+              disabled={isLoadingUnidades}
             >
               +
             </button>
@@ -273,7 +296,10 @@ const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess,
       {isUnidadModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-md">
-            <CrearUnidadMedidaModal onSuccess={handleUnidadSuccess} onCancel={handleCloseUnidadModal} />
+            <CrearUnidadMedidaModal 
+              onSuccess={handleUnidadSuccess} 
+              onCancel={handleCloseUnidadModal} 
+            />
           </div>
         </div>
       )}

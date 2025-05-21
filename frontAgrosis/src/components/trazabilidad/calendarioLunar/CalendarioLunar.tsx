@@ -4,15 +4,15 @@ import useCalendarioActivos from "../../../hooks/trazabilidad/calendarioLunar/us
 import VentanaModal from "../../globales/VentanasModales";
 import Tabla from "../../globales/Tabla";
 import CrearCalendarioLunar from "./CrearCalendarioLunar";
-import { useNavigate } from "react-router-dom";
+import ActualizarCalendarioLunar from "../calendarioLunar/ActualizarCalendario";
 
 const CalendariosLunares = () => {
   const { data: calendarios, error, isLoading } = useCalendarioLunar();
   const { generarPDF } = useCalendarioActivos();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [selectedCalendario, setSelectedCalendario] = useState<any>(null);
-  const navigate = useNavigate();
 
   const openModal = (calendario: any) => {
     setSelectedCalendario(calendario);
@@ -32,12 +32,22 @@ const CalendariosLunares = () => {
     setIsCreateModalOpen(false);
   };
 
+  const openUpdateModal = (calendario: any) => {
+    setSelectedCalendario(calendario);
+    setIsUpdateModalOpen(true);
+  };
+
+  const closeUpdateModal = () => {
+    setIsUpdateModalOpen(false);
+    setSelectedCalendario(null);
+  };
+
   const handleUpdate = (calendario: { id: number }) => {
     if (!calendario.id) {
-      console.error("El ID del calendario no está definido.");
+      console.error("❌ El ID del calendario no está definido.");
       return;
     }
-    navigate(`/actualizarcalendariolunar/${calendario.id}`);
+    openUpdateModal(calendario);
   };
 
   if (isLoading)
@@ -105,6 +115,20 @@ const CalendariosLunares = () => {
         onClose={closeCreateModal}
         titulo="Registra Nuevo Calendario Lunar"
         contenido={<CrearCalendarioLunar closeModal={closeCreateModal} />}
+      />
+
+      <VentanaModal
+        isOpen={isUpdateModalOpen}
+        onClose={closeUpdateModal}
+        titulo="Actualizar Calendario Lunar"
+        contenido={
+          selectedCalendario && (
+            <ActualizarCalendarioLunar
+              calendario={selectedCalendario}
+              closeModal={closeUpdateModal}
+            />
+          )
+        }
       />
     </div>
   );

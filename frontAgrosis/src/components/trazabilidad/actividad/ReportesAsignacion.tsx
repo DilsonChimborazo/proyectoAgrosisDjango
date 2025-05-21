@@ -1,12 +1,31 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { useReporteAsignaciones } from '@/hooks/trazabilidad/asignacion/useReportesAsignacion';
 import Tabla from '../../globales/Tabla';
 import DescargarTablaPDF from '../../globales/DescargarTablaPDF';
+import { showToast } from '@/components/globales/Toast';
 
 const ReporteAsignacion = () => {
   const { data: asignaciones, isLoading, isError } = useReporteAsignaciones();
 
-  // Preparar datos para la tabla y el PDF
+  useEffect(() => {
+    if (isLoading) {
+      showToast({
+        title: 'Cargando reporte',
+        description: 'Cargando el reporte de asignaciones, por favor espera...',
+        timeout: 3000,
+        variant: 'info',
+      });
+    }
+    if (isError) {
+      showToast({
+        title: 'Error al cargar reporte',
+        description: 'No se pudo cargar el reporte de asignaciones',
+        timeout: 5000,
+        variant: 'error',
+      });
+    }
+  }, [isLoading, isError]);
+
   const asignacionesList = useMemo(() => {
     return Array.isArray(asignaciones) ? asignaciones : [];
   }, [asignaciones]);
@@ -22,9 +41,6 @@ const ReporteAsignacion = () => {
       asignacion.observaciones || 'Sin observaciones'
     ]);
   }, [asignacionesList]);
-
-  if (isLoading) return <div className="p-4">Cargando reporte...</div>;
-  if (isError) return <div className="text-red-500 p-4">Error al cargar el reporte</div>;
 
   return (
     <div className="p-4">

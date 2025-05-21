@@ -5,6 +5,7 @@ import { useActividad, Actividad } from '@/hooks/trazabilidad/actividad/useActiv
 import VentanaModal from '../../globales/VentanasModales';
 import CrearPlantacion from '../plantacion/CrearPlantacion';
 import CrearActividad from '../actividad/CrearActividad';
+import { showToast } from '@/components/globales/Toast';
 
 interface CrearRealizaProps {
   onSuccess: () => void;
@@ -13,9 +14,8 @@ interface CrearRealizaProps {
 
 const CrearRealiza = ({ onSuccess, onCancel }: CrearRealizaProps) => {
   const mutation = useCrearRealiza();
-  const { data: plantaciones = [], isLoading: isLoadingPlantaciones, error: errorPlantaciones } = usePlantacion();
-  const { data: actividades = [], isLoading: isLoadingActividades, error: errorActividades } = useActividad();
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const { data: plantaciones = [], isLoading: isLoadingPlantaciones, error: errorPlantaciones, refetch: refetchPlantaciones } = usePlantacion();
+  const { data: actividades = [], isLoading: isLoadingActividades, error: errorActividades, refetch: refetchActividades } = useActividad();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState<React.ReactNode>(null);
   const [formData, setFormData] = useState({ fk_id_plantacion: '', fk_id_actividad: '' });
@@ -41,12 +41,16 @@ const CrearRealiza = ({ onSuccess, onCancel }: CrearRealizaProps) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMessage(null);
 
     const { fk_id_plantacion, fk_id_actividad } = formData;
 
     if (!fk_id_plantacion || !fk_id_actividad) {
-      setErrorMessage('❌ Ambos campos son obligatorios');
+      showToast({
+        title: 'Error al crear realiza',
+        description: 'Ambos campos son obligatorios',
+        timeout: 5000,
+        variant: 'error',
+      });
       return;
     }
 
@@ -57,27 +61,59 @@ const CrearRealiza = ({ onSuccess, onCancel }: CrearRealizaProps) => {
 
     mutation.mutate(nuevoRealiza, {
       onSuccess: () => {
-        console.log('✅ Realiza creado exitosamente');
+        showToast({
+          title: 'Realiza creado exitosamente',
+          description: 'El realiza ha sido registrado en el sistema',
+          timeout: 4000,
+          variant: 'success',
+        });
         setFormData({ fk_id_plantacion: '', fk_id_actividad: '' });
         onSuccess();
       },
       onError: (error: any) => {
-        setErrorMessage(`❌ Error al crear realiza: ${error.message || 'Error desconocido'}`);
+        showToast({
+          title: 'Error al crear realiza',
+          description: error.message || 'Error desconocido al crear el realiza',
+          timeout: 5000,
+          variant: 'error',
+        });
       },
     });
   };
 
   const openCreatePlantacionModal = () => {
-    setModalContent(<CrearPlantacion onSuccess={() => setIsModalOpen(false)} onCancel={() => setIsModalOpen(false)} />);
+    setModalContent(
+      <CrearPlantacion
+        onSuccess={async () => {
+          await refetchPlantaciones();
+          setIsModalOpen(false);
+        }}
+        onCancel={() => setIsModalOpen(false)}
+      />
+    );
     setIsModalOpen(true);
   };
 
   const openCreateActividadModal = () => {
-    setModalContent(<CrearActividad onSuccess={() => setIsModalOpen(false)} onCancel={() => setIsModalOpen(false)} />);
+    setModalContent(
+      <CrearActividad
+        onSuccess={async () => {
+          await refetchActividades();
+          setIsModalOpen(false);
+        }}
+        onCancel={() => setIsModalOpen(false)}
+      />
+    );
     setIsModalOpen(true);
   };
 
   if (errorPlantaciones || errorActividades) {
+    showToast({
+      title: 'Error al cargar datos',
+      description: 'Error al cargar plantaciones o actividades',
+      timeout: 5000,
+      variant: 'error',
+    });
     return <div className="text-center text-red-500">Error al cargar plantaciones o actividades</div>;
   }
 
@@ -87,7 +123,6 @@ const CrearRealiza = ({ onSuccess, onCancel }: CrearRealizaProps) => {
 
   return (
     <div className="max-w-4xl mx-auto p-4">
-      {errorMessage && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{errorMessage}</div>}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="flex items-center space-x-2">
           <div className="flex-1">
@@ -113,7 +148,7 @@ const CrearRealiza = ({ onSuccess, onCancel }: CrearRealizaProps) => {
           <button
             type="button"
             onClick={openCreatePlantacionModal}
-            className="mt-6 bg-green-700 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-green-900"
+            className="mt-6 bg-green-700 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-green-900 border border-green-800"
             title="Crear nueva plantación"
           >
             +
@@ -143,22 +178,24 @@ const CrearRealiza = ({ onSuccess, onCancel }: CrearRealizaProps) => {
           <button
             type="button"
             onClick={openCreateActividadModal}
-            className="mt-6 bg-green-700 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-green-900"
+            className="mt-6 bg-green-700 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-green-900 border border-green-800"
             title="Crear nueva actividad"
           >
             +
           </button>
         </div>
-        <div className="flex justify-end space-x-2">
-          <button type="button" onClick={onCancel} className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400">
-            Cancelar
-          </button>
-          <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-700">
-            Crear
+        <div className="flex justify-center">
+          <button
+            type="submit"
+            className="bg-white text-[#2e7d32] px-4 py-2 rounded-md border border-[#2e7d32] hover:bg-[#2e7d32] hover:text-white"
+          >
+            Registrar
           </button>
         </div>
       </form>
-      <VentanaModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} titulo="" contenido={modalContent} />
+      {isModalOpen && modalContent && (
+        <VentanaModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} titulo="" contenido={modalContent} />
+      )}
     </div>
   );
 };

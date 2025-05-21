@@ -1,7 +1,12 @@
 import { useUnidadMedida } from "@/hooks/inventario/unidadMedida/useCrearMedida";
 import Formulario from "@/components/globales/Formulario";
 
-const UnidadMedida = ({ onSuccess }: { onSuccess?: () => void }) => {
+interface UnidadMedidaProps {
+    onSuccess?: () => void;
+    onCancel?: () => void;
+}
+
+const UnidadMedida = ({ onSuccess, onCancel }: UnidadMedidaProps) => {
     const mutation = useUnidadMedida();
 
     const formFields = [
@@ -43,7 +48,14 @@ const UnidadMedida = ({ onSuccess }: { onSuccess?: () => void }) => {
     };
 
     return (
-        <div className="container">
+        <div className="container relative">
+            <button
+                onClick={onCancel}
+                className="absolute top-2 right-2 bg-gray-300 text-gray-700 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-400"
+                title="Cerrar"
+            >
+                <span className="text-xl "> × </span>
+            </button>
             <Formulario
                 fields={formFields}
                 onSubmit={handleSubmit}

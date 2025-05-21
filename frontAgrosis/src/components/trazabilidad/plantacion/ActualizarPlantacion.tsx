@@ -3,6 +3,7 @@ import { usePlantacionPorId } from "../../../hooks/trazabilidad/plantacion/usePl
 import { usePlantacion } from "../../../hooks/trazabilidad/plantacion/usePlantacion";
 import { useActualizarPlantacion } from "../../../hooks/trazabilidad/plantacion/useActualizarPlantacion";
 import Formulario from "../../globales/Formulario";
+import { showToast } from '@/components/globales/Toast';
 
 interface ActualizarPlantacionProps {
   id: string | number;
@@ -33,6 +34,17 @@ const ActualizarPlantacion = ({ id, onSuccess }: ActualizarPlantacionProps) => {
       });
     }
   }, [plantacion]);
+
+  useEffect(() => {
+    if (error) {
+      showToast({
+        title: 'Error al cargar plantación',
+        description: 'No se pudo cargar la información de la plantación',
+        timeout: 5000,
+        variant: 'error',
+      });
+    }
+  }, [error]);
 
   const erasUnicas = Array.from(
     new Map(todas.map((p) => [p.fk_id_eras?.id, p.fk_id_eras])).values()
@@ -73,15 +85,27 @@ const ActualizarPlantacion = ({ id, onSuccess }: ActualizarPlantacionProps) => {
       },
       {
         onSuccess: () => {
+          showToast({
+            title: 'Plantación actualizada exitosamente',
+            description: 'La plantación ha sido actualizada en el sistema',
+            timeout: 4000,
+            variant: 'success',
+          });
           onSuccess();
         },
-        onError: (err) => console.error(err),
+        onError: (err) => {
+          showToast({
+            title: 'Error al actualizar plantación',
+            description: err.message || 'Error al actualizar la plantación. Intenta de nuevo.',
+            timeout: 5000,
+            variant: 'error',
+          });
+        },
       }
     );
   };
 
   if (isLoading) return <p>Cargando...</p>;
-  if (error) return <p className="text-red-500">Error al cargar plantación</p>;
 
   return (
     <div className="max-w-4xl mx-auto p-4">

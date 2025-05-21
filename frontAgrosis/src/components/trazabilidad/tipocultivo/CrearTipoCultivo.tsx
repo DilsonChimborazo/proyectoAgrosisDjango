@@ -1,5 +1,7 @@
-import { useState, FormEvent } from 'react';
+import { useState } from 'react';
 import { useCrearTipoCultivo } from '@/hooks/trazabilidad/tipoCultivo/useCrearTipoCultivo';
+import Formulario from '../../globales/Formulario';
+import { showToast } from '@/components/globales/Toast';
 
 interface CrearTipoCultivoProps {
   onSuccess: () => void;
@@ -13,19 +15,42 @@ const CICLO_OPCIONES = [
 ];
 
 const CrearTipoCultivo = ({ onSuccess }: CrearTipoCultivoProps) => {
-  const [nombre, setNombre] = useState('');
-  const [descripcion, setDescripcion] = useState('');
-  const [cicloDuracion, setCicloDuracion] = useState('');
   const { mutate: createTipoCultivo, isPending } = useCrearTipoCultivo();
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
+  const formFields = [
+    { id: 'nombre', label: 'Nombre', type: 'text', required: true },
+    { id: 'descripcion', label: 'Descripción', type: 'textarea', required: false },
+    {
+      id: 'ciclo_duracion',
+      label: 'Ciclo de Duración',
+      type: 'select',
+      options: CICLO_OPCIONES,
+      required: true,
+    },
+  ];
+
+  const handleSubmit = (formData: { [key: string]: string | File }) => {
+    const nombre = formData.nombre as string;
+    const descripcion = formData.descripcion as string;
+    const cicloDuracion = formData.ciclo_duracion as string;
+
     if (!nombre) {
-      alert('El nombre es obligatorio.');
+      showToast({
+        title: 'Error al crear tipo de cultivo',
+        description: 'El nombre es obligatorio',
+        timeout: 5000,
+        variant: 'error',
+      });
       return;
     }
+
     if (!cicloDuracion) {
-      alert('Debe seleccionar un ciclo de duración.');
+      showToast({
+        title: 'Error al crear tipo de cultivo',
+        description: 'Debe seleccionar un ciclo de duración',
+        timeout: 5000,
+        variant: 'error',
+      });
       return;
     }
 
@@ -33,10 +58,21 @@ const CrearTipoCultivo = ({ onSuccess }: CrearTipoCultivoProps) => {
       { nombre, descripcion: descripcion || '', ciclo_duracion: cicloDuracion },
       {
         onSuccess: () => {
-          setNombre('');
-          setDescripcion('');
-          setCicloDuracion('');
-          onSuccess(); // Esto cerrará el modal desde el componente padre
+          showToast({
+            title: 'Tipo de cultivo creado exitosamente',
+            description: 'El tipo de cultivo ha sido registrado en el sistema',
+            timeout: 4000,
+            variant: 'success',
+          });
+          onSuccess();
+        },
+        onError: (error: any) => {
+          showToast({
+            title: 'Error al crear tipo de cultivo',
+            description: error.response?.data?.detail || 'Ocurrió un error al registrar el tipo de cultivo',
+            timeout: 5000,
+            variant: 'error',
+          });
         },
       }
     );
@@ -44,63 +80,13 @@ const CrearTipoCultivo = ({ onSuccess }: CrearTipoCultivoProps) => {
 
   return (
     <div className="max-w-4xl mx-auto p-4">
-      <h2 className="text-xl font-bold mb-4">Crear Nuevo Tipo de Cultivo</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="nombre" className="block text-sm font-medium text-gray-700">
-            Nombre
-          </label>
-          <input
-            type="text"
-            id="nombre"
-            value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
-            className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-            required
-            disabled={isPending}
-          />
-        </div>
-        <div>
-          <label htmlFor="descripcion" className="block text-sm font-medium text-gray-700">
-            Descripción
-          </label>
-          <textarea
-            id="descripcion"
-            value={descripcion}
-            onChange={(e) => setDescripcion(e.target.value)}
-            className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-            disabled={isPending}
-          />
-        </div>
-        <div>
-          <label htmlFor="cicloDuracion" className="block text-sm font-medium text-gray-700">
-            Ciclo de Duración
-          </label>
-          <select
-            id="cicloDuracion"
-            value={cicloDuracion}
-            onChange={(e) => setCicloDuracion(e.target.value)}
-            className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-            required
-            disabled={isPending}
-          >
-            {CICLO_OPCIONES.map((opcion) => (
-              <option key={opcion.value} value={opcion.value}>
-                {opcion.label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="flex justify-center">
-          <button
-            type="submit"
-            className="px-4 py-2 bg-white text-green-600 border border-green-600 rounded-md hover:bg-green-600 hover:text-white"
-            disabled={isPending}
-          >
-            {isPending ? 'Creando...' : 'Registrar'}
-          </button>
-        </div>
-      </form>
+      <Formulario
+        fields={formFields}
+        onSubmit={handleSubmit}
+        isError={isPending}
+        isSuccess={false}
+        title="Crear Nuevo Tipo de Cultivo"
+      />
     </div>
   );
 };
