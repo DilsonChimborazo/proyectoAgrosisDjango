@@ -8,6 +8,7 @@ import VentanaModal from '../../globales/VentanasModales';
 import Tabla from '../../globales/Tabla';
 import CrearAsignacionModal from './CrearAsignacion';
 import CrearProgramacion from '../programacion/CrearProgramacion';
+import { showToast } from '@/components/globales/Toast';
 
 // URL base del servidor donde se almacenan las imágenes
 const BASE_URL = 'http://tudominio.com'; // Reemplaza con la URL real de tu servidor
@@ -19,22 +20,23 @@ interface AsignacionTabla {
   observaciones: string;
   plantacion: string;
   actividad: string;
-  usuario: string;
+  usuarios: string[];
   fecha_realizada: string | null;
   duracion: number | null;
   cantidad_insumo: number | null;
-  img: string | null | React.ReactNode; // Puede ser una URL, null o un elemento JSX
+  img: string | null | React.ReactNode;
   unidad_medida: string;
 }
 
 const DetalleAsignacionModal = memo(({ item, realizaList, usuarios }: { item: Asignacion; realizaList: Realiza[]; usuarios: Usuario[] }) => {
   const realiza = realizaList.find((r) => r.id === (typeof item.fk_id_realiza === 'object' ? item.fk_id_realiza?.id : item.fk_id_realiza));
-  const usuario = usuarios.find((u) => u.id === (typeof item.fk_identificacion === 'object' ? item.fk_identificacion?.id : item.fk_identificacion));
+  const usuariosAsignados = Array.isArray(item.fk_identificacion)
+    ? item.fk_identificacion.map((id) => usuarios.find((u) => u.id === id)).filter((u): u is Usuario => !!u)
+    : [];
 
   const realizaNombre = realiza
     ? `${realiza.fk_id_actividad?.nombre_actividad || 'Sin actividad'} (${realiza.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo || 'Sin cultivo'})`
     : 'Sin realiza';
-  const usuarioNombre = usuario ? `${usuario.nombre} ${usuario.apellido}` : 'Sin usuario';
 
   return (
     <div className="p-4">
@@ -45,7 +47,20 @@ const DetalleAsignacionModal = memo(({ item, realizaList, usuarios }: { item: As
         <p><span className="font-semibold">Fecha Programada:</span> {item.fecha_programada}</p>
         <p><span className="font-semibold">Observaciones:</span> {item.observaciones || 'Sin observaciones'}</p>
         <p><span className="font-semibold">Realiza:</span> {realizaNombre}</p>
-        <p><span className="font-semibold">Usuario:</span> {usuarioNombre}</p>
+        <p>
+          <span className="font-semibold">Usuarios:</span>
+          {usuariosAsignados.length > 0 ? (
+            <ul className="list-none space-y-2 mt-1">
+              {usuariosAsignados.map((u, index) => (
+                <li key={index} className="text-gray-700 before:content-['-'] before:mr-2">
+                  {`${u.nombre} ${u.apellido}`}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            ' Sin usuarios'
+          )}
+        </p>
       </div>
     </div>
   );
@@ -94,9 +109,7 @@ const ListarAsignacion = () => {
           closeModal();
         }}
         onCancel={closeModal}
-        realizaList={realizaList}
         usuarios={usuarios}
-        onCreateRealiza={() => refetchAsignaciones()}
         onCreateUsuario={() => refetchAsignaciones()}
       />
     );
@@ -106,10 +119,14 @@ const ListarAsignacion = () => {
   const tablaData: AsignacionTabla[] = useMemo(() => {
     return asignaciones.map((asignacion) => {
       const realizaId = typeof asignacion.fk_id_realiza === 'object' ? asignacion.fk_id_realiza?.id : asignacion.fk_id_realiza;
-      const usuarioId = typeof asignacion.fk_identificacion === 'object' ? asignacion.fk_identificacion?.id : asignacion.fk_identificacion;
-
       const realiza = realizaList.find((r) => r.id === realizaId);
-      const usuario = usuarios.find((u) => u.id === usuarioId);
+      const usuariosAsignados = Array.isArray(asignacion.fk_identificacion)
+        ? asignacion.fk_identificacion
+            .map((id) => usuarios.find((u) => u.id === id))
+            .filter((u): u is Usuario => !!u)
+            .map((u) => `${u.nombre} ${u.apellido}`)
+        : [];
+
       const programacion = programaciones.find((p) => {
         const programacionId = typeof p.fk_id_asignacionActividades === 'object'
           ? p.fk_id_asignacionActividades?.id
@@ -126,7 +143,6 @@ const ListarAsignacion = () => {
         unidadMedida = unidad ? unidad.nombre_medida : `Unidad no encontrada (ID: ${unidadMedidaId})`;
       }
 
-      // Transformar el campo img en un elemento <img>
       let imgElement: React.ReactNode = 'Sin imagen';
       let imgUrl: string | null = null;
       if (programacion?.img) {
@@ -159,7 +175,7 @@ const ListarAsignacion = () => {
         observaciones: asignacion.observaciones || 'Sin observaciones',
         plantacion: realiza?.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo || 'Sin cultivo',
         actividad: realiza?.fk_id_actividad?.nombre_actividad || 'Sin actividad',
-        usuario: usuario ? `${usuario.nombre} ${usuario.apellido}` : 'Sin usuario',
+        usuarios: usuariosAsignados.length > 0 ? usuariosAsignados : ['Sin usuarios'],
         fecha_realizada: programacion?.fecha_realizada || null,
         duracion: programacion?.duracion ?? null,
         cantidad_insumo: programacion?.cantidad_insumo ?? null,
@@ -169,11 +185,10 @@ const ListarAsignacion = () => {
     });
   }, [asignaciones, realizaList, usuarios, programaciones, unidadesMedida]);
 
-  // Liberar URLs temporales
   useEffect(() => {
     return () => {
       tablaData.forEach((item) => {
-        if (typeof item.img === 'string' && item.img.startsWith('blob:')) {
+        if (typeof item.img === 'string' && item.img?.startsWith('blob:')) {
           URL.revokeObjectURL(item.img);
         }
       });
@@ -184,12 +199,20 @@ const ListarAsignacion = () => {
   const error = errorAsignaciones || errorRealiza || errorUsuarios || errorProgramaciones || errorUnidadesMedida;
 
   if (loading) return <div className="text-center text-gray-500">Cargando asignaciones...</div>;
-  if (error) return <div className="text-center text-red-500">Error al cargar datos: {error.message || 'Intenta de nuevo.'}</div>;
+  if (error) {
+    showToast({
+      title: 'Error al cargar datos',
+      description: error.message || 'No se pudieron cargar las asignaciones',
+      timeout: 5000,
+      variant: 'error',
+    });
+    return <div className="text-center text-red-500">Error al cargar datos. Intenta de nuevo.</div>;
+  }
 
   const headers = [
     'ID',
     'Fecha Programada',
-    'Usuario',
+    'Usuarios',
     'Actividad',
     'Plantacion',
     'Observaciones',
@@ -205,7 +228,13 @@ const ListarAsignacion = () => {
     <tr key={item.id} className="hover:bg-gray-100 cursor-pointer">
       <td className="p-3">{item.id}</td>
       <td className="p-3">{item.fecha_programada}</td>
-      <td className="p-3">{item.usuario}</td>
+      <td className="p-3">
+        {item.usuarios[0] === 'Sin usuarios' ? (
+          <span className="text-gray-500">Sin usuarios</span>
+        ) : (
+          <span className="text-gray-700">{item.usuarios.join(' - ')}</span>
+        )}
+      </td>
       <td className="p-3">{item.actividad}</td>
       <td className="p-3">{item.plantacion}</td>
       <td className="p-3">{item.observaciones}</td>
@@ -274,7 +303,6 @@ const ListarAsignacion = () => {
         )}
       </div>
 
-      {/* Imagen ampliada */}
       {imagenAmpliada && (
         <div
           className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"

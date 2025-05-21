@@ -31,11 +31,17 @@ export interface Especie {
   fk_id_tipo_cultivo: TipoCultivo;
 }
 
-export interface Plantacion {
+export interface Cultivo {
   id: number;
   nombre_cultivo: string;
   descripcion: string;
   fk_id_especie: Especie;
+}
+
+export interface Plantacion {
+  id: number;
+  descripcion: string;
+  fk_id_cultivo: Cultivo;
   cantidad_transplante?: number;
   fk_id_semillero?: Semillero;
   fecha_plantacion: string;
@@ -74,16 +80,8 @@ export interface Asignacion {
   estado: 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada';
   fecha_programada: string;
   observaciones: string;
-  fk_id_realiza: Realiza;
-  fk_identificacion: Usuario;
-}
-
-export interface CrearAsignacionDTO {
-  estado: 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada';
-  fecha_programada: string;
-  observaciones: string;
-  fk_id_realiza: number;
-  fk_identificacion: number;
+  fk_id_realiza: Realiza | number;
+  fk_identificacion: number[]; // Cambiado a number[] para ManyToManyField
 }
 
 const fetchAsignaciones = async (): Promise<Asignacion[]> => {

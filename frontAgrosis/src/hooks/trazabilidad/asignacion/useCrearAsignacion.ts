@@ -25,6 +25,13 @@ export interface Especie {
   fk_id_tipo_cultivo: TipoCultivo;
 }
 
+export interface Cultivo {
+  id: number;
+  nombre_cultivo: string;
+  descripcion: string;
+  fk_id_especie: Especie;
+}
+
 export interface Semillero {
   id: number;
   nombre_semilla: string;
@@ -35,9 +42,8 @@ export interface Semillero {
 
 export interface Plantacion {
   id: number;
-  nombre_cultivo: string;
   descripcion: string;
-  fk_id_especie: Especie;
+  fk_id_cultivo: Cultivo; // Corregido de fk_id_especie a fk_id_cultivo
   cantidad_transplante?: number;
   fk_id_semillero?: Semillero;
   fecha_plantacion: string;
@@ -61,8 +67,8 @@ export interface Asignacion {
   estado: 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada';
   fecha_programada: string;
   observaciones: string;
-  fk_id_realiza: Realiza;
-  fk_identificacion: Usuario;
+  fk_id_realiza: Realiza | number;
+  fk_identificacion: number[]; // Cambiado a number[] para ManyToManyField
 }
 
 // Interfaz para los datos de entrada (POST)
@@ -71,7 +77,7 @@ export interface CrearAsignacionDTO {
   fecha_programada: string;
   observaciones: string;
   fk_id_realiza: number;
-  fk_identificacion: number;
+  fk_identificacion: number[]; // Cambiado a number[] para ManyToManyField
 }
 
 // Función para crear una asignación

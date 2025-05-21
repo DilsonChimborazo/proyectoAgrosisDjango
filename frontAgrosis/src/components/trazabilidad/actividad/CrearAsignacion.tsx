@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Select from 'react-select';
 import { useCrearAsignacion } from '@/hooks/trazabilidad/asignacion/useCrearAsignacion';
 import { Realiza, useRealiza } from '@/hooks/trazabilidad/realiza/useRealiza';
 import { Usuario } from '@/hooks/usuarios/usuario/useUsuarios';
@@ -11,35 +12,63 @@ interface CrearAsignacionModalProps {
   onSuccess: () => void;
   onCancel: () => void;
   usuarios: Usuario[];
-  onCreateUsuario: () => void;
+  onCreateUsuario: (newUser: Usuario) => void;
+}
+
+interface SelectOption {
+  value: string;
+  label: string;
 }
 
 const CrearAsignacion = ({
   onSuccess,
   onCancel,
-  usuarios,
+  usuarios: initialUsuarios,
   onCreateUsuario,
 }: CrearAsignacionModalProps) => {
   const { mutate: createAsignacion, isPending } = useCrearAsignacion();
   const { data: realizaList = [], isLoading: isLoadingRealiza, error: errorRealiza, refetch: refetchRealiza } = useRealiza();
   const [formData, setFormData] = useState({
     fk_id_realiza: '',
-    fk_identificacion: '',
+    fk_identificacion: [] as string[],
     estado: 'Pendiente',
     fecha_programada: '',
     observaciones: '',
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState<React.ReactNode>(null);
+  const [usuarios, setUsuarios] = useState<Usuario[]>(initialUsuarios);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  // Sincronizar usuarios con initialUsuarios cuando cambie
+  useEffect(() => {
+    setUsuarios((prev) => {
+      const existingIds = new Set(prev.map((u) => u.id));
+      const newUsuarios = initialUsuarios.filter((u) => !existingIds.has(u.id));
+      return [...prev, ...newUsuarios];
+    });
+  }, [initialUsuarios]);
+
+  // Opciones para react-select
+  const usuarioOptions: SelectOption[] = usuarios.map((usuario) => ({
+    value: String(usuario.id),
+    label: `${usuario.nombre} ${usuario.apellido} - Ficha: ${usuario.numero_ficha || 'Sin ficha'}`,
+  }));
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleUsuariosChange = (selectedOptions: SelectOption[] | null) => {
+    const selectedIds = selectedOptions ? selectedOptions.map((option) => option.value) : [];
+    setFormData((prev) => ({ ...prev, fk_identificacion: selectedIds }));
+  };
+
   const validateForm = () => {
     if (!formData.fk_id_realiza) return 'Debe seleccionar un realiza';
-    if (!formData.fk_identificacion) return 'Debe seleccionar un usuario';
+    if (formData.fk_identificacion.length === 0) return 'Debe seleccionar al menos un usuario';
     if (!formData.fecha_programada) return 'Debe ingresar una fecha programada';
     return null;
   };
@@ -62,7 +91,7 @@ const CrearAsignacion = ({
       await createAsignacion(
         {
           fk_id_realiza: Number(formData.fk_id_realiza),
-          fk_identificacion: Number(formData.fk_identificacion),
+          fk_identificacion: formData.fk_identificacion.map(Number),
           estado: formData.estado as 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada',
           fecha_programada: formData.fecha_programada,
           observaciones: formData.observaciones || '',
@@ -74,6 +103,13 @@ const CrearAsignacion = ({
               description: 'La asignación ha sido registrada en el sistema',
               timeout: 4000,
               variant: 'success',
+            });
+            setFormData({
+              fk_id_realiza: '',
+              fk_identificacion: [],
+              estado: 'Pendiente',
+              fecha_programada: '',
+              observaciones: '',
             });
             onSuccess();
           },
@@ -103,8 +139,22 @@ const CrearAsignacion = ({
         onSuccess={async () => {
           await refetchRealiza();
           setIsModalOpen(false);
+          showToast({
+            title: 'Realiza creado',
+            description: 'El realiza ha sido registrado exitosamente.',
+            timeout: 4000,
+            variant: 'success',
+          });
         }}
-        onCancel={() => setIsModalOpen(false)}
+        onCancel={() => {
+          setIsModalOpen(false);
+          showToast({
+            title: 'Creación cancelada',
+            description: 'Se canceló la creación del realiza.',
+            timeout: 4000,
+            variant: 'info',
+          });
+        }}
       />
     );
     setIsModalOpen(true);
@@ -114,9 +164,29 @@ const CrearAsignacion = ({
     setModalContent(
       <CrearUsuario
         isOpen={true}
-        onClose={() => {
+        onClose={(newUser?: Usuario) => {
           setIsModalOpen(false);
-          onCreateUsuario();
+          if (newUser) {
+            setUsuarios((prev) => {
+              const updatedUsuarios = [...prev, newUser];
+              console.log('Usuarios actualizados:', updatedUsuarios); // Para depuración
+              return updatedUsuarios;
+            });
+            onCreateUsuario(newUser);
+            showToast({
+              title: 'Usuario creado',
+              description: `El usuario ${newUser.nombre} ${newUser.apellido} ha sido creado exitosamente.`,
+              timeout: 4000,
+              variant: 'success',
+            });
+          } else {
+            showToast({
+              title: 'Creación cancelada',
+              description: 'Se canceló la creación del usuario.',
+              timeout: 4000,
+              variant: 'info',
+            });
+          }
         }}
       />
     );
@@ -158,7 +228,7 @@ const CrearAsignacion = ({
               <option value="">Selecciona un realiza</option>
               {realizaList.map((realiza: Realiza) => (
                 <option key={realiza.id} value={realiza.id}>
-                  {`Plantación: ${realiza.fk_id_plantacion?.fk_id_semillero?.nombre_semilla || 'Sin semilla'} - Actividad: ${
+                  {`Plantación: ${realiza.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo || 'Sin cultivo'} - Actividad: ${
                     realiza.fk_id_actividad?.nombre_actividad || 'Sin actividad'
                   }`}
                 </option>
@@ -178,24 +248,44 @@ const CrearAsignacion = ({
         <div className="flex items-center space-x-2">
           <div className="flex-1">
             <label htmlFor="fk_identificacion" className="block text-sm font-medium text-gray-700">
-              Usuario
+              Usuarios
             </label>
-            <select
+            <Select
               id="fk_identificacion"
-              name="fk_identificacion"
-              value={formData.fk_identificacion}
-              onChange={handleChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-              required
-              disabled={isPending}
-            >
-              <option value="">Selecciona un usuario</option>
-              {usuarios.map((usuario) => (
-                <option key={usuario.id} value={usuario.id}>
-                  {`${usuario.nombre} ${usuario.apellido} - Ficha: ${usuario.numero_ficha || 'Sin ficha'}`}
-                </option>
-              ))}
-            </select>
+              isMulti
+              options={usuarioOptions}
+              value={usuarioOptions.filter((option) => formData.fk_identificacion.includes(option.value))}
+              onChange={handleUsuariosChange}
+              placeholder="Selecciona usuarios..."
+              isDisabled={isPending}
+              className="mt-1"
+              classNamePrefix="react-select"
+              styles={{
+                control: (base) => ({
+                  ...base,
+                  borderColor: '#d1d5db',
+                  borderRadius: '0.375rem',
+                  padding: '0.25rem',
+                  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+                  '&:hover': { borderColor: '#9ca3af' },
+                }),
+                menu: (base) => ({
+                  ...base,
+                  borderRadius: '0.375rem',
+                  marginTop: '0.25rem',
+                }),
+                option: (base, { isFocused, isSelected }) => ({
+                  ...base,
+                  backgroundColor: isSelected
+                    ? '#2e7d32'
+                    : isFocused
+                    ? '#e5e7eb'
+                    : 'white',
+                  color: isSelected ? 'white' : '#1f2937',
+                  '&:active': { backgroundColor: '#1e40af' },
+                }),
+              }}
+            />
           </div>
           <button
             type="button"
@@ -255,13 +345,29 @@ const CrearAsignacion = ({
             disabled={isPending}
           />
         </div>
-        <div className="flex justify-center">
+        <div className="flex justify-center space-x-4">
           <button
             type="submit"
-            className="bg-white text-[#2e7d32] px-4 py-2 rounded-md border border-[#2e7d32] hover:bg-[#2e7d32] hover:text-white"
+            className="bg-white text-[#2e7d32] px-4 py-2 rounded-md border border-[#2e7d32] hover:bg-[#2e7d32] hover:text-white disabled:opacity-50"
             disabled={isPending}
           >
-            Registrar
+            {isPending ? 'Registrando...' : 'Registrar'}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              onCancel();
+              showToast({
+                title: 'Creación cancelada',
+                description: 'Se canceló la creación de la asignación.',
+                timeout: 4000,
+                variant: 'info',
+              });
+            }}
+            className="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 disabled:opacity-50"
+            disabled={isPending}
+          >
+            Cancelar
           </button>
         </div>
       </form>
