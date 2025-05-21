@@ -56,7 +56,7 @@ class ItemVenta(models.Model):
     )
 
     def subtotal(self):
-        return self.precio_unidad
+        return self.precio_unidad * self.cantidad
 
     def precio_por_unidad_de_medida(self):
         return self.precio_unidad / self.cantidad if self.cantidad else 0
@@ -74,6 +74,3 @@ class ItemVenta(models.Model):
         venta = self.venta
         super().delete(*args, **kwargs)
         venta.actualizar_total()
-
-    def __str__(self):
-        return f"Item #{self.id} - {self.produccion.nombre_produccion} - {self.cantidad} {self.unidad_medida}"

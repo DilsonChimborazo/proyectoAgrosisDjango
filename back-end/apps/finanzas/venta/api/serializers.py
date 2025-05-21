@@ -58,7 +58,6 @@ class CrearVentaSerializer(serializers.ModelSerializer):
         for item_data in items_data:
             ItemVenta.objects.create(venta=venta, **item_data)
 
-        venta.actualizar_total()
         return venta
 
     def update(self, instance, validated_data):
@@ -69,5 +68,4 @@ class CrearVentaSerializer(serializers.ModelSerializer):
             for item_data in items_data:
                 ItemVenta.objects.create(venta=instance, **item_data)
 
-        instance.actualizar_total()
         return instance
