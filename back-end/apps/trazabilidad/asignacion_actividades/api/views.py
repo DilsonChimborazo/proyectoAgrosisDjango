@@ -2,25 +2,26 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from apps.trazabilidad.asignacion_actividades.models import Asignacion_actividades
-from apps.trazabilidad.asignacion_actividades.api.serializers import LeerAsignacion_actividadesSerializer 
-  
+from apps.trazabilidad.asignacion_actividades.api.serializers import (
+    LeerAsignacion_actividadesSerializer,
+    EscribirAsignacion_actividadesSerializer
+)
 
 class Asignacion_actividadesModelViewSet(ModelViewSet):
     queryset = Asignacion_actividades.objects.select_related(
         'fk_id_realiza__fk_id_plantacion__fk_id_cultivo',
-        'fk_identificacion',
-        'fk_id_realiza__fk_id_actividad'
-    ).all()
+        # 'fk_identificacion' ya no es necesario aquí porque es ManyToMany
+    ).prefetch_related('fk_identificacion').all()
 
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve']:
             return LeerAsignacion_actividadesSerializer
-        return LeerAsignacion_actividadesSerializer
+        return EscribirAsignacion_actividadesSerializer
 
     @action(detail=False, methods=['get'], url_path='reporte-asignaciones')
     def reporte_asignaciones(self, request):
         """
-        Reporte personalizado que muestra la fecha programada, plantacion, usuario, actividad, estado y observaciones.
+        Reporte personalizado que muestra la fecha programada, plantación, usuarios, actividad, estado y observaciones.
         """
         reporte = []
 
@@ -30,11 +31,11 @@ class Asignacion_actividadesModelViewSet(ModelViewSet):
                 if asignacion.fk_id_realiza and asignacion.fk_id_realiza.fk_id_plantacion and asignacion.fk_id_realiza.fk_id_plantacion.fk_id_cultivo
                 else "No especificado"
             )
-            usuario = (
-                f"{asignacion.fk_identificacion.nombre} {asignacion.fk_identificacion.apellido}"
-                if asignacion.fk_identificacion
-                else "No especificado"
-            )
+            # Manejo de múltiples usuarios
+            usuarios = [
+                f"{usuario.nombre} {usuario.apellido}"
+                for usuario in asignacion.fk_identificacion.all()
+            ] if asignacion.fk_identificacion.exists() else ["No especificado"]
             actividad = (
                 asignacion.fk_id_realiza.fk_id_actividad.nombre_actividad
                 if asignacion.fk_id_realiza and asignacion.fk_id_realiza.fk_id_actividad
@@ -47,7 +48,7 @@ class Asignacion_actividadesModelViewSet(ModelViewSet):
             reporte.append({
                 "fecha_programada": fecha_programada,
                 "plantacion": plantacion,
-                "usuario": usuario,
+                "usuarios": usuarios,  # Ahora es una lista de usuarios
                 "actividad": actividad,
                 "estado": estado,
                 "observaciones": observaciones,
@@ -55,5 +56,5 @@ class Asignacion_actividadesModelViewSet(ModelViewSet):
 
         return Response({
             "reporte": reporte,
-            "estructura": "FECHA PROGRAMADA | PLANTACION | USUARIO | ACTIVIDAD | ESTADO | OBSERVACIONES"
+            "estructura": "FECHA PROGRAMADA | PLANTACIÓN | USUARIOS | ACTIVIDAD | ESTADO | OBSERVACIONES"
         })

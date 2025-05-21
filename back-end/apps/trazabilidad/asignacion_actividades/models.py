@@ -20,7 +20,7 @@ class Asignacion_actividades(models.Model):
     fecha_programada = models.DateField()
     observaciones = models.TextField() 
     fk_id_realiza = models.ForeignKey(Realiza, on_delete=models.SET_NULL, null=True)
-    fk_identificacion = models.ForeignKey(Usuarios, on_delete=models.SET_NULL, null=True)
-    
+    fk_identificacion = models.ManyToManyField(Usuarios, related_name='asignaciones_actividades')
+
     def __str__(self): 
-        return f'{self.fk_id_realiza} - {self.fk_identificacion}'
+        return f'{self.fk_id_realiza} - Asignación con {self.fk_identificacion.count()} usuarios'
