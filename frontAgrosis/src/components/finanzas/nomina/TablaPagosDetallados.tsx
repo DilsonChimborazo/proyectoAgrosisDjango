@@ -4,10 +4,9 @@ import Tabla from '@/components/globales/Tabla';
 import DescargarTablaPDF from '@/components/globales/DescargarTablaPDF';
 import { CheckCircle2, XCircle, Filter, Check, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import CrearSalario from "@/components/finanzas/salario/CrearSalario"
+import CrearSalario from "@/components/finanzas/salario/CrearSalario";
 import VentanaModal from '@/components/globales/VentanasModales';
 
-// Definición de tipos
 type Filtros = {
   persona: string;
   actividad: string;
@@ -52,37 +51,35 @@ const TablaPagosDetallados: React.FC = () => {
     estado: 'todos'
   });
   const [pagoAMarcar, setPagoAMarcar] = useState<number | null>(null);
-
   const [isSalarioModalOpen, setIsSalarioModalOpen] = useState(false);
 
   const cerrarModalConExito = () => {
     setIsSalarioModalOpen(false);
-    refetch(); // Refresca los datos del stock
+    refetch();
   };
 
-  // Función para confirmar el pago
   const handleConfirmarPago = () => {
     if (!pagoAMarcar) return;
 
     toast.promise(
       new Promise((resolve, reject) => {
         marcarPago(pagoAMarcar, {
-          onSuccess: resolve,
+          onSuccess: () => {
+            refetch();
+            resolve(null);
+          },
           onError: reject
         });
       }),
       {
         loading: 'Actualizando estado de pago...',
-        success: () => {
-          setPagoAMarcar(null);
-          return 'Pago marcado como completado';
-        },
+        success: 'Pago marcado como completado',
         error: 'Error al marcar el pago'
       }
     );
+    setPagoAMarcar(null);
   };
 
-  // Datos filtrados
   const datosFiltrados = useMemo(() => {
     if (!data) return [];
     return data.filter((pago: PagoDetallado) => {
@@ -102,7 +99,6 @@ const TablaPagosDetallados: React.FC = () => {
     });
   }, [data, filtros]);
 
-  // Opciones para filtros
   const personasUnicas = useMemo(() => {
     const personas = new Set<string>();
     data?.forEach((pago: PagoDetallado) => {
@@ -124,11 +120,12 @@ const TablaPagosDetallados: React.FC = () => {
     return Array.from(actividades).sort();
   }, [data]);
 
-  // Preparar datos para la tabla
-  const headers = ['ID', 'Fecha Pago', 'Usuario', 'Actividad', 'Tipo', 'Pago Total', 'Estado'];
+
+  const headers = ['ID', 'Fecha', 'Usuario', 'Actividad', 'Tipo', 'Pago Total', 'Estado'];
+
   const rows: FilaPago[] = datosFiltrados.map((pago: PagoDetallado) => ({
     id: pago.id,
-    fecha_pago: pago.fecha_pago || 'No especificada',
+    fecha: pago.fecha_pago || 'No especificada',
     usuario: `${pago.usuario?.nombre || 'N/A'} ${pago.usuario?.apellido || ''}`.trim(),
     actividad: pago.actividad || 'Desconocida',
     tipo: pago.tipo_actividad || 'No especificado',
@@ -145,7 +142,6 @@ const TablaPagosDetallados: React.FC = () => {
     esPagado: !!pago.pagado
   }));
 
-  // Datos para PDF
   const pdfColumns = ['ID', 'Fecha', 'Usuario', 'Actividad', 'Tipo', 'Pago Total', 'Estado'];
   const pdfData = datosFiltrados.map((pago: PagoDetallado) => [
     pago.id?.toString() || 'N/A',
@@ -157,7 +153,6 @@ const TablaPagosDetallados: React.FC = () => {
     pago.pagado ? 'Pagado' : 'Pendiente'
   ]);
 
-  // Función de renderizado para celdas
   const renderCell = (row: FilaPago, columnKey: string): React.ReactNode => {
     if (columnKey === 'estado') {
       return (
@@ -186,12 +181,14 @@ const TablaPagosDetallados: React.FC = () => {
   if (error) return <div className="text-red-500 text-center py-8">Error: {error.message}</div>;
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
+    <div className="bg-white p-4 md:p-6 rounded-lg shadow-md">
       {/* Modal de confirmación */}
-      {pagoAMarcar && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
-            <h3 className="text-lg font-bold mb-4">Confirmar pago</h3>
+      <VentanaModal
+        isOpen={!!pagoAMarcar}
+        onClose={() => setPagoAMarcar(null)}
+        titulo="Confirmar pago"
+        contenido={
+          <div className="space-y-4">
             <p>¿Estás seguro de marcar este pago como completado?</p>
             <div className="flex justify-end gap-2 mt-4">
               <button
@@ -210,39 +207,40 @@ const TablaPagosDetallados: React.FC = () => {
               </button>
             </div>
           </div>
+        }
+      />
+
+      {/* Encabezado Responsivo */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 md:mb-6 gap-3 md:gap-4">
+        <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+          <button
+            onClick={() => setIsSalarioModalOpen(true)}
+            className="bg-green-600 hover:bg-green-800 text-white font-bold py-2 px-3 md:px-4 rounded mr-0 md:mr-4 text-sm md:text-base"
+          >
+            Registrar Salario
+          </button>
+          <h2 className="text-xl md:text-2xl font-bold text-gray-800 flex items-center">
+            <Filter className="mr-2 w-4 h-4 md:w-6 md:h-6" /> Detalle de Pagos
+          </h2>
         </div>
-      )}
-
-      {/* Encabezado */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <button
-          onClick={() => setIsSalarioModalOpen(true)}
-          className="bg-green-600 hover:bg-green-800 text-white font-bold py-2 px-4 rounded mr-4"
-        >
-          Registrar Salario
-        </button>
-        <h2 className="text-2xl font-bold text-gray-800 flex items-center">
-          <Filter className="mr-2" size={24} /> Detalle de Pagos
-        </h2>
-
+        
         <DescargarTablaPDF
           nombreArchivo="reporte_pagos.pdf"
           columnas={pdfColumns}
           datos={pdfData}
           titulo="Reporte de Pagos"
-          className="bg-green-600 text-white hover:bg-green-700"
+          className="bg-green-600 text-white hover:bg-green-700 text-sm md:text-base py-2 px-3 md:px-4"
         />
-
       </div>
 
-      {/* Filtros */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Filtrar por persona</label>
+      {/* Filtros Responsivos */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 mb-4 md:mb-6 p-3 md:p-4 bg-gray-50 rounded-lg">
+        <div className="w-full">
+          <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Filtrar por persona</label>
           <select
             value={filtros.persona}
             onChange={(e) => setFiltros({ ...filtros, persona: e.target.value })}
-            className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+            className="w-full p-2 text-xs md:text-sm border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
           >
             <option value="">Todas las personas</option>
             {personasUnicas.map((persona, index) => (
@@ -251,12 +249,12 @@ const TablaPagosDetallados: React.FC = () => {
           </select>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Filtrar por actividad</label>
+        <div className="w-full">
+          <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Filtrar por actividad</label>
           <select
             value={filtros.actividad}
             onChange={(e) => setFiltros({ ...filtros, actividad: e.target.value })}
-            className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+            className="w-full p-2 text-xs md:text-sm border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
           >
             <option value="">Todas las actividades</option>
             {actividadesUnicas.map((actividad, index) => (
@@ -265,12 +263,12 @@ const TablaPagosDetallados: React.FC = () => {
           </select>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Filtrar por estado</label>
+        <div className="w-full">
+          <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Filtrar por estado</label>
           <select
             value={filtros.estado}
             onChange={(e) => setFiltros({ ...filtros, estado: e.target.value as 'todos' | 'pagado' | 'pendiente' })}
-            className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+            className="w-full p-2 text-xs md:text-sm border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
           >
             <option value="todos">Todos los estados</option>
             <option value="pagado">Solo pagados</option>
@@ -279,47 +277,57 @@ const TablaPagosDetallados: React.FC = () => {
         </div>
       </div>
 
-      {/* Resumen */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-          <h3 className="font-medium text-green-800">Total pagos</h3>
-          <p className="text-2xl font-bold text-green-600">
+      {/* Resumen Responsivo */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 mb-4 md:mb-6">
+        <div className="bg-green-50 p-3 md:p-4 rounded-lg border border-green-200">
+          <h3 className="font-medium text-green-800 text-sm md:text-base">Total pagos</h3>
+          <p className="text-xl md:text-2xl font-bold text-green-600">
             {datosFiltrados.length}
           </p>
         </div>
-        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-          <h3 className="font-medium text-blue-800">Total valor pagado</h3>
-          <p className="text-2xl font-bold text-blue-600">
+        <div className="bg-blue-50 p-3 md:p-4 rounded-lg border border-blue-200">
+          <h3 className="font-medium text-blue-800 text-sm md:text-base">Total valor pagado</h3>
+          <p className="text-xl md:text-2xl font-bold text-blue-600">
             ${datosFiltrados.reduce((sum, pago) => sum + (pago.pago_total || 0), 0).toLocaleString()}
           </p>
         </div>
-        <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-          <h3 className="font-medium text-purple-800">Personas únicas</h3>
-          <p className="text-2xl font-bold text-purple-600">
+        <div className="bg-purple-50 p-3 md:p-4 rounded-lg border border-purple-200">
+          <h3 className="font-medium text-purple-800 text-sm md:text-base">Personas únicas</h3>
+          <p className="text-xl md:text-2xl font-bold text-purple-600">
             {new Set(datosFiltrados.map(pago => pago.usuario?.id)).size}
           </p>
         </div>
       </div>
 
-      {/* Tabla */}
-      <Tabla
-        title=""
-        headers={headers}
-        data={rows}
-        hiddenColumnsByDefault={['id']}
-        rowsPerPageOptions={[10, 25, 50, 100]}
-        renderCell={renderCell}
-        rowClassName={(row: { esPagado: any; }) =>
-          row.esPagado
-            ? 'bg-green-50 hover:bg-green-100'
-            : 'bg-red-50 hover:bg-red-100'
-        }
-      />
+      {/* Tabla Responsiva */}
+      <div className="overflow-x-auto">
+        <div className="min-w-[600px] md:min-w-0">
+          <div className="[&_table]:w-full [&_th]:py-3 md:[&_th]:py-4 
+                        [&_th]:bg-green-700 [&_th]:text-white [&_th]:font-bold
+                        [&_th:first-child]:rounded-tl-lg [&_th:last-child]:rounded-tr-lg
+                        [&_td]:px-3 md:[&_td]:px-4 [&_td]:py-2 md:[&_td]:py-3">
+            <Tabla
+              title=""
+              headers={headers}
+              data={rows}
+              hiddenColumnsByDefault={['id']}
+              rowsPerPageOptions={[5, 10, 25, 50, 100]}
+              renderCell={renderCell}
+              rowClassName={(row: { esPagado: any }) =>
+                row.esPagado
+                  ? 'bg-green-50 hover:bg-green-100'
+                  : 'bg-red-50 hover:bg-red-100'
+              }
+            />
+          </div>
+        </div>
+      </div>
+
       {isSalarioModalOpen && (
         <VentanaModal
           isOpen={isSalarioModalOpen}
           onClose={cerrarModalConExito}
-          titulo=""
+          titulo="Registrar Salario"
           contenido={
             <CrearSalario
               onClose={cerrarModalConExito}

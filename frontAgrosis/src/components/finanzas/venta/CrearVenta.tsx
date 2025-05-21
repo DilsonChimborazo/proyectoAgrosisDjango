@@ -1,198 +1,368 @@
-import { useState } from "react";
-import { useCrearVenta } from "@/hooks/finanzas/venta/useCrearVenta";
-import Formulario from "@/components/globales/Formulario";
-import { useNavigate } from "react-router-dom";
-import { useProduccion } from "@/hooks/finanzas/produccion/useProduccion";
-import { useMedidas } from "@/hooks/inventario/unidadMedida/useMedidad";
-import { NuevaVenta } from "@/hooks/finanzas/venta/useCrearVenta";
-import { Produccion } from "@/hooks/finanzas/venta/useVenta";
-import CrearUnidadMedida from "@/components/inventario/unidadMedida/UnidadMedida";
-import CrearProduccion from "@/components/finanzas/produccion/CrearProduccion";
-import VentanaModal from "@/components/globales/VentanasModales";
+import { useState } from 'react';
+import { useCrearVenta } from '@/hooks/finanzas/venta/useVenta';
+import { useProduccion } from '@/hooks/finanzas/produccion/useProduccion';
+import { useMedidas } from '@/hooks/inventario/unidadMedida/useMedidad';
+import Button from '@/components/globales/Button';
+import VentanaModal from '@/components/globales/VentanasModales';
+import CrearUnidadMedida from '@/components/inventario/unidadMedida/UnidadMedida';
+import CrearProduccion from '@/components/finanzas/produccion/CrearProduccion';
+import { addToast } from '@heroui/react';
+import { Trash2 } from 'lucide-react';
 
-interface CrearVentaProps {
-  onClose?: () => void;
-  onSuccess?: () => void;
+interface ProductoSeleccionado {
+  produccionId: number;
+  cantidad: number;
+  precioUnidad: number;
+  precioPorUnidad: number;
+  precioPorUnidadBase: number;
+  unidadMedidaId: number;
+  nombreProduccion: string;
+  stockDisponible: number;
+  unidadBase: string;
+  subtotal: number;
 }
 
-const CrearVenta = ({ onClose, onSuccess }: CrearVentaProps) => {
-  const mutation = useCrearVenta();
-  const navigate = useNavigate();
+const CrearVenta = () => {
+  const { data: producciones = [], isLoading: isLoadingProducciones } = useProduccion();
+  const { data: unidades = [], isLoading: isLoadingUnidades } = useMedidas();
+  const crearVentaMutation = useCrearVenta();
 
-  const { data: producciones = [], refetch: refetchProduccion, isLoading: isLoadingProducciones } = useProduccion();
-  const { data: unidades = [], refetch: refetchUnidades, isLoading: isLoadingUnidades } = useMedidas();
-
+  const [productos, setProductos] = useState<ProductoSeleccionado[]>([]);
+  const [productoActual, setProductoActual] = useState<Partial<ProductoSeleccionado>>({});
+  const [totalVenta, setTotalVenta] = useState(0);
   const [modalMedidaAbierto, setModalMedidaAbierto] = useState(false);
   const [modalProduccionAbierto, setModalProduccionAbierto] = useState(false);
-  const [stockSeleccionado, setStockSeleccionado] = useState<number | null>(null);
-  const [produccionSeleccionada, setProduccionSeleccionada] = useState<Produccion | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const abrirModalMedida = () => setModalMedidaAbierto(true);
-  const cerrarModalMedida = () => {
-    setModalMedidaAbierto(false);
-    refetchUnidades();
-  };
+  const unidadSeleccionada = unidades.find(u => u.id === productoActual.unidadMedidaId);
 
-  const abrirModalProduccion = () => setModalProduccionAbierto(true);
-  const cerrarModalProduccion = () => {
-    setModalProduccionAbierto(false);
-    refetchProduccion();
-  };
-
-  const handleProduccionChange = (idProduccion: string) => {
-    const id = Number(idProduccion);
-    const produccion = producciones.find((p: Produccion) => p.id === id);
-    if (produccion) {
-      setProduccionSeleccionada(produccion);
-      setStockSeleccionado(produccion.stock_disponible);
-    }
-  };
-
-  const handleSubmit = (formData: { [key: string]: string | File }) => {
-    if (!produccionSeleccionada) {
-      console.error("Error: Debe seleccionar una producción");
-      return;
-    }
-
-    const cantidad = parseFloat(formData.cantidad as string);
-    const precioUnidad = parseFloat(formData.precio_unidad as string);
-    const unidadMedidaId = parseInt(formData.fk_unidad_medida as string, 10);
-
-    if (cantidad <= 0 || precioUnidad <= 0) {
-      console.error("Error: Cantidad y precio deben ser mayores a cero");
-      return;
-    }
-
-    if (stockSeleccionado !== null && cantidad > stockSeleccionado) {
-      console.error("Error: La cantidad no puede ser mayor al stock disponible");
-      return;
-    }
-
-    const unidadSeleccionada = unidades.find((u) => u.id === unidadMedidaId);
-    const factorConversion = unidadSeleccionada?.factor_conversion ?? 1;
-
-    const nuevaVenta: NuevaVenta = {
-      fk_id_produccion: produccionSeleccionada.id,
-      cantidad,
-      precio_unidad: precioUnidad,
-      fecha: formData.fecha as string,
-      fk_unidad_medida: unidadMedidaId,
-      cantidad_en_base: cantidad * factorConversion,
-    };
-
-    mutation.mutate(nuevaVenta, {
-      onSuccess: () => {
-        onSuccess ? onSuccess() : navigate("/stock");
-        onClose?.();
-      },
-      onError: (error) => {
-        console.error("Error al crear la venta:", error.message);
-      },
+  const seleccionarProducto = (produccionId: number, unidadMedidaId?: number) => {
+    setProductoActual({
+      ...productoActual,
+      produccionId,
+      unidadMedidaId
     });
   };
 
-  if (isLoadingProducciones || isLoadingUnidades) {
-    return <div className="text-center text-gray-500">Cargando opciones...</div>;
-  }
+  const agregarProducto = () => {
+    if (
+      !productoActual.produccionId ||
+      !productoActual.cantidad ||
+      !productoActual.precioUnidad ||
+      !productoActual.unidadMedidaId
+    ) {
+      setError("Todos los campos son obligatorios");
+      addToast({ title: "Faltan campos por completar", timeout: 3000 });
+      return;
+    }
 
-  const produccionOptions = producciones.map((p) => ({
-    value: String(p.id),
-    label: `${p.nombre_produccion} - ${p.fecha}`,
-  }));
+    const produccion = producciones.find(p => p.id === productoActual.produccionId);
+    if (!produccion) {
+      setError("Producción no encontrada");
+      addToast({ title: "Producción no encontrada", timeout: 3000 });
+      return;
+    }
 
-  const formFields = [
-    {
-      id: "fk_id_produccion",
-      label: "Producción",
-      type: "select",
-      options: produccionOptions,
-      hasExtraButton: true,
-      extraButtonText: "+",
-      onExtraButtonClick: abrirModalProduccion,
-      required: true,
-    },
-    {
-      id: "cantidad",
-      label: "Cantidad",
-      type: "number",
-      min: 0.01,
-      step: "any",
-      required: true,
-      max: stockSeleccionado || undefined,
-    },
-    {
-      id: "fk_unidad_medida",
-      label: "Unidad de Medida",
-      type: "select",
-      options: unidades.map((u: any) => ({
-        value: u.id.toString(),
-        label: `${u.nombre_medida} (${u.unidad_base})`,
-      })),
-      hasExtraButton: true,
-      extraButtonText: "+",
-      onExtraButtonClick: abrirModalMedida,
-      required: true,
-    },
-    {
-      id: "precio_unidad",
-      label: "Precio por Unidad",
-      type: "number",
-      min: 0.01,
-      step: "0.01",
-      required: true,
-    },
-    {
-      id: "fecha",
-      label: "Fecha de Venta",
-      type: "date",
-      required: true,
-    },
-  ];
+    const unidad = unidades.find(u => u.id === productoActual.unidadMedidaId);
+    if (!unidad) {
+      setError("Unidad de medida no encontrada");
+      addToast({ title: "Unidad de medida no encontrada", timeout: 3000 });
+      return;
+    }
+
+    if (productoActual.cantidad > produccion.stock_disponible) {
+      setError(`La cantidad supera el stock disponible (${produccion.stock_disponible} ${unidad.unidad_base})`);
+      addToast({ title: `La cantidad supera el stock disponible (${produccion.stock_disponible} ${unidad.unidad_base})`, timeout: 3000 });
+      return;
+    }
+
+    if (productoActual.cantidad <= 0 || productoActual.precioUnidad <= 0) {
+      setError("La cantidad y el precio deben ser mayores a 0");
+      addToast({ title: "La cantidad y el precio deben ser mayores a 0", timeout: 3000 });
+      return;
+    }
+
+    const precioPorUnidad = productoActual.precioUnidad / productoActual.cantidad;
+    const precioPorUnidadBase = precioPorUnidad / unidad.factor_conversion;
+
+    const nuevoProducto: ProductoSeleccionado = {
+      produccionId: productoActual.produccionId!,
+      cantidad: productoActual.cantidad!,
+      precioUnidad: productoActual.precioUnidad!,
+      precioPorUnidad,
+      precioPorUnidadBase,
+      unidadMedidaId: productoActual.unidadMedidaId!,
+      nombreProduccion: produccion.nombre_produccion,
+      stockDisponible: produccion.stock_disponible,
+      unidadBase: unidad.unidad_base,
+      subtotal: productoActual.precioUnidad!
+    };
+
+    setProductos([...productos, nuevoProducto]);
+    setTotalVenta(totalVenta + nuevoProducto.subtotal);
+    setProductoActual({});
+    setError(null);
+    addToast({ title: "Producto agregado correctamente", timeout: 3000 });
+  };
+
+  const eliminarProducto = (index: number) => {
+    const productoEliminado = productos[index];
+    setProductos(productos.filter((_, i) => i !== index));
+    setTotalVenta(totalVenta - productoEliminado.subtotal);
+    addToast({ title: "Producto eliminado", timeout: 3000 });
+  };
+
+  const finalizarVenta = () => {
+    if (productos.length === 0) {
+      setError("Debe agregar al menos un producto");
+      addToast({ title: "Debe agregar al menos un producto", timeout: 3000 });
+      return;
+    }
+
+    const items = productos.map(producto => ({
+      produccion: producto.produccionId,
+      cantidad: producto.cantidad,
+      precio_unidad: producto.precioUnidad,
+      unidad_medida: producto.unidadMedidaId,
+      cantidad_en_base: producto.cantidad * (unidades.find(u => u.id === producto.unidadMedidaId)?.factor_conversion || 1)
+    }));
+
+    console.log("Datos enviados a crearVentaMutation:", { items });
+
+    crearVentaMutation.mutate({ items }, {
+      onSuccess: () => {
+        addToast({ title: "Venta creada exitosamente", timeout: 3000 });
+        setProductos([]);
+        setTotalVenta(0);
+      },
+      onError: (error) => {
+        console.error("Error en crearVentaMutation:", error);
+        addToast({ title: "Error al crear la venta", timeout: 3000 });
+      }
+    });
+  };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      {stockSeleccionado !== null && (
-        <div className="mb-4 p-3 bg-blue-50 text-blue-800 rounded-lg">
-          <p className="font-semibold">Stock disponible: {stockSeleccionado}</p>
+    <div className="max-w-5xl mx-auto p-4 bg-gray-50 rounded-xl shadow-sm">
+      <h1 className="text-xl font-bold mb-4 text-gray-900">Caja de Ventas</h1>
+
+      {error && (
+        <div className="mb-4 p-2 bg-red-100 text-red-700 rounded-lg text-sm">
+          {error}
         </div>
       )}
 
-      <Formulario
-        title="Crear Venta"
-        fields={formFields}
-        onSubmit={handleSubmit}
-        onFieldChange={(id, value) => {
-          if (id === "fk_id_produccion") handleProduccionChange(value);
-        }}
-        stockMessage={
-          stockSeleccionado !== null
-            ? `Stock disponible: ${stockSeleccionado} unidades`
-            : ""
-        }
-      />
+      {isLoadingProducciones || isLoadingUnidades ? (
+        <div className="text-sm text-gray-500">Cargando productos y unidades...</div>
+      ) : (
+        <div className="bg-white p-4 rounded-lg shadow-sm mb-4">
+          <h2 className="text-sm font-semibold mb-2 text-gray-800">Productos Disponibles</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
+            {producciones
+              .filter(p => p.stock_disponible >= 1)
+              .map((p) => (
+                <div
+                  key={p.id}
+                  className={`p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition cursor-pointer ${
+                    productoActual.produccionId === p.id ? 'border-green-300' : ''
+                  }`}
+                  onClick={() => seleccionarProducto(p.id, p.fk_unidad_medida?.id)}
+                >
+                  <h3 className="text-sm font-semibold text-gray-800">{p.nombre_produccion}</h3>
+                  <p className="text-xs text-gray-600">
+                    Stock: {p.stock_disponible} {p.fk_unidad_medida?.unidad_base}
+                  </p>
+                  <Button
+                    text="Seleccionar"
+                    variant={productoActual.produccionId === p.id ? 'solid' : 'green'}
+                    size="xs"
+                    className={`mt-2 w-full ${
+                      productoActual.produccionId === p.id
+                        ? 'bg-green-600 text-white border-green-600 hover:bg-green-700'
+                        : 'text-green-600 border-green-600 hover:bg-green-50'
+                    }`}
+                    onClick={() => seleccionarProducto(p.id, p.fk_unidad_medida?.id)}
+                  />
+                </div>
+              ))}
+            {producciones.filter(p => p.stock_disponible > 1).length === 0 && (
+              <p className="text-sm text-gray-500 col-span-full">No hay productos con stock mayor a 1</p>
+            )}
+          </div>
 
-      {/* Modal de unidad de medida */}
+          <div className="flex flex-col sm:flex-row gap-3 items-end">
+            <div className="w-28">
+              <label className="block text-xs font-medium text-gray-600 mb-1">Cantidad</label>
+              <input
+                type="number"
+                min="0.01"
+                step="any"
+                className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-300 text-sm"
+                value={productoActual.cantidad || ''}
+                onChange={(e) => setProductoActual({
+                  ...productoActual,
+                  cantidad: parseFloat(e.target.value)
+                })}
+              />
+            </div>
+
+            <div className="w-28">
+              <label className="block text-xs font-medium text-gray-600 mb-1">Precio Total</label>
+              <input
+                type="number"
+                min="0.01"
+                step="0.01"
+                className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-300 text-sm"
+                value={productoActual.precioUnidad || ''}
+                onChange={(e) => setProductoActual({
+                  ...productoActual,
+                  precioUnidad: parseFloat(e.target.value)
+                })}
+              />
+            </div>
+
+            <div className="w-36">
+              <label className="block text-xs font-medium text-gray-600 mb-1">Unidad</label>
+              <select
+                className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-300 text-sm"
+                value={productoActual.unidadMedidaId || ''}
+                onChange={(e) => setProductoActual({
+                  ...productoActual,
+                  unidadMedidaId: parseInt(e.target.value)
+                })}
+                disabled={!productoActual.produccionId}
+              >
+                <option value="">Seleccionar unidad</option>
+                {unidades.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.nombre_medida} ({u.unidad_base})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <Button
+              text="Agregar"
+              onClick={agregarProducto}
+              variant="green"
+              size="sm"
+              className="h-10"
+              disabled={
+                !productoActual.produccionId ||
+                !productoActual.cantidad ||
+                !productoActual.precioUnidad ||
+                !productoActual.unidadMedidaId
+              }
+            />
+          </div>
+
+          {unidadSeleccionada && productoActual.cantidad && productoActual.precioUnidad && (
+            <div className="mt-2 text-xs text-gray-600">
+              <p>
+                Precio por {unidadSeleccionada.nombre_medida}: $
+                {(productoActual.precioUnidad / productoActual.cantidad).toFixed(2)}
+              </p>
+              <p>
+                Precio por {unidadSeleccionada.unidad_base}: $
+                {((productoActual.precioUnidad / productoActual.cantidad) / unidadSeleccionada.factor_conversion).toFixed(2)}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {productos.length > 0 && (
+        <div className="bg-white p-4 rounded-lg shadow-sm mb-4">
+          <h2 className="text-lg font-semibold mb-3 text-gray-800">Productos Agregados</h2>
+          <div className="overflow-x-auto">
+            <table className="min-w-full border border-gray-200">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 w-1/3">Producto</th>
+                  <th className="px-3 py-2 text-center text-xs font-medium text-gray-600">Cantidad</th>
+                  <th className="px-3 py-2 text-right text-xs font-medium text-gray-600">Precio Total</th>
+                  <th className="px-3 py-2 text-right text-xs font-medium text-gray-600">Precio/Unidad</th>
+                  <th className="px-3 py-2 text-right text-xs font-medium text-gray-600">Precio/Base</th>
+                  <th className="px-3 py-2 text-right text-xs font-medium text-gray-600">Subtotal</th>
+                  <th className="px-3 py-2 text-center text-xs font-medium text-gray-600">Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                {productos.map((producto, index) => (
+                  <tr key={index} className="border-t hover:bg-gray-50">
+                    <td className="px-4 py-2 text-sm font-semibold text-gray-800">{producto.nombreProduccion}</td>
+                    <td className="px-3 py-2 text-sm text-center">{producto.cantidad} {producto.unidadBase}</td>
+                    <td className="px-3 py-2 text-sm text-right">${producto.precioUnidad.toFixed(2)}</td>
+                    <td className="px-3 py-2 text-sm text-right">${producto.precioPorUnidad.toFixed(2)}</td>
+                    <td className="px-3 py-2 text-sm text-right">${producto.precioPorUnidadBase.toFixed(2)}</td>
+                    <td className="px-3 py-2 text-sm text-right">${producto.subtotal.toFixed(2)}</td>
+                    <td className="px-3 py-2 text-center">
+                      <Button
+                        text=""
+                        icon={Trash2}
+                        variant="danger"
+                        size="xs"
+                        onClick={() => eliminarProducto(index)}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot className="bg-gray-100">
+                <tr>
+                  <td colSpan={5} className="px-4 py-2 text-right text-sm font-bold">Total:</td>
+                  <td className="px-3 py-2 text-right text-sm font-bold">${totalVenta.toFixed(2)}</td>
+                  <td className="px-3 py-2"></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      )}
+
+      <div className="flex justify-end gap-2">
+        <Button
+          text="Crear Unidad"
+          variant="outline"
+          size="sm"
+          onClick={() => setModalMedidaAbierto(true)}
+        />
+        <Button
+          text="Crear Producción"
+          variant="outline"
+          size="sm"
+          onClick={() => setModalProduccionAbierto(true)}
+        />
+        <Button
+          text="Cancelar"
+          variant="danger"
+          size="sm"
+          onClick={() => window.history.back()}
+        />
+        <Button
+          text="Finalizar Venta"
+          variant="green"
+          size="sm"
+          onClick={finalizarVenta}
+          disabled={productos.length === 0}
+        />
+      </div>
+
       <VentanaModal
         isOpen={modalMedidaAbierto}
-        onClose={cerrarModalMedida}
-        contenido={<CrearUnidadMedida onSuccess={cerrarModalMedida} />}
+        onClose={() => setModalMedidaAbierto(false)}
         titulo="Crear Unidad de Medida"
+        contenido={<CrearUnidadMedida onSuccess={() => setModalMedidaAbierto(false)} />}
+        size="lg"
       />
 
-      {/* Modal de producción */}
       <VentanaModal
         isOpen={modalProduccionAbierto}
-        onClose={cerrarModalProduccion}
-        contenido={<CrearProduccion onSuccess={cerrarModalProduccion} />}
+        onClose={() => setModalProduccionAbierto(false)}
         titulo="Crear Producción"
+        contenido={<CrearProduccion onSuccess={() => setModalProduccionAbierto(false)} />}
+        size="lg"
       />
-
-      {mutation.isError && (
-        <div className="mt-4 p-3 bg-red-50 text-red-800 rounded-lg">
-          <p className="font-semibold">Error:</p>
-          <p>{mutation.error.message}</p>
-        </div>
-      )}
     </div>
   );
 };

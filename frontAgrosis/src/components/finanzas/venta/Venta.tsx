@@ -1,114 +1,143 @@
 import { useState } from 'react';
-import { useVenta } from '../../../hooks/finanzas/venta/useVenta'; 
-import Tabla from '../../globales/Tabla';
-import VentanaModal from '../../globales/VentanasModales';
+import { useVentas } from '@/hooks/finanzas/venta/useVenta';
+import Tabla from '@/components/globales/Tabla';
+import VentanaModal from '@/components/globales/VentanasModales';
 import { useNavigate } from "react-router-dom";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import Button from '@/components/globales/Button';
 
-
 const VentaComponent = () => {
   const navigate = useNavigate();
-  const { data: ventas, isLoading, error } = useVenta();
-  const [selectedVenta, setSelectedVenta] = useState<object | null>(null);
+  const { data: ventas, isLoading, error } = useVentas();
+  const [selectedVenta, setSelectedVenta] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const openModalHandler = (venta: object) => {
+  const openModalHandler = (venta: any) => {
     setSelectedVenta(venta);
     setIsModalOpen(true);
   };
 
-  const handleRowClick = (venta: { id_venta: number }) => {
+  const handleRowClick = (venta: any) => {
     openModalHandler(venta);
-  };
-
-  const closeModal = () => {
-    setSelectedVenta(null);
-    setIsModalOpen(false);
-  };
-
-  const handleUpdate = (cultivo: { id_venta: number }) => {
-    navigate(`/actualizarventa/${cultivo.id_venta}`);
   };
 
   const handleCreate = () => {
     navigate("/Registrar-Venta");
   };
 
+  const handleUpdate = (venta: any) => {
+    navigate(`/actualizarventa/${venta.id}`);
+  };
+
   if (isLoading) return <div className="text-center text-gray-500">Cargando ventas...</div>;
   if (error) return <div className="text-center text-red-500">Error al cargar los datos: {error.message}</div>;
 
-  const ventasList = Array.isArray(ventas) ? ventas : [];
-  const mappedVentas = ventasList.map((venta) => {
-    const cantidadProduccion = venta.fk_id_produccion?.cantidad_producida ?? 0;
-    const cantidadVendida = venta.cantidad ?? 0;
-    const stock = cantidadProduccion > cantidadVendida ? cantidadProduccion - cantidadVendida : 0;
-
+  // Asegurarse de que ventas es un array y convertir total a número si es necesario
+  const mappedVentas = (Array.isArray(ventas) ? ventas : []).map((venta) => {
+    // Convertir total a número si es una cadena
+    const total = typeof venta.total === 'string' ? parseFloat(venta.total) : venta.total;
+    
     return {
-      id_venta: venta.id,
-      cantidad_vendida: cantidadVendida,
-      precio_unitario: venta.precio_unidad,
-      total_venta: cantidadVendida * venta.precio_unidad,
-      fecha_venta: venta.fecha,
-      cantidad_producción: cantidadProduccion,
-      fecha_producción: venta.fk_id_produccion?.fecha ?? "No disponible",
-      nombre_produccion: venta.fk_id_produccion?.nombre_produccion ?? "No disponible",
-      stock,
+      id: venta.id,
+      fecha: new Date(venta.fecha).toLocaleDateString(),
+      total: typeof total === 'number' ? `$${total.toFixed(2)}` : 'N/A',
+      completada: venta.completada ? 'Sí' : 'No',
+      cantidad_items: venta.items?.length || 0,
+      detalles: venta.items?.map((item: any) => 
+        `${item.produccion?.nombre_produccion || 'Producto'} (${item.cantidad} ${item.unidad_medida?.unidad_base || 'u'})`
+      ).join(', ') || 'Sin detalles'
     };
   });
 
-  const headers = [
-    "ID", "Cantidad Vendida", "Precio Unitario", "Total Venta", "Fecha Venta",
-    "Cantidad Producción", "Fecha Producción", "Nombre Produccion", "Stock"
-  ];
+  const headers = ["ID", "Fecha", "Total", "Completada", "Items", "Detalles"];
 
-  // Agrupar por nombre_produccion
-  const produccionMap = new Map<string, { totalVendida: number, totalGanancia: number }>();
-  mappedVentas.forEach(venta => {
-    const nombre = venta.nombre_produccion;
-    const cantidad = venta.cantidad_vendida;
-    const ganancia = venta.total_venta;
-    if (produccionMap.has(nombre)) {
-      const entry = produccionMap.get(nombre)!;
-      entry.totalVendida += cantidad;
-      entry.totalGanancia += ganancia;
-    } else {
-      produccionMap.set(nombre, { totalVendida: cantidad, totalGanancia: ganancia });
-    }
-  });
-  const productos = Array.from(produccionMap.entries());
-  const productoMasVendido = productos.reduce((prev, current) =>
-    current[1].totalVendida > prev[1].totalVendida ? current : prev
-  , productos[0]);
-
-  const exportarProductoMasVendidoPDF = () => {
+  // Generar reporte PDF
+  const generarReportePDF = () => {
     const doc = new jsPDF();
     doc.setFontSize(16);
-    doc.text("Producto Más Vendido", 14, 20);
+    doc.text("Reporte de Ventas", 14, 20);
 
-    const [nombre, datos] = productoMasVendido;
+    const tableData = (Array.isArray(ventas) ? ventas : []).map(venta => [
+      venta.id,
+      new Date(venta.fecha).toLocaleDateString(),
+      `$${typeof venta.total === 'number' ? venta.total.toFixed(2) : '0.00'}`,
+      venta.completada ? 'Sí' : 'No',
+      venta.items?.length || 0
+    ]);
 
     autoTable(doc, {
       startY: 30,
-      head: [["Nombre del Producto", "Cantidad Vendida", "Total Generado"]],
-      body: [[
-        nombre,
-        datos.totalVendida,
-        `S/. ${datos.totalGanancia.toFixed(2)}`
-      ]],
+      head: [headers.slice(0, 5)], // Solo las primeras 5 columnas para el PDF
+      body: tableData,
       styles: {
-        fontSize: 12,
-        halign: "center",
+        fontSize: 10,
+        halign: 'center'
       },
       headStyles: {
-        fillColor: [0, 128, 0],
+        fillColor: [34, 139, 34], // Verde forestal
         textColor: [255, 255, 255],
-        fontStyle: "bold"
+        fontStyle: 'bold'
       },
+      alternateRowStyles: {
+        fillColor: [245, 245, 245]
+      }
     });
 
-    doc.save("producto_mas_vendido.pdf");
+    doc.save('reporte_ventas.pdf');
+  };
+
+  // Detalles de venta para el modal
+  const renderDetallesVenta = (venta: any) => {
+    if (!venta) return <p>No hay detalles disponibles</p>;
+
+    const total = typeof venta.total === 'string' ? parseFloat(venta.total) : venta.total;
+
+    return (
+      <div className="space-y-4">
+        <div>
+          <h3 className="font-bold text-lg">Información General</h3>
+          <p><strong>ID:</strong> {venta.id}</p>
+          <p><strong>Fecha:</strong> {new Date(venta.fecha).toLocaleDateString()}</p>
+          <p><strong>Total:</strong> ${typeof total === 'number' ? total.toFixed(2) : '0.00'}</p>
+          <p><strong>Estado:</strong> {venta.completada ? 'Completada' : 'Pendiente'}</p>
+        </div>
+
+        <div>
+          <h3 className="font-bold text-lg">Productos Vendidos</h3>
+          <table className="min-w-full border">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="border px-4 py-2">Producto</th>
+                <th className="border px-4 py-2">Cantidad</th>
+                <th className="border px-4 py-2">Precio Unitario</th>
+                <th className="border px-4 py-2">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              {venta.items?.map((item: any, index: number) => {
+                const precio = typeof item.precio_unidad === 'string' ? 
+                  parseFloat(item.precio_unidad) : item.precio_unidad;
+                const cantidad = typeof item.cantidad === 'string' ? 
+                  parseFloat(item.cantidad) : item.cantidad;
+                const subtotal = precio * cantidad;
+
+                return (
+                  <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                    <td className="border px-4 py-2">{item.produccion?.nombre_produccion || 'Producto'}</td>
+                    <td className="border px-4 py-2 text-center">
+                      {cantidad} {item.unidad_medida?.unidad_base || 'u'}
+                    </td>
+                    <td className="border px-4 py-2 text-right">${precio.toFixed(2)}</td>
+                    <td className="border px-4 py-2 text-right">${subtotal.toFixed(2)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -120,8 +149,8 @@ const VentaComponent = () => {
           variant="green" 
         />
         <Button 
-          text="Exportar Más Vendido" 
-          onClick={exportarProductoMasVendidoPDF}
+          text="Generar Reporte" 
+          onClick={generarReportePDF}
           variant="success"
         />
       </div>
@@ -139,9 +168,10 @@ const VentaComponent = () => {
       {selectedVenta && (
         <VentanaModal
           isOpen={isModalOpen}
-          onClose={closeModal}
-          titulo="Detalles de Venta"
-          contenido={selectedVenta}
+          onClose={() => setIsModalOpen(false)}
+          titulo={`Detalles de Venta #${selectedVenta.id}`}
+          contenido={renderDetallesVenta(selectedVenta)}
+          size="lg"
         />
       )}
     </div>

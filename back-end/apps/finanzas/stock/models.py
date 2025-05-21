@@ -2,8 +2,6 @@ from django.db import models
 from apps.finanzas.produccion.models import Produccion
 from apps.finanzas.venta.models import Venta
 
-# Create your models here.
-
 class Stock(models.Model):
     MOVIMIENTO_CHOICES = [
         ('Entrada', 'Entrada'),
@@ -12,8 +10,7 @@ class Stock(models.Model):
 
     fk_id_produccion = models.ForeignKey(Produccion, on_delete=models.SET_NULL, null=True, blank=True)
     fk_id_venta = models.ForeignKey(Venta, on_delete=models.SET_NULL, null=True, blank=True)
-    
-    cantidad = models.PositiveIntegerField()
+    cantidad = models.DecimalField(max_digits=20, decimal_places=3)
     fecha = models.DateTimeField(auto_now_add=True)
     movimiento = models.CharField(max_length=10, choices=MOVIMIENTO_CHOICES)
 

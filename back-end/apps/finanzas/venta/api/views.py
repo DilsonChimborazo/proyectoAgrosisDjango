@@ -1,13 +1,32 @@
 from rest_framework.viewsets import ModelViewSet
-from apps.finanzas.venta.models import Venta
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from apps.finanzas.venta.api.serializers import leerVentaSerializer, escribirVentaSerializer
- 
+from rest_framework.permissions import IsAuthenticated
+from apps.finanzas.venta.models import Venta, ItemVenta
+from apps.finanzas.venta.api.serializers import VentaSerializer, CrearVentaSerializer, LeerItemVentaSerializer
+
 class VentaViewSet(ModelViewSet):
-     queryset = Venta.objects.all()
-     permissions_clases = [IsAuthenticatedOrReadOnly]
-     
-     def get_serializer_class(self):
-         if self.action in ['list','retrive']:
-             return leerVentaSerializer
-         return escribirVentaSerializer
+    queryset = Venta.objects.prefetch_related('items').all()
+    permission_classes = [IsAuthenticated]
+    
+    def get_serializer_class(self):
+        if self.action in ['list', 'retrieve']:
+            return VentaSerializer
+        return CrearVentaSerializer
+    
+    def perform_create(self, serializer):
+        venta = serializer.save()
+        # Actualiza el stock para cada item
+        for item in venta.items.all():
+            produccion = item.produccion
+            produccion.stock_disponible -= item.cantidad_en_base
+            produccion.save()
+
+class ItemVentaViewSet(ModelViewSet):
+    serializer_class = LeerItemVentaSerializer
+    permission_classes = [IsAuthenticated]
+    queryset = ItemVenta.objects.select_related('produccion', 'unidad_medida').all()
+    
+    def get_queryset(self):
+        venta_id = self.kwargs.get('venta_pk')
+        if venta_id:
+            return self.queryset.filter(venta_id=venta_id)
+        return self.queryset.none()

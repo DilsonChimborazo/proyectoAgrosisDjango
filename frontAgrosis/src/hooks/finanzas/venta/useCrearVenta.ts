@@ -3,6 +3,9 @@ import axios from "axios";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
+
+
+
 // Definimos la interfaz actualizada para NuevaVenta
 export interface NuevaVenta {
   fk_id_produccion: number;
