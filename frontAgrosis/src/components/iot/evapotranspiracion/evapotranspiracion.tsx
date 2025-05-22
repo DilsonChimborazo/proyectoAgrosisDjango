@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useEvapotranspiracion } from '../../../hooks/iot/evapotranspiracion/useEvapotranspiracion';
+import { useState, useEffect, useMemo } from 'react';
+import  {useEvapotranspiracion}  from '../../../hooks/iot/evapotranspiracion/useEvapotranspiracion';
 import Tabla from '../../globales/Tabla';
 import VentanaModal from '../../globales/VentanasModales';
 import { useNavigate } from 'react-router-dom';
@@ -9,7 +9,7 @@ import { ChartData } from 'chart.js';
 import 'chart.js/auto';
 import { Button, Select, SelectItem } from '@heroui/react';
 import { RefreshCw } from 'lucide-react';
-import axios from 'axios'; // Añadimos axios
+import axios from 'axios';
 
 // Registrar componentes de chart.js
 ChartJS.register(LineElement, PointElement, LinearScale, TimeScale, Title, Tooltip, Legend);
@@ -17,18 +17,20 @@ ChartJS.register(LineElement, PointElement, LinearScale, TimeScale, Title, Toolt
 // URL base para la API
 const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api/';
 
-// Interfaz para las eras
-export interface Eras {
+export interface Plantacion {
   id: number;
-  nombre: string;
-  fk_id_lote: { id: number; nombre_lote: string } | null;
-  descripcion: string;
-  estado: boolean;
+  fk_id_eras: { id: number; nombre: string; descripcion: string } | null;
+  fk_id_cultivo: { id: number; nombre_cultivo: string } | null;
+  cantidad_transplante: number;
+  fecha_plantacion: string;
+  fk_id_semillero: { id: number } | null;
 }
 
-interface EvapoData {
+export interface EvapoData {
   id: number;
-  era_id: number;
+  plantacion_id: number;
+  nombre_plantacion: string;
+  era_id: number | null;
   nombre_era: string;
   cultivo: string;
   eto: number;
@@ -36,95 +38,112 @@ interface EvapoData {
   fecha: string;
 }
 
+interface MappedEvapoData {
+  id: number;
+  fecha: string;
+  plantacion: string;
+  era: string;
+  cultivo: string;
+  eto: string;
+  etc: string;
+}
+
 const Evapotranspiracion = () => {
-  const [eraId, setEraId] = useState<number>(0); // Inicializa en 0 o un valor por defecto
-  const [eras, setEras] = useState<Eras[]>([]); // Estado para almacenar las eras
-  const [errorEras, setErrorEras] = useState<string | null>(null); // Estado para errores de eras
-  const { data, latestData, loading, error, fetchData } = useEvapotranspiracion(eraId);
-  const [selectedEvapo, setSelectedEvapo] = useState<object | null>(null);
+  const [plantacionId, setPlantacionId] = useState<number>(0);
+  const [plantaciones, setPlantaciones] = useState<Plantacion[]>([]);
+  const [errorPlantaciones, setErrorPlantaciones] = useState<string | null>(null);
+  const { data, latestData, loading, error, fetchData } = useEvapotranspiracion(plantacionId);
+  const [selectedEvapo, setSelectedEvapo] = useState<EvapoData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [chartData, setChartData] = useState<ChartData<"line">>({
-    labels: [],
-    datasets: [],
-  });
+  const [modalContenido, setModalContenido] = useState<React.ReactNode>(null);
   const [range, setRange] = useState<'24h' | '7d'>('24h');
   const navigate = useNavigate();
-
-  // Cargar las eras al montar el componente
+  selectedEvapo
+  // Cargar las plantaciones al montar el componente
   useEffect(() => {
-    const loadEras = async () => {
+    const loadPlantaciones = async () => {
       try {
+        console.log('Cargando plantaciones desde:', `${apiUrl}plantacion/`);
         const token = localStorage.getItem('token');
-        const headers = token ? { Authorization: `Bearer ${token}` } : {};
-        const response = await axios.get(`${apiUrl}eras/`, { headers });
-        const erasData = response.data;
-        setEras(erasData);
-        // Opcional: Establecer una era por defecto si eraId es 0
-        if (erasData.length > 0 && eraId === 0) {
-          setEraId(erasData[0].id);
+        if (!token) {
+          throw new Error('No se encontró un token de autenticación');
+        }
+        const headers = { Authorization: `Bearer ${token}` };
+        const response = await axios.get(`${apiUrl}plantacion/`, { headers });
+        const plantacionesData = response.data;
+        setPlantaciones(plantacionesData);
+        if (plantacionesData.length > 0 && plantacionId === 0) {
+          setPlantacionId(plantacionesData[0].id);
         }
       } catch (err: any) {
-        console.error('Error al cargar eras:', err);
-        setErrorEras(err.message || 'No se pudo cargar la lista de eras');
+        console.error('Error al cargar plantaciones:', err);
+        setErrorPlantaciones(err.response?.data?.error || err.message || 'No se pudo cargar la lista de plantaciones');
       }
     };
-    loadEras();
+    loadPlantaciones();
   }, []);
 
   // Preparar datos para el gráfico
-  useEffect(() => {
-    if (data && Array.isArray(data) && data.length > 0) {
-      const now = Date.now();
-      const filteredData = range === '24h'
-        ? data.filter(d => new Date(d.fecha).getTime() > now - 24 * 60 * 60 * 1000)
-        : data.filter(d => new Date(d.fecha).getTime() > now - 7 * 24 * 60 * 60 * 1000);
-
-      if (filteredData.length === 0) {
-        setChartData({
-          labels: [],
-          datasets: [],
-        });
-        return;
-      }
-
-      const labels: string[] = filteredData.map(d => new Date(d.fecha).toLocaleTimeString());
-      const etoData: number[] = filteredData.map(d => Number(d.eto) || 0);
-      const etcData: number[] = filteredData.map(d => Number(d.etc) || 0);
-
-      setChartData({
-        labels,
-        datasets: [
-          {
-            label: 'ETo (mm/día)',
-            data: etoData,
-            borderColor: '#3B82F6',
-            fill: false,
-            tension: 0.3,
-          },
-          {
-            label: 'ETc (mm/día)',
-            data: etcData,
-            borderColor: '#10B981',
-            fill: false,
-            tension: 0.3,
-          },
-        ],
-      });
-    } else {
-      setChartData({
-        labels: [],
-        datasets: [],
-      });
+  const chartData: ChartData<"line"> = useMemo(() => {
+    if (!data || !Array.isArray(data) || data.length === 0) {
+      return { labels: [], datasets: [] };
     }
+
+    const now = Date.now();
+    const filteredData = range === '24h'
+      ? data.filter(d => new Date(d.fecha).getTime() > now - 24 * 60 * 60 * 1000)
+      : data.filter(d => new Date(d.fecha).getTime() > now - 7 * 24 * 60 * 60 * 1000);
+
+    if (filteredData.length === 0) {
+      return { labels: [], datasets: [] };
+    }
+
+    const labels: string[] = filteredData.map(d => new Date(d.fecha).toLocaleString());
+    const etoData: number[] = filteredData.map(d => Number(d.eto) || 0);
+    const etcData: number[] = filteredData.map(d => Number(d.etc) || 0);
+
+    return {
+      labels,
+      datasets: [
+        {
+          label: 'ETo (mm/día)',
+          data: etoData,
+          borderColor: '#3B82F6',
+          backgroundColor: 'rgba(59, 130, 246, 0.2)',
+          fill: false,
+          tension: 0.3,
+        },
+        {
+          label: 'ETc (mm/día)',
+          data: etcData,
+          borderColor: '#10B981',
+          backgroundColor: 'rgba(16, 185, 129, 0.2)',
+          fill: false,
+          tension: 0.3,
+        },
+      ],
+    };
   }, [data, range]);
 
-  const openModalHandler = (evapo: object) => {
+  const openModalHandler = (evapo: EvapoData) => {
     setSelectedEvapo(evapo);
+    setModalContenido(
+      <div className="grid grid-cols-2 gap-4">
+        <p><strong>ID:</strong> {evapo.id}</p>
+        <p><strong>Plantación:</strong> {evapo.nombre_plantacion || 'Sin plantación'}</p>
+        <p><strong>Era:</strong> {evapo.nombre_era || 'Sin era'}</p>
+        <p><strong>Cultivo:</strong> {evapo.cultivo || 'Sin cultivo'}</p>
+        <p><strong>ETo:</strong> {evapo.eto.toFixed(2)} mm/día</p>
+        <p><strong>ETc:</strong> {evapo.etc.toFixed(2)} mm/día</p>
+        <p><strong>Fecha:</strong> {new Date(evapo.fecha).toLocaleString()}</p>
+      </div>
+    );
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setSelectedEvapo(null);
+    setModalContenido(null);
     setIsModalOpen(false);
   };
 
@@ -142,19 +161,24 @@ const Evapotranspiracion = () => {
 
   const headers = [
     'Fecha',
+    'Plantacion',
     'Era',
     'Cultivo',
-    'ETo (mm/día)',
-    'ETc (mm/día)',
+    'Eto',
+    'Etc',
   ];
 
-  const handleRowClick = (evapo: object) => {
-    openModalHandler(evapo);
+  const handleRowClick = (row: MappedEvapoData) => {
+    const originalEvapo = data.find((evapo: EvapoData) => evapo.id === row.id);
+    if (originalEvapo) {
+      openModalHandler(originalEvapo);
+    }
   };
 
   const mappedData = data?.map((evapo: EvapoData) => ({
     id: evapo.id,
     fecha: new Date(evapo.fecha).toLocaleString(),
+    plantacion: evapo.nombre_plantacion,
     era: evapo.nombre_era,
     cultivo: evapo.cultivo,
     eto: evapo.eto.toFixed(2),
@@ -162,7 +186,7 @@ const Evapotranspiracion = () => {
   })) || [];
 
   return (
-    <div className="p-6  min-h-screen">
+    <div className="p-6 min-h-screen">
       {/* Encabezado */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-white flex items-center">
@@ -171,15 +195,16 @@ const Evapotranspiracion = () => {
 
         <div className="flex items-center space-x-4">
           <Select
-            placeholder="Seleccionar Era"
-            value={eraId}
-            onChange={(e) => setEraId(Number(e.target.value))}
+            placeholder="Seleccionar Plantación"
+            value={plantacionId.toString()}
+            onChange={(e) => setPlantacionId(Number(e.target.value))}
             className="w-48"
-            disabled={eras.length === 0} // Deshabilitar si no hay eras
+            disabled={plantaciones.length === 0}
+            aria-label="Seleccionar una plantación"
           >
-            {eras.map((era) => (
-              <SelectItem key={era.id} value={era.id}>
-                {era.nombre}
+            {plantaciones.map((plantacion) => (
+              <SelectItem key={plantacion.id} id={plantacion.id.toString()}>
+                {plantacion.fk_id_cultivo?.nombre_cultivo || 'Sin cultivo'} - {plantacion.fk_id_eras?.nombre || 'Sin era'}
               </SelectItem>
             ))}
           </Select>
@@ -188,6 +213,7 @@ const Evapotranspiracion = () => {
             className="text-gray-600 hover:text-blue-500"
             onClick={handleRefresh}
             disabled={loading}
+            aria-label="Refrescar datos de evapotranspiración"
           >
             <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
             <span className="ml-2">Refrescar</span>
@@ -197,8 +223,8 @@ const Evapotranspiracion = () => {
 
       {/* Estado */}
       {loading && <p className="text-gray-600 mb-4">Cargando datos...</p>}
-      {error && <p className="text-red-500 mb-4">{error}</p>}
-      {errorEras && <p className="text-red-500 mb-4">{errorEras}</p>}
+      {error && <p className="text-red-500 mb-4">Error: {error}</p>}
+      {errorPlantaciones && <p className="text-red-500 mb-4">Error en plantaciones: {errorPlantaciones}</p>}
       {!loading && !error && data?.length === 0 && (
         <p className="text-gray-600 mb-4">No hay datos disponibles.</p>
       )}
@@ -232,12 +258,14 @@ const Evapotranspiracion = () => {
               <Button
                 variant={range === '24h' ? 'solid' : 'light'}
                 onClick={() => setRange('24h')}
+                aria-label="Mostrar datos de las últimas 24 horas"
               >
                 Últimas 24h
               </Button>
               <Button
                 variant={range === '7d' ? 'solid' : 'light'}
                 onClick={() => setRange('7d')}
+                aria-label="Mostrar datos de los últimos 7 días"
               >
                 Últimos 7 días
               </Button>
@@ -250,12 +278,26 @@ const Evapotranspiracion = () => {
                 responsive: true,
                 maintainAspectRatio: false,
                 scales: {
-                  y: { beginAtZero: true, title: { display: true, text: 'Evapotranspiración (mm/día)' } },
-                  x: { title: { display: true, text: 'Tiempo' } },
+                  y: { 
+                    beginAtZero: true, 
+                    title: { display: true, text: 'Evapotranspiración (mm/día)' },
+                    grid: { color: 'rgba(0, 0, 0, 0.1)' }
+                  },
+                  x: { 
+                    title: { display: true, text: 'Tiempo' },
+                    grid: { color: 'rgba(0, 0, 0, 0.1)' }
+                  },
                 },
                 plugins: {
                   legend: { position: 'top' },
-                  tooltip: { callbacks: { label: (context) => `${context.dataset.label}: ${context.raw} mm/día` } },
+                  tooltip: { 
+                    callbacks: { 
+                      label: (context) => `${context.dataset.label}: ${context.raw} mm/día`,
+                      title: (tooltipItems) => {
+                        return new Date(tooltipItems[0].label).toLocaleString();
+                      }
+                    } 
+                  },
                 },
               }}
             />
@@ -279,12 +321,12 @@ const Evapotranspiracion = () => {
       )}
 
       {/* Modal */}
-      {selectedEvapo && (
+      {isModalOpen && (
         <VentanaModal
           isOpen={isModalOpen}
           onClose={closeModal}
           titulo="Detalles de la Medición"
-          contenido={selectedEvapo}
+          contenido={modalContenido}
         />
       )}
     </div>
