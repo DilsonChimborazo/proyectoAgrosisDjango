@@ -17,12 +17,10 @@ from apps.trazabilidad.actividad.models import Actividad
 from apps.trazabilidad.control_fitosanitario.models import Control_fitosanitario
 from apps.finanzas.nomina.models import Nomina
 from apps.finanzas.stock.models import Stock
-from apps.finanzas.venta.models import Venta
+from apps.finanzas.venta.models import Venta, ItemVenta
 from apps.inventario.bodega.models import Bodega
 from apps.finanzas.produccion.models import Produccion
-# Agrega esto con las demás importaciones
-from apps.finanzas.salario.models import Salario  # Asegúrate que esta sea la ruta correcta
-
+from apps.finanzas.salario.models import Salario
 from apps.finanzas.trazabilidad_historica.models import SnapshotTrazabilidad, ResumenTrazabilidad
 from apps.finanzas.trazabilidad_historica.api.serializers import SnapshotSerializer, ResumenTrazabilidadSerializer
 from apps.finanzas.trazabilidad_historica.services import TrazabilidadService
@@ -95,26 +93,33 @@ class TrazabilidadPlantacionAPIView(APIView):
     
     def _get_detalle_insumos(self, asignaciones, controles):
         detalle = []
+        
+        # Obtener salidas de bodega para insumos
         salidas_bodega = Bodega.objects.filter(
             fk_id_asignacion__in=asignaciones,
             movimiento='Salida',
             fk_id_insumo__isnull=False
-        ).select_related('fk_id_insumo', 'fk_unidad_medida')
+        ).select_related('fk_id_insumo', 'fk_unidad_medida', 'fk_id_asignacion__fk_id_realiza__fk_id_actividad')
         
         for salida in salidas_bodega:
             detalle.append({
                 'tipo': 'Actividad',
-                'nombre': salida.fk_id_insumo.nombre,
-                'tipo_insumo': salida.fk_id_insumo.tipo,
-                'cantidad': salida.cantidad,
+                'nombre': salida.fk_id_insumo.nombre if salida.fk_id_insumo else 'Sin nombre',
+                'tipo_insumo': salida.fk_id_insumo.tipo if salida.fk_id_insumo else None,
+                'cantidad': salida.cantidad_insumo or 0,
                 'unidad_medida': salida.fk_unidad_medida.nombre_medida if salida.fk_unidad_medida else None,
-                'cantidad_base': salida.cantidad_en_base,
-                'precio_por_base': salida.fk_id_insumo.precio_por_base if salida.fk_id_insumo else None,
-                'costo_total': salida.costo_insumo,
+                'cantidad_base': salida.cantidad_en_base or 0,
+                'precio_por_base': salida.fk_id_insumo.precio_por_base if salida.fk_id_insumo and salida.fk_id_insumo.precio_por_base else None,
+                'costo_total': salida.costo_insumo or 0,
                 'fecha': salida.fecha,
-                'actividad_asociada': salida.fk_id_asignacion.fk_id_realiza.fk_id_actividad.nombre_actividad if salida.fk_id_asignacion else None
+                'actividad_asociada': (
+                    salida.fk_id_asignacion.fk_id_realiza.fk_id_actividad.nombre_actividad
+                    if salida.fk_id_asignacion and salida.fk_id_asignacion.fk_id_realiza and salida.fk_id_asignacion.fk_id_realiza.fk_id_actividad
+                    else None
+                )
             })
         
+        # Obtener insumos de controles fitosanitarios
         for control in controles:
             if control.fk_id_insumo:
                 detalle.append({
@@ -135,25 +140,27 @@ class TrazabilidadPlantacionAPIView(APIView):
     
     def _get_detalle_ventas(self, ventas):
         detalle = []
-        for venta in ventas:
+        items_venta = ItemVenta.objects.filter(
+            venta__in=ventas
+        ).select_related('venta', 'produccion', 'unidad_medida')
+        
+        for item in items_venta:
             detalle.append({
-                'cantidad': venta.cantidad,
-                'precio_unidad': venta.precio_unidad,
-                'ingreso_total': venta.precio_unidad * venta.cantidad,
-                'fecha': venta.fecha,
-                'unidad_medida': venta.fk_unidad_medida.nombre_medida if venta.fk_unidad_medida else None,
-                'produccion_asociada': venta.fk_id_produccion.nombre_produccion if venta.fk_id_produccion else None
+                'cantidad': item.cantidad,
+                'precio_unidad': item.precio_unidad,
+                'ingreso_total': item.subtotal(),
+                'fecha': item.venta.fecha,
+                'unidad_medida': item.unidad_medida.nombre_medida if item.unidad_medida else None,
+                'produccion_asociada': item.produccion.nombre_produccion if item.produccion else None
             })
         return detalle
 
     def _calcular_costo_mano_obra(self, programaciones, controles):
         costo_total = Decimal('0')
         
-        # Obtener el salario activo por defecto
         salario_default = Salario.objects.filter(activo=True).first()
         
         for prog in programaciones:
-            # Buscar salario vigente para la fecha de la actividad
             salario = Salario.objects.filter(
                 fecha_inicio__lte=prog.fecha_realizada,
                 fecha_fin__gte=prog.fecha_realizada
@@ -165,7 +172,6 @@ class TrazabilidadPlantacionAPIView(APIView):
                 costo_total += jornales * salario.precio_jornal
 
         for control in controles:
-            # Buscar salario vigente para la fecha del control
             salario = Salario.objects.filter(
                 fecha_inicio__lte=control.fecha_control,
                 fecha_fin__gte=control.fecha_control
@@ -179,7 +185,6 @@ class TrazabilidadPlantacionAPIView(APIView):
         return round(costo_total, 2)
 
     def calcular_trazabilidad(self, plantacion_id):
-        """Método centralizado para el cálculo de trazabilidad"""
         try:
             plantacion = Plantacion.objects.get(id=plantacion_id)
             cultivo = plantacion.fk_id_cultivo
@@ -199,7 +204,6 @@ class TrazabilidadPlantacionAPIView(APIView):
                 'fk_id_asignacionActividades__fk_identificacion'
             )
             
-            # Cálculo de tiempo total
             total_minutos = programaciones.aggregate(total=Sum('duracion'))['total'] or 0
             
             controles = Control_fitosanitario.objects.filter(
@@ -213,18 +217,14 @@ class TrazabilidadPlantacionAPIView(APIView):
             tiempo_controles = controles.aggregate(total=Sum('duracion'))['total'] or 0
             total_minutos += tiempo_controles
             
-            # Conversión a horas y jornales
             total_horas = round(total_minutos / 60, 2)
             
-            # Obtener horas por jornal del salario activo
             salario_default = Salario.objects.filter(activo=True).first()
             horas_por_jornal = salario_default.horas_por_jornal if salario_default else 8
             jornales = round(total_horas / horas_por_jornal, 2)
             
-            # Cálculo del costo de mano de obra
             costo_mano_obra = self._calcular_costo_mano_obra(programaciones, controles)
             
-            # Cálculo de costos reales de nómina (para comparación)
             nominas = Nomina.objects.filter(
                 fk_id_programacion__in=programaciones
             ).select_related('fk_id_salario')
@@ -241,10 +241,14 @@ class TrazabilidadPlantacionAPIView(APIView):
             
             producciones = Produccion.objects.filter(fk_id_plantacion=plantacion)
             ventas = Venta.objects.filter(
-                fk_id_produccion__in=producciones
-            ).annotate(ingreso_total=F('precio_unidad') * F('cantidad'))
+                items__produccion__in=producciones
+            ).distinct()
             
-            ingresos_ventas = ventas.aggregate(total=Sum('ingreso_total'))['total'] or 0
+            ingresos_ventas = ItemVenta.objects.filter(
+                venta__in=ventas
+            ).aggregate(
+                total=Sum(F('precio_unidad') * F('cantidad'))
+            )['total'] or 0
             
             detalle_actividades = self._get_detalle_actividades(programaciones, controles)
             detalle_insumos = self._get_detalle_insumos(asignaciones, controles)

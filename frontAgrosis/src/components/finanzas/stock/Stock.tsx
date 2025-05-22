@@ -64,7 +64,7 @@ const Stock = () => {
   // Mapeo y formateo de datos para la tabla
   const mappedStock = (stockData || []).map((registro) => {
     // Obtener fecha preferida
-    const fecha = registro.fk_id_produccion?.fecha || registro.fk_id_venta?.fecha || registro.fecha;
+    const fecha = registro.fk_id_produccion?.fecha || registro.fk_id_item_venta?.fecha || registro.fecha;
     const fechaFormateada = fecha
       ? format(new Date(fecha), "dd 'de' MMMM yyyy", { locale: es })
       : "Fecha no disponible";
@@ -83,14 +83,14 @@ const Stock = () => {
         "No disponible";
 
       unidadBase = registro.fk_id_produccion.fk_unidad_medida?.unidad_base || "";
-    } else if (tipoMovimiento === "Salida" && registro.fk_id_venta) {
+    } else if (tipoMovimiento === "Salida" && registro.fk_id_item_venta) {
       nombre =
-        registro.fk_id_venta.fk_id_produccion?.nombre_produccion ||
-        registro.fk_id_venta.fk_id_produccion?.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo ||
+        registro.fk_id_item_venta.produccion?.nombre_produccion ||
+        registro.fk_id_item_venta.produccion?.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo ||
         "No disponible";
 
-      unidadBase = registro.fk_id_venta.fk_unidad_medida?.unidad_base || "";
-      precioUnidad = registro.fk_id_venta.precio_unidad;
+      unidadBase = registro.fk_id_item_venta.unidad_medida?.unidad_base || "";
+      precioUnidad = registro.fk_id_item_venta.precio_unidad;
     }
 
     return {
@@ -142,8 +142,8 @@ const Stock = () => {
         headers={headers}
         data={mappedStock}
         onClickAction={openModalHandler}
-        onUpdate={() => {}}
-        onCreate={() => {}}
+        onUpdate={() => { }}
+        onCreate={() => { }}
       />
 
       {/* Modal detalle stock */}
@@ -162,10 +162,11 @@ const Stock = () => {
           isOpen={isVentaModalOpen}
           onClose={cerrarModalConExito}
           titulo="Registrar Venta"
+          size="venta" // Usamos el tamaño especial
           contenido={<CrearVenta onClose={cerrarModalConExito} onSuccess={cerrarModalConExito} />}
         />
       )}
-
+      
       {/* Modal Crear Producción */}
       {isProduccionModalOpen && (
         <VentanaModal
