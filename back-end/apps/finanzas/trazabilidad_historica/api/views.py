@@ -64,13 +64,18 @@ class TrazabilidadPlantacionAPIView(APIView):
         detalle = []
         for programacion in programaciones:
             asignacion = programacion.fk_id_asignacionActividades
+            # Manejar múltiples usuarios en fk_identificacion (ManyToManyField)
+            usuarios = asignacion.fk_identificacion.all()
+            responsables = ", ".join(
+                f"{usuario.nombre} {usuario.apellido}" for usuario in usuarios
+            ) if usuarios else "Sin responsables"
             detalle.append({
                 'id': asignacion.id,
                 'estado': programacion.estado,
                 'fecha_programada': asignacion.fecha_programada,
                 'fecha_realizada': programacion.fecha_realizada,
                 'actividad': asignacion.fk_id_realiza.fk_id_actividad.nombre_actividad,
-                'responsable': f"{asignacion.fk_identificacion.nombre} {asignacion.fk_identificacion.apellido}",
+                'responsable': responsables,
                 'duracion_minutos': programacion.duracion,
                 'observaciones': asignacion.observaciones
             })
@@ -99,7 +104,11 @@ class TrazabilidadPlantacionAPIView(APIView):
             fk_id_asignacion__in=asignaciones,
             movimiento='Salida',
             fk_id_insumo__isnull=False
-        ).select_related('fk_id_insumo', 'fk_unidad_medida', 'fk_id_asignacion__fk_id_realiza__fk_id_actividad')
+        ).select_related(
+            'fk_id_insumo',
+            'fk_unidad_medida',
+            'fk_id_asignacion__fk_id_realiza__fk_id_actividad'
+        )
         
         for salida in salidas_bodega:
             detalle.append({
@@ -192,16 +201,18 @@ class TrazabilidadPlantacionAPIView(APIView):
             asignaciones = Asignacion_actividades.objects.filter(
                 fk_id_realiza__fk_id_plantacion=plantacion
             ).select_related(
-                'fk_id_realiza__fk_id_actividad',
-                'fk_identificacion'
+                'fk_id_realiza__fk_id_actividad'
+            ).prefetch_related(
+                'fk_identificacion'  # Corregido: ManyToManyField
             )
             
             programaciones = Programacion.objects.filter(
                 fk_id_asignacionActividades__in=asignaciones,
                 estado='Completada'
             ).select_related(
-                'fk_id_asignacionActividades__fk_id_realiza__fk_id_actividad',
-                'fk_id_asignacionActividades__fk_identificacion'
+                'fk_id_asignacionActividades__fk_id_realiza__fk_id_actividad'
+            ).prefetch_related(
+                'fk_id_asignacionActividades__fk_identificacion'  # Corregido: ManyToManyField
             )
             
             total_minutos = programaciones.aggregate(total=Sum('duracion'))['total'] or 0
@@ -211,7 +222,8 @@ class TrazabilidadPlantacionAPIView(APIView):
             ).select_related(
                 'fk_id_insumo',
                 'fk_unidad_medida',
-                'fk_id_pea'
+                'fk_id_pea',
+                'fk_identificacion'  # Asumiendo que es ForeignKey; si es ManyToManyField, usar prefetch_related
             )
             
             tiempo_controles = controles.aggregate(total=Sum('duracion'))['total'] or 0

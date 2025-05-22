@@ -7,10 +7,10 @@ from apps.finanzas.nomina.api.serializers import (
 )
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db import models  # Importar models para usar en Case/When
+from django.db import models
 from django.db.models import Sum, Q, F, Case, When, Value, CharField
 from django.db.models.functions import Coalesce
-from rest_framework import status  # Añade esta línea con las otras importaciones
+from rest_framework import status
 from django.utils import timezone
 
 class NominaViewSet(ModelViewSet):
@@ -105,26 +105,34 @@ class NominaViewSet(ModelViewSet):
         nominas = Nomina.objects.select_related(
             'fk_id_programacion',
             'fk_id_programacion__fk_id_asignacionActividades',
-            'fk_id_programacion__fk_id_asignacionActividades__fk_identificacion',
             'fk_id_programacion__fk_id_asignacionActividades__fk_id_realiza__fk_id_actividad',
             'fk_id_control_fitosanitario',
             'fk_id_control_fitosanitario__fk_identificacion',
             'fk_id_salario'
+        ).prefetch_related(
+            'fk_id_programacion__fk_id_asignacionActividades__fk_identificacion'
         ).all()
 
         data = []
         for nomina in nominas:
             if nomina.fk_id_programacion:
                 actividad = nomina.fk_id_programacion.fk_id_asignacionActividades.fk_id_realiza.fk_id_actividad.nombre_actividad
-                usuario = nomina.fk_id_programacion.fk_id_asignacionActividades.fk_identificacion
+                usuarios = nomina.fk_id_programacion.fk_id_asignacionActividades.fk_identificacion.all()
+                usuarios_data = [
+                    {'id': usuario.id, 'nombre': usuario.nombre, 'apellido': usuario.apellido}
+                    for usuario in usuarios
+                ] if usuarios else [{'id': None, 'nombre': 'Desconocido', 'apellido': 'Desconocido'}]
                 tipo = 'Programación'
             elif nomina.fk_id_control_fitosanitario:
                 actividad = nomina.fk_id_control_fitosanitario.tipo_control
                 usuario = nomina.fk_id_control_fitosanitario.fk_identificacion
+                usuarios_data = [
+                    {'id': usuario.id, 'nombre': usuario.nombre, 'apellido': usuario.apellido}
+                ] if usuario else [{'id': None, 'nombre': 'Desconocido', 'apellido': 'Desconocido'}]
                 tipo = 'Control Fitosanitario'
             else:
                 actividad = "Desconocida"
-                usuario = None
+                usuarios_data = [{'id': None, 'nombre': 'Desconocido', 'apellido': 'Desconocido'}]
                 tipo = "Otro"
 
             data.append({
@@ -134,11 +142,7 @@ class NominaViewSet(ModelViewSet):
                 'pago_total': nomina.pago_total,
                 'actividad': actividad,
                 'tipo_actividad': tipo,
-                'usuario': {
-                    'id': usuario.id if usuario else None,
-                    'nombre': usuario.nombre if usuario else "Desconocido",
-                    'apellido': usuario.apellido if usuario else "Desconocido"
-                },
+                'usuarios': usuarios_data,
                 'salario': {
                     'jornal': nomina.fk_id_salario.precio_jornal if nomina.fk_id_salario else None,
                     'horas_por_jornal': nomina.fk_id_salario.horas_por_jornal if nomina.fk_id_salario else None
@@ -148,11 +152,11 @@ class NominaViewSet(ModelViewSet):
         return Response(data)
 
     @action(
-    detail=True,
-    methods=['patch'],
-    url_path='marcar-pagado',
-    url_name='marcar_pagado'
-)
+        detail=True,
+        methods=['patch'],
+        url_path='marcar-pagado',
+        url_name='marcar_pagado'
+    )
     def marcar_pagado(self, request, pk=None):
         try:
             nomina = self.get_object()
@@ -166,7 +170,7 @@ class NominaViewSet(ModelViewSet):
             
             # Actualizar campos
             nomina.pagado = True
-            nomina.fecha_pago = timezone.now().date()  # Ahora timezone está definido
+            nomina.fecha_pago = timezone.now().date()
             nomina.save()
             
             return Response(
