@@ -25,7 +25,6 @@ interface FormField {
   extraButtonText?: string;
   onExtraButtonClick?: () => void;
   extraContent?: React.ReactNode;
-
 }
 
 const CrearPlantacion = ({ onSuccess, onCancel }: CrearPlantacionProps) => {
@@ -65,8 +64,6 @@ const CrearPlantacion = ({ onSuccess, onCancel }: CrearPlantacionProps) => {
     }
   };
 
-
-  // Formulario con campos
   const formFields: FormField[] = [
     {
       id: "fk_id_eras",
@@ -112,7 +109,6 @@ const CrearPlantacion = ({ onSuccess, onCancel }: CrearPlantacionProps) => {
     },
   ];
 
-  // Función de envío del formulario
   const handleSubmit = (formData: { [key: string]: string }) => {
     const errors: string[] = [];
     if (!formData.fk_id_eras) errors.push("Era es obligatoria");
@@ -162,6 +158,7 @@ const CrearPlantacion = ({ onSuccess, onCancel }: CrearPlantacionProps) => {
     });
   };
 
+  // 👉 Esta función se pasa como onSuccess a los formularios de creación
   const cerrarYActualizar = async () => {
     setMostrarModalEra(false);
     setMostrarModalCultivo(false);
@@ -169,11 +166,9 @@ const CrearPlantacion = ({ onSuccess, onCancel }: CrearPlantacionProps) => {
     await refetch();
   };
 
-  // Cargar datos
   if (isLoadingEras || isLoadingCultivos || isLoadingSemilleros) {
     return <div className="text-center text-gray-500">Cargando datos...</div>;
   }
-
 
   return (
     <div className="max-w-4xl mx-auto p-4">
@@ -191,7 +186,7 @@ const CrearPlantacion = ({ onSuccess, onCancel }: CrearPlantacionProps) => {
         isOpen={mostrarModalEra}
         onClose={cerrarYActualizar}
         titulo=""
-        contenido={<CrearEra />}
+        contenido={<CrearEra onSuccess={cerrarYActualizar} />}
       />
       <VentanaModal
         isOpen={mostrarModalCultivo}

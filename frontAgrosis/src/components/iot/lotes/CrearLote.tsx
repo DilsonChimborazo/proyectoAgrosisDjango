@@ -1,6 +1,7 @@
 import { Lotes } from "../../../hooks/iot/lote/useCrearLote";
 import { useCrearLote } from "../../../hooks/iot/lote/useCrearLote";
 import Formulario from "../../globales/Formulario";
+import { showToast } from '@/components/globales/Toast';
 
 interface CrearLoteProps {
   onSuccess?: () => void;
@@ -10,8 +11,8 @@ const CrearLote = ({ onSuccess }: CrearLoteProps) => {
   const mutation = useCrearLote();
 
   const formFields = [
-    { id: "dimencion", label: "Dimensión", type: "number" },
-    { id: "nombre_lote", label: "Nombre del Lote", type: "text" },
+    { id: "dimencion", label: "Dimensión", type: "number", required: true },
+    { id: "nombre_lote", label: "Nombre del Lote", type: "text", required: true },
     {
       id: "estado",
       label: "Estado",
@@ -20,12 +21,17 @@ const CrearLote = ({ onSuccess }: CrearLoteProps) => {
         { value: "true", label: "Activo" },
         { value: "false", label: "Inactivo" },
       ],
+      required: true,
     },
   ];
 
   const handleSubmit = (formData: { [key: string]: string }) => {
     if (!formData.dimencion || !formData.nombre_lote || !formData.estado) {
-      console.log("Campos faltantes");
+      showToast({
+        title: 'Error',
+        description: 'Todos los campos son obligatorios',
+        variant: 'error',
+      });
       return;
     }
 
@@ -33,16 +39,24 @@ const CrearLote = ({ onSuccess }: CrearLoteProps) => {
       id: 0,
       dimencion: Number(formData.dimencion),
       nombre_lote: formData.nombre_lote,
-      estado: formData.estado === "true", // Convertir string a boolean
+      estado: formData.estado === "true",
     };
 
     mutation.mutate(nuevoLote, {
       onSuccess: () => {
-        console.log("✅ Lote creado correctamente");
+        showToast({
+          title: 'Éxito',
+          description: 'Lote creado exitosamente',
+          variant: 'success',
+        });
         if (onSuccess) onSuccess();
       },
       onError: (error) => {
-        console.error("❌ Error al crear el lote:", error);
+        showToast({
+          title: 'Error',
+          description: 'No se pudo crear el lote',
+          variant: 'error',
+        });
       },
     });
   };

@@ -3,6 +3,7 @@ import { useResiduos } from "../../../hooks/trazabilidad/residuo/useResiduos";
 import { useResiduoPorId } from "../../../hooks/trazabilidad/residuo/useResiduoPorId";
 import { useActualizarResiduo } from "../../../hooks/trazabilidad/residuo/useActualizarResiduo";
 import Formulario from "../../globales/Formulario";
+import { showToast } from '@/components/globales/Toast'; // Importamos el componente Toast
 
 interface ActualizarResiduo {
   id: string | number;
@@ -55,6 +56,15 @@ const ActualizarResiduo = ({ id, onSuccess }: ActualizarResiduo) => {
   }));
 
   const handleSubmit = (data: Record<string, string>) => {
+    if (!data.fecha || !data.fk_id_cultivo || !data.fk_id_tipo_residuo) {
+      showToast({
+        title: 'Error',
+        description: 'Todos los campos son obligatorios',
+        variant: 'error',
+      });
+      return;
+    }
+
     actualizarResiduo.mutate(
       {
         id: Number(id),
@@ -66,9 +76,20 @@ const ActualizarResiduo = ({ id, onSuccess }: ActualizarResiduo) => {
       },
       {
         onSuccess: () => {
-          onSuccess(); 
+          showToast({
+            title: 'Éxito',
+            description: 'Residuo actualizado exitosamente',
+            variant: 'success',
+          });
+          onSuccess();
         },
-        onError: (err) => console.error("Error actualizando:", err),
+        onError: (err) => {
+          showToast({
+            title: 'Error',
+            description: 'No se pudo actualizar el residuo',
+            variant: 'error',
+          });
+        },
       }
     );
   };

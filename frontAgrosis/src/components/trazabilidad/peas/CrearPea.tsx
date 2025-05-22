@@ -1,5 +1,6 @@
 import { Pea, useCrearPea } from '../../../hooks/trazabilidad/pea/useCrearPea';
 import Formulario from '../../globales/Formulario';
+import { showToast } from '@/components/globales/Toast';
 
 interface CrearPea {
   onSuccess: () => void;
@@ -23,25 +24,53 @@ const CrearPea = ({ onSuccess }: CrearPea) => {
     },
   ];
 
-  const handleSubmit = (formData: { [key: string]: string }) => {
-    const nuevoPea: Pea = {
-      nombre_pea: formData.nombre_pea,
-      descripcion: formData.descripcion,
-      tipo_pea: formData.tipo_pea,
-    };
+ const handleSubmit = (formData: { [key: string]: string | File }) => {
+  const errors: string[] = [];
 
-    console.log("Enviando PEA al backend:", nuevoPea);
+  const nombre_pea = formData.nombre_pea as string;
+  const descripcion = formData.descripcion as string;
+  const tipo_pea = formData.tipo_pea as string;
 
-    mutation.mutate(nuevoPea, {
-      onSuccess: () => {
-        console.log("PEA creado exitosamente");
-        onSuccess(); 
-      },
-      onError: (error) => {
-        console.error("Error al crear PEA:", error);
-      }
+  if (!nombre_pea?.trim()) errors.push("El nombre del PEA es obligatorio");
+  if (!tipo_pea) errors.push("El tipo de PEA es obligatorio");
+
+  if (errors.length > 0) {
+    showToast({
+      title: 'Error al crear PEA',
+      description: errors.join(", "),
+      timeout: 5000,
+      variant: 'error',
     });
+    return;
+  }
+
+  const nuevoPea: Pea = {
+    nombre_pea,
+    descripcion,
+    tipo_pea,
   };
+
+  mutation.mutate(nuevoPea, {
+    onSuccess: () => {
+      showToast({
+        title: 'PEA creado exitosamente',
+        description: 'El PEA ha sido registrado en el sistema.',
+        timeout: 4000,
+        variant: 'success',
+      });
+      onSuccess(); 
+    },
+    onError: (error) => {
+      showToast({
+        title: 'Error al crear PEA',
+        description: 'Los datos enviados son inválidos o incompletos. Por favor, revisa el formulario.',
+        timeout: 5000,
+        variant: 'error',
+      });error
+    }
+  });
+};
+
 
   return (
     <div className="max-w-4xl mx-auto p-4">

@@ -4,6 +4,7 @@ import { useEspecie } from '@/hooks/trazabilidad/especie/useEspecie';
 import CrearEspecie from '../especie/CrearEspecie';
 import { useState } from 'react';
 import VentanaModal from '../../globales/VentanasModales';
+import { showToast } from '@/components/globales/Toast'; // Importamos el componente Toast
 
 interface CrearCultivoProps {
   onSuccess: () => void;
@@ -20,14 +21,10 @@ const CrearCultivo = ({ onSuccess }: CrearCultivoProps) => {
   const { data: especies = [], isLoading: isLoadingEspecies, error, refetch } = useEspecie();
   const [mostrarModalEspecie, setMostrarModalEspecie] = useState(false);
 
-  console.log('Especies obtenidas:', especies);
-
   const especieOptions = especies.map((especie) => ({
     value: especie.id.toString(),
     label: especie.nombre_comun || 'Sin nombre',
   }));
-
-  console.log('Opciones del selector:', especieOptions);
 
   const formFields = [
     { id: 'nombre_cultivo', label: 'Nombre del Cultivo', type: 'text', required: true },
@@ -47,13 +44,21 @@ const CrearCultivo = ({ onSuccess }: CrearCultivoProps) => {
 
   const handleSubmit = (formData: { [key: string]: string }) => {
     if (!formData.nombre_cultivo || !formData.descripcion || !formData.fk_id_especie) {
-      console.error('❌ Todos los campos son obligatorios');
+      showToast({
+        title: 'Error',
+        description: 'Todos los campos son obligatorios',
+        variant: 'error',
+      });
       return;
     }
 
     const idEspecie = parseInt(formData.fk_id_especie, 10);
     if (isNaN(idEspecie) || formData.fk_id_especie === '') {
-      console.error('❌ Debes seleccionar una especie válida');
+      showToast({
+        title: 'Error',
+        description: 'Debes seleccionar una especie válida',
+        variant: 'error',
+      });
       return;
     }
 
@@ -65,17 +70,24 @@ const CrearCultivo = ({ onSuccess }: CrearCultivoProps) => {
 
     mutation.mutate(nuevoCultivo, {
       onSuccess: () => {
-        console.log('✅ Cultivo creado exitosamente');
+        showToast({
+          title: 'Éxito',
+          description: 'Cultivo creado exitosamente',
+          variant: 'success',
+        });
         onSuccess();
       },
       onError: (error: any) => {
-        console.error('❌ Error al crear cultivo:', error.message || error);
+        showToast({
+          title: 'Error',
+          description: 'No se pudo crear el cultivo',
+          variant: 'error',
+        });
       },
     });
   };
 
   const cerrarYActualizar = async () => {
-    console.log('📌 Cerrando modal y actualizando especies...');
     setMostrarModalEspecie(false);
     await refetch();
   };
@@ -85,6 +97,11 @@ const CrearCultivo = ({ onSuccess }: CrearCultivoProps) => {
   }
 
   if (error) {
+    showToast({
+      title: 'Error',
+      description: `Error al cargar las especies: ${error.message}`,
+      variant: 'error',
+    });
     return (
       <div className="text-center text-red-500">
         Error al cargar las especies: {error.message}
@@ -114,10 +131,7 @@ const CrearCultivo = ({ onSuccess }: CrearCultivoProps) => {
         titulo="Crear Especie"
         contenido={
           <CrearEspecie
-            onSuccess={() => {
-              console.log('📌 Ejecutando onSuccess desde CrearEspecie');
-              cerrarYActualizar();
-            }}
+            onSuccess={cerrarYActualizar} // Cierra el modal y actualiza al crear especie
             onCancel={cerrarYActualizar}
           />
         }

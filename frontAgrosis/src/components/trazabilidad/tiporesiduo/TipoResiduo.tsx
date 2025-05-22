@@ -1,15 +1,25 @@
 import { useCrearTipoResiduos } from '@/hooks/trazabilidad/tipoResiduo/useCrearTipoResiduo';
 import Formulario from '@/components/globales/Formulario';
+import { showToast } from '@/components/globales/Toast';
 
 const TipoResiduos = ({ onSuccess }: { onSuccess?: () => void }) => {
   const mutation = useCrearTipoResiduos();
 
   const formFields = [
-    { id: 'nombre', label: 'Nombre del Tipo de Residuo', type: 'text' },
-    { id: 'descripcion', label: 'Descripción', type: 'textarea' },
+    { id: 'nombre', label: 'Nombre del Tipo de Residuo', type: 'text', required: true },
+    { id: 'descripcion', label: 'Descripción', type: 'textarea', required: true },
   ];
 
   const handleSubmit = (formData: any) => {
+    if (!formData.nombre || !formData.descripcion) {
+      showToast({
+        title: 'Error',
+        description: 'Todos los campos son obligatorios',
+        variant: 'error',
+      });
+      return;
+    }
+
     const nuevoTipoResiduo = {
       nombre: formData.nombre,
       descripcion: formData.descripcion,
@@ -17,11 +27,19 @@ const TipoResiduos = ({ onSuccess }: { onSuccess?: () => void }) => {
 
     mutation.mutate(nuevoTipoResiduo, {
       onSuccess: () => {
-        console.log('✅ Tipo de residuo creado exitosamente:', nuevoTipoResiduo);
+        showToast({
+          title: 'Éxito',
+          description: 'Tipo de residuo creado exitosamente',
+          variant: 'success',
+        });
         if (onSuccess) onSuccess();
       },
       onError: (error) => {
-        console.error('❌ Error al crear el tipo de residuo:', error);
+        showToast({
+          title: 'Error',
+          description: 'No se pudo crear el tipo de residuo',
+          variant: 'error',
+        });error
       },
     });
   };
@@ -35,12 +53,6 @@ const TipoResiduos = ({ onSuccess }: { onSuccess?: () => void }) => {
         isSuccess={mutation.isSuccess}
         title="Crear Tipo de Residuo"
       />
-      {mutation.isError && (
-        <div className="text-red-500 mt-2">Hubo un error al crear el tipo de residuo. Intenta nuevamente.</div>
-      )}
-      {mutation.isSuccess && (
-        <div className="text-green-500 mt-2">Tipo de residuo creado exitosamente!</div>
-      )}
     </div>
   );
 };

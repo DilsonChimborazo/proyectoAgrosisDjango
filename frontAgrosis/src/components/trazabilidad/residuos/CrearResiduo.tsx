@@ -6,6 +6,7 @@ import { useState } from 'react';
 import CrearCultivo from '../cultivos/CrearCultivos';
 import TipoResiduos from '../tiporesiduo/TipoResiduo';
 import VentanaModal from '@/components/globales/VentanasModales';
+import { showToast } from '@/components/globales/Toast'; // Importamos el componente Toast
 
 interface CrearResiduoProps {
   onSuccess: () => void;
@@ -56,7 +57,11 @@ const CrearResiduo = ({ onSuccess }: CrearResiduoProps) => {
 
   const handleSubmit = (formData: { [key: string]: string }) => {
     if (!formData.fecha || !formData.fk_id_cultivo || !formData.fk_id_tipo_residuo) {
-      console.error("❌ Todos los campos son obligatorios");
+      showToast({
+        title: 'Error',
+        description: 'Todos los campos son obligatorios',
+        variant: 'error',
+      });
       return;
     }
 
@@ -68,15 +73,21 @@ const CrearResiduo = ({ onSuccess }: CrearResiduoProps) => {
       fk_id_tipo_residuo: parseInt(formData.fk_id_tipo_residuo) || 0,
     };
 
-    console.log("🚀 Enviando residuo al backend:", nuevoResiduo);
-
     mutation.mutate(nuevoResiduo, {
       onSuccess: () => {
-        console.log("✅ Residuo creado exitosamente");
+        showToast({
+          title: 'Éxito',
+          description: 'Residuo creado exitosamente',
+          variant: 'success',
+        });
         onSuccess();
       },
       onError: (error) => {
-        console.error("❌ Error al crear residuo:", error);
+        showToast({
+          title: 'Error',
+          description: 'No se pudo crear el residuo',
+          variant: 'error',
+        });
       },
     });
   };
@@ -98,7 +109,6 @@ const CrearResiduo = ({ onSuccess }: CrearResiduoProps) => {
         title="Registrar Nuevo Residuo"
       />
 
-      {/* Modal para crear nuevo cultivo */}
       <VentanaModal
         isOpen={mostrarModalCultivo}
         onClose={cerrarYActualizar}
@@ -106,7 +116,6 @@ const CrearResiduo = ({ onSuccess }: CrearResiduoProps) => {
         contenido={<CrearCultivo onSuccess={cerrarYActualizar} />}
       />
 
-      {/* Modal para crear nuevo tipo de residuo */}
       <VentanaModal
         isOpen={mostrarModalTipoResiduo}
         onClose={cerrarYActualizar}
