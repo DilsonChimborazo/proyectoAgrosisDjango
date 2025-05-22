@@ -4,6 +4,7 @@ import { useLotes } from '@/hooks/iot/lote/useLotes';
 import { useState } from 'react';
 import VentanaModal from '../../globales/VentanasModales';
 import CrearLote from '../lotes/CrearLote';
+import { showToast } from '@/components/globales/Toast';
 
 interface CrearErasProps {
     onSuccess?: () => void;
@@ -24,8 +25,8 @@ const CrearEras = ({ onSuccess }: CrearErasProps) => {
             extraButtonText: 'Crear Lote',
             onExtraButtonClick: () => setMostrarModalLote(true),
         },
-        { id: 'nombre', label: 'Nombre', type: 'text' },
-        { id: 'descripcion', label: 'Descripción', type: 'text' },
+        { id: 'nombre', label: 'Nombre', type: 'text', required: true },
+        { id: 'descripcion', label: 'Descripción', type: 'text', required: true },
         {
             id: 'estado',
             label: 'Estado',
@@ -33,11 +34,21 @@ const CrearEras = ({ onSuccess }: CrearErasProps) => {
             options: [
                 { value: 'true', label: 'Activo' },
                 { value: 'false', label: 'Inactivo' }
-            ]
+            ],
+            required: true,
         }
     ];
 
     const handleSubmit = (formData: { [key: string]: string }) => {
+        if (!formData.nombre || !formData.descripcion || !formData.fk_id_lote || !formData.estado) {
+            showToast({
+                title: 'Error',
+                description: 'Todos los campos son obligatorios',
+                variant: 'error',
+            });
+            return;
+        }
+
         const nuevaEra: Eras = {
             id: 0,
             nombre: formData.nombre,
@@ -48,7 +59,19 @@ const CrearEras = ({ onSuccess }: CrearErasProps) => {
 
         mutation.mutate(nuevaEra, {
             onSuccess: () => {
+                showToast({
+                    title: 'Éxito',
+                    description: 'Era creada exitosamente',
+                    variant: 'success',
+                });
                 if (onSuccess) onSuccess();
+            },
+            onError: () => {
+                showToast({
+                    title: 'Error',
+                    description: 'No se pudo crear la era',
+                    variant: 'error',
+                });
             }
         });
     };

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useActualizarPea } from "../../../hooks/trazabilidad/pea/useActualizarPea";
 import { usePeaPorId } from "../../../hooks/trazabilidad/pea/usePeaPorId";
 import Formulario from "../../globales/Formulario";
+import { showToast } from '@/components/globales/Toast';
 
 interface ActualizarPea {
   id: string | number;
@@ -29,12 +30,16 @@ const ActualizarPea = ({ id, onSuccess }: ActualizarPea) => {
     }
   }, [pea]);
 
-  const handleSubmit = (data: { [key: string]: string }) => {
+  const handleSubmit = (data: { [key: string]: string | File }) => {
+    const nombre_pea = data.nombre_pea as string;
+    const descripcion = data.descripcion as string;
+    const tipo_pea = data.tipo_pea as string;
+
     const peaActualizada = {
       id: Number(id),
-      nombre_pea: data.nombre_pea.trim(),
-      descripcion: data.descripcion.trim(),
-      tipo_pea: data.tipo_pea,
+      nombre_pea: nombre_pea.trim(),
+      descripcion: descripcion.trim(),
+      tipo_pea,
     };
 
     console.log("🚀 Enviando PEA actualizada al backend:", peaActualizada);
@@ -42,16 +47,37 @@ const ActualizarPea = ({ id, onSuccess }: ActualizarPea) => {
     actualizarPea.mutate(peaActualizada, {
       onSuccess: () => {
         console.log("✅ PEA actualizada correctamente");
+        showToast({
+          title: 'PEA actualizado exitosamente',
+          description: 'El PEA ha sido actualizado en el sistema.',
+          timeout: 4000,
+          variant: 'success',
+        });
         onSuccess(); 
       },
       onError: (error) => {
         console.error("❌ Error al actualizar PEA:", error);
+        showToast({
+          title: 'Error al actualizar PEA',
+          description: error.message || 'No se pudo actualizar el PEA. Intenta de nuevo.',
+          timeout: 5000,
+          variant: 'error',
+        });
       },
     });
   };
 
+
   if (isLoading) return <div className="text-gray-500">Cargando datos...</div>;
-  if (error) return <div className="text-red-500">Error al cargar la PEA</div>;
+  if (error) {
+    showToast({
+      title: 'Error al cargar PEA',
+      description: error.message || 'No se pudo cargar la información del PEA.',
+      timeout: 5000,
+      variant: 'error',
+    });
+    return <div className="text-red-500">Error al cargar la PEA</div>;
+  }
 
   return (
     <div className="max-w-4xl mx-auto p-4">

@@ -4,9 +4,10 @@ import { useControlFitosanitarioPorId } from "@/hooks/trazabilidad/control/useCo
 import { usePlantacion } from "@/hooks/trazabilidad/plantacion/usePlantacion";
 import { usePea } from "@/hooks/trazabilidad/pea/usePea";
 import { useInsumo } from "@/hooks/inventario/insumos/useInsumo";
-import { useUsuarios } from "@/hooks/usuarios/usuario/useUsuarios";
 import { useMedidas } from "@/hooks/inventario/unidadMedida/useMedidad";
+import { useUsuarios } from "@/hooks/usuarios/usuario/useUsuarios";
 import Formulario from "../../globales/Formulario";
+import { showToast } from '@/components/globales/Toast';
 
 interface ActualizarControlFitosanitarioProps {
   id: string | number;
@@ -16,12 +17,11 @@ interface ActualizarControlFitosanitarioProps {
 const ActualizarControlFitosanitario = ({ id, onSuccess }: ActualizarControlFitosanitarioProps) => {
   const { data: control, isLoading, error } = useControlFitosanitarioPorId(String(id));
   const actualizarControl = useActualizarControlFitosanitario();
-  const { data: plantaciones = [], isLoading: isLoadingPlantaciones } = usePlantacion();
-  const { data: peas = [], isLoading: isLoadingPeas } = usePea();
-  const { data: insumos = [], isLoading: isLoadingInsumos } = useInsumo();
-  const { data: medidas = [], isLoading: isLoadingMedidas } = useMedidas();
+  const { data: plantaciones = [], isLoading: isLoadingPlantaciones, error: errorPlantaciones } = usePlantacion();
+  const { data: peas = [], isLoading: isLoadingPeas, error: errorPeas } = usePea();
+  const { data: insumos = [], isLoading: isLoadingInsumos, error: errorInsumos } = useInsumo();
+  const { data: medidas = [], isLoading: isLoadingMedidas, error: errorMedidas } = useMedidas();
   const { data: usuarios = [], isLoading: isLoadingUsuarios, error: errorUsuarios } = useUsuarios();
-  
 
   const [formData, setFormData] = useState<{ [key: string]: string | File | null }>({
     fecha_control: "",
@@ -87,7 +87,7 @@ const ActualizarControlFitosanitario = ({ id, onSuccess }: ActualizarControlFito
   const medidaOptions = medidas.map((medida) => ({
     value: String(medida.id),
     label: medida.nombre_medida,
-  }))
+  }));
 
   const usuarioOptions = usuarios.length > 0
     ? usuarios.map((usuario) => ({
@@ -99,18 +99,24 @@ const ActualizarControlFitosanitario = ({ id, onSuccess }: ActualizarControlFito
   const handleSubmit = (data: { [key: string]: string | File | null }) => {
     console.log("Datos del formulario recibidos:", data);
 
-    if (
-      !data.fecha_control ||
-      !data.duracion ||
-      !data.descripcion ||
-      !data.tipo_control ||
-      !data.fk_id_plantacion ||
-      !data.fk_id_pea ||
-      !data.fk_id_insumo ||
-      !data.cantidad_insumo||
-      !data.fk_unidad_medida 
-    ) {
-      console.error("Los campos obligatorios no están completos:", data);
+    const errors: string[] = [];
+    if (!data.fecha_control) errors.push("La fecha del control es obligatoria");
+    if (!data.duracion || parseInt(data.duracion as string) <= 0) errors.push("La duración debe ser un número mayor a 0");
+    if (!data.descripcion) errors.push("La descripción es obligatoria");
+    if (!data.tipo_control) errors.push("El tipo de control es obligatorio");
+    if (!data.fk_id_plantacion) errors.push("La plantación es obligatoria");
+    if (!data.fk_id_pea) errors.push("El PEA es obligatorio");
+    if (!data.fk_id_insumo) errors.push("El insumo es obligatorio");
+    if (!data.cantidad_insumo || parseInt(data.cantidad_insumo as string) <= 0) errors.push("La cantidad de insumo debe ser un número mayor a 0");
+    if (!data.fk_unidad_medida) errors.push("La unidad de medida es obligatoria");
+
+    if (errors.length > 0) {
+      showToast({
+        title: 'Error al actualizar control fitosanitario',
+        description: errors.join(", "),
+        timeout: 5000,
+        variant: 'error',
+      });
       return;
     }
 
@@ -135,28 +141,46 @@ const ActualizarControlFitosanitario = ({ id, onSuccess }: ActualizarControlFito
       onSuccess: (response) => {
         console.log("✅ Respuesta del backend:", response);
         console.log("✅ Control fitosanitario actualizado correctamente");
+        showToast({
+          title: 'Control fitosanitario actualizado exitosamente',
+          description: 'El control fitosanitario ha sido actualizado en el sistema.',
+          timeout: 4000,
+          variant: 'success',
+        });
         onSuccess();
       },
-      onError: (error) => {
+      onError: (error: any) => {
         console.error("Error al actualizar control fitosanitario:", error.message);
+        showToast({
+          title: 'Error al actualizar control fitosanitario',
+          description: error.message || 'No se pudo actualizar el control fitosanitario. Intenta de nuevo.',
+          timeout: 5000,
+          variant: 'error',
+        });
       },
     });
   };
 
-  if (isLoading || isLoadingPlantaciones || isLoadingPeas || isLoadingInsumos || isLoadingMedidas ||isLoadingUsuarios) {
+  if (isLoading || isLoadingPlantaciones || isLoadingPeas || isLoadingInsumos || isLoadingMedidas || isLoadingUsuarios) {
     return <div className="text-center text-gray-500">Cargando datos...</div>;
   }
 
-  if (error) {
-    return <div className="text-red-500">Error al cargar el control fitosanitario: {error.message}</div>;
-  }
-
-  if (errorUsuarios) {
-    return <div className="text-red-500">Error al cargar usuarios: {errorUsuarios.message}</div>;
-  }
-
-  if (actualizarControl.isError) {
-    return <div className="text-red-500">Error al actualizar: {actualizarControl.error?.message}</div>;
+  if (error || errorPlantaciones || errorPeas || errorInsumos || errorMedidas || errorUsuarios) {
+    const errorMessages = [
+      error?.message,
+      errorPlantaciones?.message,
+      errorPeas?.message,
+      errorInsumos?.message,
+      errorMedidas?.message,
+      errorUsuarios?.message,
+    ].filter(Boolean).join(", ");
+    showToast({
+      title: 'Error al cargar datos',
+      description: errorMessages || 'No se pudieron cargar los datos necesarios.',
+      timeout: 5000,
+      variant: 'error',
+    });
+    return <div className="text-red-500">Error al cargar datos: {errorMessages}</div>;
   }
 
   return (

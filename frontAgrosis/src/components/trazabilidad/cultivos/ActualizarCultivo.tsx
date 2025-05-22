@@ -3,6 +3,7 @@ import { useCultivoPorId } from "../../../hooks/trazabilidad/cultivo/useCultivoP
 import { useCultivo } from "../../../hooks/trazabilidad/cultivo/useCultivo";
 import { useActualizarCultivo } from "./../../../hooks/trazabilidad/cultivo/useActualizarCultivo";
 import Formulario from "../../globales/Formulario";
+import { showToast } from '@/components/globales/Toast';
 
 interface ActualizarCultivo {
   id: string | number;
@@ -40,24 +41,61 @@ const ActualizarCultivo = ({ id, onSuccess }: ActualizarCultivo) => {
   }));
 
   const handleSubmit = (data: Record<string, string>) => {
+    if (!data.nombre_cultivo || !data.descripcion || !data.fk_id_especie) {
+      showToast({
+        title: 'Error',
+        description: 'Todos los campos son obligatorios',
+        variant: 'error',
+      });
+      return;
+    }
+
+    const idEspecie = parseInt(data.fk_id_especie, 10);
+    if (isNaN(idEspecie) || data.fk_id_especie === '') {
+      showToast({
+        title: 'Error',
+        description: 'Debes seleccionar una especie válida',
+        variant: 'error',
+      });
+      return;
+    }
+
     actualizarCultivo.mutate(
       {
         id: +id,
         nombre_cultivo: data.nombre_cultivo,
         descripcion: data.descripcion,
-        fk_id_especie: parseInt(data.fk_id_especie),
+        fk_id_especie: idEspecie,
       },
       {
         onSuccess: () => {
-          onSuccess(); 
+          showToast({
+            title: 'Éxito',
+            description: 'Cultivo actualizado exitosamente',
+            variant: 'success',
+          });
+          onSuccess();
         },
-        onError: (err) => console.error(err),
+        onError: (err) => {
+          showToast({
+            title: 'Error',
+            description: 'No se pudo actualizar el cultivo',
+            variant: 'error',
+          });
+        },
       }
     );
   };
 
   if (isLoading) return <p>Cargando...</p>;
-  if (error) return <p className="text-red-500">Error al cargar cultivo</p>;
+  if (error) {
+    showToast({
+      title: 'Error',
+      description: 'Error al cargar el cultivo',
+      variant: 'error',
+    });
+    return <p className="text-red-500">Error al cargar cultivo</p>;
+  }
 
   return (
     <div className="max-w-4xl mx-auto p-4">
