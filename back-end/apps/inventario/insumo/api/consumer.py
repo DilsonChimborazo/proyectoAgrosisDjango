@@ -96,7 +96,7 @@ class NotificationInsumoConsumer(AsyncWebsocketConsumer):
 
     async def check_insumo_status(self):
         expiration_threshold = timezone.now().date() + timedelta(days=7)
-        low_stock_threshold = 10
+        low_stock_threshold = 1000
 
         # Obtener datos necesarios
         insumos_expiring = await sync_to_async(list)(
