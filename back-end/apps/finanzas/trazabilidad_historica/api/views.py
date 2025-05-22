@@ -7,6 +7,7 @@ from decimal import Decimal
 from datetime import datetime, timedelta
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.generics import ListAPIView
+from rest_framework.permissions import IsAuthenticated
 
 from apps.trazabilidad.plantacion.models import Plantacion
 from apps.trazabilidad.cultivo.models import Cultivo
@@ -26,6 +27,7 @@ from apps.finanzas.trazabilidad_historica.api.serializers import SnapshotSeriali
 from apps.finanzas.trazabilidad_historica.services import TrazabilidadService
 
 class CustomPagination(PageNumberPagination):
+    permissions_clases = [IsAuthenticated]
     page_size = 10
     page_size_query_param = 'page_size'
     max_page_size = 100
@@ -41,6 +43,7 @@ class CustomPagination(PageNumberPagination):
         })
 
 class HistorialViewSet(ModelViewSet):
+    permissions_clases = [IsAuthenticated]
     queryset = SnapshotTrazabilidad.objects.all()
     serializer_class = SnapshotSerializer
     pagination_class = CustomPagination
@@ -54,12 +57,14 @@ class HistorialViewSet(ModelViewSet):
         return super().get_queryset()
 
 class ResumenActualViewSet(ModelViewSet):
+    permissions_clases = [IsAuthenticated]
     queryset = ResumenTrazabilidad.objects.all()
     serializer_class = ResumenTrazabilidadSerializer
     lookup_field = 'plantacion_id'
     lookup_url_kwarg = 'plantacion_id'
 
 class TrazabilidadPlantacionAPIView(APIView):
+    permissions_clases = [IsAuthenticated]
     def _get_detalle_actividades(self, programaciones, controles):
         detalle = []
         for programacion in programaciones:
@@ -321,6 +326,7 @@ class TrazabilidadPlantacionAPIView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class HistoricoTrazabilidadAPIView(ListAPIView):
+    permissions_clases = [IsAuthenticated]
     serializer_class = SnapshotSerializer
     pagination_class = CustomPagination
 
@@ -331,6 +337,7 @@ class HistoricoTrazabilidadAPIView(ListAPIView):
         ).order_by('-fecha_registro')
 
 class ResumenActualTrazabilidadAPIView(APIView):
+    permissions_clases = [IsAuthenticated]
     def get(self, request, plantacion_id):
         try:
             resumen = ResumenTrazabilidad.objects.get(plantacion_id=plantacion_id)

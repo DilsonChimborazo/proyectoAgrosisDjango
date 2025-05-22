@@ -1,10 +1,10 @@
 from rest_framework.viewsets import ModelViewSet
 from apps.finanzas.produccion.models import Produccion
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated
 from apps.finanzas.produccion.api.serializers import ProduccionSerializer, escribirProduccionSerializer
 
 class ProduccionViewSet(ModelViewSet):
-    permissions_clases = [IsAuthenticatedOrReadOnly]
+    permissions_clases = [IsAuthenticated]
     
     queryset = Produccion.objects.all()
 

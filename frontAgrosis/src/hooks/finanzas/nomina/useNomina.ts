@@ -1,4 +1,3 @@
-// hooks/usePagos.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 
@@ -27,11 +26,11 @@ export interface PagoDetallado {
   pago_total?: number | null;
   actividad?: string | null;
   tipo_actividad?: string | null;
-  usuario?: {
+  usuarios?: Array<{
     id?: number;
     nombre?: string | null;
     apellido?: string | null;
-  } | null;
+  }> | null;
   salario?: {
     jornal?: number | null;
     horas_por_jornal?: number | null;
@@ -46,11 +45,12 @@ export interface FiltrosPagos {
   tipo?: 'programacion' | 'control' | 'todos';
 }
 
-// Consultas para obtener datos
+// Pagos por usuario
 export const usePagosPorUsuario = (filtros?: FiltrosPagos) => {
   return useQuery<PagoUsuario[], Error>({
     queryKey: ['pagos-usuario', filtros],
     queryFn: async () => {
+      const token = localStorage.getItem('token');
       const params = new URLSearchParams();
       if (filtros?.fecha_inicio) params.append('fecha_inicio', filtros.fecha_inicio);
       if (filtros?.fecha_fin) params.append('fecha_fin', filtros.fecha_fin);
@@ -58,28 +58,40 @@ export const usePagosPorUsuario = (filtros?: FiltrosPagos) => {
       if (filtros?.estado && filtros.estado !== 'todos') {
         params.append('pagado', filtros.estado === 'pagado' ? 'true' : 'false');
       }
-      
-      const { data } = await axios.get(`${apiUrl}nomina/reporte-por-persona?${params.toString()}`);
+
+      const { data } = await axios.get(`${apiUrl}nomina/reporte-por-persona?${params.toString()}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       return data;
     },
-    staleTime: 1000 * 60 * 5, // 5 minutos de cache
+    staleTime: 1000 * 60 * 5,
   });
 };
 
+// Pagos por actividad
 export const usePagosPorActividad = () => {
   return useQuery<PagoActividad[], Error>({
     queryKey: ['pagos-actividad'],
     queryFn: async () => {
-      const { data } = await axios.get(`${apiUrl}nomina/reporte-por-actividad/`);
+      const token = localStorage.getItem('token');
+      const { data } = await axios.get(`${apiUrl}nomina/reporte-por-actividad/`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       return data;
     }
   });
 };
 
+// Pagos detallados
 export const usePagosDetallados = (filtros?: FiltrosPagos) => {
   return useQuery<PagoDetallado[], Error>({
     queryKey: ['pagos-detallados', filtros],
     queryFn: async () => {
+      const token = localStorage.getItem('token');
       const params = new URLSearchParams();
       if (filtros?.fecha_inicio) params.append('fecha_inicio', filtros.fecha_inicio);
       if (filtros?.fecha_fin) params.append('fecha_fin', filtros.fecha_fin);
@@ -87,31 +99,36 @@ export const usePagosDetallados = (filtros?: FiltrosPagos) => {
       if (filtros?.estado && filtros.estado !== 'todos') {
         params.append('pagado', filtros.estado === 'pagado' ? 'true' : 'false');
       }
-      
-      const { data } = await axios.get(`${apiUrl}nomina/reporte-detallado?${params.toString()}`);
+
+      const { data } = await axios.get(`${apiUrl}nomina/reporte-detallado?${params.toString()}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       return data;
     }
   });
 };
 
-// Mutación para marcar como pagado
+// Marcar pago como pagado
 export const useMarcarPago = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (id: number) => {
-      // URL definitiva con barra diagonal al final
+      const token = localStorage.getItem('token');
       const url = `${apiUrl}nomina/${id}/marcar-pagado/`;
-      
-      console.log('Enviando PATCH a:', url); // Para depuración
-      
+
+      console.log('Enviando PATCH a:', url);
+
       const response = await axios.patch(url, {}, {
         headers: {
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest' // Ayuda con algunos middlewares
+          'X-Requested-With': 'XMLHttpRequest'
         }
       });
-      
+
       return response.data;
     },
     onError: (error) => {

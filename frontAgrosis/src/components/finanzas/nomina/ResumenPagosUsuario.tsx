@@ -50,24 +50,20 @@ const ResumenPagosUsuario: React.FC<ResumenPagosUsuarioProps> = ({ esModal = fal
       
       {!esModal && (
         <div className="mt-6">
-          <h3 className="text-lg font-medium mb-2">Detalles</h3>
+          <h3 className="text-lg font-medium mb-2">Resumen de Pagos</h3>
           <div className="overflow-x-auto">
             <table className="min-w-full">
               <thead>
                 <tr className="bg-gray-100">
                   <th className="px-4 py-2">Usuario</th>
-                  <th className="px-4 py-2">Actividad</th>
                   <th className="px-4 py-2">Total Pagado</th>
-                  <th className="px-4 py-2">Cantidad</th>
                 </tr>
               </thead>
               <tbody>
                 {data?.map((pago, index) => (
                   <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                     <td className="px-4 py-2">{pago.usuario_nombre} {pago.usuario_apellido}</td>
-                    <td className="px-4 py-2">{pago.actividad}</td>
                     <td className="px-4 py-2">${pago.total_pagado.toLocaleString()}</td>
-                    <td className="px-4 py-2">{pago.cantidad_actividades}</td>
                   </tr>
                 ))}
               </tbody>
