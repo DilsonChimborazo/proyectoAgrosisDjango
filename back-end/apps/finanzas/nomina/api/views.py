@@ -7,15 +7,17 @@ from apps.finanzas.nomina.api.serializers import (
 )
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db import models
-from django.db.models import Sum, Q, F, Case, When, Value, CharField
+from django.db import models  # Ya está importado, pero asegúrate de que incluya Count
+from django.db.models import Sum, Q, F, Case, When, Value, CharField, Count  # Añadimos Count aquí
 from django.db.models.functions import Coalesce
 from rest_framework import status
 from django.utils import timezone
+from rest_framework.permissions import IsAuthenticated
 
 class NominaViewSet(ModelViewSet):
     queryset = Nomina.objects.all()
-
+    permission_classes = [IsAuthenticated]
+    
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve']:
             return LeerNominaSerializer
@@ -28,15 +30,15 @@ class NominaViewSet(ModelViewSet):
         """
         resultados = Nomina.objects.annotate(
             usuario_id=Coalesce(
-                F('fk_id_programacion__fk_id_asignacionActividades__fk_identificacion'),
-                F('fk_id_control_fitosanitario__fk_identificacion')
+                F('fk_id_usuario__id'),
+                F('fk_id_control_fitosanitario__fk_identificacion__id')
             ),
             usuario_nombre=Coalesce(
-                F('fk_id_programacion__fk_id_asignacionActividades__fk_identificacion__nombre'),
+                F('fk_id_usuario__nombre'),
                 F('fk_id_control_fitosanitario__fk_identificacion__nombre')
             ),
             usuario_apellido=Coalesce(
-                F('fk_id_programacion__fk_id_asignacionActividades__fk_identificacion__apellido'),
+                F('fk_id_usuario__apellido'),
                 F('fk_id_control_fitosanitario__fk_identificacion__apellido')
             ),
             actividad=Case(
@@ -58,7 +60,7 @@ class NominaViewSet(ModelViewSet):
             'actividad'
         ).annotate(
             total_pagado=Sum('pago_total'),
-            cantidad_actividades=Sum('pk', distinct=True)
+            cantidad_actividades=Count('pk', distinct=True)  # Corrección aplicada
         ).order_by('usuario_apellido', 'usuario_nombre')
 
         return Response(resultados)
@@ -108,20 +110,18 @@ class NominaViewSet(ModelViewSet):
             'fk_id_programacion__fk_id_asignacionActividades__fk_id_realiza__fk_id_actividad',
             'fk_id_control_fitosanitario',
             'fk_id_control_fitosanitario__fk_identificacion',
-            'fk_id_salario'
-        ).prefetch_related(
-            'fk_id_programacion__fk_id_asignacionActividades__fk_identificacion'
+            'fk_id_salario',
+            'fk_id_usuario'
         ).all()
 
         data = []
         for nomina in nominas:
             if nomina.fk_id_programacion:
                 actividad = nomina.fk_id_programacion.fk_id_asignacionActividades.fk_id_realiza.fk_id_actividad.nombre_actividad
-                usuarios = nomina.fk_id_programacion.fk_id_asignacionActividades.fk_identificacion.all()
+                usuario = nomina.fk_id_usuario
                 usuarios_data = [
                     {'id': usuario.id, 'nombre': usuario.nombre, 'apellido': usuario.apellido}
-                    for usuario in usuarios
-                ] if usuarios else [{'id': None, 'nombre': 'Desconocido', 'apellido': 'Desconocido'}]
+                ] if usuario else [{'id': None, 'nombre': 'Desconocido', 'apellido': 'Desconocido'}]
                 tipo = 'Programación'
             elif nomina.fk_id_control_fitosanitario:
                 actividad = nomina.fk_id_control_fitosanitario.tipo_control
@@ -139,12 +139,12 @@ class NominaViewSet(ModelViewSet):
                 'id': nomina.id,
                 'fecha_pago': nomina.fecha_pago,
                 'pagado': nomina.pagado,
-                'pago_total': nomina.pago_total,
+                'pago_total': float(nomina.pago_total) if nomina.pago_total else 0,
                 'actividad': actividad,
                 'tipo_actividad': tipo,
                 'usuarios': usuarios_data,
                 'salario': {
-                    'jornal': nomina.fk_id_salario.precio_jornal if nomina.fk_id_salario else None,
+                    'jornal': float(nomina.fk_id_salario.precio_jornal) if nomina.fk_id_salario and nomina.fk_id_salario.precio_jornal else None,
                     'horas_por_jornal': nomina.fk_id_salario.horas_por_jornal if nomina.fk_id_salario else None
                 }
             })
@@ -161,14 +161,12 @@ class NominaViewSet(ModelViewSet):
         try:
             nomina = self.get_object()
             
-            # Verificar si ya está pagado
             if nomina.pagado:
                 return Response(
                     {'error': 'Este pago ya fue marcado como completado anteriormente'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
             
-            # Actualizar campos
             nomina.pagado = True
             nomina.fecha_pago = timezone.now().date()
             nomina.save()

@@ -13,8 +13,8 @@ import { Trash2, PlusCircle, X, Package, Scale, ShoppingCart } from 'lucide-reac
 interface ProductoSeleccionado {
   produccionId: number;
   cantidad: number;
-  precioUnidad: number;
-  precioPorUnidad: number;
+  precioUnidad: number; // Precio total ingresado
+  precioPorUnidad: number; // Precio por unidad calculado
   precioPorUnidadBase: number;
   unidadMedidaId: number;
   nombreProduccion: string;
@@ -93,20 +93,21 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
       return;
     }
 
+    // Calcular precio por unidad
     const precioPorUnidad = productoActual.precioUnidad / productoActual.cantidad;
     const precioPorUnidadBase = precioPorUnidad / unidad.factor_conversion;
 
     const nuevoProducto: ProductoSeleccionado = {
       produccionId: productoActual.produccionId!,
       cantidad: productoActual.cantidad!,
-      precioUnidad: productoActual.precioUnidad!,
+      precioUnidad: productoActual.precioUnidad!, // Precio total
       precioPorUnidad,
       precioPorUnidadBase,
       unidadMedidaId: productoActual.unidadMedidaId!,
       nombreProduccion: produccion.nombre_produccion,
       stockDisponible: produccion.stock_disponible,
       unidadBase: unidad.unidad_base,
-      subtotal: productoActual.precioUnidad!,
+      subtotal: productoActual.precioUnidad!, // Subtotal es el precio total ingresado
     };
 
     setProductos([...productos, nuevoProducto]);
@@ -133,7 +134,7 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
     const items = productos.map((producto) => ({
       produccion: producto.produccionId,
       cantidad: producto.cantidad,
-      precio_unidad: producto.precioUnidad,
+      precio_unidad: producto.precioPorUnidad, // Enviar precio por unidad, no precio total
       unidad_medida: producto.unidadMedidaId,
       cantidad_en_base:
         producto.cantidad * (unidades.find((u) => u.id === producto.unidadMedidaId)?.factor_conversion || 1),
@@ -146,8 +147,8 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
           showToast({ title: 'Venta creada exitosamente', timeout: 3000 });
           setProductos([]);
           setTotalVenta(0);
-          onSuccess(); // Call onSuccess to trigger refetch and close modal
-          onClose(); // Close the modal
+          onSuccess();
+          onClose();
         },
         onError: (error: any) => {
           console.error('Error en crearVentaMutation:', error);

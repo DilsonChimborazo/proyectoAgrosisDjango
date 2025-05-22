@@ -16,7 +16,7 @@ type Filtros = {
 type FilaPago = {
   id: number | undefined;
   fecha: string;
-  usuario: string;
+  usuario: string; // Ahora representa una cadena con los nombres concatenados de los usuarios
   actividad: string;
   tipo: string;
   pago_total: string;
@@ -31,11 +31,11 @@ type PagoDetallado = {
   pago_total?: number | null;
   actividad?: string | null;
   tipo_actividad?: string | null;
-  usuario?: {
+  usuarios?: Array<{
     id?: number;
     nombre?: string | null;
     apellido?: string | null;
-  } | null;
+  }> | null; // Cambiado de usuario a usuarios
   salario?: {
     jornal?: number | null;
     horas_por_jornal?: number | null;
@@ -84,9 +84,11 @@ const TablaPagosDetallados: React.FC = () => {
     if (!data) return [];
     return data.filter((pago: PagoDetallado) => {
       const cumplePersona = filtros.persona === '' ||
-        `${pago.usuario?.nombre} ${pago.usuario?.apellido}`
-          .toLowerCase()
-          .includes(filtros.persona.toLowerCase());
+        (pago.usuarios || []).some(usuario =>
+          `${usuario.nombre || ''} ${usuario.apellido || ''}`
+            .toLowerCase()
+            .includes(filtros.persona.toLowerCase())
+        );
 
       const cumpleActividad = filtros.actividad === '' ||
         (pago.actividad || '').toLowerCase().includes(filtros.actividad.toLowerCase());
@@ -102,10 +104,10 @@ const TablaPagosDetallados: React.FC = () => {
   const personasUnicas = useMemo(() => {
     const personas = new Set<string>();
     data?.forEach((pago: PagoDetallado) => {
-      if (pago.usuario) {
-        const nombreCompleto = `${pago.usuario.nombre} ${pago.usuario.apellido}`.trim();
+      (pago.usuarios || []).forEach(usuario => {
+        const nombreCompleto = `${usuario.nombre || ''} ${usuario.apellido || ''}`.trim();
         if (nombreCompleto) personas.add(nombreCompleto);
-      }
+      });
     });
     return Array.from(personas).sort();
   }, [data]);
@@ -120,13 +122,14 @@ const TablaPagosDetallados: React.FC = () => {
     return Array.from(actividades).sort();
   }, [data]);
 
-
   const headers = ['ID', 'Fecha', 'Usuario', 'Actividad', 'Tipo', 'Pago Total', 'Estado'];
 
   const rows: FilaPago[] = datosFiltrados.map((pago: PagoDetallado) => ({
     id: pago.id,
     fecha: pago.fecha_pago || 'No especificada',
-    usuario: `${pago.usuario?.nombre || 'N/A'} ${pago.usuario?.apellido || ''}`.trim(),
+    usuario: (pago.usuarios || [])
+      .map(usuario => `${usuario.nombre || 'N/A'} ${usuario.apellido || ''}`.trim())
+      .join(', ') || 'Desconocido',
     actividad: pago.actividad || 'Desconocida',
     tipo: pago.tipo_actividad || 'No especificado',
     pago_total: pago.pago_total ? `$${pago.pago_total.toLocaleString()}` : '$0',
@@ -146,7 +149,9 @@ const TablaPagosDetallados: React.FC = () => {
   const pdfData = datosFiltrados.map((pago: PagoDetallado) => [
     pago.id?.toString() || 'N/A',
     pago.fecha_pago || 'No especificada',
-    `${pago.usuario?.nombre || 'N/A'} ${pago.usuario?.apellido || ''}`.trim(),
+    (pago.usuarios || [])
+      .map(usuario => `${usuario.nombre || 'N/A'} ${usuario.apellido || ''}`.trim())
+      .join(', ') || 'Desconocido',
     pago.actividad || 'Desconocida',
     pago.tipo_actividad || 'No especificado',
     pago.pago_total ? `$${pago.pago_total.toFixed(2)}` : '$0.00',
@@ -286,7 +291,7 @@ const TablaPagosDetallados: React.FC = () => {
           </p>
         </div>
         <div className="bg-blue-50 p-3 md:p-4 rounded-lg border border-blue-200">
-          <h3 className="font-medium text-blue-800 text-sm md:text-base">Total valor pagado</h3>
+          <h3 className="font-medium text-blue-800 text-sm md:text-base">Total de nóminas</h3>
           <p className="text-xl md:text-2xl font-bold text-blue-600">
             ${datosFiltrados.reduce((sum, pago) => sum + (pago.pago_total || 0), 0).toLocaleString()}
           </p>
@@ -294,7 +299,7 @@ const TablaPagosDetallados: React.FC = () => {
         <div className="bg-purple-50 p-3 md:p-4 rounded-lg border border-purple-200">
           <h3 className="font-medium text-purple-800 text-sm md:text-base">Personas únicas</h3>
           <p className="text-xl md:text-2xl font-bold text-purple-600">
-            {new Set(datosFiltrados.map(pago => pago.usuario?.id)).size}
+            {new Set(datosFiltrados.flatMap(pago => (pago.usuarios || []).map(u => u.id)).filter(id => id)).size}
           </p>
         </div>
       </div>

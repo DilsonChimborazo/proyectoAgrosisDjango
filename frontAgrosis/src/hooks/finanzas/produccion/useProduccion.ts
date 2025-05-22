@@ -12,42 +12,40 @@ export interface UnidadMedida {
 }
 
 export interface Lote {
-    id: number;
-    dimencion: string;
-    nombre_lote: string;
-    estado: boolean;
-    
+  id: number;
+  dimencion: string;
+  nombre_lote: string;
+  estado: boolean;
 }
 
 export interface Eras {
-    id: number;
-    descripcion: string;
-    fk_id_lote: Lote | null;
-    estado: boolean;
+  id: number;
+  descripcion: string;
+  fk_id_lote: Lote | null;
+  estado: boolean;
 }
 
 export interface Semillero {
-    id: number;
-    nombre_semilla: string;
-    fecha_siembra: string; 
-    fecha_estimada: string;
-    cantidad: number;
+  id: number;
+  nombre_semilla: string;
+  fecha_siembra: string;
+  fecha_estimada: string;
+  cantidad: number;
 }
 
 export interface Cultivo {
-    id: number;
-    nombre_cultivo: string;
-    descripcion: string;
-    
+  id: number;
+  nombre_cultivo: string;
+  descripcion: string;
 }
 
 export interface Plantacion {
-    id: number;
-    fk_id_eras: Eras | null;
-    fk_id_cultivo: Cultivo | null;
-    cantidad_transplante: number;
-    fecha_plantacion: string;
-    fk_id_semillero: Semillero | null;
+  id: number;
+  fk_id_eras: Eras | null;
+  fk_id_cultivo: Cultivo | null;
+  cantidad_transplante: number;
+  fecha_plantacion: string;
+  fk_id_semillero: Semillero | null;
 }
 
 export interface Produccion {
@@ -61,10 +59,15 @@ export interface Produccion {
   cantidad_en_base: number | null;
 }
 
-// Función para obtener la lista de producción
+// ✅ Función con token JWT
 const fetchProduccion = async (): Promise<Produccion[]> => {
+  const token = localStorage.getItem("token");
   try {
-    const { data } = await axios.get<Produccion[]>(`${apiUrl}produccion/`);
+    const { data } = await axios.get<Produccion[]>(`${apiUrl}produccion/`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     return data;
   } catch (error) {
     console.error("Error al obtener los datos de producción:", error);
@@ -77,6 +80,6 @@ export const useProduccion = () => {
   return useQuery<Produccion[], Error>({
     queryKey: ['produccion'],
     queryFn: fetchProduccion,
-    staleTime: 1000 * 60 * 10, // 10 minutos de cache
+    staleTime: 1000 * 60 * 10, // 10 minutos de caché
   });
 };
