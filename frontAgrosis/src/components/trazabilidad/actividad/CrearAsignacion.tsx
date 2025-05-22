@@ -164,29 +164,8 @@ const CrearAsignacion = ({
     setModalContent(
       <CrearUsuario
         isOpen={true}
-        onClose={(newUser?: Usuario) => {
+        onClose={() => {
           setIsModalOpen(false);
-          if (newUser) {
-            setUsuarios((prev) => {
-              const updatedUsuarios = [...prev, newUser];
-              console.log('Usuarios actualizados:', updatedUsuarios); // Para depuración
-              return updatedUsuarios;
-            });
-            onCreateUsuario(newUser);
-            showToast({
-              title: 'Usuario creado',
-              description: `El usuario ${newUser.nombre} ${newUser.apellido} ha sido creado exitosamente.`,
-              timeout: 4000,
-              variant: 'success',
-            });
-          } else {
-            showToast({
-              title: 'Creación cancelada',
-              description: 'Se canceló la creación del usuario.',
-              timeout: 4000,
-              variant: 'info',
-            });
-          }
         }}
       />
     );
@@ -347,6 +326,7 @@ const CrearAsignacion = ({
         </div>
         <div className="flex justify-center space-x-4">
           <button
+            title="submit"
             type="submit"
             className="bg-white text-[#2e7d32] px-4 py-2 rounded-md border border-[#2e7d32] hover:bg-[#2e7d32] hover:text-white disabled:opacity-50"
             disabled={isPending}
