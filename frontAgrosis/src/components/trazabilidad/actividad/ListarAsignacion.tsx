@@ -11,7 +11,7 @@ import CrearProgramacion from '../programacion/CrearProgramacion';
 import { showToast } from '@/components/globales/Toast';
 
 // URL base del servidor donde se almacenan las imágenes
-const BASE_URL = 'http://tudominio.com'; // Reemplaza con la URL real de tu servidor
+const BASE_URL = 'http://localhost:8000'; // Ajusta según tu servidor
 
 interface AsignacionTabla {
   id: number;
@@ -35,8 +35,8 @@ const DetalleAsignacionModal = memo(({ item, realizaList, usuarios }: { item: As
     : [];
 
   const realizaNombre = realiza
-    ? `${realiza.fk_id_actividad?.nombre_actividad || 'Sin actividad'} (${realiza.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo || 'Sin cultivo'})`
-    : 'Sin realiza';
+    ? `${realiza.fk_id_actividad?.nombre_actividad || 'Sin actividad'} (${realiza.fk_id_plantacion?.fk_id_semillero?.nombre_semilla || 'Sin cultivo'})`
+    : `Sin realiza (ID: ${item.fk_id_realiza || 'N/A'})`;
 
   return (
     <div className="p-4">
@@ -80,6 +80,16 @@ const ListarAsignacion = () => {
   const { data: programaciones = [], isLoading: isLoadingProgramaciones, error: errorProgramaciones, refetch: refetchProgramaciones } = useProgramacion();
   const { data: unidadesMedida = [], isLoading: isLoadingUnidadesMedida, error: errorUnidadesMedida } = useMedidas();
 
+  // Depuración: Mostrar datos recibidos
+  useEffect(() => {
+    console.log('Asignaciones:', asignaciones);
+    console.log('Realiza List:', realizaList);
+    console.log('Usuarios:', usuarios);
+    console.log('Programaciones:', programaciones);
+    console.log('Unidades Medida:', unidadesMedida);
+    console.log('Realiza IDs disponibles:', realizaList.map((r) => r.id));
+  }, [asignaciones, realizaList, usuarios, programaciones, unidadesMedida]);
+
   const handleItemClick = (item: AsignacionTabla) => {
     const asignacion = asignaciones.find((a) => a.id === item.id) ?? null;
     setSelectedAsignacion(asignacion);
@@ -107,6 +117,12 @@ const ListarAsignacion = () => {
         onSuccess={() => {
           refetchAsignaciones();
           closeModal();
+          showToast({
+            title: 'Asignación Creada',
+            description: 'La asignación se ha registrado correctamente.',
+            timeout: 4000,
+            variant: 'success',
+          });
         }}
         onCancel={closeModal}
         usuarios={usuarios}
@@ -117,14 +133,44 @@ const ListarAsignacion = () => {
   };
 
   const tablaData: AsignacionTabla[] = useMemo(() => {
+    if (!asignaciones.length) {
+      console.log('No hay asignaciones para mapear.');
+      return [];
+    }
+    if (!realizaList.length) {
+      console.log('No hay datos en realizaList.');
+      return asignaciones.map((asignacion) => ({
+        id: asignacion.id,
+        estado: asignacion.estado as 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada',
+        fecha_programada: asignacion.fecha_programada || 'Sin fecha',
+        observaciones: asignacion.observaciones || 'Sin observaciones',
+        plantacion: `Sin cultivo (No hay datos en realizaList)`,
+        actividad: `Sin actividad (No hay datos en realizaList)`,
+        usuarios: ['Sin usuarios'],
+        fecha_realizada: null,
+        duracion: null,
+        cantidad_insumo: null,
+        img: 'Sin imagen',
+        unidad_medida: 'No asignada',
+      }));
+    }
+
     return asignaciones.map((asignacion) => {
       const realizaId = typeof asignacion.fk_id_realiza === 'object' ? asignacion.fk_id_realiza?.id : asignacion.fk_id_realiza;
+      console.log(`Asignacion ID: ${asignacion.id}, fk_id_realiza:`, asignacion.fk_id_realiza, 'Realiza ID:', realizaId);
       const realiza = realizaList.find((r) => r.id === realizaId);
+      console.log('Realiza encontrado:', realiza);
+      if (!realiza) {
+        console.warn(`No se encontró realiza para fk_id_realiza: ${realizaId}`);
+      }
+
       const usuariosAsignados = Array.isArray(asignacion.fk_identificacion)
         ? asignacion.fk_identificacion
-            .map((id) => usuarios.find((u) => u.id === id))
-            .filter((u): u is Usuario => !!u)
-            .map((u) => `${u.nombre} ${u.apellido}`)
+            .map((id) => {
+              const usuario = usuarios.find((u) => u.id === (typeof id === 'object' ? id.id : id));
+              return usuario ? `${usuario.nombre} ${usuario.apellido}` : null;
+            })
+            .filter((u): u is string => !!u)
         : [];
 
       const programacion = programaciones.find((p) => {
@@ -171,10 +217,10 @@ const ListarAsignacion = () => {
       return {
         id: asignacion.id,
         estado: asignacion.estado as 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada',
-        fecha_programada: asignacion.fecha_programada,
+        fecha_programada: asignacion.fecha_programada || 'Sin fecha',
         observaciones: asignacion.observaciones || 'Sin observaciones',
-        plantacion: realiza?.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo || 'Sin cultivo',
-        actividad: realiza?.fk_id_actividad?.nombre_actividad || 'Sin actividad',
+        plantacion: realiza?.fk_id_plantacion?.fk_id_semillero?.nombre_semilla ?? realiza?.fk_id_plantacion?.nombre ?? `Sin cultivo (fk_id_realiza: ${realizaId || 'N/A'})`,
+        actividad: realiza?.fk_id_actividad?.nombre_actividad ?? `Sin actividad (fk_id_realiza: ${realizaId || 'N/A'})`,
         usuarios: usuariosAsignados.length > 0 ? usuariosAsignados : ['Sin usuarios'],
         fecha_realizada: programacion?.fecha_realizada || null,
         duracion: programacion?.duracion ?? null,
@@ -186,6 +232,7 @@ const ListarAsignacion = () => {
   }, [asignaciones, realizaList, usuarios, programaciones, unidadesMedida]);
 
   useEffect(() => {
+    console.log('Tabla Data:', tablaData);
     return () => {
       tablaData.forEach((item) => {
         if (typeof item.img === 'string' && item.img?.startsWith('blob:')) {
@@ -238,9 +285,9 @@ const ListarAsignacion = () => {
       <td className="p-3">{item.actividad}</td>
       <td className="p-3">{item.plantacion}</td>
       <td className="p-3">{item.observaciones}</td>
-      <td className="p-3">{item.fecha_realizada || '-'}</td>
-      <td className="p-3">{item.duracion ?? '-'}</td>
-      <td className="p-3">{item.cantidad_insumo ?? '-'}</td>
+      <td className="p-3">{item.fecha_realizada}</td>
+      <td className="p-3">{item.duracion}</td>
+      <td className="p-3">{item.cantidad_insumo}</td>
       <td className="p-3">{item.unidad_medida}</td>
       <td className="p-3">{item.img}</td>
       <td className="p-3">{item.estado}</td>
@@ -275,6 +322,12 @@ const ListarAsignacion = () => {
                   refetchProgramaciones();
                   refetchAsignaciones();
                   closeModal();
+                  showToast({
+                    title: 'Programación Actualizada',
+                    description: 'La programación se ha actualizado correctamente.',
+                    timeout: 4000,
+                    variant: 'success',
+                  });
                 }}
                 onCancel={closeModal}
               />
@@ -288,6 +341,16 @@ const ListarAsignacion = () => {
             No hay unidades de medida disponibles. Por favor, crea algunas unidades de medida para asignarlas a las programaciones.
           </div>
         )}
+        {asignaciones.length === 0 && !isLoadingAsignaciones && !errorAsignaciones && (
+          <div className="text-center text-gray-500 mb-4">
+            No hay asignaciones disponibles. Crea una nueva asignación para empezar.
+          </div>
+        )}
+        {realizaList.length === 0 && !isLoadingRealiza && !errorRealiza && (
+          <div className="text-center text-yellow-500 mb-4">
+            No hay datos en realiza. Por favor, asegúrate de que existan registros en realiza para mapear actividades y plantaciones.
+          </div>
+        )}
         <Tabla
           title="Lista de Asignaciones"
           headers={headers}
@@ -298,9 +361,6 @@ const ListarAsignacion = () => {
           createButtonTitle="Crear Asignación"
           renderRow={renderRow}
         />
-        {tablaData.length === 0 && (
-          <div className="text-center text-gray-500 mt-4">No hay asignaciones para mostrar.</div>
-        )}
       </div>
 
       {imagenAmpliada && (
