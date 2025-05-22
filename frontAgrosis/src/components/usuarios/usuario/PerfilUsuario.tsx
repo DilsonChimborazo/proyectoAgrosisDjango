@@ -3,7 +3,7 @@ import { usePerfilUsuario } from '../../../hooks/usuarios/usuario/usePerfilUsuar
 import { FormData } from '../../../hooks/usuarios/usuario/usePerfilUsuarios';
 import { perfilSchema } from '@/hooks/validaciones/useSchemas';
 import { Eye, EyeOff } from "lucide-react";
-
+import { showToast } from "@/components/globales/Toast";
 
 
 const PerfilUsuario: React.FC = () => {
@@ -68,10 +68,9 @@ const PerfilUsuario: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
     
-
     const result = perfilSchema.safeParse(formData);
+
 
   if (!result.success) {
     // Extraer el primer error
@@ -86,6 +85,13 @@ const PerfilUsuario: React.FC = () => {
   }
 
   updatePerfil(dataToUpdate);
+
+  showToast({
+          title: 'Perfil actualizado',
+          description: 'Perfil actualizado correctamente',
+          variant: 'success'
+        })
+        
 };
 
   const imageUrl = useMemo(() => {

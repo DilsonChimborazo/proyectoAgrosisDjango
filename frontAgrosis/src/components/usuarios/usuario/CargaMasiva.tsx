@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { useCargaMasivaUsuarios } from '@/hooks/usuarios/usuario/useCargaMasiva'; 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { showToast } from '@/components/globales/Toast'; 
+import { useNavigate } from 'react-router-dom';
 
 interface CargaMasivaUsuariosProps {
   onClose: () => void;
@@ -11,6 +13,7 @@ interface CargaMasivaUsuariosProps {
 const CargaMasivaUsuarios: React.FC<CargaMasivaUsuariosProps> = ({ onClose }) => {
   const [archivo, setArchivo] = useState<File | null>(null);
   const mutation = useCargaMasivaUsuarios();
+  const navigate= useNavigate();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -22,17 +25,35 @@ const CargaMasivaUsuarios: React.FC<CargaMasivaUsuariosProps> = ({ onClose }) =>
     e.preventDefault();
 
     if (!archivo) {
-      console.error("Debes seleccionar un archivo");
+      showToast({
+        title: 'Archivo requerido',
+        description: 'Debes seleccionar un archivo .csv o .xlsx',
+        variant: 'error',
+      });
       return;
     }
 
     const formData = new FormData();
     formData.append("file", archivo);
+
     mutation.mutate(formData, {
-      onSuccess: () => {
-        console.log("Carga masiva exitosa");
-        onClose(); // Cierra la ventana al finalizar
+      onSuccess: (data) => {
+        showToast({
+          title: 'Carga exitosa',
+          description: `Usuarios cargados: ${data?.creados?.length || 0}`,
+          variant: 'success',
+        });
+        
+        navigate('/usuarios');
+
       },
+      onError: () => {
+        showToast({
+          title: 'Error en la carga',
+          description: 'Ocurrió un error al cargar el archivo',
+          variant: 'error',
+        });
+      }
     });
   };
 
@@ -40,20 +61,13 @@ const CargaMasivaUsuarios: React.FC<CargaMasivaUsuariosProps> = ({ onClose }) =>
     <form onSubmit={handleSubmit} className="space-y-4">
       <Input type="file" accept=".csv,.xlsx,.xls" onChange={handleFileChange} />
       <div className="flex gap-2">
-        <Button type="submit" disabled={mutation.isPending}>
+        <Button type="submit" className="bg-green-600 text-white hover:bg-green-700" disabled={mutation.isPending}>
           {mutation.isPending ? 'Cargando...' : 'Subir Archivo'}
         </Button>
         <Button type="button" variant="secondary" onClick={onClose}>
           Cancelar
         </Button>
       </div>
-
-      {mutation.isError && (
-        <p className="text-red-500 text-sm">Error al cargar archivo.</p>
-      )}
-      {mutation.isSuccess && (
-        <p className="text-green-500 text-sm">Usuarios cargados exitosamente.</p>
-      )}
     </form>
   );
 };

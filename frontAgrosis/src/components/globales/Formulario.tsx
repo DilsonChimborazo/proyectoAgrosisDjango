@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Button from '../globales/Button';
 import { Plus } from 'lucide-react';
+import { showToast } from './Toast';
+import { ZodSchema } from 'zod';
 
 interface Option {
   value: string | number;
@@ -18,7 +20,7 @@ interface FormField {
   hasExtraButton?: boolean;
   extraButtonText?: string;
   onExtraButtonClick?: () => void;
-  extraContent?: React.ReactNode; // Nueva propiedad para contenido adicional después del campo
+  extraContent?: React.ReactNode;
 }
 
 interface FormProps {
@@ -34,6 +36,7 @@ interface FormProps {
   extraButtonTitle?: string;
   children?: React.ReactNode;
   stockMessage?: string;
+  schema?: ZodSchema<any>;  // <-- Aquí agregamos la prop del esquema Zod
 }
 
 const Formulario: React.FC<FormProps> = ({
@@ -48,14 +51,32 @@ const Formulario: React.FC<FormProps> = ({
   onExtraButtonClick,
   extraButtonTitle = 'Botón Extra',
   children,
+  schema,
 }) => {
-  const [formData, setFormData] = React.useState<{ [key: string]: string | File }>(
-    initialValues || {}
-  );
+  const [formData, setFormData] = useState<{ [key: string]: string | File }>(initialValues || {});
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
-  React.useEffect(() => {
+  useEffect(() => {
     setFormData(initialValues || {});
   }, [initialValues]);
+
+  useEffect(() => {
+    if (isSuccess) {
+      showToast({
+        title: "Éxito",
+        description: "Formulario enviado correctamente",
+        variant: "success",
+      });
+    }
+
+    if (isError) {
+      showToast({
+        title: "Error",
+        description: "Hubo un error al enviar el formulario",
+        variant: "error",
+      });
+    }
+  }, [isSuccess, isError]);
 
   const handleChange = (id: string, value: string | File) => {
     setFormData((prev) => ({ ...prev, [id]: value }));
@@ -66,6 +87,34 @@ const Formulario: React.FC<FormProps> = ({
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
+
+    if (schema) {
+      const parseResult = schema.safeParse(formData);
+
+      if (!parseResult.success) {
+        const fieldErrors = parseResult.error.flatten().fieldErrors;
+        const erroresMap: { [key: string]: string } = {};
+
+        Object.entries(fieldErrors).forEach(([key, messages]) => {
+          if (messages && messages.length > 0) {
+            erroresMap[key] = messages[0];
+          }
+        });
+
+        setErrors(erroresMap);
+
+        showToast({
+          title: 'Error de Validación',
+          description: 'Por favor corrige los errores en el formulario',
+          variant: 'error',
+        });
+
+        return; // No enviar si hay errores
+      } else {
+        setErrors({});
+      }
+    }
+
     onSubmit(formData);
   };
 
@@ -87,7 +136,11 @@ const Formulario: React.FC<FormProps> = ({
               <div className="flex items-center gap-2">
                 <select
                   id={field.id}
-                  className="w-full p-2 border border-gray-300 rounded"
+                  className={`w-full p-2 border rounded ${
+                    errors[field.id]
+                      ? 'border-red-500'
+                      : 'border-gray-300'
+                  }`}
                   onChange={(e) => {
                     handleChange(field.id, e.target.value);
                     if (field.onChange) {
@@ -95,6 +148,7 @@ const Formulario: React.FC<FormProps> = ({
                     }
                   }}
                   value={(formData[field.id] as string) || ''}
+                  disabled={field.disabled}
                 >
                   <option value="">Seleccione una opción</option>
                   {field.options?.map((option) => (
@@ -114,11 +168,11 @@ const Formulario: React.FC<FormProps> = ({
                   </button>
                 )}
               </div>
-              {/* Renderizamos el contenido adicional después del campo, si existe */}
+              {errors[field.id] && (
+                <p className="text-red-600 text-sm mt-1">{errors[field.id]}</p>
+              )}
               {field.extraContent && (
-                <div className="mt-2">
-                  {field.extraContent}
-                </div>
+                <div className="mt-2">{field.extraContent}</div>
               )}
             </div>
           ) : field.type === 'file' ? (
@@ -129,7 +183,11 @@ const Formulario: React.FC<FormProps> = ({
               <input
                 type="file"
                 id={field.id}
-                className="w-full p-2 border border-gray-300 rounded"
+                className={`w-full p-2 border rounded ${
+                  errors[field.id]
+                    ? 'border-red-500'
+                    : 'border-gray-300'
+                }`}
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (file) {
@@ -140,12 +198,13 @@ const Formulario: React.FC<FormProps> = ({
                   }
                 }}
                 accept="image/*"
+                disabled={field.disabled}
               />
-              {/* Renderizamos el contenido adicional después del campo, si existe */}
+              {errors[field.id] && (
+                <p className="text-red-600 text-sm mt-1">{errors[field.id]}</p>
+              )}
               {field.extraContent && (
-                <div className="mt-2">
-                  {field.extraContent}
-                </div>
+                <div className="mt-2">{field.extraContent}</div>
               )}
             </div>
           ) : (
@@ -161,7 +220,10 @@ const Formulario: React.FC<FormProps> = ({
                   }
                 }}
                 placeholder=" "
-                className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-gray-900 bg-transparent border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                className={`block px-2.5 pb-2.5 pt-4 w-full text-sm bg-transparent border rounded appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer ${
+                  errors[field.id] ? 'border-red-500' : 'border-gray-300'
+                }`}
+                disabled={field.disabled}
               />
               <label
                 htmlFor={field.id}
@@ -169,27 +231,16 @@ const Formulario: React.FC<FormProps> = ({
               >
                 {field.label}
               </label>
-              {/* Renderizamos el contenido adicional después del campo, si existe */}
+              {errors[field.id] && (
+                <p className="text-red-600 text-sm mt-1">{errors[field.id]}</p>
+              )}
               {field.extraContent && (
-                <div className="mt-2">
-                  {field.extraContent}
-                </div>
+                <div className="mt-2">{field.extraContent}</div>
               )}
             </div>
           )}
         </div>
       ))}
-
-      {isError && (
-        <div className="text-red-500 mt-4 mb-4 flex justify-center items-center">
-          Error al enviar el formulario
-        </div>
-      )}
-      {isSuccess && (
-        <div className="text-green-500 mt-4 mb-4 flex justify-center items-center">
-          Enviado exitosamente
-        </div>
-      )}
 
       <div className="flex justify-center items-center mt-8">
         <Button text="Registrar" className="mx-2" variant="success" type="submit" />

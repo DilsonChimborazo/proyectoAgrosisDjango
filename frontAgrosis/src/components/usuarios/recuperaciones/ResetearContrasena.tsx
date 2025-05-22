@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useResetearContrasena } from "@/hooks/usuarios/recuperaciones/useResetearContrasena";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { showToast } from "@/components/globales/Toast";
+import LoadingBox from "@/context/AuthContext";
 
 const ResetearContrasena = () => {
   const [searchParams] = useSearchParams();
@@ -19,12 +21,34 @@ const ResetearContrasena = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!token || !id) {
-      alert("El enlace es inválido o ha expirado. Intenta nuevamente.");
+      showToast({
+        title: 'link expirado intente nuevamente',
+        description:'Este link ya expiro!',
+        variant: 'error'
+      })
       return;
     }
     mutate({ token, id, password });
-    navigate("/");
   };
+
+  useEffect(() => {
+    if (isSuccess) {
+      showToast({
+        title: "Contraseña actualizada",
+        description: "Tu contraseña ha sido cambiada correctamente.",
+        variant: "success",
+      });
+      setTimeout(() => navigate("/"), 2000); // Redirecciona después de 2 segundos
+    }
+
+    if (isError) {
+      showToast({
+        title: "Error al actualizar",
+        description: (error as any)?.message || "No se pudo cambiar la contraseña.",
+        variant: "error",
+      });
+    }
+  }, [isSuccess, isError, error, navigate]);
 
   return (
     <div className="flex h-screen items-center justify-center bg-gray-100">
@@ -50,7 +74,8 @@ const ResetearContrasena = () => {
               className="w-full py-2 bg-green-600 text-white rounded-md"
               disabled={isPending}
             >
-              {isPending ? "Restableciendo..." : "Restablecer Contraseña"}
+              {isPending && <LoadingBox/>}
+              Restablecer Contraseña
             </button>
           </form>
         )}
