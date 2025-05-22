@@ -14,7 +14,7 @@ class VentaViewSet(ModelViewSet):
 
 class ItemVentaViewSet(ModelViewSet):
     serializer_class = LeerItemVentaSerializer
-    permission_classes = [IsAuthenticated]
+    #permission_classes = [IsAuthenticated]
     queryset = ItemVenta.objects.select_related('produccion', 'unidad_medida').all()
     
     def get_queryset(self):

@@ -7,8 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import CrearUnidadMedida from "@/components/inventario/unidadMedida/UnidadMedida";
 import VentanaModal from "@/components/globales/VentanasModales";
 import CrearPlantacion from "@/components/trazabilidad/plantacion/CrearPlantacion";
-import { addToast } from "@heroui/react";
-
+import { showToast } from "@/components/globales/Toast";
 interface CrearProduccionProps {
   onClose?: () => void;
   onSuccess?: () => void;
@@ -108,7 +107,7 @@ const CrearProduccion = ({ onClose, onSuccess }: CrearProduccionProps) => {
     if (errors.length > 0) {
       const mensajeError = errors.join(", ");
       setErrorMessage(mensajeError);
-      addToast({
+      showToast({
         title: "Error al validar el formulario",
         description: mensajeError,
         timeout: 6000
@@ -122,12 +121,11 @@ const CrearProduccion = ({ onClose, onSuccess }: CrearProduccionProps) => {
       fecha: formData.fecha as string,
       fk_id_plantacion: formData.fk_id_plantacion ? parseInt(formData.fk_id_plantacion as string, 10) : null,
       fk_unidad_medida: formData.fk_unidad_medida ? parseInt(formData.fk_unidad_medida as string, 10) : null,
-      stock_disponible: formData.stock_disponible ? parseFloat(formData.stock_disponible as string) : undefined,
     };
 
     mutation.mutate(nuevaProduccion, {
       onSuccess: () => {
-        addToast({
+        showToast({
           title: "Producción creada exitosamente",
           description: "La producción ha sido registrada correctamente",
           timeout: 4000
@@ -137,7 +135,7 @@ const CrearProduccion = ({ onClose, onSuccess }: CrearProduccionProps) => {
       },
       onError: (error: any) => {
         const mensajeError = error?.message || "Ocurrió un error al crear la producción";
-        addToast({
+        showToast({
           title: "Error al crear producción",
           description: mensajeError,
           timeout: 5000

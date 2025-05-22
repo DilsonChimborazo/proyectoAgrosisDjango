@@ -61,7 +61,11 @@ export interface Produccion {
 
 export interface ItemVenta {
   id: number;
-  venta: number;
+  venta: {
+    id: number;
+    fecha: string;
+    total: number;
+  };
   produccion: Produccion;
   precio_unidad: number;
   cantidad: number;

@@ -2,6 +2,7 @@ from rest_framework import serializers
 from apps.finanzas.stock.models import Stock
 from apps.finanzas.produccion.api.serializers import ProduccionSerializer
 from apps.finanzas.venta.api.serializers import ItemVentaSerializer
+from apps.inventario.unidadMedida.api.serilizers import UnidadMedidaSerializer
 
 class LeerStockSerializer(serializers.ModelSerializer):
     fk_id_produccion = ProduccionSerializer(read_only=True)

@@ -16,7 +16,7 @@ interface VentanaModalProps {
   data?: any[];
   columns?: Column[];
   variant?: 'content' | 'table';
-  size?: 'sm' | 'md' | 'lg' | 'xl' | 'venta'; // Añadimos tamaño especial para venta
+  size?: 'sm' | 'md' | 'lg' | '1.5xl' | 'xl' | 'venta'; // Añadimos tamaño especial para venta
   onSuccess?: (nuevo: any) => void; 
   modalClassName?: string; // Nueva prop para clases personalizadas
 }
@@ -39,6 +39,7 @@ const VentanaModal: React.FC<VentanaModalProps> = ({
   const sizeClasses = {
     sm: 'w-full md:w-1/4 min-w-[300px]',
     md: 'w-full md:w-1/3 min-w-[400px]',
+    '1.5xl': 'w-full max-w-[960px]', // Nuevo tamaño intermedio (~960px)
     lg: 'w-full md:w-1/2 min-w-[500px]',
     xl: 'w-full md:w-3/4 min-w-[600px]',
     venta: 'w-full md:w-[90%] lg:w-[85%] xl:w-[80%] min-w-[300px] max-w-[1200px]' // Tamaño especial para venta
