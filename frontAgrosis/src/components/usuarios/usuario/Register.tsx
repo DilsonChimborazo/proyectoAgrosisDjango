@@ -6,12 +6,12 @@ import { useCustomForm } from "@/hooks/validaciones/useCustomForm";
 import { registroSchema, RegistroData } from "@/hooks/validaciones/useSchemas"; 
 import logoAgrosis from "../../../../public/logo_proyecto-removebg-preview.png";
 import logoSena from "../../../../public/logoSena.png";
+import { showToast } from "@/components/globales/Toast";
+import LoadingBox from "@/context/AuthContext";
 
 export default function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
 
   const {
@@ -28,15 +28,13 @@ export default function RegisterForm() {
   });
 
   const onSubmit = async (data: RegistroData) => {
-    setLoading(true);
-    setError(null);
-    setSuccess(false);
-
     const apiUrl = import.meta.env.VITE_API_URL;
     if (!apiUrl) {
-      setError("La URL de la API no está definida. Por favor, contacta al administrador.");
-      setLoading(false);
-      return;
+      showToast({
+          title: 'Error en el servidor',
+          description: 'No se pudo conectar al servidor, contacta a soporte',
+          variant: 'error'
+        })
     }
 
     try {
@@ -52,21 +50,36 @@ export default function RegisterForm() {
       });
 
       if (response.status === 201) {
-        setSuccess(true);
-        setTimeout(() => navigate("/"), 2000);
+        setTimeout(() => navigate("/"));
+        showToast({
+          title: 'Registro exitoso',
+          description: 'Administrador registrado correctamente',
+          variant: 'success'
+        })
       }
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
-        const errorData = err.response.data;
-        if (typeof errorData === "object" && !errorData.detail) {
-          const errorMessages = Object.values(errorData).flat().join(", ");
-          setError(errorMessages || "Error al registrar el usuario");
-        } else {
-          setError(errorData.detail || "Error al registrar el usuario");
-        }
-      } else {
-        setError("Error inesperado. Por favor, intenta de nuevo.");
-      }
+  const errorData = err.response.data;
+  if (typeof errorData === "object" && !errorData.detail) {
+    showToast({
+      title: 'Error en el registro',
+      description: "Error al registrar el usuario ya existe un administrador",
+      variant: 'error'
+    });
+  } else {
+    showToast({
+      title: 'Error en el registro',
+      description: "Ya existe un administrador!",
+      variant: 'error'
+    });
+  }
+} else {
+  showToast({
+    title: 'Error inesperado',
+    description: 'Por favor, intenta de nuevo.',
+    variant: 'error'
+  });
+}
     } finally {
       setLoading(false);
     }
@@ -88,12 +101,6 @@ export default function RegisterForm() {
               <h2 className="text-2xl font-bold text-gray-300">AGROSIS</h2>
             </div>
             <p className="text-center text-gray-300 mb-6">¡Registra tu Superadmin!</p>
-            {success && (
-              <p className="text-green-600 text-center mb-4">
-                ¡Superadmin registrado con éxito! Redirigiendo al login...
-              </p>
-            )}
-            {error && <p className="text-red-500 text-center mb-4">{error}</p>}
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
                 <input
@@ -162,9 +169,9 @@ export default function RegisterForm() {
                   {...register("fk_id_rol")}
                   className="w-full px-4 py-2 bg-transparent border-b border-white placeholder-white focus:outline-none"
                 >
-                  <option value="">Selecciona un rol</option>
+                  <option className="bg-green-600 text-white" value="">Selecciona un rol</option>
                   {roles.map((rol) => (
-                    <option key={rol.id} value={rol.id}>
+                    <option key={rol.id} className="bg-green-600 text-white" value={rol.id}>
                       {rol.nombre}
                     </option>
                   ))}
@@ -181,10 +188,11 @@ export default function RegisterForm() {
               </p>
               <button
                 type="submit"
-                className="w-full py-2 bg-green-600 hover:bg-green-700 transition-colors text-white rounded-full"
+                className="w-full py-2 bg-green-600 hover:bg-green-700 transition-colors text-white rounded-full flex items-center justify-center gap-2"
                 disabled={loading}
               >
-                {loading ? "Registrando..." : "Registrar"}
+                {loading && <LoadingBox/>}
+              Registrar
               </button>
             </form>
           </div>

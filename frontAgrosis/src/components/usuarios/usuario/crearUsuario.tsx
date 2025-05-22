@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
-import { Usuario } from '@/hooks/usuarios/usuario/useCreateUsuarios';
-import { useCreateUsuarios } from '@/hooks/usuarios/usuario/useCreateUsuarios';
-import Formulario from '@/components/globales/Formulario';
-import { useRoles } from '@/hooks/usuarios/rol/useRol';
-import { UseFicha } from '@/hooks/usuarios/ficha/useFicha';
-import CrearFicha from '../ficha/crearFicha';
-import CargaMasivaUsuarios from './CargaMasiva';
-import VentanaModal from '@/components/globales/VentanasModales';
-import CrearRol from '../rol/crearRol';
+import React, { useState } from "react";
+import { Usuario } from "@/hooks/usuarios/usuario/useCreateUsuarios";
+import { useCreateUsuarios } from "@/hooks/usuarios/usuario/useCreateUsuarios";
+import Formulario from "@/components/globales/Formulario";
+import { useRoles } from "@/hooks/usuarios/rol/useRol";
+import { UseFicha } from "@/hooks/usuarios/ficha/useFicha";
+import CrearFicha from "../ficha/crearFicha";
+import CargaMasivaUsuarios from "./CargaMasiva";
+import VentanaModal from "@/components/globales/VentanasModales";
+import CrearRol from "../rol/crearRol";
+import { Upload } from "lucide-react";
+import { usuarioSchema } from "@/hooks/validaciones/useSchemas";
+
 
 interface CrearUsuarioProps {
   isOpen: boolean;
@@ -21,7 +24,7 @@ const CrearUsuario: React.FC<CrearUsuarioProps> = ({ isOpen, onClose }) => {
 
   const [modalAbiertoRol, setModalAbiertoRol] = useState(false);
   const [modalAbiertoFicha, setModalAbiertoFicha] = useState(false);
-  const [modalAbiertoCargaMasiva, setModalAbiertoCargaMasiva] = useState(false)
+  const [modalAbiertoCargaMasiva, setModalAbiertoCargaMasiva] = useState(false);
 
   const abrirModalFicha = () => setModalAbiertoFicha(true);
   const cerrarModalFicha = () => setModalAbiertoFicha(false);
@@ -29,70 +32,56 @@ const CrearUsuario: React.FC<CrearUsuarioProps> = ({ isOpen, onClose }) => {
   const abrirModalRol = () => setModalAbiertoRol(true);
   const cerrarModalRol = () => setModalAbiertoRol(false);
 
-  const abrirModalCargaMasiva = () => setModalAbiertoCargaMasiva(true);;
+  const abrirModalCargaMasiva = () => setModalAbiertoCargaMasiva(true);
   const cerrarModalCargaMasiva = () => setModalAbiertoCargaMasiva(false);
 
   const formFields = [
-    { id: 'identificacion', label: 'Identificación', type: 'text' },
-    { id: 'email', label: 'Email', type: 'text' },
-    { id: 'nombre', label: 'Nombre', type: 'text' },
-    { id: 'apellido', label: 'Apellido', type: 'text' },
-    { id: 'password', label: 'Contraseña', type: 'password' },
+    { id: "identificacion", label: "Identificación", type: "text" },
+    { id: "email", label: "Email", type: "text" },
+    { id: "nombre", label: "Nombre", type: "text" },
+    { id: "apellido", label: "Apellido", type: "text" },
+    { id: "password", label: "Contraseña", type: "password" },
     {
-      id: 'fk_id_rol',
-      label: 'Rol',
-      type: 'select',
+      id: "fk_id_rol",
+      label: "Rol",
+      type: "select",
       options: Array.isArray(roles)
         ? roles.map((rol) => ({ value: String(rol.id), label: rol.rol }))
         : [],
-      
       hasExtraButton: true,
-      extraButtonText: '+',
+      extraButtonText: "+",
       onExtraButtonClick: abrirModalRol,
     },
     {
-      id: 'ficha',
-      label: 'Ficha',
-      type: 'select',
+      id: "ficha",
+      label: "Ficha",
+      type: "select",
       options: Array.isArray(fichas)
         ? fichas.map((f) => ({ value: String(f.id), label: f.numero_ficha }))
         : [],
       hasExtraButton: true,
-      extraButtonText: '+',
+      extraButtonText: "+",
       onExtraButtonClick: abrirModalFicha,
-    },
-    {
-      id: 'carga_masiva',
-      label: 'Carga masiva',
-      type: 'select', 
-      hasExtraButton: true,
-      extraButtonText: 'carga masiva',
-      onExtraButtonClick: abrirModalCargaMasiva,
+      extraContent: (
+        <div className="mt-4 flex justify-start">
+          <button
+            type="button"
+            onClick={abrirModalCargaMasiva}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 shadow-sm transition duration-300 ease-in-out"
+          >
+            <Upload size={18} />
+            Carga Masiva
+          </button>
+        </div>
+      ),
     },
   ];
 
   const handleSubmit = (formData: { [key: string]: string }) => {
-    if (
-      !formData.identificacion ||
-      !formData.email ||
-      !formData.nombre ||
-      !formData.apellido ||
-      !formData.password ||
-      !formData.fk_id_rol 
-      
-    ) {
-      console.error('Campos faltantes');
-      return;
-    }
-
+    // Aquí confiamos que formData ya está validado por Zod en Formulario
     const identificacion = parseInt(formData.identificacion, 10);
     const fk_id_rol = parseInt(formData.fk_id_rol, 10);
-    const ficha = parseInt(formData.ficha, 10);
-
-    if (isNaN(identificacion) || isNaN(fk_id_rol)) {
-      console.error('Identificación, rol o ficha inválido');
-      return;
-    }
+    const ficha = parseInt(formData.ficha || "", 10);
 
     const newUsuario: Usuario = {
       identificacion,
@@ -109,7 +98,7 @@ const CrearUsuario: React.FC<CrearUsuarioProps> = ({ isOpen, onClose }) => {
 
     mutation.mutate(newUsuario, {
       onSuccess: () => {
-        onClose(); 
+        onClose();
       },
     });
   };
@@ -129,18 +118,18 @@ const CrearUsuario: React.FC<CrearUsuarioProps> = ({ isOpen, onClose }) => {
             isError={mutation.isError}
             isSuccess={mutation.isSuccess}
             title=""
+            schema={usuarioSchema} // PASA EL ESQUEMA ZOD AQUÍ
           />
         }
       />
       <VentanaModal
-      isOpen={modalAbiertoRol}
-      onClose={cerrarModalRol}
-      titulo=""
-      size="sm"
-      variant="content"
-      contenido={<CrearRol onClose={cerrarModalRol} />}
+        isOpen={modalAbiertoRol}
+        onClose={cerrarModalRol}
+        titulo=""
+        size="sm"
+        variant="content"
+        contenido={<CrearRol onClose={cerrarModalRol} />}
       />
-
       <VentanaModal
         isOpen={modalAbiertoFicha}
         onClose={cerrarModalFicha}
@@ -157,8 +146,7 @@ const CrearUsuario: React.FC<CrearUsuarioProps> = ({ isOpen, onClose }) => {
         variant="content"
         contenido={<CargaMasivaUsuarios onClose={cerrarModalCargaMasiva} />}
       />
-
-    </> 
+    </>
   );
 };
 

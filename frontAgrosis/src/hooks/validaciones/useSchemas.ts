@@ -89,9 +89,55 @@ export const usuarioSchema = z.object({
     .regex(/^\d+$/, "Selecciona un rol válido"),
 });
 
+export const registroUsuario = z.object({
+  identificacion: z
+    .string()
+    .min(1, { message: "La identificación es obligatoria" })
+    .regex(/^\d+$/, { message: "Solo se permiten números" }),
+
+  email: z
+    .string()
+    .email({ message: "Debe ser un correo electrónico válido" }),
+
+  nombre: z
+    .string()
+    .min(2, 'El nombre debe tener al menos 2 caracteres')
+    .max(50, 'El nombre no debe exceder los 50 caracteres'),
+
+  apellido: z
+    .string()
+    .min(2, 'El apellido debe tener al menos 2 caracteres')
+    .max(50, 'El apellido no debe exceder los 50 caracteres'),
+
+  password: z
+    .string()
+    .min(6, 'La contraseña debe tener al menos 6 caracteres')
+    .optional()
+    .or(z.literal('')),
+});
+
+export const crearRolSchema = z.object({
+  rol: z
+    .string()
+    .min(1, { message: "El nombre del rol es obligatorio" })
+    .max(50, { message: "El nombre del rol no debe exceder los 50 caracteres" }),
+  fecha_creacion: z
+    .string()
+    .refine(
+      (date) => {
+        // Validar que la fecha es válida y no vacía
+        return !isNaN(Date.parse(date));
+      },
+      { message: "Debes ingresar una fecha válida" }
+    ),
+});
+
+
 // Tipos generados a partir de los esquemas
 export type LoginData = z.infer<typeof loginSchema>;
 export type RegistroData = z.infer<typeof registroSchema>;
 export type ContactoData = z.infer<typeof contactoSchema>;
 export type PerfilData = z.infer<typeof perfilSchema>;
 export type UsuariolData = z.infer<typeof usuarioSchema>;
+export type CreateUsuario = z.infer<typeof registroUsuario>;
+export type CreateRol = z.infer<typeof crearRolSchema>;

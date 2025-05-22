@@ -161,9 +161,9 @@ CHANNEL_LAYERS = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'agrosisdjango',
+        'NAME': 'pruebafinal',
         'USER': 'postgres',                
-        'PASSWORD': 'adso2024',      
+        'PASSWORD': '28782We',      
         'HOST': 'localhost',                  
         'PORT': '5432',  
         'OPTIONS': {
@@ -234,7 +234,7 @@ EMAIL_HOST_USER = 'agrosofSena@gmail.com'
 EMAIL_HOST_PASSWORD = 'epcv duva nhwm hzlj'  # Usa una contraseña de aplicación
 DEFAULT_FROM_EMAIL = 'agrosofSena@gmail.com'  # Asegúrate de definir esto
 
-FRONTEND_URL = "http://192.168.88.102:5173"
+FRONTEND_URL = "http://10.4.24.90:5173"
 
 
 

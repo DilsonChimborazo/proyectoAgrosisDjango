@@ -2,7 +2,7 @@ import { useCreateRol } from '@/hooks/usuarios/rol/useCreateRol';
 import { Rol } from '@/hooks/usuarios/rol/useRol';  
 import Formulario from '@/components/globales/Formulario';
 import { QueryObserverResult, RefetchOptions } from '@tanstack/react-query';
-
+import { showToast } from '@/components/globales/Toast';
 
 interface CrearRolProps {
   onClose: () => void;
@@ -32,9 +32,21 @@ const CrearRol: React.FC<CrearRolProps> = ({ onClose, onCreated }) => {
 
     mutation.mutate(newRol, {
       onSuccess: () => {
+        showToast({
+          title: 'Rol creado',
+          description: `El rol "${rol}" fue creado con éxito.`,
+          variant: 'success',
+        });
         onCreated?.();
-        onClose(); // Cierra la modal después de crear la ficha
+        onClose(); 
       },
+      onError: () => {
+        showToast({
+          title: 'Error',
+          description: 'Ocurrió un error al crear el rol.',
+          variant: 'error',
+        });
+      }
     });
   };
 

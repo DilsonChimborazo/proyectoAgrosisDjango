@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import Tabla from "@/components/globales/Tabla";
 import VentanaModal from "@/components/globales/VentanasModales";
 import CrearUsuario from "../usuario/crearUsuario";
+import { showToast } from "@/components/globales/Toast";
+import LoadingBox from "@/context/AuthContext";
 
 const Usuarios = () => {
   const navigate = useNavigate();
@@ -13,7 +15,7 @@ const Usuarios = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContenido, setModalContenido] = useState<React.ReactNode>(null);
   const [esAdministrador, setEsAdministrador] = useState(false);
-  const [mensaje, setMensaje] = useState<string | null>(null);
+  const [mensaje] = useState<string | null>(null);
 
   useEffect(() => {
     const usuarioGuardado = localStorage.getItem("user");
@@ -21,6 +23,20 @@ const Usuarios = () => {
 
     setEsAdministrador(usuario?.fk_id_rol?.rol === "Administrador");
   }, []);
+
+  useEffect(() => {
+    refetch();
+  }, []);
+
+  useEffect(() => {
+  if (error instanceof Error) {
+    showToast({
+      title: 'Error al cargar los usuarios',
+      description: 'Contacta a soporte',
+      variant: 'error',
+    });
+  }
+}, [error]);
 
   const openModalHandler = useCallback((usuario: Record<string, any>) => {
     setSelectedUser(usuario);
@@ -31,18 +47,24 @@ const Usuarios = () => {
 
   const handleUpdate = (usuario: Record<string, any>) => {
     if (!esAdministrador) {
-      setMensaje("No tienes permiso para actualizar usuarios");
-      setTimeout(() => setMensaje(null), 3000);
-      return;
+      showToast({
+        title: 'No tienes permisos para esta accion!',
+        description: 'Accion solo para el administrador',
+        variant: 'error'
+        });
+        return;
     }
     navigate(`/editarUsuario/${usuario.id}`);
   };
 
   const openCreateModal = () => {
     if (!esAdministrador) {
-      setMensaje("No tienes permisos para crear usuarios.");
-      setTimeout(() => setMensaje(null), 3000);
-      return;
+      showToast({
+        title: 'No tienes permisos para esta accion!',
+        description: 'Accion solo para el administrador',
+        variant: 'error'
+        })
+        return;
     }
 
     setSelectedUser(null);
@@ -78,14 +100,25 @@ const Usuarios = () => {
         },
       });
 
-      if (!response.ok) throw new Error("Error al cambiar estado");
+      if (!response.ok){
+        showToast({
+          title: 'Error al cambiar estado!',
+          description: '',
+          variant: 'error'
+        })
+      };
 
-      setMensaje(`Usuario ${accion === "activar" ? "activado" : "desactivado"} exitosamente`);
+      showToast({
+      title: `Usuario ${accion === "activar" ? "activado" : "desactivado"} exitosamente`,
+      variant: 'success',
+      });
       refetch(); // Refrescar lista
-      setTimeout(() => setMensaje(null), 3000);
     } catch (err) {
-      setMensaje("No se pudo actualizar el estado del usuario");
-      setTimeout(() => setMensaje(null), 3000);
+      showToast({
+      title: 'Error inesperado!',
+      description: 'No se pudo actualizar el estado del usuario.',
+      variant: 'error',
+    });
     }
   };
 
@@ -99,25 +132,10 @@ const Usuarios = () => {
         </div>
       )}
 
-      <div className='mb-4 text-right'>
-        <button
-          onClick={() => navigate('/fichas')}
-          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 d-flex justify-center"
-        >
-          Ver Lista de Fichas
-        </button>
-      </div>
-
-      {isLoading && <div className="text-center text-gray-500">Cargando usuarios...</div>}
-
-      {error instanceof Error && (
-        <div className="text-center text-red-500">
-          Error al cargar los usuarios: {error.message}
-        </div>
-      )}
-
-      {!isLoading && !error && (!Array.isArray(usuarios) || usuarios.length === 0) && (
-        <div className="text-center text-gray-500">No hay usuarios registrados.</div>
+      {isLoading && (
+        <>
+          <LoadingBox />
+        </>
       )}
 
       {Array.isArray(usuarios) && usuarios.length > 0 && (

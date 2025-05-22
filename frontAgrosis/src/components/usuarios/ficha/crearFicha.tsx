@@ -2,7 +2,7 @@ import { useCreateFicha } from '@/hooks/usuarios/ficha/useCreateFicha';
 import { Ficha } from '@/hooks/usuarios/ficha/useFicha';
 import Formulario from '@/components/globales/Formulario';
 import { QueryObserverResult, RefetchOptions } from '@tanstack/react-query';
-
+import { showToast } from '@/components/globales/Toast';
 
 interface CrearFichaProps {
   onClose: () => void;
@@ -38,9 +38,21 @@ const CrearFicha: React.FC<CrearFichaProps> = ({ onClose, onCreated }) => {
 
     mutation.mutate(newFicha, {
       onSuccess: () => {
+        showToast({
+          title: 'Ficha creada',
+          description: `El id ficha "${numero_ficha}" fue creado con éxito.`,
+          variant: 'success',
+        });
         onCreated?.();
-        onClose(); // Cierra la modal después de crear la ficha
+        onClose(); 
       },
+      onError: () => {
+        showToast({
+          title: 'Error',
+          description: 'Ocurrió un error al crear una ficha.',
+          variant: 'error',
+        });
+      }
     });
   };
 

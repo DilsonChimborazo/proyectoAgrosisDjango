@@ -24,7 +24,8 @@ class LeerUsuarioSerializer(serializers.ModelSerializer):
 class EscribirUsuarioSerializer(ModelSerializer):
     img = serializers.ImageField(max_length=None, use_url=True, allow_null=True, required=False)
 
-    ficha = serializers.PrimaryKeyRelatedField(
+    ficha = serializers.SlugRelatedField(
+        slug_field='numero_ficha',
         queryset=Ficha.objects.all(),
         required=False,
         allow_null=True

@@ -54,8 +54,8 @@ class UsuarioViewSet(ModelViewSet):
             for fila in filas:
                 try:
                     rol = Rol.objects.get(rol=fila["rol"])
-                    ficha_id = fila.get("ficha")
-                    ficha = Ficha.objects.get(id=ficha_id) if ficha_id else None
+                    numero_ficha = fila.get("ficha")
+                    ficha = Ficha.objects.get(numero_ficha=numero_ficha) if numero_ficha else None
 
                     user_data = {
                         "identificacion": fila["identificacion"],
@@ -64,7 +64,7 @@ class UsuarioViewSet(ModelViewSet):
                         "nombre": fila["nombre"],
                         "apellido": fila["apellido"],
                         "fk_id_rol": rol.id,
-                        "ficha": ficha.id if ficha else None,
+                        "ficha": ficha.numero_ficha if ficha else None,
                     }
 
                     serializer = EscribirUsuarioSerializer(data=user_data, context={'request': request})
