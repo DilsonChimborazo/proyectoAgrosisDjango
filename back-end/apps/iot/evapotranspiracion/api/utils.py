@@ -7,12 +7,28 @@ logger = logging.getLogger(__name__)
 
 def calcular_eto(mediciones, altitud=1000):
     try:
-        temp = mediciones.filter(fk_id_sensor__tipo_sensor='TEMPERATURA').first()
-        humedad = mediciones.filter(fk_id_sensor__tipo_sensor='HUMEDAD_AMBIENTAL').first()
-        viento = mediciones.filter(fk_id_sensor__tipo_sensor='VELOCIDAD_VIENTO').first()
-        radiacion = mediciones.filter(fk_id_sensor__tipo_sensor='ILUMINACION').first()
-        presion = mediciones.filter(fk_id_sensor__tipo_sensor='PRESION_ATMOSFERICA').first()
+        # Buscar las mediciones necesarias iterando sobre la lista
+        temp = None
+        humedad = None
+        viento = None
+        radiacion = None
+        presion = None
 
+        for medicion in mediciones:
+            sensor = medicion.fk_id_sensor
+            tipo_sensor = sensor.tipo_sensor
+            if tipo_sensor == 'TEMPERATURA':
+                temp = medicion
+            elif tipo_sensor == 'HUMEDAD_AMBIENTAL':
+                humedad = medicion
+            elif tipo_sensor == 'VELOCIDAD_VIENTO':
+                viento = medicion
+            elif tipo_sensor == 'ILUMINACION':
+                radiacion = medicion
+            elif tipo_sensor == 'PRESION_ATMOSFERICA':
+                presion = medicion
+
+        # Verificar que todas las mediciones requeridas estén presentes
         if not all([temp, humedad, viento, radiacion]):
             raise ValueError("Faltan datos de sensores requeridos")
 

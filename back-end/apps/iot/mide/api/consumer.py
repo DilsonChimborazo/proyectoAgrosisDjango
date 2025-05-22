@@ -80,8 +80,8 @@ class MideConsumer(AsyncWebsocketConsumer):
             nombre_sensor = sensor.nombre_sensor
 
             # Obtener la plantación, era y cultivo
-            nombre_era = plantacion.fk_id_eras.descripcion if plantacion.fk_id_eras else "Sin Era"
-            nombre_cultivo = plantacion.fk_id_cultivo.nombre_cultivo if plantacion.fk_id_cultivo else "Sin Cultivo"
+            nombre_era = await sync_to_async(lambda: plantacion.fk_id_eras.descripcion if plantacion.fk_id_eras else "Sin Era")()
+            nombre_cultivo = await sync_to_async(lambda: plantacion.fk_id_cultivo.nombre_cultivo if plantacion.fk_id_cultivo else "Sin Cultivo")()
 
             # Construir el mensaje para el WebSocket de Mide
             message = {
@@ -97,8 +97,9 @@ class MideConsumer(AsyncWebsocketConsumer):
             # Enviar datos al grupo de Mide
             await self.channel_layer.group_send("mide", {"type": "enviar_dato", "message": message})
 
-            # Calcular Evapotranspiración si hay suficientes datos
-            await self.calcular_y_guardar_evapotranspiracion(plantacion, nuevo_mide.fecha_medicion.date())
+            # Calcular y guardar evapotranspiración con la nueva medición
+            fecha_medicion = await sync_to_async(lambda: nuevo_mide.fecha_medicion.date())()
+            await self.calcular_y_guardar_evapotranspiracion(plantacion, fecha_medicion)
 
         except Exception as e:
             error_msg = f"❌ Error al procesar mensaje WebSocket: {str(e)}"
@@ -116,67 +117,72 @@ class MideConsumer(AsyncWebsocketConsumer):
     async def calcular_y_guardar_evapotranspiracion(self, plantacion, fecha):
         try:
             # Verificar si la plantación tiene cultivo asociado
-            if not plantacion.fk_id_cultivo:
+            has_cultivo = await sync_to_async(lambda: bool(plantacion.fk_id_cultivo))()
+            if not has_cultivo:
                 logger.warning(f"Plantación {plantacion.id} no tiene cultivo asociado. No se calcula ETo.")
                 return
 
-            # Obtener mediciones del día actual para la plantación
+            # Obtener las últimas mediciones disponibles para la plantación (una por tipo de sensor)
             mediciones = await sync_to_async(
-                lambda: Mide.objects.filter(
-                    fk_id_plantacion=plantacion,
-                    fecha_medicion__date=fecha
-                ).select_related('fk_id_sensor')
+                lambda: list(
+                    Mide.objects.filter(
+                        fk_id_plantacion=plantacion
+                    ).select_related('fk_id_sensor').order_by('-fecha_medicion')[:4]
+                )
             )()
 
             # Verificar si hay suficientes datos para calcular ETo
             required_sensors = ['TEMPERATURA', 'HUMEDAD_AMBIENTAL', 'VELOCIDAD_VIENTO', 'ILUMINACION']
-            sensor_types = await sync_to_async(
-                lambda: set(medicion.fk_id_sensor.tipo_sensor for medicion in mediciones)
-            )()
+            sensor_types = set()
+            for medicion in mediciones:
+                tipo_sensor = await sync_to_async(lambda: medicion.fk_id_sensor.tipo_sensor)()
+                sensor_types.add(tipo_sensor)
+            
             if not all(sensor_type in sensor_types for sensor_type in required_sensors):
-                logger.info(f"No hay suficientes datos de sensores para plantación {plantacion.id} en {fecha}")
+                logger.info(f"No hay suficientes datos de sensores para plantación {plantacion.id}")
                 return
 
-            # Calcular ETo
+            # Log para depurar las mediciones utilizadas
+            mediciones_log = []
+            for m in mediciones:
+                tipo_sensor = await sync_to_async(lambda: m.fk_id_sensor.tipo_sensor)()
+                valor_medicion = await sync_to_async(lambda: str(m.valor_medicion))()
+                mediciones_log.append(f"{tipo_sensor}: {valor_medicion}")
+            logger.info(f"Mediciones utilizadas: {mediciones_log}")
+
+            # Calcular ETo con las mediciones más recientes
             try:
-                eto = await sync_to_async(calcular_eto)(mediciones, altitud=1000)  # Ajusta la altitud según sea necesario
+                eto = await sync_to_async(calcular_eto)(mediciones, altitud=1000)
             except ValueError as e:
                 logger.error(f"Error al calcular ETo para plantación {plantacion.id}: {str(e)}")
                 return
 
             # Seleccionar kc según etapa_actual
             cultivo = await sync_to_async(lambda: plantacion.fk_id_cultivo)()
-            etapa = cultivo.etapa_actual.lower() if cultivo.etapa_actual else ""
+            etapa = await sync_to_async(lambda: cultivo.etapa_actual.lower() if cultivo.etapa_actual else "")()
+            kc_inicial = await sync_to_async(lambda: cultivo.kc_inicial)()
+            kc_desarrollo = await sync_to_async(lambda: cultivo.kc_desarrollo)()
+            kc_final = await sync_to_async(lambda: cultivo.kc_final)()
+
             if etapa == "inicial":
-                kc = Decimal(str(cultivo.kc_inicial)) if cultivo.kc_inicial is not None else Decimal('1.0')
+                kc = Decimal(str(kc_inicial)) if kc_inicial is not None else Decimal('1.0')
             elif etapa == "desarrollo":
-                kc = Decimal(str(cultivo.kc_desarrollo)) if cultivo.kc_desarrollo is not None else Decimal('1.0')
+                kc = Decimal(str(kc_desarrollo)) if kc_desarrollo is not None else Decimal('1.0')
             elif etapa == "final":
-                kc = Decimal(str(cultivo.kc_final)) if cultivo.kc_final is not None else Decimal('1.0')
+                kc = Decimal(str(kc_final)) if kc_final is not None else Decimal('1.0')
             else:
                 kc = Decimal('1.0')
                 logger.warning(f"Etapa desconocida '{etapa}' para cultivo {cultivo.id}. Usando kc=1.0")
 
             etc = eto * kc
 
-            # Verificar si ya existe un registro de Evapotranspiracion para esta plantación y fecha
-            evap_exists = await sync_to_async(
-                lambda: Evapotranspiracion.objects.filter(
-                    fk_id_plantacion=plantacion,
-                    fecha=fecha
-                ).exists()
-            )()
-
-            if evap_exists:
-                logger.info(f"Ya existe un registro de Evapotranspiracion para plantación {plantacion.id} en {fecha}")
-                return
-
-            # Guardar en Evapotranspiracion
+            # Guardar un nuevo registro de evapotranspiración
             evap = await sync_to_async(Evapotranspiracion.objects.create)(
                 fk_id_plantacion=plantacion,
                 fecha=fecha,
                 eto=eto,
-                etc=etc
+                etc=etc,
+                created_at=timezone.now()
             )
             logger.info(f"Evapotranspiración calculada y guardada: ETo={eto}, ETc={etc} para plantación {plantacion.id}")
 

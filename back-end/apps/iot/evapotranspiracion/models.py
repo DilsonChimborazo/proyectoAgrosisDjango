@@ -13,7 +13,8 @@ class Evapotranspiracion(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('fk_id_plantacion', 'fecha')
+        # Se eliminó unique_together para permitir múltiples registros
+        pass
 
     def __str__(self):
         return f"ETo: {self.eto} mm/día | ETc: {self.etc} mm/día | Plantación: {self.fk_id_plantacion}"

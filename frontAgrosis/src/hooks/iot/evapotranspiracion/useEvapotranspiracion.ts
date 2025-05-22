@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useState, useEffect, useMemo } from 'react'; // Agregar useMemo
+import { useState, useEffect, useMemo } from 'react';
 
 const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api/';
 const wsUrl = import.meta.env.VITE_WS_URL || 'ws://127.0.0.1:8000/ws/api/evapotranspiracion/';
@@ -89,7 +89,7 @@ export function useEvapotranspiracion(plantacionId: number) {
 
         // Procesar datos recibidos
         const newData: EvapoData = {
-          id: message.id || Date.now(), // Usar id del backend si está disponible
+          id: message.id || Date.now(),
           plantacion_id: message.plantacion_id,
           nombre_plantacion: message.cultivo || 'Sin plantación',
           era_id: message.era_id || null,
@@ -100,16 +100,9 @@ export function useEvapotranspiracion(plantacionId: number) {
           fecha: new Date(message.fecha).toISOString(),
         };
 
-        // Filtrar datos por plantacionId
+        // Agregar nuevos datos sin filtrar duplicados por fecha
         if (newData.plantacion_id === plantacionId) {
-          setWsData((prev) => {
-            // Evitar duplicados por fecha y plantación
-            const exists = prev.some(
-              (item) => item.fecha === newData.fecha && item.plantacion_id === newData.plantacion_id
-            );
-            if (exists) return prev;
-            return [...prev, newData].sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
-          });
+          setWsData((prev) => [...prev, newData].sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime()));
         }
       } catch (err) {
         console.error('Error al procesar mensaje WebSocket:', err);
@@ -132,17 +125,8 @@ export function useEvapotranspiracion(plantacionId: number) {
   // Combinar datos de la API y WebSocket
   const combinedData = useMemo(() => {
     const apiData = data || [];
-    const mergedData = [...apiData, ...wsData].reduce((acc: EvapoData[], curr: EvapoData) => {
-      const exists = acc.some(
-        (item) => item.fecha === curr.fecha && item.plantacion_id === curr.plantacion_id
-      );
-      if (!exists) {
-        acc.push(curr);
-      }
-      return acc;
-    }, []);
-
-    return mergedData.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
+    const mergedData = [...apiData, ...wsData].sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
+    return mergedData;
   }, [data, wsData]);
 
   const latestData = combinedData.length > 0 ? combinedData[combinedData.length - 1] : null;
