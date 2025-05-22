@@ -123,8 +123,7 @@ const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess,
             {
               onSuccess: () => {
                 showToast({
-                  title: 'Programación creada exitosamente',
-                  description: 'La programación y la asignación han sido registradas en el sistema',
+                  title: 'Asignación finalizada con éxito',
                   timeout: 4000,
                   variant: 'success',
                 });
@@ -175,7 +174,7 @@ const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess,
 
   return (
     <div className="p-6">
-      <h2 className="text-xl font-bold mb-4">Registrar Programación (Finalizar Asignación)</h2>
+      <h2 className="text-xl font-bold mb-4 text-center">(Finalizar Asignación)</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="fecha_realizada" className="block text-sm font-medium text-gray-700">
@@ -274,21 +273,13 @@ const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess,
             />
           )}
         </div>
-        <div className="flex justify-end space-x-2">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
-            disabled={isLoadingProgramacion || isLoadingAsignacion}
-          >
-            Cancelar
-          </button>
+        <div className="flex justify-center space-x-2">
           <button
             type="submit"
-            className="px-4 py-2 bg-green-700 text-white rounded-md hover:bg-green-900"
+            className="px-4 py-2 bg-white text-green-700 rounded-md hover:bg-green-700 hover:text-white border border-green-700"
             disabled={isLoadingProgramacion || isLoadingAsignacion}
           >
-            {isLoadingProgramacion || isLoadingAsignacion ? 'Guardando...' : 'Finalizar Asignación'}
+            {isLoadingProgramacion || isLoadingAsignacion ? 'Registrando...' : 'Registrar'}
           </button>
         </div>
       </form>

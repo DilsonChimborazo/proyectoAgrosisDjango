@@ -4,8 +4,27 @@ import Tabla from '../../globales/Tabla';
 import DescargarTablaPDF from '../../globales/DescargarTablaPDF';
 import { showToast } from '@/components/globales/Toast';
 
+// Definición de tipos basados en la respuesta del backend
+interface Usuario {
+  nombre: string;
+}
+
+interface Asignacion {
+  fecha_programada: string;
+  plantacion: string;
+  usuarios: Usuario[];
+  actividad: string;
+  estado: string;
+  observaciones: string;
+}
+
 const ReporteAsignacion = () => {
-  const { data: asignaciones, isLoading, isError } = useReporteAsignaciones();
+  const { data: asignaciones, isLoading, isError, error } = useReporteAsignaciones() as {
+    data: Asignacion[] | { reporte: Asignacion[] } | undefined; // Permitir ambas estructuras
+    isLoading: boolean;
+    isError: boolean;
+    error?: any;
+  };
 
   useEffect(() => {
     if (isLoading) {
@@ -16,47 +35,72 @@ const ReporteAsignacion = () => {
         variant: 'info',
       });
     }
-    if (isError) {
+    if (isError && error) {
       showToast({
         title: 'Error al cargar reporte',
-        description: 'No se pudo cargar el reporte de asignaciones',
+        description: `No se pudo cargar el reporte: ${error.message || 'Desconocido'}`,
         timeout: 5000,
         variant: 'error',
       });
     }
-  }, [isLoading, isError]);
+    console.log('Datos recibidos de useReporteAsignaciones:', asignaciones); // Depuración
+  }, [isLoading, isError, error]);
 
   const asignacionesList = useMemo(() => {
-    return Array.isArray(asignaciones) ? asignaciones : [];
+    // Manejar ambas estructuras posibles: array directo o objeto con "reporte"
+    if (Array.isArray(asignaciones)) {
+      console.log('Datos son un array directo:', asignaciones);
+      return asignaciones;
+    }
+    if (asignaciones?.reporte && Array.isArray(asignaciones.reporte)) {
+      console.log('Datos tienen propiedad "reporte":', asignaciones.reporte);
+      return asignaciones.reporte;
+    }
+    console.log('No se encontraron datos válidos:', asignaciones);
+    return [];
   }, [asignaciones]);
 
-  const columnasPDF = ['Fecha Programada', 'Plantacion', 'Usuario', 'Actividad', 'Estado', 'Observaciones'];
+  const columnasPDF = ['Fecha Programada', 'Plantacion', 'Usuarios', 'Actividad', 'Estado', 'Observaciones'];
   const datosPDF = useMemo(() => {
-    return asignacionesList.map(asignacion => [
+    if (asignacionesList.length === 0) {
+      console.log('No hay asignaciones para mostrar en el PDF'); // Depuración
+      return [['No hay datos disponibles', '', '', '', '', '']]; // Mensaje en el PDF cuando no hay datos
+    }
+    return asignacionesList.map((asignacion: Asignacion) => [
       asignacion.fecha_programada || 'Sin fecha',
       asignacion.plantacion || 'Sin plantación',
-      asignacion.usuario || 'Sin usuario',
+      asignacion.usuarios.map((u) => u.nombre).join(', ') || 'Sin usuarios',
       asignacion.actividad || 'Sin actividad',
       asignacion.estado || 'Sin estado',
-      asignacion.observaciones || 'Sin observaciones'
+      asignacion.observaciones || 'Sin observaciones',
     ]);
   }, [asignacionesList]);
+
+  if (isLoading) {
+    return <div className="text-center text-gray-500 p-4">Cargando reporte...</div>;
+  }
+
+  if (isError || !asignaciones) {
+    return <div className="text-center text-red-500 p-4">Error al cargar el reporte. Intenta de nuevo.</div>;
+  }
 
   return (
     <div className="p-4">
       <Tabla
         title="Reporte de Asignaciones"
         headers={columnasPDF}
-        data={asignacionesList.map((asignacion, index) => ({
+        data={asignacionesList.map((asignacion: Asignacion, index) => ({
           id: index,
           fecha_programada: asignacion.fecha_programada || 'Sin fecha',
           plantacion: asignacion.plantacion || 'Sin plantación',
-          usuario: asignacion.usuario || 'Sin usuario',
+          usuarios: asignacion.usuarios.map((u) => u.nombre).join(', ') || 'Sin usuarios',
           actividad: asignacion.actividad || 'Sin actividad',
           estado: asignacion.estado || 'Sin estado',
-          observaciones: asignacion.observaciones || 'Sin observaciones'
+          observaciones: asignacion.observaciones || 'Sin observaciones',
         }))}
         onClickAction={(row) => console.log('Detalle:', row)}
+        onUpdate={(row) => console.log('Actualizar:', row)} // Añadido para consistencia
+        onCreate={() => console.log('Crear nuevo')} // Añadido para consistencia
         hiddenColumnsByDefault={[]}
         extraButton={
           <DescargarTablaPDF
@@ -67,7 +111,10 @@ const ReporteAsignacion = () => {
           />
         }
       />
-      <div className="mt-4 text-sm text-gray-500">
+      {asignacionesList.length === 0 ? (
+        <div className="text-center text-red-500 mt-4">No se encontraron resultados.</div>
+      ) : null}
+      <div className="mt-4 text-sm text-gray-500 text-center">
         Total de asignaciones: {asignacionesList.length}
       </div>
     </div>

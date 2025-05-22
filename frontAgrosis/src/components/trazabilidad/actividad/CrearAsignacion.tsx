@@ -22,9 +22,7 @@ interface SelectOption {
 
 const CrearAsignacion = ({
   onSuccess,
-  onCancel,
   usuarios: initialUsuarios,
-  onCreateUsuario,
 }: CrearAsignacionModalProps) => {
   const { mutate: createAsignacion, isPending } = useCrearAsignacion();
   const { data: realizaList = [], isLoading: isLoadingRealiza, error: errorRealiza, refetch: refetchRealiza } = useRealiza();
@@ -51,7 +49,7 @@ const CrearAsignacion = ({
   // Opciones para react-select
   const usuarioOptions: SelectOption[] = usuarios.map((usuario) => ({
     value: String(usuario.id),
-    label: `${usuario.nombre} ${usuario.apellido} - Ficha: ${usuario.numero_ficha || 'Sin ficha'}`,
+    label: `${usuario.nombre} ${usuario.apellido} - Ficha: ${usuario.ficha || 'Sin ficha'}`,
   }));
 
   const handleChange = (
@@ -101,7 +99,7 @@ const CrearAsignacion = ({
             showToast({
               title: 'Asignación creada exitosamente',
               description: 'La asignación ha sido registrada en el sistema',
-              timeout: 4000,
+              timeout: 2000,
               variant: 'success',
             });
             setFormData({
@@ -332,22 +330,6 @@ const CrearAsignacion = ({
             disabled={isPending}
           >
             {isPending ? 'Registrando...' : 'Registrar'}
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              onCancel();
-              showToast({
-                title: 'Creación cancelada',
-                description: 'Se canceló la creación de la asignación.',
-                timeout: 4000,
-                variant: 'info',
-              });
-            }}
-            className="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 disabled:opacity-50"
-            disabled={isPending}
-          >
-            Cancelar
           </button>
         </div>
       </form>
