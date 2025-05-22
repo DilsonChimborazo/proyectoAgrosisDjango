@@ -10,7 +10,7 @@ class StockAdmin(admin.ModelAdmin):
         'cantidad',
         'fecha',
         'fk_id_produccion',
-        'fk_id_venta',
+        'fk_id_item_venta',
     )
     list_filter = ('movimiento', 'fecha')
     search_fields = ('movimiento',)

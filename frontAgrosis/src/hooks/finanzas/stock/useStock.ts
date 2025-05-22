@@ -59,50 +59,56 @@ export interface Produccion {
   cantidad_en_base: number | null;
 }
 
-export interface Venta {
+export interface ItemVenta {
   id: number;
-  fk_id_produccion: Produccion | null;
-  fk_unidad_medida: UnidadMedida | null;
-  cantidad: number;
+  venta: {
+    id: number;
+    fecha: string;
+    total: number;
+  };
+  produccion: Produccion;
   precio_unidad: number;
-  fecha: string;
-  cantidad_en_base: number | null;
+  cantidad: number;
+  unidad_medida: UnidadMedida;
+  cantidad_en_base: number;
+  subtotal: number;
 }
 
 export interface Stock {
   id: number;
   fk_id_produccion: Produccion | null;
-  fk_id_venta: Venta | null;
+  fk_id_item_venta: ItemVenta | null;
   cantidad: number;
   fecha: string;
   movimiento: 'Entrada' | 'Salida';
+  venta_info?: {
+    venta_id: number;
+    fecha_venta: string;
+    total_venta: number;
+  };
 }
 
 
 // Función para obtener los datos de Stock
 const fetchStock = async (): Promise<Stock[]> => {
   try {
-    const token = localStorage.getItem('token'); // Ajusta según cómo lo guardes
-
+    const token = localStorage.getItem('token');
     const { data } = await axios.get(`${apiUrl}stock/`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
     });
-
     return data;
   } catch (error) {
-    console.error("Error al obtener los datos de stock:", error);
-    throw new Error("No se pudo obtener la lista de stock");
+    console.error("Error fetching stock:", error);
+    throw new Error("Error al obtener los movimientos de stock");
   }
 };
 
-
-// Hook para manejar las operaciones con Stock
 export const useStock = () => {
   return useQuery<Stock[], Error>({
     queryKey: ['stock'],
     queryFn: fetchStock,
-    staleTime: 1000 * 60 * 10,  // 10 minutos
+    staleTime: 1000 * 60 * 5, // 5 minutos
   });
 };

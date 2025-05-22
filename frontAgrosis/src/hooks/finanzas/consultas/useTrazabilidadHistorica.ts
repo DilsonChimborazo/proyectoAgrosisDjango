@@ -82,21 +82,6 @@ export interface ResumenTrazabilidad {
     datos_actuales: TrazabilidadCultivoReporte;
 }
 
-// Interfaces extendidas para la nueva funcionalidad
-export interface SnapshotTrazabilidad {
-    id: number;
-    fecha_registro: string;
-    version: number;
-    trigger?: string;
-    datos: TrazabilidadCultivoReporte;
-}
-
-export interface ResumenTrazabilidad {
-    ultima_actualizacion: string;
-    datos_actuales: TrazabilidadCultivoReporte;
-}
-
-// Reutilizamos las interfaces anteriores y añadimos:
 const fetchTrazabilidadActual = async (plantacionId: number) => {
     const { data } = await axios.get(`${apiUrl}trazabilidad/plantacion/${plantacionId}/`);
     return transformarDatosTrazabilidad(data);
@@ -115,25 +100,33 @@ const fetchHistorialTrazabilidad = async (plantacionId: number) => {
     }));
 };
 
-
-
-// Función para transformar fechas en los datos
 const transformarDatosTrazabilidad = (data: any) => {
+    // Función auxiliar para formatear fechas de manera segura
+    const formatDate = (dateStr: string | null | undefined): string => {
+        if (!dateStr) return 'Sin fecha';
+        const date = new Date(dateStr);
+        return isNaN(date.getTime()) ? 'Sin fecha' : date.toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+    };
+
     return {
         ...data,
-        fecha_plantacion: new Date(data.fecha_plantacion).toLocaleDateString(),
+        fecha_plantacion: formatDate(data.fecha_plantacion),
         detalle_actividades: data.detalle_actividades?.map((act: any) => ({
             ...act,
-            fecha_programada: new Date(act.fecha_programada).toLocaleDateString(),
-            fecha_realizada: act.fecha_realizada ? new Date(act.fecha_realizada).toLocaleDateString() : undefined
+            fecha_programada: formatDate(act.fecha_programada),
+            fecha_realizada: formatDate(act.fecha_realizada)
         })) || [],
         detalle_insumos: data.detalle_insumos?.map((ins: any) => ({
             ...ins,
-            fecha: new Date(ins.fecha).toLocaleDateString()
+            fecha: formatDate(ins.fecha)
         })) || [],
         detalle_ventas: data.detalle_ventas?.map((ven: any) => ({
             ...ven,
-            fecha: new Date(ven.fecha).toLocaleDateString()
+            fecha: formatDate(ven.fecha)
         })) || []
     };
 };

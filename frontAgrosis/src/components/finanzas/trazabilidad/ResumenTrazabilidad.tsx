@@ -15,7 +15,6 @@ interface ResumenTrazabilidadProps {
     onToggleComparar: (versionId: number) => void;
 }
 
-// Función utilitaria para formatear números de manera segura
 const formatNumber = (value: any, decimals: number = 2): string => {
     const num = typeof value === 'number' ? value : parseFloat(value);
     return (isNaN(num) ? 0 : num).toFixed(decimals);
@@ -32,7 +31,6 @@ const ResumenTrazabilidad = ({
     onAbrirModal,
     onToggleComparar
 }: ResumenTrazabilidadProps) => {
-    // Prepara los datos para la tabla de historial
     const datosParaTabla = ordenarSnapshots.map((s) => {
         const ingresos = s.datos.ingresos_ventas || 0;
         const costos = (s.datos.costo_mano_obra || 0) + (s.datos.egresos_insumos || 0);
@@ -214,8 +212,7 @@ const ResumenTrazabilidad = ({
                                                 headers={['Actividad', 'Fecha', 'Responsable', 'Duración', 'Estado']}
                                                 data={trazabilidadData.detalle_actividades.map((a: any) => ({
                                                     actividad: a.actividad || 'Sin nombre',
-                                                    fecha: a.fecha_realizada ? new Date(a.fecha_realizada).toLocaleDateString() :
-                                                        (a.fecha_programada ? new Date(a.fecha_programada).toLocaleDateString() : 'Sin fecha'),
+                                                    fecha: a.fecha_realizada || a.fecha_programada || 'Sin fecha', // Usar la cadena directamente
                                                     responsable: a.responsable || 'No asignado',
                                                     duración: `${a.duracion_minutos ? Math.round(a.duracion_minutos) : '0'} min`,
                                                     estado: a.estado || 'Sin estado'
@@ -267,7 +264,7 @@ const ResumenTrazabilidad = ({
                                                 data={trazabilidadData.detalle_ventas.map((v: any) => ({
                                                     fecha: v.fecha || 'Sin fecha',
                                                     cantidad: `${v.cantidad || '0'} ${v.unidad_medida || ''}`,
-                                                    'precio unitario': `$${(v.precio_unidad || 0).toLocaleString()}`,
+                                                    'precio_unitario': `$${(v.precio_unidad || 0).toLocaleString()}`,
                                                     total: `$${(v.ingreso_total || 0).toLocaleString()}`
                                                 }))}
                                                 onClickAction={(row) => onAbrirModal('venta', row)}

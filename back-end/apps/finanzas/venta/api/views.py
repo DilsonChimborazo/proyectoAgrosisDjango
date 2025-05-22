@@ -11,18 +11,10 @@ class VentaViewSet(ModelViewSet):
         if self.action in ['list', 'retrieve']:
             return VentaSerializer
         return CrearVentaSerializer
-    
-    def perform_create(self, serializer):
-        venta = serializer.save()
-        # Actualiza el stock para cada item
-        for item in venta.items.all():
-            produccion = item.produccion
-            produccion.stock_disponible -= item.cantidad_en_base
-            produccion.save()
 
 class ItemVentaViewSet(ModelViewSet):
     serializer_class = LeerItemVentaSerializer
-    permission_classes = [IsAuthenticated]
+    #permission_classes = [IsAuthenticated]
     queryset = ItemVenta.objects.select_related('produccion', 'unidad_medida').all()
     
     def get_queryset(self):

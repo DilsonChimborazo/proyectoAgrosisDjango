@@ -2,8 +2,7 @@ import { useParams } from 'react-router-dom';
 import { useVenta } from '@/hooks/finanzas/venta/useVenta';
 import { useActualizarVenta } from '@/hooks/finanzas/venta/useVenta';
 import Button from '@/components/globales/Button';
-import { addToast } from '@heroui/react';
-
+import { showToast } from "@/components/globales/Toast";
 const DetalleVenta = () => {
   const { id } = useParams<{ id: string }>();
   const ventaId = parseInt(id || '0', 10);
@@ -18,7 +17,7 @@ const DetalleVenta = () => {
       ventaData: { completada: true }
     }, {
       onSuccess: () => {
-        addToast({
+        showToast({
           title: "Venta completada",
           description: "La venta ha sido marcada como completada",
           timeout: 4000
