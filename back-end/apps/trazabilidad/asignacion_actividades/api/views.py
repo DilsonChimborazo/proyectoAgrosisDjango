@@ -17,6 +17,7 @@ from django.conf import settings
 class Asignacion_actividadesModelViewSet(ModelViewSet):
     queryset = Asignacion_actividades.objects.select_related(
         'fk_id_realiza__fk_id_plantacion__fk_id_cultivo',
+        'fk_id_realiza__fk_id_actividad',  # Añadido para optimizar la relación con actividad
     ).prefetch_related('fk_identificacion').all()
 
     def get_serializer_class(self):
@@ -93,9 +94,9 @@ class Asignacion_actividadesModelViewSet(ModelViewSet):
                 else "No especificado"
             )
             usuarios = [
-                f"{usuario.nombre} {usuario.apellido}"
-                for usuarios in asignacion.fk_identificacion.all()
-            ] if asignacion.fk_identificacion.exists() else ["No especificado"]
+                {"nombre": f"{usuario.nombre} {usuario.apellido}"}
+                for usuario in asignacion.fk_identificacion.all()
+            ] if asignacion.fk_identificacion.exists() else [{"nombre": "No especificado"}]
             actividad = (
                 asignacion.fk_id_realiza.fk_id_actividad.nombre_actividad
                 if asignacion.fk_id_realiza and asignacion.fk_id_realiza.fk_id_actividad
