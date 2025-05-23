@@ -50,7 +50,7 @@ const VentaComponent = () => {
     };
   });
 
-  const headers = ["ID", "Fecha", "Total", "Completada", "Items", "Detalles"];
+  const headers = ["ID", "Fecha", "Total","Detalles"];
 
   // Generar reporte PDF
   const generarReportePDF = () => {

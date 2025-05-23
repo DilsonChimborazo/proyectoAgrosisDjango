@@ -351,7 +351,7 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
       {/* Lista de Productos Agregados */}
       {productos.length > 0 && (
         <div className="bg-white border border-gray-200 rounded-xl overflow-hidden mb-6">
-          <div className="bg-gray-800 text-white px-5 py-3">
+          <div className="bg-green-800 text-white px-5 py-3">
             <h2 className="font-medium flex items-center">
               <ShoppingCart className="h-5 w-5 mr-2" />
               Resumen de Venta
