@@ -44,12 +44,32 @@ const styles = `
   .card:hover {
     transform: translateY(-5px);
   }
-  .card-orange {
-    background: linear-gradient(135deg, #ff8c00 0%, #ff4500 100%);
+  .card-temperatura {
+    background: linear-gradient(135deg, #FF4500 0%, #FF8C00 100%);
     color: white;
   }
-  .card-blue {
-    background: linear-gradient(135deg, #1e90ff 0%, #00b7eb 100%);
+  .card-humedad {
+    background: linear-gradient(135deg, #10B981 0%, #34D399 100%);
+    color: white;
+  }
+  .card-iluminacion {
+    background: linear-gradient(135deg, #FFD700 0%, #FFEC00 100%);
+    color: white;
+  }
+  .card-viento {
+    background: linear-gradient(135deg, #4682B4 0%, #87CEEB 100%);
+    color: white;
+  }
+  .card-presion {
+    background: linear-gradient(135deg, #8A2BE2 0%, #BA55D3 100%);
+    color: white;
+  }
+  .card-aire {
+    background: linear-gradient(135deg, #32CD32 0%, #90EE90 100%);
+    color: white;
+  }
+  .card-default {
+    background: linear-gradient(135deg, #808080 0%, #A9A9A9 100%);
     color: white;
   }
   .card-glass {
@@ -188,31 +208,49 @@ const icons: { [key: string]: string } = {
 
 const COLORS: { [key: string]: string } = {
   temperatura: "#FF4500",
-  humedad: "#1E90FF",
-  luz: "#FFD700",
+  humedad: "#10B981",
+  iluminacion: "#FFD700",
   viento: "#4682B4",
   presion: "#8A2BE2",
   aire: "#32CD32",
   default: "#808080",
 };
 
-const DONUT_COLORS = ["#1e90ff", "#ff8c00", "#00b7eb", "#ff4500", "#87cefa"];
+// Nueva función para mapear tipos de sensores a valores esperados
+const mapSensorType = (tipoSensor: string | undefined | null): string => {
+  if (!tipoSensor) {
+    console.warn("tipo_sensor es undefined o null, usando 'default'");
+    return "default";
+  }
+
+  const normalized = tipoSensor.toLowerCase().replace(/\s/g, '');
+  if (normalized.includes("temperatura")) return "temperatura";
+  if (normalized.includes("humedad")) return "humedad";
+  if (normalized.includes("iluminacion")) return "iluminacion";
+  if (normalized.includes("viento")) return "viento";
+  if (normalized.includes("presion")) return "presion";
+  if (normalized.includes("aire") || normalized.includes("calidad_aire")) return "aire";
+
+  console.warn(`Tipo de sensor desconocido: ${tipoSensor}, usando 'default'`);
+  return "default";
+};
 
 const formatSensorValue = (value: number, tipoSensor: string): string => {
-  switch (tipoSensor.toLowerCase()) {
+  const normalizedTipo = mapSensorType(tipoSensor);
+  switch (normalizedTipo) {
     case "temperatura": return `${value}°C`;
     case "humedad": return `${value}%`;
-    case "luz": return `${value} lux`;
+    case "iluminacion": return `${value} lux`;
     case "viento": return `${value} m/s`;
     case "presion": return `${value} hPa`;
-    case "calidad_aire": return `${value} ppm`;
+    case "aire": return `${value} ppm`;
     default: return value.toString();
   }
 };
 
 const formatDateTime = (isoString: string): string => {
   const date = new Date(isoString);
-  const offsetHours = -5; // UTC-5
+  const offsetHours = -5;
   date.setHours(date.getHours() + offsetHours);
   return date.toLocaleString('es-ES', {
     day: '2-digit',
@@ -232,6 +270,11 @@ const HomePage = () => {
   const [sensorDisplayData, setSensorDisplayData] = useState<SensorDisplayData[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
+
+  // Depuración: Mostrar los datos de los sensores
+  useEffect(() => {
+    console.log("Datos de sensores recibidos:", sensors);
+  }, [sensors]);
 
   const loadChartsData = useCallback(() => {
     const storedData = localStorage.getItem("chartsData");
@@ -275,7 +318,6 @@ const HomePage = () => {
     localStorage.setItem("realTimeData", JSON.stringify({ data, timestamp: new Date().getTime() }));
   }, []);
 
-  // WebSocket para sensores
   useEffect(() => {
     const wsSensors = new WebSocket(`${wsUrl}sensores/`);
     wsSensors.onopen = () => console.log("✅ Conectado al WebSocket de sensores");
@@ -295,7 +337,8 @@ const HomePage = () => {
         };
         setSensorDisplayData((prev) => {
           if (prev.some((sensor) => sensor.id === newSensor.id)) return prev;
-          const icon = icons[newSensor.tipo_sensor.toLowerCase()] || icons.default;
+          const tipoSensor = mapSensorType(newSensor.tipo_sensor);
+          const icon = icons[tipoSensor] || icons.default;
           return [...prev, { id: newSensor.id, nombre: newSensor.nombre_sensor, valor: "Esperando datos...", icon, nombre_era: "Sin Era", nombre_cultivo: "Sin Cultivo" }];
         });
       } catch (error) {
@@ -306,7 +349,6 @@ const HomePage = () => {
     return () => wsSensors.close();
   }, []);
 
-  // Inicializar sensorDisplayData
   useEffect(() => {
     if (!sensors || sensors.length === 0) {
       setSensorDisplayData([]);
@@ -317,11 +359,13 @@ const HomePage = () => {
     const initialSensorData = sensors.map((sensor) => {
       const realTimeEntry = storedRealTimeData[sensor.id];
       const valor = realTimeEntry ? formatSensorValue(realTimeEntry.valor, sensor.tipo_sensor) : "Esperando datos...";
+      const tipoSensor = mapSensorType(sensor.tipo_sensor);
+      const icon = icons[tipoSensor] || icons.default;
       return {
         id: sensor.id,
         nombre: sensor.nombre_sensor,
         valor,
-        icon: icons[sensor.tipo_sensor.toLowerCase()] || icons.default,
+        icon,
         nombre_era: realTimeEntry?.nombre_era || "Sin Era",
         nombre_cultivo: realTimeEntry?.nombre_cultivo || "Sin Cultivo",
       };
@@ -329,7 +373,6 @@ const HomePage = () => {
     setSensorDisplayData(initialSensorData);
   }, [sensors, loadRealTimeData]);
 
-  // Actualizar sensorDisplayData con realTimeData
   useEffect(() => {
     if (!sensors || sensors.length === 0 || Object.keys(realTimeData).length === 0) return;
 
@@ -348,7 +391,6 @@ const HomePage = () => {
     );
   }, [realTimeData, sensors]);
 
-  // WebSocket para mediciones
   useEffect(() => {
     const ws = new WebSocket(`${wsUrl}mide/`);
     ws.onopen = () => console.log("✅ Conectado al WebSocket de mediciones");
@@ -396,7 +438,6 @@ const HomePage = () => {
     return () => ws.close();
   }, [saveRealTimeData, saveChartsData]);
 
-  // Agrupar datos para gráficos
   const groupedData = useMemo(() => {
     if (!sensors?.length || !sensorData?.length) return {};
     const data: { [key: number]: ChartDataPoint[] } = {};
@@ -440,7 +481,6 @@ const HomePage = () => {
     return { normalizedValue, value };
   };
 
-  // Preparar datos para el gráfico de dona (últimos valores de sensores)
   const latestSensorValues = useMemo(() => {
     if (!sensors || sensors.length === 0 || !realTimeData) {
       console.log("No hay sensores o datos en tiempo real disponibles");
@@ -453,10 +493,12 @@ const HomePage = () => {
         if (!realTimeEntry) return null;
 
         const formattedValue = formatSensorValue(realTimeEntry.valor, sensor.tipo_sensor);
+        const tipoSensor = mapSensorType(sensor.tipo_sensor);
         return {
           formattedValue,
           value: realTimeEntry.valor,
           name: `${sensor.nombre_sensor} (${realTimeEntry.nombre_cultivo} - ${realTimeEntry.nombre_era})`,
+          tipo: tipoSensor, // Añadimos el tipo para mapear el color
         };
       })
       .filter((entry) => entry !== null && entry.value !== 0);
@@ -465,18 +507,22 @@ const HomePage = () => {
     return values;
   }, [sensors, realTimeData]);
 
-  // Determinar el color de la línea según el índice del sensor
   const getLineColor = (sensorId: number) => {
-    const sensorIndex = sensorDisplayData.findIndex((sensor) => sensor.id === sensorId);
-    return sensorIndex % 2 === 0 ? "#1e90ff" : "#ff8c00";
+    const sensorInfo = sensors.find((s) => s.id === sensorId);
+    const tipoSensor = mapSensorType(sensorInfo?.tipo_sensor);
+    return COLORS[tipoSensor] || COLORS.default;
   };
 
-  // Función para manejar la navegación al componente Evapotranspiracion
+  const getPieColor = (entry: any, index: number) => {
+    const sensor = sensors.find((s) => s.nombre_sensor === entry.name.split(" (")[0]);
+    const tipoSensor = sensor ? mapSensorType(sensor.tipo_sensor) : "default";
+    return COLORS[tipoSensor] || COLORS.default;
+  };
+
   const handleEvapoClick = () => {
     navigate('/iot/evapotranspiracion');
   };
 
-  // Funciones para manejar la ventana modal
   const openCreateModal = () => {
     setIsModalOpen(true);
   };
@@ -490,18 +536,16 @@ const HomePage = () => {
   };
 
   return (
-      <div className="p-5">
-    {/* Encabezado con botones */}
-    <div className="flex justify-start items-center gap-4 mb-6">
-      <button className="evapo-button" onClick={handleEvapoClick}>
-        Ver Evapotranspiración
-      </button>
-      <button className="create-sensor-button" onClick={openCreateModal}>
-        Crear Sensor
-      </button>
-    </div>
+    <div className="p-5">
+      <div className="flex justify-start items-center gap-4 mb-6">
+        <button className="evapo-button" onClick={handleEvapoClick}>
+          Ver Evapotranspiración
+        </button>
+        <button className="create-sensor-button" onClick={openCreateModal}>
+          Crear Sensor
+        </button>
+      </div>
 
-      {/* Ventana Modal para Crear Sensor */}
       {isModalOpen && (
         <VentanaModal
           isOpen={isModalOpen}
@@ -512,15 +556,15 @@ const HomePage = () => {
         />
       )}
 
-      {/* Tarjetas de Sensores */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mb-6">
-        {sensorDisplayData.map((sensor, index) => {
+        {sensorDisplayData.map((sensor) => {
           const chartData = getChartData(sensor.id);
           const sensorInfo = sensors.find((s) => s.id === sensor.id);
-          const tipoSensor = sensorInfo?.tipo_sensor.toLowerCase() || "default";
+          const tipoSensor = mapSensorType(sensorInfo?.tipo_sensor);
+          const cardClass = `card-${tipoSensor}`;
 
-          // Alternar entre azul y naranja
-          const cardClass = index % 2 === 0 ? "card-blue" : "card-orange";
+          // Depuración: Mostrar el tipo de sensor y la clase asignada
+          console.log(`Sensor: ${sensor.nombre}, tipo_sensor: ${sensorInfo?.tipo_sensor}, tipoSensor mapeado: ${tipoSensor}, clase asignada: ${cardClass}`);
 
           if (!chartData) {
             return (
@@ -611,10 +655,10 @@ const HomePage = () => {
                   </svg>
                 )}
 
-                {tipoSensor === "luz" && (
+                {tipoSensor === "iluminacion" && (
                   <svg width="60" height="60" viewBox="0 0 60 60">
                     <text x="30" y="15" fontSize="15" textAnchor="middle">{sensor.icon}</text>
-                    <circle cx="30" cy="30" r="15" fill={COLORS.luz} />
+                    <circle cx="30" cy="30" r="15" fill={COLORS.iluminacion} />
                     {[...Array(8)].map((_, i) => (
                       <line
                         key={i}
@@ -622,7 +666,7 @@ const HomePage = () => {
                         y1="30"
                         x2="30"
                         y2={15 - (chartData.normalizedValue * 0.1)}
-                        stroke={COLORS.luz}
+                        stroke={COLORS.iluminacion}
                         strokeWidth="2"
                         transform={`rotate(${i * 45} 30 30)`}
                         className="grow"
@@ -686,7 +730,7 @@ const HomePage = () => {
                   </svg>
                 )}
 
-                {tipoSensor === "default" && (
+                {tipoSensor !== "temperatura" && tipoSensor !== "humedad" && tipoSensor !== "iluminacion" && tipoSensor !== "viento" && tipoSensor !== "presion" && tipoSensor !== "aire" && (
                   <svg width="60" height="60" viewBox="0 0 60 60">
                     <circle cx="30" cy="30" r="20" fill="none" stroke="#E5E7EB" strokeWidth="4" />
                     <circle
@@ -694,7 +738,7 @@ const HomePage = () => {
                       cy="30"
                       r="20"
                       fill="none"
-                      stroke={COLORS.default}
+                      stroke={COLORS[tipoSensor] || COLORS.default}
                       strokeWidth="4"
                       strokeDasharray={`${(chartData.normalizedValue * 125.6) / 100}, 125.6`}
                       transform="rotate(-90 30 30)"
@@ -708,9 +752,7 @@ const HomePage = () => {
         })}
       </div>
 
-      {/* Sección de Gráficos */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        {/* Gráfico de Líneas (Valores de Sensores a lo Largo del Tiempo) */}
         <div className="card-glass lg:col-span-2">
           <div className="flex justify-between items-center text-green-700 mb-4">
             <h2 className="chart-label">GRAFICO DE LOS SENSORES</h2>
@@ -760,7 +802,6 @@ const HomePage = () => {
           )}
         </div>
 
-        {/* Gráfico de Dona (Últimos Valores de Sensores) */}
         <div className="card-glass">
           <h2 className="chart-label">ÚLTIMOS VALORES DE SENSORES</h2>
           {latestSensorValues.length > 0 ? (
@@ -774,13 +815,12 @@ const HomePage = () => {
                   cy="50%"
                   innerRadius={60}
                   outerRadius={120}
-                  fill="#8884d8"
                   label={({ value }) => `${value}`}
                 >
-                  {latestSensorValues.map((_, index) => (
+                  {latestSensorValues.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
-                      fill={DONUT_COLORS[index % DONUT_COLORS.length]}
+                      fill={getPieColor(entry, index)}
                     />
                   ))}
                 </Pie>
