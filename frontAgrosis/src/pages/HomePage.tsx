@@ -30,16 +30,18 @@ const styles = `
     background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
     margin: 0;
     padding: 0;
+    font-family: Arial, sans-serif;
   }
   .dashboard-container {
-    padding: 2rem;
+    padding: 1rem; /* Reducido para móviles */
     min-height: 100vh;
   }
   .card {
     border-radius: 1.5rem;
-    padding: 1.5rem;
+    padding: 1rem; /* Ajustado para responsividad */
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s ease;
+    margin-bottom: 1rem; /* Espaciado entre cartas */
   }
   .card:hover {
     transform: translateY(-5px);
@@ -117,6 +119,7 @@ const styles = `
   .measurement {
     text-align: center;
     width: 100%;
+    font-size: 1.5rem; /* Ajustado para responsividad */
   }
   .chart-label {
     font-size: 0.9rem;
@@ -148,10 +151,47 @@ const styles = `
     cursor: pointer;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1rem; /* Espaciado en móviles */
   }
   .evapo-button:hover, .create-sensor-button:hover {
     transform: translateY(-3px);
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Media queries para responsividad */
+  @media (max-width: 640px) { /* Móviles */
+    .dashboard-container {
+      padding: 0.5rem;
+    }
+    .card {
+      padding: 0.75rem;
+      font-size: 0.9rem;
+    }
+    .measurement {
+      font-size: 1.2rem;
+    }
+    .grid-cols-1, .grid-cols-2, .grid-cols-3, .grid-cols-4, .grid-cols-5 {
+      grid-template-columns: 1fr; /* Una columna en móviles */
+    }
+    .evapo-button, .create-sensor-button {
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+    }
+    .chart-label {
+      font-size: 0.8rem;
+    }
+  }
+
+  @media (min-width: 641px) and (max-width: 1024px) { /* Tablets */
+    .grid-cols-1, .grid-cols-2, .grid-cols-3, .grid-cols-4, .grid-cols-5 {
+      grid-template-columns: repeat(2, 1fr); /* Dos columnas en tablets */
+    }
+    .card {
+      padding: 1rem;
+    }
+    .measurement {
+      font-size: 1.3rem;
+    }
   }
 `;
 
@@ -536,8 +576,8 @@ const HomePage = () => {
   };
 
   return (
-    <div className="p-5">
-      <div className="flex justify-start items-center gap-4 mb-6">
+    <div className="dashboard-container">
+      <div className="flex flex-col sm:flex-row justify-start items-center gap-4 mb-4">
         <button className="evapo-button" onClick={handleEvapoClick}>
           Ver Evapotranspiración
         </button>
@@ -556,7 +596,7 @@ const HomePage = () => {
         />
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
         {sensorDisplayData.map((sensor) => {
           const chartData = getChartData(sensor.id);
           const sensorInfo = sensors.find((s) => s.id === sensor.id);
@@ -573,16 +613,16 @@ const HomePage = () => {
                 key={sensor.id}
                 className={`card ${cardClass} flex flex-col items-start cursor-pointer transition-colors duration-200`}
               >
-                <div className="flex items-center justify-between w-full mb-3">
+                <div className="flex flex-col items-center w-full mb-2">
                   <div className="flex items-center space-x-2">
                     <span className="text-2xl">{sensor.icon}</span>
                     <h3 className="text-sm font-semibold">{sensor.nombre}</h3>
                   </div>
-                  <span className="text-xs font-semibold bg-white bg-opacity-20 px-2 py-1 rounded-full">
+                  <span className="text-[0.65rem] font-semibold bg-white bg-opacity-20 p-0 m-0 rounded-[0.330rem] inline-block leading-[0.65rem] w-fit">
                     Activo
                   </span>
                 </div>
-                <p className="text-sm">{sensor.nombre_cultivo} - {sensor.nombre_era}</p>
+                <p className="text-sm text-center w-full">{sensor.nombre_cultivo} - {sensor.nombre_era}</p>
                 <p className="text-2xl font-bold mb-3 measurement">{sensor.valor}</p>
                 <div className="w-full h-20">
                   <p className="text-xs text-center">Esperando datos...</p>
@@ -597,16 +637,16 @@ const HomePage = () => {
               key={sensor.id}
               className={`card ${cardClass} flex flex-col items-start cursor-pointer transition-colors duration-200`}
             >
-              <div className="flex items-center justify-between w-full mb-3">
+              <div className="flex flex-col items-center w-full mb-2">
                 <div className="flex items-center space-x-2">
                   <span className="text-2xl">{sensor.icon}</span>
                   <h3 className="text-sm font-semibold">{sensor.nombre}</h3>
                 </div>
-                <span className="text-xs font-semibold bg-white bg-opacity-20 px-2 py-1 rounded-full">
+                <span className="text-[0.65rem] font-semibold bg-white bg-opacity-20 p-0 m-0 rounded-[0.325rem] inline-block leading-[0.65rem] w-fit">
                   Activo
                 </span>
               </div>
-              <p className="text-sm">{sensor.nombre_cultivo} - {sensor.nombre_era}</p>
+              <p className="text-sm text-center w-full">{sensor.nombre_cultivo} - {sensor.nombre_era}</p>
               <p className="text-2xl font-bold mb-3 measurement">{sensor.valor}</p>
 
               <div className="w-full h-20 flex justify-center relative">
@@ -752,7 +792,7 @@ const HomePage = () => {
         })}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="card-glass lg:col-span-2">
           <div className="flex justify-between items-center text-green-700 mb-4">
             <h2 className="chart-label">GRAFICO DE LOS SENSORES</h2>
@@ -805,7 +845,7 @@ const HomePage = () => {
         <div className="card-glass">
           <h2 className="chart-label">ÚLTIMOS VALORES DE SENSORES</h2>
           {latestSensorValues.length > 0 ? (
-            <ResponsiveContainer width="100%" height={350}>
+            <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
                   data={latestSensorValues}
