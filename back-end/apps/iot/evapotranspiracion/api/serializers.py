@@ -7,9 +7,10 @@ class LeerEvapotranspiracionSerializer(ModelSerializer):
 
     class Meta:
         model = Evapotranspiracion
-        fields = '_all_'
+        fields = '__all__'
 
 class EscribirEvapotranspiracionSerializer(ModelSerializer):
     class Meta:
         model = Evapotranspiracion
-        fields = '_all_'
+        fields = '__all__'
+

@@ -1,22 +1,41 @@
 from math import exp
 from decimal import Decimal
 from django.core.exceptions import ObjectDoesNotExist
+import logging
+
+logger = logging.getLogger(__name__)
 
 def calcular_eto(mediciones, altitud=1000):
     try:
-        temp = mediciones.filter(fk_id_sensor__tipo_sensor='TEMPERATURA').first()
-        humedad = mediciones.filter(fk_id_sensor__tipo_sensor='HUMEDAD_AMBIENTAL').first()
-        viento = mediciones.filter(fk_id_sensor__tipo_sensor='VELOCIDAD_VIENTO').first()
-        radiacion = mediciones.filter(fk_id_sensor__tipo_sensor='ILUMINACION').first()
-        presion = mediciones.filter(fk_id_sensor__tipo_sensor='PRESION_ATMOSFERICA').first()
+        # Buscar las mediciones necesarias iterando sobre la lista
+        temp = None
+        humedad = None
+        viento = None
+        radiacion = None
+        presion = None
 
+        for medicion in mediciones:
+            sensor = medicion.fk_id_sensor
+            tipo_sensor = sensor.tipo_sensor
+            if tipo_sensor == 'TEMPERATURA':
+                temp = medicion
+            elif tipo_sensor == 'HUMEDAD_AMBIENTAL':
+                humedad = medicion
+            elif tipo_sensor == 'VELOCIDAD_VIENTO':
+                viento = medicion
+            elif tipo_sensor == 'ILUMINACION':
+                radiacion = medicion
+            elif tipo_sensor == 'PRESION_ATMOSFERICA':
+                presion = medicion
+
+        # Verificar que todas las mediciones requeridas estén presentes
         if not all([temp, humedad, viento, radiacion]):
             raise ValueError("Faltan datos de sensores requeridos")
 
         temperatura = Decimal(str(temp.valor_medicion))
-        humedad_relativa = Decimal(str(humedad.valor_medicion))  # Corrección
+        humedad_relativa = Decimal(str(humedad.valor_medicion))
         velocidad_viento = Decimal(str(viento.valor_medicion))
-        radiacion_solar = Decimal(str(radiacion.valor_medicion))  # Corrección
+        radiacion_solar = Decimal(str(radiacion.valor_medicion))
 
         # Validar rangos
         for medicion, tipo in [(temp, 'TEMPERATURA'), (humedad, 'HUMEDAD_AMBIENTAL'), (viento, 'VELOCIDAD_VIENTO'), (radiacion, 'ILUMINACION')]:
@@ -27,11 +46,19 @@ def calcular_eto(mediciones, altitud=1000):
         if presion:
             presion_atm = Decimal(str(presion.valor_medicion))
         else:
-            presion_atm = Decimal('101.3') * ((293 - 0.0065 * altitud) / 293) ** 5.26
+            presion_atm = Decimal('101.3') * ((Decimal('293') - Decimal('0.0065') * Decimal(str(altitud))) / Decimal('293')) ** Decimal('5.26')
 
         gamma = Decimal('0.000665') * presion_atm
-        delta = (Decimal('4098') * (Decimal('0.6108') * exp((17.27 * float(temperatura)) / (float(temperatura) + 237.3)))) / (float(temperatura) + 237.3) ** 2
-        es = Decimal('0.6108') * exp((17.27 * float(temperatura)) / (float(temperatura) + 237.3))
+        
+        # Calcular delta de manera más clara
+        temp_float = float(temperatura)
+        exp_term = Decimal(str(exp((17.27 * temp_float) / (temp_float + 237.3))))
+        es_term = Decimal('0.6108') * exp_term
+        delta_numerator = Decimal('4098') * es_term
+        delta_denominator = Decimal(str(temp_float + 237.3)) ** 2
+        delta = delta_numerator / delta_denominator
+
+        es = es_term
         ea = es * (humedad_relativa / Decimal('100'))
         rn = radiacion_solar * Decimal('0.0864')
         G = Decimal('0')
@@ -42,4 +69,5 @@ def calcular_eto(mediciones, altitud=1000):
 
         return round(eto, 2)
     except Exception as e:
+        logger.error(f"Error en cálculo de ETo: {str(e)}")
         raise ValueError(f"Error en cálculo de ETo: {str(e)}")

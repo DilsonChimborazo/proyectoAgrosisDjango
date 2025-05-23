@@ -77,6 +77,12 @@ from apps.iot.lote.api.router import router_Lote
 from apps.iot.mide.api.router import router_mide
 from apps.iot.sensores.api.router import router_Sensores
 from apps.iot.evapotranspiracion.api.router import router_Evapo
+from apps.iot.controlRiego.api.router import routerControlRiego
+
+#rutas de finanzas
+from apps.finanzas.trazabilidad_historica.api.router import router as trazabilidad_historica_router
+from apps.finanzas.trazabilidad_historica.api.views import TrazabilidadPlantacionAPIView, HistoricoTrazabilidadAPIView, ResumenActualTrazabilidadAPIView
+
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -109,6 +115,7 @@ urlpatterns = [
     path('api/', include(router_mide.urls)), 
     path('api/', include(router_Sensores.urls)),
     path('api/', include(router_Evapo.urls)),
+    path('api/', include(routerControlRiego.urls)),
     
     #FINANZASS
     path('api/', include(router_produccion.urls)),

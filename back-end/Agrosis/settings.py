@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     'apps.iot.lote',
     'apps.iot.eras',
     'apps.iot.evapotranspiracion',
+    'apps.iot.controlRiego',
 
     #Trazabilidad 1 Pacho
     'apps.trazabilidad.realiza',
