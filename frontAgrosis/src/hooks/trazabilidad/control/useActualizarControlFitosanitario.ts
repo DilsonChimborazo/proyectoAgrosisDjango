@@ -13,9 +13,9 @@ export interface ControlFitosanitario {
     fk_id_pea: number;
     fk_id_insumo: number;
     cantidad_insumo: number;
-    fk_unidad_medida: number| null;
+    fk_unidad_medida: number | null;
     fk_identificacion: number | null;
-    img: File;
+    img?: File; // Hacer img opcional
 }
 
 export const useActualizarControlFitosanitario = () => {
@@ -40,7 +40,9 @@ export const useActualizarControlFitosanitario = () => {
             if (controlActualizado.fk_identificacion !== null) {
                 formData.append('fk_identificacion', String(controlActualizado.fk_identificacion));
             }
-            formData.append('img', controlActualizado.img);
+            if (controlActualizado.img) {
+                formData.append('img', controlActualizado.img);
+            }
             console.log("FormData enviado al backend:", {
                 fecha_control: formData.get('fecha_control'),
                 duracion: formData.get('duracion'),

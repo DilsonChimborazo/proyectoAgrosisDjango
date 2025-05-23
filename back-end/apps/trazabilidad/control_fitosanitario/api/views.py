@@ -1,7 +1,7 @@
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-#from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from apps.trazabilidad.control_fitosanitario.models import Control_fitosanitario
 from apps.trazabilidad.control_fitosanitario.api.serializers import (
     LeerControl_fitosanitarioSerializer,
@@ -10,7 +10,7 @@ from apps.trazabilidad.control_fitosanitario.api.serializers import (
 
 
 class Control_fitosanitarioViewSet(ModelViewSet):
-   # permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     queryset = Control_fitosanitario.objects.select_related(
         'fk_id_plantacion', 'fk_id_pea'
     ).all()

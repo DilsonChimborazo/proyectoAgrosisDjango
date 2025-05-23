@@ -73,15 +73,20 @@ const ActualizarPlantacion = ({ id, onSuccess }: ActualizarPlantacionProps) => {
     label: s.nombre_semilla,
   }));
 
-  const handleSubmit = (data: Record<string, string>) => {
+  const handleSubmit = (formData: { [key: string]: string | File }) => {
+    // Convertimos los valores a string, ya que este formulario solo tiene campos de texto, número, fecha o select
+    const formDataAsStrings = Object.fromEntries(
+      Object.entries(formData).map(([key, value]) => [key, typeof value === 'string' ? value : ''])
+    ) as { [key: string]: string };
+
     actualizarPlantacion.mutate(
       {
         id: +id,
-        fk_id_eras: parseInt(data.fk_id_eras),
-        fk_id_cultivo: parseInt(data.fk_id_cultivo),
-        cantidad_transplante: parseInt(data.cantidad_transplante),
-        fecha_plantacion: data.fecha_plantacion,
-        fk_id_semillero: parseInt(data.fk_id_semillero),
+        fk_id_eras: parseInt(formDataAsStrings.fk_id_eras),
+        fk_id_cultivo: parseInt(formDataAsStrings.fk_id_cultivo),
+        cantidad_transplante: parseInt(formDataAsStrings.cantidad_transplante),
+        fecha_plantacion: formDataAsStrings.fecha_plantacion,
+        fk_id_semillero: parseInt(formDataAsStrings.fk_id_semillero),
       },
       {
         onSuccess: () => {

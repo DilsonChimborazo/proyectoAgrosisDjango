@@ -40,8 +40,13 @@ const ActualizarCultivo = ({ id, onSuccess }: ActualizarCultivo) => {
     label: e.nombre_comun,
   }));
 
-  const handleSubmit = (data: Record<string, string>) => {
-    if (!data.nombre_cultivo || !data.descripcion || !data.fk_id_especie) {
+  const handleSubmit = (formData: { [key: string]: string | File }) => {
+    // Convertimos los valores a string, ya que este formulario solo tiene campos de texto o select
+    const formDataAsStrings = Object.fromEntries(
+      Object.entries(formData).map(([key, value]) => [key, typeof value === 'string' ? value : ''])
+    ) as { [key: string]: string };
+
+    if (!formDataAsStrings.nombre_cultivo || !formDataAsStrings.descripcion || !formDataAsStrings.fk_id_especie) {
       showToast({
         title: 'Error',
         description: 'Todos los campos son obligatorios',
@@ -50,8 +55,8 @@ const ActualizarCultivo = ({ id, onSuccess }: ActualizarCultivo) => {
       return;
     }
 
-    const idEspecie = parseInt(data.fk_id_especie, 10);
-    if (isNaN(idEspecie) || data.fk_id_especie === '') {
+    const idEspecie = parseInt(formDataAsStrings.fk_id_especie, 10);
+    if (isNaN(idEspecie) || formDataAsStrings.fk_id_especie === '') {
       showToast({
         title: 'Error',
         description: 'Debes seleccionar una especie válida',
@@ -63,8 +68,8 @@ const ActualizarCultivo = ({ id, onSuccess }: ActualizarCultivo) => {
     actualizarCultivo.mutate(
       {
         id: +id,
-        nombre_cultivo: data.nombre_cultivo,
-        descripcion: data.descripcion,
+        nombre_cultivo: formDataAsStrings.nombre_cultivo,
+        descripcion: formDataAsStrings.descripcion,
         fk_id_especie: idEspecie,
       },
       {
@@ -81,7 +86,7 @@ const ActualizarCultivo = ({ id, onSuccess }: ActualizarCultivo) => {
             title: 'Error',
             description: 'No se pudo actualizar el cultivo',
             variant: 'error',
-          });
+          });err
         },
       }
     );
