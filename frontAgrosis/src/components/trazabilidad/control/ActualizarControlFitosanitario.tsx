@@ -22,6 +22,7 @@ const ActualizarControlFitosanitario = ({ id, onSuccess }: ActualizarControlFito
   const { data: insumos = [], isLoading: isLoadingInsumos, error: errorInsumos } = useInsumo();
   const { data: medidas = [], isLoading: isLoadingMedidas, error: errorMedidas } = useMedidas();
   const { data: usuarios = [], isLoading: isLoadingUsuarios, error: errorUsuarios } = useUsuarios();
+  const [selectedInsumoId, setSelectedInsumoId] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<{ [key: string]: string | File | null }>({
     fecha_control: "",
@@ -36,8 +37,6 @@ const ActualizarControlFitosanitario = ({ id, onSuccess }: ActualizarControlFito
     fk_identificacion: "",
     img: null,
   });
-
-  console.log("Control data received:", control);
 
   useEffect(() => {
     if (control && Object.keys(control).length > 0) {
@@ -54,10 +53,7 @@ const ActualizarControlFitosanitario = ({ id, onSuccess }: ActualizarControlFito
         fk_identificacion: control.fk_identificacion?.id ? String(control.fk_identificacion.id) : "",
         img: null,
       });
-      console.log("Form data set:", {
-        tipo_control: tipoControlOptions.find(option => option.value === control.tipo_control)?.value || "",
-        fk_id_plantacion: control.fk_id_plantacion?.id,
-      });
+      setSelectedInsumoId(control.fk_id_insumo?.id ? String(control.fk_id_insumo.id) : null);
     }
   }, [control]);
 
@@ -96,9 +92,17 @@ const ActualizarControlFitosanitario = ({ id, onSuccess }: ActualizarControlFito
       }))
     : [{ value: '', label: 'No hay usuarios disponibles' }];
 
-  const handleSubmit = (data: { [key: string]: string | File | null }) => {
-    console.log("Datos del formulario recibidos:", data);
+  const selectedInsumo = insumos.find(
+    (insumo) => String(insumo.id) === selectedInsumoId
+  );
 
+  const handleFieldChange = (fieldId: string, value: string) => {
+    if (fieldId === 'fk_id_insumo') {
+      setSelectedInsumoId(value);
+    }
+  };
+
+  const handleSubmit = (data: { [key: string]: string | File | null }) => {
     const errors: string[] = [];
     if (!data.fecha_control) errors.push("La fecha del control es obligatoria");
     if (!data.duracion || parseInt(data.duracion as string) <= 0) errors.push("La duración debe ser un número mayor a 0");
@@ -110,6 +114,11 @@ const ActualizarControlFitosanitario = ({ id, onSuccess }: ActualizarControlFito
     if (!data.cantidad_insumo || parseInt(data.cantidad_insumo as string) <= 0) errors.push("La cantidad de insumo debe ser un número mayor a 0");
     if (!data.fk_unidad_medida) errors.push("La unidad de medida es obligatoria");
 
+    const insumo = insumos.find((i) => String(i.id) === data.fk_id_insumo);
+    if (insumo && data.cantidad_insumo && parseFloat(data.cantidad_insumo as string) > (insumo.cantidad_insumo ?? 0)) {
+      errors.push(`La cantidad a retirar (${data.cantidad_insumo} g) excede la cantidad disponible (${insumo.cantidad_insumo ?? 0} g)`);
+    }
+
     if (errors.length > 0) {
       showToast({
         title: 'Error al actualizar control fitosanitario',
@@ -120,7 +129,20 @@ const ActualizarControlFitosanitario = ({ id, onSuccess }: ActualizarControlFito
       return;
     }
 
-    const controlActualizado = {
+    const controlActualizado: {
+      id: number;
+      fecha_control: string;
+      duracion: number;
+      descripcion: string;
+      tipo_control: string;
+      fk_id_plantacion: number;
+      fk_id_pea: number;
+      fk_id_insumo: number;
+      cantidad_insumo: number;
+      fk_unidad_medida: number;
+      fk_identificacion: number | null;
+      img?: File;
+    } = {
       id: Number(id),
       fecha_control: new Date(data.fecha_control as string).toISOString().split('T')[0],
       duracion: parseInt(data.duracion as string) || 0,
@@ -132,15 +154,14 @@ const ActualizarControlFitosanitario = ({ id, onSuccess }: ActualizarControlFito
       cantidad_insumo: parseInt(data.cantidad_insumo as string) || 0,
       fk_unidad_medida: parseInt(data.fk_unidad_medida as string) || 0,
       fk_identificacion: data.fk_identificacion ? parseInt(data.fk_identificacion as string) : null,
-      img: data.img || undefined,
     };
 
-    console.log("Enviando control fitosanitario actualizado al backend:", controlActualizado);
+    if (data.img instanceof File) {
+      controlActualizado.img = data.img;
+    }
 
     actualizarControl.mutate(controlActualizado, {
       onSuccess: (response) => {
-        console.log("✅ Respuesta del backend:", response);
-        console.log("✅ Control fitosanitario actualizado correctamente");
         showToast({
           title: 'Control fitosanitario actualizado exitosamente',
           description: 'El control fitosanitario ha sido actualizado en el sistema.',
@@ -150,7 +171,6 @@ const ActualizarControlFitosanitario = ({ id, onSuccess }: ActualizarControlFito
         onSuccess();
       },
       onError: (error: any) => {
-        console.error("Error al actualizar control fitosanitario:", error.message);
         showToast({
           title: 'Error al actualizar control fitosanitario',
           description: error.message || 'No se pudo actualizar el control fitosanitario. Intenta de nuevo.',
@@ -160,6 +180,14 @@ const ActualizarControlFitosanitario = ({ id, onSuccess }: ActualizarControlFito
       },
     });
   };
+
+  // Transform formData to exclude null values for initialValues
+  const initialValuesForForm: { [key: string]: string | File } = Object.fromEntries(
+    Object.entries(formData).map(([key, value]) => [
+      key,
+      value === null ? "" : value,
+    ])
+  );
 
   if (isLoading || isLoadingPlantaciones || isLoadingPeas || isLoadingInsumos || isLoadingMedidas || isLoadingUsuarios) {
     return <div className="text-center text-gray-500">Cargando datos...</div>;
@@ -188,23 +216,34 @@ const ActualizarControlFitosanitario = ({ id, onSuccess }: ActualizarControlFito
       <Formulario 
         fields={[
           { id: 'fecha_control', label: 'Fecha del Control', type: 'date' },
-          { id: 'duracion', label: 'Duración (minutos)', type: 'number'},
+          { id: 'duracion', label: 'Duración (minutos)', type: 'number' },
           { id: 'descripcion', label: 'Descripción', type: 'text' },
-          { id: 'tipo_control', label: 'Tipo de Control', type: 'select', options: tipoControlOptions},
-          { id: 'fk_id_plantacion', label: 'Plantación', type: 'select', options: plantacionOptions},
-          { id: 'fk_id_pea', label: 'PEA', type: 'select', options: peaOptions},
-          { id: 'fk_id_insumo', label: 'Insumo', type: 'select', options: insumoOptions},
-          { id: 'cantidad_insumo', label: 'Cantidad Insumo', type: 'number'},
-          { id: 'fk_unidad_medida', label: 'Unidad de Medida', type: 'select', options: medidaOptions},
+          { id: 'tipo_control', label: 'Tipo de Control', type: 'select', options: tipoControlOptions },
+          { id: 'fk_id_plantacion', label: 'Plantación', type: 'select', options: plantacionOptions },
+          { id: 'fk_id_pea', label: 'PEA', type: 'select', options: peaOptions },
+          {
+            id: 'fk_id_insumo',
+            label: 'Insumo',
+            type: 'select',
+            options: insumoOptions,
+            extraContent: selectedInsumo ? (
+              <div className="text-sm text-green-600 text-center">
+                Stock disponible del insumo seleccionado: {selectedInsumo.cantidad_insumo ?? 0}
+              </div>
+            ) : null,
+          },
+          { id: 'cantidad_insumo', label: 'Cantidad Insumo', type: 'number' },
+          { id: 'fk_unidad_medida', label: 'Unidad de Medida', type: 'select', options: medidaOptions },
           { id: 'fk_identificacion', label: 'Usuario', type: 'select', options: usuarioOptions },
-          { id: 'img', label: 'Imagen', type: 'file', accept: 'image/*'},
+          { id: 'img', label: 'Imagen', type: 'file', accept: 'image/*' },
         ]}
         onSubmit={handleSubmit}  
+        onFieldChange={handleFieldChange}
         isError={actualizarControl.isError} 
         errorMessage={actualizarControl.error?.message}
         isSuccess={actualizarControl.isSuccess}
         title="Actualizar Control Fitosanitario"
-        initialValues={formData}  
+        initialValues={initialValuesForForm}
         key={JSON.stringify(formData)}
         multipart={true}
       />

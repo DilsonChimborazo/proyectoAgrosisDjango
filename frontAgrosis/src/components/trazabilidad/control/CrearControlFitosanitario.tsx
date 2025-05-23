@@ -12,6 +12,7 @@ import CrearInsumo from '../../inventario/insumos/CrearInsumos';
 import CrearUsuario from '../../usuarios/usuario/crearUsuario';
 import { useMedidas } from "@/hooks/inventario/unidadMedida/useMedidad";
 import CrearUnidadMedida from "@/components/inventario/unidadMedida/UnidadMedida";
+import { showToast } from '@/components/globales/Toast';
 
 interface CrearControlFitosanitarioProps {
   onSuccess: () => void;
@@ -160,7 +161,12 @@ const CrearControlFitosanitario = ({ onSuccess }: CrearControlFitosanitarioProps
       !formData.cantidad_insumo ||
       !formData.img
     ) {
-      console.error("Los campos obligatorios no están completos:", formData);
+      showToast({
+        title: 'Error al crear control fitosanitario',
+        description: 'Por favor, completa todos los campos obligatorios.',
+        timeout: 5000,
+        variant: 'error',
+      });
       return;
     }
 
@@ -180,11 +186,21 @@ const CrearControlFitosanitario = ({ onSuccess }: CrearControlFitosanitarioProps
 
     mutation.mutate(nuevoControl, {
       onSuccess: () => {
-        console.log("✅ Control fitosanitario creado exitosamente");
+        showToast({
+          title: 'Control fitosanitario creado exitosamente',
+          description: 'El control fitosanitario ha sido registrado en el sistema.',
+          timeout: 4000,
+          variant: 'success',
+        });
         onSuccess();
       },
       onError: (error) => {
-        console.error("❌ Error al crear control fitosanitario:", error.message);
+        showToast({
+          title: 'Error al crear control fitosanitario',
+          description: error.message || 'No se pudo crear el control fitosanitario. Intenta de nuevo.',
+          timeout: 5000,
+          variant: 'error',
+        });
       },
     });
   };
@@ -210,6 +226,12 @@ const CrearControlFitosanitario = ({ onSuccess }: CrearControlFitosanitarioProps
   }
 
   if (errorUsuarios) {
+    showToast({
+      title: 'Error al cargar usuarios',
+      description: errorUsuarios.message || 'No se pudieron cargar los datos de usuarios.',
+      timeout: 5000,
+      variant: 'error',
+    });
     return <div className="text-red-500">Error al cargar usuarios: {errorUsuarios.message}</div>;
   }
 
