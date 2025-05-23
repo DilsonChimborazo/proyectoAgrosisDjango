@@ -28,7 +28,7 @@ class InsumoViewSet(ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path='reporteBajoStock')
     def bajo_stock(self, request):
-        umbral = int(request.query_params.get('umbral', 3000))
-        insumos_bajos = Insumo.objects.filter(cantidad_en_base__lt=umbral)  # Changed from stock to cantidad_insumo
+        umbral = int(request.query_params.get('umbral', 2000))
+        insumos_bajos = Insumo.objects.filter(cantidad_en_base__lt=umbral)  
         serializer = self.get_serializer(insumos_bajos, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

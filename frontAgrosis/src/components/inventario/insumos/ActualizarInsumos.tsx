@@ -42,7 +42,7 @@ const ActualizarInsumos = ({ id, onSuccess }: ActualizarInsumosProps) => {
         if (!id || !insumo) return;
 
         const cantidadASumar = parseFloat(data.cantidad_a_sumar as string) || 0;
-        const nuevaCantidad = insumo.cantidad_insumo + cantidadASumar;
+        const nuevaCantidad = insumo.cantidad_insumo += cantidadASumar;
 
         const insumoActualizado = {
             id: Number(id),

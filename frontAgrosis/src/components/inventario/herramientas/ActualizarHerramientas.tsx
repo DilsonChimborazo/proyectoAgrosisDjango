@@ -4,8 +4,8 @@ import { useHerramientaPorId } from "../../../hooks/inventario/herramientas/useH
 import Formulario from "../../globales/Formulario";
 
 interface Props {
-    id: number;  
-    onSuccess: () => void;  
+    id: number;
+    onSuccess: () => void;
 }
 
 const ActualizarHerramienta: React.FC<Props> = ({ id, onSuccess }) => {
@@ -18,6 +18,7 @@ const ActualizarHerramienta: React.FC<Props> = ({ id, onSuccess }) => {
         nombre_h: "",
         estado: "",
         cantidad_herramienta: "",
+        movimiento: "entrada", // Valor predeterminado
     });
 
     // Actualizar el estado del formulario cuando los datos de la herramienta se carguen
@@ -26,47 +27,49 @@ const ActualizarHerramienta: React.FC<Props> = ({ id, onSuccess }) => {
             setFormData({
                 nombre_h: herramienta.nombre_h || "",
                 estado: herramienta.estado || "",
-                cantidad_herramienta: herramienta.cantidad_herramienta?.toString() || "0",
+                cantidad_herramienta: "", // Dejar vacío para que el usuario ingrese la cantidad
+                movimiento: "entrada", // Valor predeterminado
             });
         }
     }, [herramienta]);
 
     // Función para manejar el envío del formulario
     const handleSubmit = (data: { [key: string]: string | File }) => {
-    console.log("📦 Datos recibidos del formulario:", data);
+        const nuevaCantidad = parseInt(data.cantidad_herramienta as string);
+        const movimiento = (data.movimiento as string).trim();
 
-    const nuevaCantidad = parseInt(data.cantidad_herramienta as string, 10);
-    const cantidadExistente = herramienta?.cantidad_herramienta || 0;
-    const cantidadTotal = cantidadExistente + nuevaCantidad;
+        // Validar los datos
+        if (isNaN(nuevaCantidad) || nuevaCantidad < 0) {
+            console.error("⚠️ La cantidad ingresada no es válida o es negativa.");
+            return;
+        }
+        if (!["entrada", "salida"].includes(movimiento)) {
+            console.error("⚠️ Tipo de movimiento no válido.");
+            return;
+        }
+        if (!(data.nombre_h as string).trim() || !(data.estado as string).trim()) {
+            console.error("⚠️ Datos inválidos. No se enviará la actualización.");
+            return;
+        }
 
-    const herramientaActualizada = {
-        id,
-        nombre_h: (data.nombre_h as string).trim(),
-        estado: (data.estado as string).trim() as "Disponible" | "Prestado" | "En reparacion",
-        cantidad_herramienta: cantidadTotal,
+        const herramientaActualizada = {
+            id,
+            nombre_h: (data.nombre_h as string).trim(),
+            estado: (data.estado as string).trim() as "Disponible" | "Prestado" | "En reparacion",
+            cantidad_herramienta: nuevaCantidad, // Enviar la cantidad ingresada directamente
+            movimiento, // Enviar el tipo de movimiento
+        };
+
+        actualizarHerramienta.mutate(herramientaActualizada, {
+            onSuccess: () => {
+                console.log("✅ Herramienta actualizada correctamente");
+                onSuccess();
+            },
+            onError: (error) => {
+                console.error("❌ Error al actualizar la herramienta", error);
+            },
+        });
     };
-
-    if (
-        !herramientaActualizada.nombre_h ||
-        !herramientaActualizada.estado ||
-        isNaN(nuevaCantidad)
-    ) {
-        console.error("⚠️ Datos inválidos. No se enviará la actualización.");
-        return;
-    }
-
-    actualizarHerramienta.mutate(herramientaActualizada, {
-        onSuccess: () => {
-            console.log("✅ Herramienta actualizada correctamente");
-            onSuccess();
-        },
-        onError: (error) => {
-            console.error("❌ Error al actualizar la herramienta", error);
-        },
-    });
-};
-
-    
 
     // Manejo de estado de carga y error
     if (isLoading) return <div className="text-gray-500">Cargando datos...</div>;
@@ -74,7 +77,6 @@ const ActualizarHerramienta: React.FC<Props> = ({ id, onSuccess }) => {
 
     return (
         <div className="max-w-4xl mx-auto p-4">
-            {/* Componente del formulario para actualizar la herramienta */}
             <Formulario
                 fields={[
                     { id: "nombre_h", label: "Nombre", type: "text" },
@@ -88,14 +90,27 @@ const ActualizarHerramienta: React.FC<Props> = ({ id, onSuccess }) => {
                             { value: "En reparacion", label: "En reparación" },
                         ],
                     },
-                    { id: "cantidad_herramienta", label: "Cantidad", type: "number" },
+                    {
+                        id: "movimiento",
+                        label: "Tipo de movimiento",
+                        type: "select",
+                        options: [
+                            { value: "entrada", label: "Entrada" },
+                            { value: "salida", label: "Salida" },
+                        ],
+                    },
+                    {
+                        id: "cantidad_herramienta",
+                        label: "Cantidad",
+                        type: "number",
+                    },
                 ]}
-                onSubmit={handleSubmit}  // Función para manejar el envío del formulario
-                initialValues={formData}  // Valores iniciales del formulario
-                isError={actualizarHerramienta.isError}  // Indica si ocurrió un error en la mutación
-                isSuccess={actualizarHerramienta.isSuccess}  // Indica si la mutación fue exitosa
-                title="Actualizar Herramienta"  // Título del formulario
-                key={JSON.stringify(formData)}  // Clave única para evitar problemas de cacheo
+                onSubmit={handleSubmit}
+                initialValues={formData}
+                isError={actualizarHerramienta.isError}
+                isSuccess={actualizarHerramienta.isSuccess}
+                title="Actualizar Herramienta"
+                key={JSON.stringify(formData)}
             />
         </div>
     );

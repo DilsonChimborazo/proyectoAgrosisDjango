@@ -162,7 +162,7 @@ CHANNEL_LAYERS = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'sustentacion',
+        'NAME': 'agrosoft',
         'USER': 'postgres',                
         'PASSWORD': 'adso2024',      
         'HOST': 'localhost',                  
