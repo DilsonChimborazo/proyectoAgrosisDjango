@@ -57,7 +57,7 @@ class Bodega(models.Model):
         return self.cantidad_herramienta if self.fk_id_herramientas else self.cantidad_insumo
 
     def save(self, *args, **kwargs):
-        # Calcular la cantidad en base si hay unidad de medida
+    # Calcular la cantidad en base si hay unidad de medida
         if self.fk_id_insumo and self.cantidad_insumo and self.fk_unidad_medida:
             self.cantidad_en_base = self.fk_unidad_medida.convertir_a_base(self.cantidad_insumo)
         else:
@@ -87,21 +87,20 @@ class Bodega(models.Model):
                     herramienta.save()
                 else:
                     raise ValueError("La cantidad a retirar excede la cantidad disponible en herramientas")
-            elif self.movimiento == 'Entrada':
-                herramienta.cantidad_herramienta += self.cantidad_herramienta
-                herramienta.save()
+            # Para "Entrada", no sumamos aquí porque la cantidad ya se establece al crear la herramienta
+            # elif self.movimiento == 'Entrada':
+            #     herramienta.cantidad_herramienta += self.cantidad_herramienta
+            #     herramienta.save()
 
         # Manejo de movimientos de insumos
         if self.fk_id_insumo and self.cantidad_insumo:
             insumo = self.fk_id_insumo
             if self.movimiento == 'Salida':
-                # Convertir cantidad_insumo a cantidad_en_base
                 cantidad_en_base = self.fk_unidad_medida.convertir_a_base(self.cantidad_insumo) if self.fk_unidad_medida else Decimal(self.cantidad_insumo)
                 if insumo.cantidad_en_base is None:
                     insumo.cantidad_en_base = Decimal('0')
                 if insumo.cantidad_en_base >= cantidad_en_base:
                     insumo.cantidad_en_base -= cantidad_en_base
-                    # Recalcular cantidad_insumo si hay unidad de medida
                     if insumo.fk_unidad_medida and insumo.fk_unidad_medida.factor_conversion:
                         insumo.cantidad_insumo = int(insumo.cantidad_en_base / insumo.fk_unidad_medida.factor_conversion)
                     else:
@@ -110,12 +109,10 @@ class Bodega(models.Model):
                 else:
                     raise ValueError(f"La cantidad a retirar ({cantidad_en_base} {self.fk_unidad_medida.unidad_base if self.fk_unidad_medida else 'unidades'}) excede la cantidad disponible ({insumo.cantidad_en_base} {insumo.fk_unidad_medida.unidad_base if insumo.fk_unidad_medida else 'unidades'})")
             elif self.movimiento == 'Entrada':
-                # Para entradas, sumar a cantidad_en_base
                 cantidad_en_base = self.fk_unidad_medida.convertir_a_base(self.cantidad_insumo) if self.fk_unidad_medida else Decimal(self.cantidad_insumo)
                 if insumo.cantidad_en_base is None:
                     insumo.cantidad_en_base = Decimal('0')
                 insumo.cantidad_en_base += cantidad_en_base
-                # Recalcular cantidad_insumo
                 if insumo.fk_unidad_medida and insumo.fk_unidad_medida.factor_conversion:
                     insumo.cantidad_insumo = int(insumo.cantidad_en_base / insumo.fk_unidad_medida.factor_conversion)
                 else:

@@ -16,7 +16,7 @@ export function Provider({ children }: { children: React.ReactNode }) {
 
   return (
     <HeroUIProvider navigate={navigate} useHref={useHref}>
-      <ToastProvider placement="top-right" toastOffset={75}/>
+      <ToastProvider placement="bottom-right" toastOffset={75}/>
           {children}
     </HeroUIProvider>
   );

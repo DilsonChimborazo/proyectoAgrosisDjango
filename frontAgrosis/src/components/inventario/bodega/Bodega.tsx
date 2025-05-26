@@ -5,13 +5,12 @@ import {
   TestTube2,
   List,
   MoveRight,
-  Plus,
   CheckCircle,
   AlertTriangle,
   AlertCircle,
-  PackagePlus,
   Search,
   Package,
+  Plus,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
@@ -32,7 +31,7 @@ import { useInsumo } from "@/hooks/inventario/insumos/useInsumo";
 import { useAsignacion } from "@/hooks/trazabilidad/asignacion/useAsignacion";
 import { useInsumoCompuesto } from "@/hooks/inventario/insumocompuesto/useInsumoCompuesto";
 
-const apiUrl = import.meta.env.VITE_API_URL ?? "http://localhost:3000"; // Fallback for safety
+const apiUrl = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
 // Interfaces
 interface UnidadMedida {
@@ -178,7 +177,7 @@ const DetalleItemModal = ({
   tipo,
 }: {
   item: Herramienta | Insumo | InsumoCompuesto;
-  tipo: "Herramienta" | "Insumo";
+  tipo: "Herramienta" | "Insumo" | "Insumos Compuestos";
 }) => {
   const esInsumoCompuesto = isInsumoCompuesto(item);
 
@@ -264,10 +263,10 @@ const useMovimientosBodega = () => {
   return useQuery<MovimientoBodega[], Error>({
     queryKey: ["movimientosBodega"],
     queryFn: async () => {
-      const { data } = await axios.get(`${apiUrl}/bodega/`);
+      const { data } = await axios.get(`${apiUrl}bodega/`);
       return data;
     },
-    gcTime: 1000 * 60 * 5, // Reduced to 5 minutes for more frequent updates
+    gcTime: 1000 * 60 * 5,
   });
 };
 
@@ -287,7 +286,7 @@ const ListarBodega = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [tipoSeleccionado, setTipoSeleccionado] = useState<
-    "Herramienta" | "Insumo"
+    "Herramienta" | "Insumo" | "Insumos Compuestos"
   >("Herramienta");
   const [modalContenido, setModalContenido] = useState<React.ReactNode>(null);
   const [viewMode, setViewMode] = useState<"items" | "movimientos">("items");
@@ -304,24 +303,6 @@ const ListarBodega = () => {
     setIsDetailModalOpen(false);
   };
 
-  const handleCreateMovimiento = () => {
-    setModalContenido(
-      <RegistrarSalidaBodega
-        herramientas={herramientas || []}
-        insumos={insumos || []}
-        asignaciones={asignaciones || []}
-        onSuccess={() => {
-          refetchHerramientas();
-          refetchInsumos();
-          refetchMovimientos();
-          refetchAsignacion();
-          closeModal();
-        }}
-      />
-    );
-    setIsModalOpen(true);
-  };
-
   const handleCreateItem = () => {
     setModalContenido(
       tipoSeleccionado === "Herramienta" ? (
@@ -331,14 +312,14 @@ const ListarBodega = () => {
             closeModal();
           }}
         />
-      ) : (
+      ) : tipoSeleccionado === "Insumo" ? (
         <CrearInsumos
           onSuccess={() => {
             refetchInsumos();
             closeModal();
           }}
         />
-      )
+      ) : null
     );
     setIsModalOpen(true);
   };
@@ -374,8 +355,10 @@ const ListarBodega = () => {
   };
 
   const filtrarItems = useMemo(() => {
-    const items =
-      tipoSeleccionado === "Herramienta" ? herramientas || [] : insumos || [];
+    let items: (Herramienta | Insumo | InsumoCompuesto)[] = [];
+    if (tipoSeleccionado === "Herramienta") items = herramientas || [];
+    else if (tipoSeleccionado === "Insumo") items = insumos || [];
+    else if (tipoSeleccionado === "Insumos Compuestos") items = insumosCompuestos || [];
     if (!terminoDebounced) return items;
     return items.filter((item) => {
       const nombre = isHerramienta(item) ? item.nombre_h : item.nombre;
@@ -385,7 +368,7 @@ const ListarBodega = () => {
         tipo?.toLowerCase().includes(terminoDebounced.toLowerCase())
       );
     });
-  }, [herramientas, insumos, terminoDebounced, tipoSeleccionado]);
+  }, [herramientas, insumos, insumosCompuestos, terminoDebounced, tipoSeleccionado]);
 
   const insumosCompuestosFiltrados = useMemo(() => {
     if (!insumosCompuestos) return [];
@@ -499,11 +482,12 @@ const ListarBodega = () => {
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setViewMode("items")}
-            className={`flex items-center px-4 py-2 rounded-lg ${viewMode === "items" ? "bg-green-600 text-white" : "bg-gray-200"}`}
-            aria-label={`Ver ${tipoSeleccionado === "Herramienta" ? "herramientas" : "insumos"}`}
+            style={{ backgroundColor: '#C8E6C9' }}
+            className={`flex items-center px-4 py-2 rounded-lg ${viewMode === "items" ? "text-black" : "bg-gray-200"}`}
+            aria-label={`Ver ${tipoSeleccionado === "Herramienta" ? "herramientas" : tipoSeleccionado === "Insumo" ? "insumos" : "insumos compuestos"}`}
           >
             <List className="mr-2" size={18} />
-            {tipoSeleccionado === "Herramienta" ? "Herramientas" : "Insumos"}
+            Items
           </button>
           <button
             onClick={() => setViewMode("movimientos")}
@@ -513,127 +497,86 @@ const ListarBodega = () => {
             <MoveRight className="mr-2" size={18} />
             Movimientos
           </button>
+          {viewMode === "items" && (
+            <select
+              value={tipoSeleccionado}
+              onChange={(e) => {
+                setTipoSeleccionado(e.target.value as "Herramienta" | "Insumo" | "Insumos Compuestos");
+                setTerminoBusqueda("");
+                setFiltroInsumo("todos");
+              }}
+              className="p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              aria-label="Seleccionar tipo de item"
+            >
+              <option value="Herramienta">Herramientas</option>
+              <option value="Insumo">Insumos</option>
+              <option value="Insumos Compuestos">Insumos Compuestos</option>
+            </select>
+          )}
         </div>
 
         <div className="flex flex-wrap gap-2 items-center">
           <div className="relative">
             <Search
-              className="absolute left-3 top-2.5 text-gray-400"
-              size={18}
+              className="absolute left-3 top-3 text-gray-400"
+              size={20}
             />
             <input
               type="text"
-              placeholder={`Buscar ${tipoSeleccionado === "Herramienta" ? "herramientas..." : "insumos..."}`}
-              className="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-64"
+              placeholder={`Buscar ${tipoSeleccionado === "Herramienta" ? "herramientas..." : tipoSeleccionado === "Insumo" ? "insumos..." : "insumos compuestos..."}`}
+              className="pl-12 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-80 lg:w-96 text-lg"
               value={terminoBusqueda}
               onChange={(e) => setTerminoBusqueda(e.target.value)}
               aria-label="Buscar elementos"
             />
           </div>
-
-          <div className="flex gap-2">
-            <button
-              onClick={() => {
-                setTipoSeleccionado("Herramienta");
-                setTerminoBusqueda("");
-                setFiltroInsumo("todos");
-              }}
-              className={`flex items-center px-4 py-2 rounded-lg ${tipoSeleccionado === "Herramienta" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
-              aria-label="Seleccionar herramientas"
-            >
-              <Hammer className="mr-2" size={18} />
-              Herramientas
-            </button>
-            <button
-              onClick={() => {
-                setTipoSeleccionado("Insumo");
-                setTerminoBusqueda("");
-                setFiltroInsumo("todos");
-              }}
-              className={`flex items-center px-4 py-2 rounded-lg ${tipoSeleccionado === "Insumo" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
-              aria-label="Seleccionar insumos"
-            >
-              <TestTube2 className="mr-2" size={18} />
-              Insumos
-            </button>
-          </div>
-
-          {tipoSeleccionado === "Insumo" && viewMode === "items" && (
-            <div className="relative">
-              <select
-                value={filtroInsumo}
-                onChange={(e) =>
-                  setFiltroInsumo(
-                    e.target.value as "todos" | "normales" | "compuestos"
-                  )
-                }
-                className="appearance-none bg-white rounded-lg pl-4 pr-8 py-2 focus:outline-none focus:ring-2"
-                aria-label="Filtrar tipo de insumo"
-              >
-                <option value="todos">Todos los insumos</option>
-                <option value="normales">Insumos normales</option>
-                <option value="compuestos">Insumos compuestos</option>
-              </select>
-              <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                <svg
-                  className="h-5 w-5 text-gray-400"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
-            </div>
-          )}
-
-          {viewMode === "items" && (
-            <button
-              onClick={handleCreateItem}
-              className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-              aria-label={`Agregar ${tipoSeleccionado === "Herramienta" ? "herramienta" : "insumo"}`}
-            >
-              <Plus className="mr-2" size={18} />
-              Agregar{" "}
-              {tipoSeleccionado === "Herramienta" ? "Herramienta" : "Insumo"}
-            </button>
-          )}
-
-          {viewMode === "movimientos" && (
-            <button
-              onClick={handleCreateMovimiento}
-              className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-              aria-label="Registrar movimiento"
-            >
-              <PackagePlus className="mr-2" size={18} />
-              Registrar Movimiento
-            </button>
-          )}
         </div>
       </div>
 
       {viewMode === "items" ? (
         <div className="space-y-8">
           {(tipoSeleccionado === "Herramienta" ||
+            tipoSeleccionado === "Insumos Compuestos" ||
             filtroInsumo !== "compuestos") && (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+              {tipoSeleccionado !== "Insumos Compuestos" && (
+              <div
+                onClick={handleCreateItem}
+                style={{ backgroundColor: '#C8E6C9' }}
+                className="shadow-lg rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer transition-colors border border-gray-200 h-full min-h-[200px]"
+              >
+                <div className="flex flex-col items-center">
+                  {tipoSeleccionado === "Herramienta" ? (
+                    <div className="bg-gray-100 rounded-full p-3 mb-4">
+                      <Hammer size={48} className="text-blue-600" />
+                    </div>
+                  ) : (
+                    <div className="bg-gray-100 rounded-full p-3 mb-4">
+                      <TestTube2 size={48} className="text-blue-600" />
+                    </div>
+                  )}
+                  <p className="text-center text-lg text-black font-semibold mb-4">
+                    Agregar {tipoSeleccionado}
+                  </p>
+                  <button className="px-4 py-2 text-black ">
+                    <Plus size={60}/> 
+                  </button>
+                </div>
+              </div>
+              )}
               {filtrarItems.length > 0 ? (
                 filtrarItems.map((item) => {
                   const esHerramienta = isHerramienta(item);
                   const esInsumo = isInsumo(item);
+                  const esCompuesto = isInsumoCompuesto(item);
                   const cantidad = esHerramienta
                     ? Number(item.cantidad_herramienta) || 0
-                    : 0;
-                  const cantidadBase =
-                    esInsumo && item.cantidad_en_base
+                    : esInsumo && item.cantidad_en_base
                       ? parseFloat(item.cantidad_en_base)
-                      : 0;
-                  const fechaVencimiento = esInsumo
-                    ? item.fecha_vencimiento
-                    : null;
+                      : esCompuesto
+                        ? item.cantidad_insumo || 0
+                        : 0;
+                  const fechaVencimiento = esInsumo ? item.fecha_vencimiento : null;
 
                   let cantidadClass =
                     "font-bold rounded-full px-3 py-1 text-center flex items-center gap-1";
@@ -642,31 +585,52 @@ const ListarBodega = () => {
                   if (esHerramienta) {
                     if (cantidad <= 5) {
                       cantidadClass += " text-black";
-                      Icono = <AlertCircle className="text-red-600 w-4 h-4" />;
+                      Icono = (
+                        <AlertCircle className="text-white rounded-full bg-red-700 mx-2 w-6 h-6" />
+                      );
                     } else if (cantidad <= 10) {
                       cantidadClass += " text-black";
                       Icono = (
-                        <AlertTriangle className="text-yellow-600 w-4 h-4" />
+                        <AlertTriangle className="text-yellow-600 font-bold mx-2 w-6 h-6" />
                       );
                     } else {
                       cantidadClass += " text-black";
                       Icono = (
-                        <CheckCircle className="text-green-600 w-4 h-4" />
+                        <CheckCircle className="text-white rounded-full bg-green-700 mx-2 w-6 h-6" />
                       );
                     }
                   } else if (esInsumo) {
-                    if (cantidadBase <= 1000) {
+                    if (cantidad <= 1000) {
                       cantidadClass += " text-black";
-                      Icono = <AlertCircle className="text-white rounded-full bg-red-700 mx-2  w-6 h-6" />;
-                    } else if (cantidadBase <= 2000) {
-                        cantidadClass += " text-black";
-                        Icono = (
-                            <AlertTriangle className="text-yellow-600 font-bold mx-2 w-6 h-6" />
-                        );
+                      Icono = (
+                        <AlertCircle className="text-white rounded-full bg-red-700 mx-2 w-6 h-6" />
+                      );
+                    } else if (cantidad <= 2000) {
+                      cantidadClass += " text-black";
+                      Icono = (
+                        <AlertTriangle className="text-yellow-600 font-bold mx-2 w-6 h-6" />
+                      );
                     } else {
                       cantidadClass += " text-black";
                       Icono = (
-                        <CheckCircle className="text-white rounded-full bg-green-700 mx-2  w-6 h-6" />
+                        <CheckCircle className="text-white rounded-full bg-green-700 mx-2 w-6 h-6" />
+                      );
+                    }
+                  } else if (esCompuesto) {
+                    if (cantidad <= 5) {
+                      cantidadClass += " text-black";
+                      Icono = (
+                        <AlertCircle className="text-white rounded-full bg-red-700 mx-2 w-4 h-4" />
+                      );
+                    } else if (cantidad <= 10) {
+                      cantidadClass += " text-black";
+                      Icono = (
+                        <AlertTriangle className="text-yellow-600 font-bold mx-2 w-4 h-4" />
+                      );
+                    } else {
+                      cantidadClass += " text-black";
+                      Icono = (
+                        <CheckCircle className="text-white rounded-full bg-green-700 mx-2 w-4 h-4" />
                       );
                     }
                   }
@@ -692,6 +656,8 @@ const ListarBodega = () => {
                             />
                           ) : esHerramienta ? (
                             <Hammer size={48} className="text-blue-600" />
+                          ) : esCompuesto ? (
+                            <Package size={48} className="text-orange-600" />
                           ) : (
                             <TestTube2 size={48} className="text-purple-600" />
                           )}
@@ -709,8 +675,10 @@ const ListarBodega = () => {
                             {esHerramienta
                               ? `${cantidad} unidades`
                               : esInsumo && item.cantidad_en_base
-                                ? `${Math.round(cantidadBase)} ${item.fk_unidad_medida?.unidad_base || ""}`
-                                : "N/A"}
+                                ? `${Math.round(cantidad)} ${item.fk_unidad_medida?.unidad_base || ""}`
+                                : esCompuesto
+                                  ? `${cantidad} ${item.unidad_medida_info?.unidad_base || "unidades"}`
+                                  : "N/A"}
                             {Icono}
                           </div>
                         </div>
@@ -719,7 +687,7 @@ const ListarBodega = () => {
                           <div className="mt-auto">
                             <p className="text-sm text-gray-600">Vence:</p>
                             <p className="text-sm font-medium">
-                              {new Date(fechaVencimiento).toLocaleDateString()}
+                              {fechaVencimiento}
                             </p>
                           </div>
                         )}
@@ -768,7 +736,9 @@ const ListarBodega = () => {
                   No se encontraron{" "}
                   {tipoSeleccionado === "Herramienta"
                     ? "herramientas"
-                    : "insumos"}{" "}
+                    : tipoSeleccionado === "Insumo"
+                      ? "insumos"
+                      : "insumos compuestos"}{" "}
                   que coincidan con "{terminoDebounced}"
                 </div>
               )}
@@ -838,25 +808,43 @@ const ListarBodega = () => {
             )}
         </div>
       ) : (
-        <Tabla
-          title={`Movimientos de ${tipoSeleccionado === "Herramienta" ? "Herramientas" : "Insumos"}`}
-          headers={[
-            "ID",
-            tipoSeleccionado === "Herramienta" ? "Herramienta" : "Insumo",
-            "Asignacion",
-            "Cantidad",
-            "Unidad Medida",
-            "Cantidad Base",
-            "Costo",
-            "Fecha",
-            "Movimiento",
-          ]}
-          data={mappedMovimientos}
-          onClickAction={(item) => handleRowClick(item.rawData)}
-          onUpdate={(row) => handleRowClick(row.rawData)}
-          onCreate={handleCreateMovimiento}
-          createButtonTitle="Registrar Movimiento"
-        />
+        <div className="space-y-8">
+          <Tabla
+            title={`Movimientos de ${tipoSeleccionado === "Herramienta" ? "Herramientas" : "Insumos"}`}
+            headers={[
+              "ID",
+              tipoSeleccionado === "Herramienta" ? "Herramienta" : "Insumo",
+              "Asignacion",
+              "Cantidad",
+              "Unidad Medida",
+              "Cantidad Base",
+              "Costo",
+              "Fecha",
+              "Movimiento",
+            ]}
+            data={mappedMovimientos}
+            onClickAction={(item) => handleRowClick(item.rawData)}
+            onUpdate={(row) => handleRowClick(row.rawData)}
+            onCreate={() => {
+              setModalContenido(
+                <RegistrarSalidaBodega
+                  herramientas={herramientas || []}
+                  insumos={insumos || []}
+                  asignaciones={asignaciones || []}
+                  onSuccess={() => {
+                    refetchHerramientas();
+                    refetchInsumos();
+                    refetchMovimientos();
+                    refetchAsignacion();
+                    closeModal();
+                  }}
+                />
+              );
+              setIsModalOpen(true);
+            }}
+            createButtonTitle="Registrar Movimiento"
+          />
+        </div>
       )}
     </div>
   );
