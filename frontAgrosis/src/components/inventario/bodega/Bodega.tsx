@@ -102,11 +102,11 @@ const SafeImage = ({
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [hasError, setHasError] = useState(false);
 
-  const getImageUrl = (imgPath: string | null | undefined): string | null => {
-    if (!imgPath) return null;
-    return imgPath.startsWith("http://") || imgPath.startsWith("https://")
-      ? imgPath
-      : `${apiUrl}/${imgPath.replace(/^\/+/, "")}`;
+  const getImageUrl = (path: string | null | undefined): string | null => {
+    if (!path) return null;
+    return path.startsWith("http://") || path.startsWith("https://")
+      ? path
+      : `${apiUrl}/${path.replace(/^\/+/, "")}`;
   };
 
   useEffect(() => {
@@ -304,72 +304,71 @@ const ListarBodega = () => {
     );
   }, [movimientos, tipoSeleccionado]);
 
+ // Datos que se van a mostrar en las tablas
+
   const mappedMovimientos = useMemo(() => {
-    const formatDateWithoutTimezone = (dateInput: string | Date): string => {
-      try {
-        const date = new Date(dateInput);
-        if (isNaN(date.getTime())) return "Fecha inválida";
-        const day = String(date.getDate()).padStart(2, "0");
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const year = date.getFullYear();
-        return `${day}/${month}/${year}`;
-      } catch {
-        return "Fecha inválida";
-      }
+  const formatDateWithoutTimezone = (dateInput: string | Date): string => {
+    try {
+      const date = new Date(dateInput);
+      if (isNaN(date.getTime())) return "Fecha inválida";
+      const day = String(date.getDate()).padStart(2, "0");
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+    } catch {
+      return "Fecha inválida";
+    }
+  };
+
+  return filteredMovimientos.map((item) => {
+    const nombreHerramienta = item.fk_id_herramientas?.nombre_h || "N/A";
+    const nombreInsumo = item.fk_id_insumo?.nombre || "N/A";
+    const nombre = tipoSeleccionado === "Herramienta" ? nombreHerramienta : nombreInsumo;
+    const movimiento = item.movimiento;
+    const colorMovimiento =
+      movimiento === "Entrada" ? "text-green-700 font-bold" : "text-red-700 font-bold";
+    
+    // Cantidad principal
+    const cantidadPrincipal = tipoSeleccionado === "Herramienta" 
+      ? (item.cantidad_herramienta ?? 0)
+      : (item.cantidad_insumo ?? 0);
+
+    // Cantidad en base (solo para insumos)
+    const cantidadBaseDisplay = tipoSeleccionado === "Insumo" && item.fk_id_insumo
+      ? item.fk_id_insumo.cantidad_en_base
+      : "No Aplica";
+
+    console.log("esta es la cantidad base",cantidadBaseDisplay)
+
+    const bgCantidad =
+      movimiento === "Entrada" ? "bg-green-500 text-white font-bold rounded px-2" : "bg-red-500 text-white font-bold rounded px-2";
+
+    const unidadMedida =
+      tipoSeleccionado === "Insumo" && item.fk_id_insumo
+        ? item.fk_id_insumo.fk_unidad_medida?.nombre_medida || "No Aplica"
+        : "No Aplica";
+
+    return {
+      id: item.id,
+      [tipoSeleccionado === "Herramienta" ? "herramienta" : "insumo"]: nombre,
+      asignacion: item.fk_id_asignacion?.fecha_programada
+        ? formatDateWithoutTimezone(item.fk_id_asignacion.fecha_programada)
+        : "No aplica",
+      cantidad: <span className={bgCantidad}>{cantidadPrincipal}</span>,
+      cantidad_base: cantidadBaseDisplay,
+      unidad_medida: unidadMedida,
+      costo:
+        tipoSeleccionado === "Herramienta"
+          ? "No Aplica"
+          : item.costo_insumo
+            ? `$${parseFloat(item.costo_insumo.toString()).toFixed(2)}`
+            : "—",
+      fecha: formatDateWithoutTimezone(item.fecha),
+      movimiento: <span className={colorMovimiento}>{movimiento}</span>,
+      rawData: item,
     };
-
-    return filteredMovimientos.map((item) => {
-      const nombreHerramienta = item.fk_id_herramientas?.nombre_h || "N/A";
-      const nombreInsumo = item.fk_id_insumo?.nombre || "N/A";
-      const nombre = tipoSeleccionado === "Herramienta" ? nombreHerramienta : nombreInsumo;
-      const movimiento = item.movimiento;
-      const colorMovimiento =
-        movimiento === "Entrada" ? "text-green-700 font-bold" : "text-red-700 font-bold";
-      const cantidad =
-        tipoSeleccionado === "Herramienta" ? (item.cantidad_herramienta ?? 0) : (item.cantidad_insumo ?? 0);
-      const bgCantidad =
-        movimiento === "Entrada" ? "bg-green-500 text-white font-bold rounded px-2" : "bg-red-500 text-white font-bold rounded px-2";
-
-      let cantidadBase = "No Aplica";
-      if (tipoSeleccionado === "Insumo" && item.fk_id_insumo) {
-        if (item.fk_id_insumo.cantidad_en_base) {
-          cantidadBase = `${Math.round(parseFloat(item.fk_id_insumo.cantidad_en_base))} ${item.fk_id_insumo.fk_unidad_medida?.unidad_base || ""}`;
-        } else if (
-          item.cantidad_insumo &&
-          item.fk_id_insumo.fk_unidad_medida?.factor_conversion
-        ) {
-          const factor = item.fk_id_insumo.fk_unidad_medida.factor_conversion;
-          cantidadBase = `${Math.round(item.cantidad_insumo * factor)} ${item.fk_id_insumo.fk_unidad_medida?.unidad_base || ""}`;
-        }
-      }
-
-      const unidadMedida =
-        tipoSeleccionado === "Insumo" && item.fk_id_insumo
-          ? item.fk_id_insumo.fk_unidad_medida?.nombre_medida || "No Aplica"
-          : "No Aplica";
-
-      return {
-        id: item.id,
-        [tipoSeleccionado === "Herramienta" ? "herramienta" : "insumo"]: nombre,
-        asignacion: item.fk_id_asignacion?.fecha_programada
-          ? formatDateWithoutTimezone(item.fk_id_asignacion.fecha_programada)
-          : "No aplica",
-        cantidad: <span className={bgCantidad}>{cantidad}</span>,
-        unidad_medida: unidadMedida,
-        cantidad_base: cantidadBase,
-        costo:
-          tipoSeleccionado === "Herramienta"
-            ? "No Aplica"
-            : item.costo_insumo
-              ? `$${parseFloat(item.costo_insumo.toString()).toFixed(2)}`
-              : "—",
-        fecha: formatDateWithoutTimezone(item.fecha),
-        movimiento: <span className={colorMovimiento}>{movimiento}</span>,
-        rawData: item,
-      };
-    });
+  });
   }, [filteredMovimientos, tipoSeleccionado]);
-
   return (
     <div className="p-4 mt-5 rounded-3xl space-y-6">
       <VentanaModal
@@ -461,128 +460,130 @@ const ListarBodega = () => {
                 </button>
               </div>
             </div>
-            {filtrarItems.length > 0 ? (
-              filtrarItems.map((item) => {
-                const esHerramienta = isHerramienta(item);
-                const cantidad = esHerramienta
-                  ? Number(item.cantidad_herramienta) || 0
-                  : item.cantidad_insumo || 0;
-                const fechaVencimiento = isInsumo(item) ? item.fecha_vencimiento : null;
+{
+  filtrarItems.length > 0 ? (
+    filtrarItems.map((item) => {
+      const esHerramienta = isHerramienta(item);
+      const cantidad = esHerramienta
+        ? Number(item.cantidad_herramienta) || 0
+        : Number(item.cantidad_en_base) || 0; // Changed to use cantidad_en_base for insumos
+      const fechaVencimiento = isInsumo(item) ? item.fecha_vencimiento : null;
 
-                let cantidadClass = "font-bold rounded-full px-3 py-1 text-center flex items-center gap-1";
-                let Icono = null;
+      let cantidadClass = "font-bold rounded-full px-3 py-1 text-center flex items-center gap-1";
+      let Icono = null;
 
-                if (esHerramienta) {
-                  if (cantidad <= 5) {
-                    cantidadClass += " text-black";
-                    Icono = <AlertCircle className="text-white rounded-full bg-red-700 mx-2 w-6 h-6" />;
-                  } else if (cantidad <= 10) {
-                    cantidadClass += " text-black";
-                    Icono = <AlertTriangle className="text-yellow-600 font-bold mx-2 w-6 h-6" />;
-                  } else {
-                    cantidadClass += " text-black";
-                    Icono = <CheckCircle className="text-white rounded-full bg-green-700 mx-2 w-6 h-6" />;
-                  }
-                } else {
-                  if (cantidad <= 1000) {
-                    cantidadClass += " text-black";
-                    Icono = <AlertCircle className="text-white rounded-full bg-red-700 mx-2 w-6 h-6" />;
-                  } else if (cantidad <= 2000) {
-                    cantidadClass += " text-black";
-                    Icono = <AlertTriangle className="text-yellow-600 font-bold mx-2 w-6 h-6" />;
-                  } else {
-                    cantidadClass += " text-black";
-                    Icono = <CheckCircle className="text-white rounded-full bg-green-700 mx-2 w-6 h-6" />;
-                  }
-                }
+      if (esHerramienta) {
+        if (cantidad <= 5) {
+          cantidadClass += " text-black";
+          Icono = <AlertCircle className="text-white rounded-full bg-red-700 mx-2 w-6 h-6" />;
+        } else if (cantidad <= 10) {
+          cantidadClass += " text-black";
+          Icono = <AlertTriangle className="text-yellow-600 font-bold mx-2 w-6 h-6" />;
+        } else {
+          cantidadClass += " text-black";
+          Icono = <CheckCircle className="text-white rounded-full bg-green-700 mx-2 w-6 h-6" />;
+        }
+      } else {
+        if (cantidad <= 1000) {
+          cantidadClass += " text-black";
+          Icono = <AlertCircle className="text-white rounded-full bg-red-700 mx-2 w-6 h-6" />;
+        } else if (cantidad <= 2000) {
+          cantidadClass += " text-black";
+          Icono = <AlertTriangle className="text-yellow-600 font-bold mx-2 w-6 h-6" />;
+        } else {
+          cantidadClass += " text-black";
+          Icono = <CheckCircle className="text-white rounded-full bg-green-700 mx-2 w-6 h-6" />;
+        }
+      }
 
-                return (
-                  <div
-                    key={item.id}
-                    className="shadow-lg rounded-lg p-4 flex flex-col justify-between cursor-pointer bg-white hover:bg-blue-50 transition-colors hover:shadow-xl border border-gray-200"
-                    onClick={() => handleItemClick(item)}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => e.key === "Enter" && handleItemClick(item)}
-                  >
-                    <div className="flex flex-col h-full">
-                      <div className="w-full h-32 flex items-center justify-center mb-3 bg-gray-100 rounded-lg">
-                        {isInsumo(item) && item.img ? (
-                          <SafeImage
-                            src={item.img}
-                            alt={`Imagen de ${item.nombre}`}
-                            className="w-full h-full object-contain rounded-t-lg"
-                          />
-                        ) : (
-                          <Hammer size={48} className="text-blue-600" />
-                        )}
-                      </div>
+      return (
+        <div
+          key={item.id}
+          className="shadow-lg rounded-lg p-4 flex flex-col justify-between cursor-pointer bg-white hover:bg-blue-50 transition-colors hover:shadow-xl border border-gray-200"
+          onClick={() => handleItemClick(item)}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => e.key === "Enter" && handleItemClick(item)}
+        >
+          <div className="flex flex-col h-full">
+            <div className="w-full h-32 flex items-center justify-center mb-3 bg-gray-100 rounded-lg">
+              {isInsumo(item) && item.img ? (
+                <SafeImage
+                  src={item.img}
+                  alt={`Imagen de ${item.nombre}`}
+                  className="w-full h-full object-contain rounded-t-lg"
+                />
+              ) : (
+                <Hammer size={48} className="text-blue-600" />
+              )}
+            </div>
 
-                      <h3 className="font-semibold text-lg mb-2 line-clamp-2">
-                        {esHerramienta ? item.nombre_h : item.nombre}
-                      </h3>
+            <h3 className="font-semibold text-lg mb-2 line-clamp-2">
+              {esHerramienta ? item.nombre_h : item.nombre}
+            </h3>
 
-                      <div className="mt-2 mb-3">
-                        <p className="text-sm text-gray-600">Cantidad en stock:</p>
-                        <div className={cantidadClass}>
-                          {esHerramienta
-                            ? `${cantidad} unidades`
-                            : `${cantidad} ${item.fk_unidad_medida?.unidad_base || ""}`}
-                          {Icono}
-                        </div>
-                      </div>
+            <div className="mt-2 mb-3">
+              <p className="text-sm text-gray-600">Cantidad en stock:</p>
+              <div className={cantidadClass}>
+                {esHerramienta
+                  ? `${cantidad} unidades`
+                  : `${cantidad} ${item.fk_unidad_medida?.unidad_base || ""}`}
+                {Icono}
+              </div>
+            </div>
 
-                      {fechaVencimiento && (
-                        <div className="mt-auto">
-                          <p className="text-sm text-gray-600">Vence:</p>
-                          <p className="text-sm font-medium">{fechaVencimiento}</p>
-                        </div>
-                      )}
-
-                      <div className="flex justify-end mt-3">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const movimientoRelacionado = movimientos?.find(
-                              (m) =>
-                                esHerramienta
-                                  ? m.fk_id_herramientas?.id === item.id
-                                  : m.fk_id_insumo?.id === item.id
-                            );
-                            if (movimientoRelacionado) {
-                              handleRowClick(movimientoRelacionado);
-                            } else if (isInsumo(item)) {
-                              setModalContenido(
-                                <ActualizarInsumos
-                                  id={String(item.id)}
-                                  onSuccess={() => {
-                                    refetchInsumos();
-                                    closeModal();
-                                  }}
-                                />
-                              );
-                              setIsModalOpen(true);
-                            }
-                          }}
-                          className="p-1 rounded-full hover:bg-gray-200"
-                          title="Editar"
-                          aria-label="Editar elemento"
-                        >
-                          <Pencil
-                            size={16}
-                            className="text-white bg-green-600 rounded-full p-1.5 w-7 h-7"
-                          />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
-            ) : (
-              <div className="col-span-full text-center py-8 text-gray-500">
-                No se encontraron {tipoSeleccionado === "Herramienta" ? "herramientas" : "insumos"} que coincidan con "{terminoDebounced}"
+            {fechaVencimiento && (
+              <div className="mt-auto">
+                <p className="text-sm text-gray-600">Vence:</p>
+                <p className="text-sm font-medium">{fechaVencimiento}</p>
               </div>
             )}
+
+            <div className="flex justify-end mt-3">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const movimientoRelacionado = movimientos?.find(
+                    (m) =>
+                      esHerramienta
+                        ? m.fk_id_herramientas?.id === item.id
+                        : m.fk_id_insumo?.id === item.id
+                  );
+                  if (movimientoRelacionado) {
+                    handleRowClick(movimientoRelacionado);
+                  } else if (isInsumo(item)) {
+                    setModalContenido(
+                      <ActualizarInsumos
+                        id={String(item.id)}
+                        onSuccess={() => {
+                          refetchInsumos();
+                          closeModal();
+                        }}
+                      />
+                    );
+                    setIsModalOpen(true);
+                  }
+                }}
+                className="p-1 rounded-full hover:bg-gray-200"
+                title="Editar"
+                aria-label="Editar elemento"
+              >
+                <Pencil
+                  size={16}
+                  className="text-white bg-green-600 rounded-full p-1.5 w-7 h-7"
+                />
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    })
+  ) : (
+    <div className="col-span-full text-center py-8 text-gray-500">
+      No se encontraron {tipoSeleccionado === "Herramienta" ? "herramientas" : "insumos"} que coincidan con "{terminoDebounced}"
+    </div>
+  )
+}
           </div>
         </div>
       ) : (
@@ -595,7 +596,7 @@ const ListarBodega = () => {
               "Asignacion",
               "Cantidad",
               "Unidad Medida",
-              "Cantidad Base",
+              "cantidad base",
               "Costo",
               "Fecha",
               "Movimiento",
