@@ -75,7 +75,6 @@ import TipoResiduos from "./components/trazabilidad/tiporesiduo/TipoResiduo";
 import NominaPage from "./pages/finanzas/nomina/Nomina"
 
 import StockPage from "./pages/finanzas/stock/StockPage"
-import CrearInsumoCompuesto from "./components/inventario/insumocompuesto/CrearInsumoCompuesto";
 import CrearTipoCultivo from "./components/trazabilidad/tipocultivo/CrearTipoCultivo";
 import InsumoNotifications from '@/components/inventario/insumos/InsumosNotificacion';
 
@@ -104,6 +103,7 @@ function App() {
               <Route path="/crearUsuarios" element={<Principal><CrearUsuario /></Principal>} />
               <Route path="/editarUsuario/:id" element={<Principal><ActualizarUsuario/></Principal>} />
               <Route path="/mapa" element={<Principal><Mapa /></Principal>} />
+              
               {/* Rutas módulo IOT */}
               <Route path="/iot" element={<Principal><IOtPage /></Principal>} />
               <Route path="/iot/principal" element={<Principal><HomePage /></Principal>} />
@@ -118,17 +118,7 @@ function App() {
               <Route path="/EditarEras/:id" element={<Principal><EditarEras /></Principal>} />
               <Route path="/historical/:sensorId" element={<Principal><HistoricalDataPage /></Principal>} />
               <Route path="/iot/evapotranspiracion" element={<Principal><Evapotranspiracion /></Principal>} />
-              
-              {/* Rutas módulo inventario */}
-              <Route path="/herramientas" element={<Principal><HerramientasPage /></Principal>} />
-              <Route path="/insumos" element={<Principal><InsumoPage /></Principal>} />
-              <Route path="/CrearInsumos" element={<Principal><CrearInsumos /></Principal>} />
-              <Route path="/ActualizarInsumos/:id" element={<Principal><ActualizarInsumos /></Principal>} />
-              <Route path="/herramientas" element={<Principal><ListarHerramientas /></Principal>} />
-              <Route path="/insumos" element={<Principal><ListarInsumos /></Principal>} />
-              <Route path="/bodega" element={<Principal><BodegaPage /></Principal>} />
-              <Route path="/unidad" element={<Principal><UnidadMedida /></Principal>} />
-              <Route path="/CrearInsumoCompuesto" element={<Principal><CrearInsumoCompuesto /></Principal>} />
+
 
                 {/* Rutas módulo inventario */}
                 <Route path="/herramientas" element={<Principal><HerramientasPage /></Principal>} />
@@ -139,7 +129,7 @@ function App() {
                 <Route path="/insumos" element={<Principal><ListarInsumos /></Principal>} />
                 <Route path="/bodega" element={<Principal><BodegaPage /></Principal>} />
                 <Route path="/unidad" element={<Principal><UnidadMedida /></Principal>} />
-                <Route path="/CrearInsumoCompuesto" element={<Principal><CrearInsumoCompuesto /></Principal>} />
+
 
                 {/* Rutas módulo trazabilidad */}
                 <Route path="/tipoResiduo" element={<Principal><TipoResiduos /></Principal>} />

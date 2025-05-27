@@ -19,6 +19,7 @@ const ActualizarHerramienta: React.FC<Props> = ({ id, onSuccess }) => {
         estado: "",
         cantidad_herramienta: "",
         movimiento: "entrada", // Valor predeterminado
+        precio: ""
     });
 
     // Actualizar el estado del formulario cuando los datos de la herramienta se carguen
@@ -27,16 +28,17 @@ const ActualizarHerramienta: React.FC<Props> = ({ id, onSuccess }) => {
             setFormData({
                 nombre_h: herramienta.nombre_h || "",
                 estado: herramienta.estado || "",
-                cantidad_herramienta: "", // Dejar vacío para que el usuario ingrese la cantidad
-                movimiento: "entrada", // Valor predeterminado
+                cantidad_herramienta: "",
+                movimiento: "entrada",
+                precio: herramienta.precio ? herramienta.precio.toString() : "", // Convert to string for form input
             });
         }
     }, [herramienta]);
 
-    // Función para manejar el envío del formulario
     const handleSubmit = (data: { [key: string]: string | File }) => {
         const nuevaCantidad = parseInt(data.cantidad_herramienta as string);
         const movimiento = (data.movimiento as string).trim();
+        const precio = parseFloat(data.precio as string);
 
         // Validar los datos
         if (isNaN(nuevaCantidad) || nuevaCantidad < 0) {
@@ -51,13 +53,18 @@ const ActualizarHerramienta: React.FC<Props> = ({ id, onSuccess }) => {
             console.error("⚠️ Datos inválidos. No se enviará la actualización.");
             return;
         }
+        if (isNaN(precio) || precio < 0) {
+            console.error("⚠️ El precio ingresado no es válido o es negativo.");
+            return;
+        }
 
         const herramientaActualizada = {
             id,
             nombre_h: (data.nombre_h as string).trim(),
             estado: (data.estado as string).trim() as "Disponible" | "Prestado" | "En reparacion",
-            cantidad_herramienta: nuevaCantidad, // Enviar la cantidad ingresada directamente
-            movimiento, // Enviar el tipo de movimiento
+            cantidad_herramienta: nuevaCantidad,
+            movimiento,
+            precio, // Include validated precio in the payload
         };
 
         actualizarHerramienta.mutate(herramientaActualizada, {
@@ -102,6 +109,11 @@ const ActualizarHerramienta: React.FC<Props> = ({ id, onSuccess }) => {
                     {
                         id: "cantidad_herramienta",
                         label: "Cantidad",
+                        type: "number",
+                    },
+                    {
+                        id: "precio",
+                        label: "Precio",
                         type: "number",
                     },
                 ]}

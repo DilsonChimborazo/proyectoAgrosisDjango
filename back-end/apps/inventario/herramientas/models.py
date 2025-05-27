@@ -10,6 +10,7 @@ class Herramientas (models.Model):
     nombre_h = models.CharField(max_length=500)
     cantidad_herramienta = models.IntegerField()
     estado = models.CharField(max_length=50 ,choices=estados, null=True)
+    precio = models.DecimalField(max_digits=10,decimal_places=2,null=True, blank=True,)
     
 
     def __str__(self):

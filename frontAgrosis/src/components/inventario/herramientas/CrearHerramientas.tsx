@@ -22,6 +22,8 @@ const CrearHerramientas = ({ onSuccess }: { onSuccess?: () => void }) => {
       ],
     },
     { id: "cantidad_herramienta", label: "Cantidad", type: "number" },
+    { id: "precio", label: "Precio", type: "number" },
+
   ];
 
   const handleSubmit = (formData: any) => {
@@ -29,6 +31,7 @@ const CrearHerramientas = ({ onSuccess }: { onSuccess?: () => void }) => {
       nombre_h: formData.nombre_h,
       estado: formData.estado,
       cantidad_herramienta: Number(formData.cantidad_herramienta),
+      precio: Number(formData.precio)
     };
 
     mutation.mutate(nuevaHerramienta, {

@@ -3,24 +3,19 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import Formulario from "@/components/globales/Formulario";
 import VentanaModal from "@/components/globales/VentanasModales";
-import CrearInsumoCompuesto from "@/components/inventario/insumocompuesto/CrearInsumoCompuesto";
 
 interface Props {
   herramientas: Herramientas[];
   insumos: Insumo[];
-  insumosCompuestos?: Insumo[];
   asignaciones: Asignacion[];
   onSuccess?: () => void;
-  onClick?: (nuevo: Insumo) => void;
 }
 
 interface ItemSeleccionado {
   id: number;
   cantidad: number;
-  esInsumoSimple?: boolean;
 }
 
-// Type guard to check if an item is an Insumo
 const isInsumo = (item: Herramientas | Insumo): item is Insumo => {
   return 'fk_unidad_medida' in item;
 };
@@ -28,33 +23,18 @@ const isInsumo = (item: Herramientas | Insumo): item is Insumo => {
 const RegistrarSalidaBodega = ({
   herramientas,
   insumos: insumosIniciales = [],
-  insumosCompuestos: insumosCompuestosIniciales = [],
   asignaciones = [],
   onSuccess,
-  onClick
 }: Props) => {
   const { mutate: crearMovimientoBodega } = useCrearBodega();
   const navigate = useNavigate();
 
-  console.log("Insumos Compuestos:", insumosCompuestosIniciales);
-
   const [mensaje, setMensaje] = useState<{ texto: string, tipo: 'exito' | 'error' | 'info' } | null>(null);
-  const [tipoInsumo, setTipoInsumo] = useState<"simple" | "compuesto">("simple");
   const [insumos] = useState<Insumo[]>(insumosIniciales);
-  const [insumosCompuestos] = useState<Insumo[]>(insumosCompuestosIniciales);
   const [herramientasSeleccionadas, setHerramientasSeleccionadas] = useState<ItemSeleccionado[]>([]);
   const [insumosSeleccionados, setInsumosSeleccionados] = useState<ItemSeleccionado[]>([]);
   const [mostrarModalHerramienta, setMostrarModalHerramienta] = useState(false);
   const [mostrarModalInsumo, setMostrarModalInsumo] = useState(false);
-  const [mostrarCrearCompuesto, setMostrarCrearCompuesto] = useState(false);
-  const [tabActual, setTabActual] = useState<"simples" | "compuestos">("simples");
-
-  const agregarNuevoInsumo = (nuevo: Insumo) => {
-    setInsumosSeleccionados(prev => [...prev, { id: nuevo.id, cantidad: 1, esInsumoSimple: false }]);
-    onClick?.(nuevo);
-    setMostrarCrearCompuesto(false);
-    setMensaje({ texto: "Insumo compuesto agregado correctamente", tipo: 'exito' });
-  };
 
   const agregarHerramienta = (herramienta: Herramientas) => {
     if (!herramientasSeleccionadas.some(h => h.id === herramienta.id)) {
@@ -66,11 +46,11 @@ const RegistrarSalidaBodega = ({
     }
   };
 
-  const agregarInsumo = (insumo: Insumo, esSimple: boolean) => {
+  const agregarInsumo = (insumo: Insumo) => {
     if (!insumosSeleccionados.some(i => i.id === insumo.id)) {
       setInsumosSeleccionados(prev => [
         ...prev,
-        { id: insumo.id, cantidad: 1, esInsumoSimple: esSimple }
+        { id: insumo.id, cantidad: 1 }
       ]);
       setMensaje(null);
     }
@@ -139,11 +119,9 @@ const RegistrarSalidaBodega = ({
     }
 
     for (const i of insumosSeleccionados) {
-      const insumo = [...insumos, ...insumosCompuestos].find(ins => ins.id === i.id);
+      const insumo = insumos.find(ins => ins.id === i.id);
       if (insumo && isInsumo(insumo)) {
-        const stockDisponible = i.esInsumoSimple && insumo.cantidad_en_base
-          ? parseFloat(insumo.cantidad_en_base)
-          : insumo.cantidad_insumo || 0;
+        const stockDisponible = insumo.cantidad_insumo || 0;
         if (i.cantidad > stockDisponible) {
           errores.push(`La cantidad de ${insumo.nombre} excede el stock disponible (${stockDisponible} ${insumo.fk_unidad_medida?.unidad_base || 'unidades'})`);
         }
@@ -201,51 +179,48 @@ const RegistrarSalidaBodega = ({
           const originalItem = allItems.find(i => i.id === item.id);
           if (!originalItem) return null;
 
-          const esInsumoSimple = item.esInsumoSimple ?? false;
           const isHerramienta = !isInsumo(originalItem);
           const stockDisponible = isHerramienta
             ? originalItem.cantidad_herramienta
-            : esInsumoSimple && originalItem.cantidad_en_base
-              ? parseFloat(originalItem.cantidad_en_base)
-              : originalItem.cantidad_insumo || 0;
+            : originalItem.cantidad_insumo || 0;
 
           const unidadMedida = isInsumo(originalItem)
             ? originalItem.fk_unidad_medida?.unidad_base || 'unidades'
             : 'unidades';
 
           return (
-            <div key={item.id} className="flex items-center gap-4 p-2 border rounded">
-              <div className="flex-1">
-                <span className="font-medium">
+            <div
+              key={item.id}
+              className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 p-2 sm:p-3 border rounded-md bg-white"
+            >
+              <div className="flex-1 min-w-0">
+                <span className="font-medium text-sm sm:text-base break-words">
                   {isHerramienta ? originalItem.nombre_h : originalItem.nombre}
                 </span>
-                <span className="text-gray-600 ml-2">
-                  (Disponibles: {isHerramienta
-                    ? stockDisponible
-                    : esInsumoSimple && isInsumo(originalItem) && originalItem.cantidad_en_base
-                      ? `${Math.round(parseFloat(originalItem.cantidad_en_base))} ${unidadMedida}`
-                      : `${stockDisponible} ${unidadMedida}`})
+                <span className="text-gray-600 text-xs sm:text-sm ml-0 sm:ml-2 block sm:inline">
+                  (Disponibles: {stockDisponible} {unidadMedida})
                 </span>
               </div>
-              <input
-                type="number"
-                min="1"
-                max={stockDisponible}
-                value={item.cantidad}
-                onChange={(e) => onUpdateCantidad(
-                  item.id,
-                  parseInt(e.target.value) || 1,
-                  stockDisponible
-                )}
-                className="w-20 p-1 border rounded"
-              />
-              <button
-                onClick={() => onRemove(item.id)}
-                className="text-red-500 hover:text-red-700"
-                aria-label="Eliminar"
-              >
-                Eliminar
-              </button>
+              <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+                <input
+                  type="number"
+                  min="1"
+                  max={stockDisponible}
+                  value={item.cantidad}
+                  onChange={(e) =>
+                    onUpdateCantidad(item.id, parseInt(e.target.value) || 1, stockDisponible)
+                  }
+                  className="w-24 sm:w-20 p-1.5 sm:p-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  aria-label={`Cantidad de ${isHerramienta ? originalItem.nombre_h : originalItem.nombre}`}
+                />
+                <button
+                  onClick={() => onRemove(item.id)}
+                  className="text-red-500 hover:text-red-700 text-sm sm:text-base font-medium px-2 py-1 sm:px-3 sm:py-1.5 rounded hover:bg-red-50 transition-colors"
+                  aria-label={`Eliminar ${isHerramienta ? originalItem.nombre_h : originalItem.nombre}`}
+                >
+                  Eliminar
+                </button>
+              </div>
             </div>
           );
         })}
@@ -277,10 +252,7 @@ const RegistrarSalidaBodega = ({
 
         <button
           className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors"
-          onClick={() => {
-            setMostrarModalInsumo(true);
-            setTabActual(tipoInsumo === "compuesto" ? "compuestos" : "simples");
-          }}
+          onClick={() => setMostrarModalInsumo(true)}
         >
           + Agregar Insumos
         </button>
@@ -302,7 +274,7 @@ const RegistrarSalidaBodega = ({
 
       {insumosSeleccionados.length > 0 && renderListaItems(
         insumosSeleccionados,
-        [...insumos, ...insumosCompuestos],
+        insumos,
         (id, cantidad, max) => actualizarCantidad(
           insumosSeleccionados,
           setInsumosSeleccionados,
@@ -366,34 +338,11 @@ const RegistrarSalidaBodega = ({
         isOpen={mostrarModalInsumo}
         onClose={() => setMostrarModalInsumo(false)}
       >
-        <div className="mb-4 flex border-b">
-          <button
-            className={`px-4 py-2 font-medium ${tabActual === "simples" ? "border-b-2 border-green-500 text-green-600" : "text-gray-500"}`}
-            onClick={() => {
-              setTabActual("simples");
-              setTipoInsumo("simple");
-            }}
-          >
-            Insumos Simples
-          </button>
-          <button
-            className={`px-4 py-2 font-medium ${tabActual === "compuestos" ? "border-b-2 border-green-500 text-green-600" : "text-gray-500"}`}
-            onClick={() => {
-              setTabActual("compuestos");
-              setTipoInsumo("compuesto");
-            }}
-          >
-            Insumos Compuestos
-          </button>
-        </div>
-
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 max-h-[50vh] overflow-y-auto p-2">
-          {tabActual === "compuestos" && insumosCompuestos.length === 0 ? (
-            <p className="text-gray-500">No hay insumos compuestos disponibles.</p>
-          ) : tabActual === "simples" && insumos.length === 0 ? (
-            <p className="text-gray-500">No hay insumos simples disponibles.</p>
+          {insumos.length === 0 ? (
+            <p className="text-gray-500">No hay insumos disponibles.</p>
           ) : (
-            (tabActual === "simples" ? insumos : insumosCompuestos).map((i) => (
+            insumos.map((i) => (
               <div
                 key={i.id}
                 className={`border p-4 rounded-lg shadow-sm cursor-pointer transition-colors ${
@@ -401,13 +350,11 @@ const RegistrarSalidaBodega = ({
                     ? "bg-green-100 border-green-300"
                     : "hover:bg-green-50"
                 }`}
-                onClick={() => agregarInsumo(i, tabActual === "simples")}
+                onClick={() => agregarInsumo(i)}
               >
                 <h4 className="font-semibold text-lg">{i.nombre}</h4>
                 <p className="text-gray-600">
-                  Disponibles: {tabActual === "simples" && i.cantidad_en_base
-                    ? `${Math.round(parseFloat(i.cantidad_en_base))} ${i.fk_unidad_medida?.unidad_base || 'unidades'}`
-                    : `${i.cantidad_insumo || 0} ${i.fk_unidad_medida?.unidad_base || 'unidades'}`}
+                  Disponibles: {i.cantidad_insumo || 0} {i.fk_unidad_medida?.unidad_base || 'unidades'}
                 </p>
                 {'tipo' in i && <p className="text-sm mt-1">Tipo: {i.tipo}</p>}
                 {insumosSeleccionados.some(sel => sel.id === i.id) && (
@@ -417,21 +364,6 @@ const RegistrarSalidaBodega = ({
             ))
           )}
         </div>
-
-        {tabActual === "compuestos" && (
-          <div className="mt-4 text-center">
-            <button
-              className="px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded-md transition-colors"
-              onClick={() => {
-                setMostrarModalInsumo(false);
-                setMostrarCrearCompuesto(true);
-              }}
-            >
-              + Crear Nuevo Insumo Compuesto
-            </button>
-          </div>
-        )}
-
         <div className="mt-4 flex justify-end border-t pt-4">
           <button
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
@@ -440,18 +372,6 @@ const RegistrarSalidaBodega = ({
             Cerrar
           </button>
         </div>
-      </VentanaModal>
-
-      {/* Modal para crear insumo compuesto */}
-      <VentanaModal
-        titulo="Crear Insumo Compuesto"
-        isOpen={mostrarCrearCompuesto}
-        onClose={() => setMostrarCrearCompuesto(false)}
-      >
-        <CrearInsumoCompuesto
-          onSuccess={agregarNuevoInsumo}
-          onClose={() => setMostrarCrearCompuesto(false)}
-        />
       </VentanaModal>
     </div>
   );

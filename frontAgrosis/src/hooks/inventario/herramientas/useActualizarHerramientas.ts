@@ -8,6 +8,7 @@ export interface Herramientas {
     nombre_h: string;
     cantidad_herramienta: number;
     estado: 'Disponible' | 'Prestado' | 'En reparacion';
+    precio: number;
 }
 
 export const useActualizarHerramientas = () => {
@@ -21,14 +22,15 @@ export const useActualizarHerramientas = () => {
             if (
                 !datos.nombre_h.trim() ||
                 !datos.estado.trim() ||
-                datos.cantidad_herramienta < 0
+                datos.cantidad_herramienta < 0 ||
+                datos.precio < 0
             ) {
                 throw new Error("⚠️ Datos inválidos. Verifica los campos de la herramienta.");
             }
 
             console.log("📝 Enviando datos para actualizar:", datos);
 
-            // Obtener token de localStorage o de donde lo estés guardando
+            // Obtener token de localStorage
             const token = localStorage.getItem("token");
 
             if (!token) {

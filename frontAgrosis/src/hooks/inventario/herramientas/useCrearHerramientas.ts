@@ -7,6 +7,7 @@ export interface Herramientas {
     nombre_h: string;
     cantidad_herramienta: number;
     estado: 'Disponible' | 'Prestado' | 'En reparacion';
+    precio: number; 
 }
 
 export const useCrearHerramientas = () => {

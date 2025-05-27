@@ -16,9 +16,9 @@ interface VentanaModalProps {
   data?: any[];
   columns?: Column[];
   variant?: 'content' | 'table';
-  size?: 'sm' | 'md' | 'lg' | '1.5xl' | 'xl' | 'venta'; // Añadimos tamaño especial para venta
-  onSuccess?: (nuevo: any) => void; 
-  modalClassName?: string; // Nueva prop para clases personalizadas
+  size?: 'sm' | 'md' | 'lg' | '1.5xl' | 'xl' | 'venta';
+  onSuccess?: (nuevo: any) => void;
+  modalClassName?: string;
 }
 
 const VentanaModal: React.FC<VentanaModalProps> = ({
@@ -30,33 +30,45 @@ const VentanaModal: React.FC<VentanaModalProps> = ({
   data = [],
   columns = [],
   variant = 'content',
-  size = 'md',
+  size = 'lg',
   onSuccess,
   modalClassName = '',
 }) => {
   if (!isOpen) return null;
 
   const sizeClasses = {
-    sm: 'w-full md:w-1/4 min-w-[300px]',
-    md: 'w-full md:w-1/3 min-w-[400px]',
-    '1.5xl': 'w-full max-w-[960px]', // Nuevo tamaño intermedio (~960px)
-    lg: 'w-full md:w-1/2 min-w-[500px]',
-    xl: 'w-full md:w-3/4 min-w-[600px]',
-    venta: 'w-full md:w-[90%] lg:w-[85%] xl:w-[80%] min-w-[300px] max-w-[1200px]' // Tamaño especial para venta
+    sm: 'w-[90vw] max-w-[400px] sm:w-[80vw] md:w-[30vw] min-w-[280px]',
+    md: 'w-[90vw] max-w-[500px] sm:w-[80vw] md:w-[40vw] min-w-[320px]',
+    '1.5xl': 'w-[90vw] max-w-[960px] sm:w-[85vw] md:w-[70vw] lg:w-[60vw]',
+    lg: 'w-[90vw] max-w-[600px] sm:w-[80vw] md:w-[50vw] min-w-[360px]',
+    xl: 'w-[90vw] max-w-[800px] sm:w-[85vw] md:w-[70vw] lg:w-[65vw] min-w-[400px]',
+    venta: 'w-[95vw] max-w-[1200px] sm:w-[90vw] md:w-[85vw] lg:w-[80vw] xl:w-[75vw] min-w-[300px]',
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-gray-500 bg-opacity-70 flex justify-center items-start pt-10 md:pt-20 overflow-auto p-2 md:p-4">
-      <div className={`relative bg-white p-4 md:p-6 lg:p-8 rounded-lg md:rounded-xl shadow-lg ${sizeClasses[size]} max-w-[95vw] max-h-[90vh] overflow-auto ${modalClassName}`}>
+    <div className="fixed mt-12 inset-0 z-50 bg-gray-500 bg-opacity-70 flex justify-center items-start pt-4 sm:pt-6 md:pt-8 lg:pt-10 overflow-y-auto p-2 sm:p-3 md:p-4">
+      <div
+        className={`
+          relative bg-white rounded-lg shadow-lg
+          ${sizeClasses[size]}
+          max-h-[90vh] sm:max-h-[85vh]
+          p-3 sm:p-4 md:p-6 lg:p-8
+          overflow-y-auto
+          ${modalClassName}
+        `}
+      >
         <button
-          className="absolute top-2 right-2 hover:bg-gray-200 rounded-full w-8 h-8 flex items-center justify-center shadow-md transition duration-200"
+          className="absolute top-2 right-2 sm:top-3 sm:right-3 p-2 rounded-full hover:bg-gray-200 transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
           onClick={onClose}
+          aria-label="Cerrar modal"
         >
-          <X size={20} />
+          <X size={18} className="text-gray-600 sm:w-5 sm:h-5" />
         </button>
-        <h2 className="text-xl md:text-2xl font-semibold mb-3 md:mb-4 text-gray-800">{titulo}</h2>
+        <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold mb-2 sm:mb-3 md:mb-4 text-gray-800">
+          {titulo}
+        </h2>
 
-        <div className="overflow-auto max-h-[calc(90vh-100px)]">
+        <div className="overflow-y-auto max-h-[calc(90vh-100px)] sm:max-h-[calc(85vh-120px)] md:max-h-[calc(85vh-140px)]">
           {variant === 'table' ? (
             data.length > 0 ? (
               <Tabla
@@ -66,15 +78,17 @@ const VentanaModal: React.FC<VentanaModalProps> = ({
                 onClickAction={(row) => console.log('Detalle:', row)}
                 onUpdate={(row) => {
                   console.log('Actualizar:', row);
-                  if (onSuccess) onSuccess(row); 
+                  if (onSuccess) onSuccess(row);
                 }}
                 onCreate={() => {
                   console.log('Crear nuevo');
-                  if (onSuccess) onSuccess({}); 
+                  if (onSuccess) onSuccess({});
                 }}
               />
             ) : (
-              <p className="text-gray-500">No hay datos disponibles</p>
+              <p className="text-gray-500 text-sm sm:text-base text-center">
+                No hay datos disponibles
+              </p>
             )
           ) : (
             contenido || children
