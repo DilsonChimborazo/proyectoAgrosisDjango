@@ -121,7 +121,7 @@ const RegistrarSalidaBodega = ({
     for (const i of insumosSeleccionados) {
       const insumo = insumos.find(ins => ins.id === i.id);
       if (insumo && isInsumo(insumo)) {
-        const stockDisponible = insumo.cantidad_insumo || 0;
+        const stockDisponible = insumo.cantidad_en_base || 0;
         if (i.cantidad > stockDisponible) {
           errores.push(`La cantidad de ${insumo.nombre} excede el stock disponible (${stockDisponible} ${insumo.fk_unidad_medida?.unidad_base || 'unidades'})`);
         }
@@ -182,7 +182,7 @@ const RegistrarSalidaBodega = ({
           const isHerramienta = !isInsumo(originalItem);
           const stockDisponible = isHerramienta
             ? originalItem.cantidad_herramienta
-            : originalItem.cantidad_insumo || 0;
+            : originalItem.cantidad_en_base || 0;
 
           const unidadMedida = isInsumo(originalItem)
             ? originalItem.fk_unidad_medida?.unidad_base || 'unidades'
@@ -275,11 +275,11 @@ const RegistrarSalidaBodega = ({
       {insumosSeleccionados.length > 0 && renderListaItems(
         insumosSeleccionados,
         insumos,
-        (id, cantidad, max) => actualizarCantidad(
+        (id, cantidad_en_base, max) => actualizarCantidad(
           insumosSeleccionados,
           setInsumosSeleccionados,
           id,
-          cantidad,
+          cantidad_en_base,
           max
         ),
         (id) => eliminarItem(insumosSeleccionados, setInsumosSeleccionados, id),
@@ -354,7 +354,7 @@ const RegistrarSalidaBodega = ({
               >
                 <h4 className="font-semibold text-lg">{i.nombre}</h4>
                 <p className="text-gray-600">
-                  Disponibles: {i.cantidad_insumo || 0} {i.fk_unidad_medida?.unidad_base || 'unidades'}
+                  Disponibles: {i.cantidad_en_base || 0} {i.fk_unidad_medida?.unidad_base || 'unidades'}
                 </p>
                 {'tipo' in i && <p className="text-sm mt-1">Tipo: {i.tipo}</p>}
                 {insumosSeleccionados.some(sel => sel.id === i.id) && (
