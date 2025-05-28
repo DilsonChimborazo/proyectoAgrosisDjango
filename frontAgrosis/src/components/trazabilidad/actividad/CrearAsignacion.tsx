@@ -87,7 +87,7 @@ const CrearAsignacion = ({ onSuccess, onCancel, usuarios: initialUsuarios, onCre
 
   // Validar formulario
   const validateForm = () => {
-    if (!formData.fk_id_realiza) return 'Debe seleccionar un realiza';
+    if (!formData.fk_id_realiza) return 'Debe seleccionar una gestión de cultivo';
     if (formData.fk_identificacion.length === 0) return 'Debe seleccionar al menos un usuario';
     if (!formData.fecha_programada) return 'Debe ingresar una fecha programada';
     return null;
@@ -97,6 +97,8 @@ const CrearAsignacion = ({ onSuccess, onCancel, usuarios: initialUsuarios, onCre
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    console.time('handleSubmitAsignacion'); // Depuración de tiempo
+
     const validationError = validateForm();
     if (validationError) {
       showToast({
@@ -105,6 +107,7 @@ const CrearAsignacion = ({ onSuccess, onCancel, usuarios: initialUsuarios, onCre
         timeout: 5000,
         variant: 'error',
       });
+      console.timeEnd('handleSubmitAsignacion');
       return;
     }
 
@@ -134,6 +137,7 @@ const CrearAsignacion = ({ onSuccess, onCancel, usuarios: initialUsuarios, onCre
             });
             setSelectedRole('');
             onSuccess();
+            console.timeEnd('handleSubmitAsignacion');
           },
           onError: (err) => {
             showToast({
@@ -142,6 +146,7 @@ const CrearAsignacion = ({ onSuccess, onCancel, usuarios: initialUsuarios, onCre
               timeout: 5000,
               variant: 'error',
             });
+            console.timeEnd('handleSubmitAsignacion');
           },
         }
       );
@@ -152,28 +157,32 @@ const CrearAsignacion = ({ onSuccess, onCancel, usuarios: initialUsuarios, onCre
         timeout: 5000,
         variant: 'error',
       });
+      console.timeEnd('handleSubmitAsignacion');
     }
   };
 
   // Abrir modal para crear realiza
   const openCreateRealizaModal = () => {
+    console.log('Abriendo modal de CrearRealiza'); // Depuración
     setModalContent(
       <CrearRealiza
         onSuccess={async () => {
+          console.log('Realiza creado, refetching realizaList');
           await refetchRealiza();
           setIsModalOpen(false);
           showToast({
-            title: 'Realiza creado',
-            description: 'El realiza ha sido registrado exitosamente.',
+            title: 'Gestión de cultivo creada',
+            description: 'La gestión de cultivo ha sido registrada exitosamente.',
             timeout: 4000,
             variant: 'success',
           });
         }}
         onCancel={() => {
+          console.log('Creación de realiza cancelada');
           setIsModalOpen(false);
           showToast({
             title: 'Creación cancelada',
-            description: 'Se canceló la creación del realiza.',
+            description: 'Se canceló la creación de la gestión de cultivo.',
             timeout: 4000,
             variant: 'info',
           });
@@ -185,10 +194,12 @@ const CrearAsignacion = ({ onSuccess, onCancel, usuarios: initialUsuarios, onCre
 
   // Abrir modal para crear usuario
   const openCreateUsuarioModal = () => {
+    console.log('Abriendo modal de CrearUsuario'); // Depuración
     setModalContent(
       <CrearUsuario
         isOpen={true}
         onClose={() => {
+          console.log('Cerrando modal de CrearUsuario');
           setIsModalOpen(false);
           showToast({
             title: 'Creación de usuario cancelada',
@@ -198,6 +209,7 @@ const CrearAsignacion = ({ onSuccess, onCancel, usuarios: initialUsuarios, onCre
           });
         }}
         onSuccess={(newUser: Usuario) => {
+          console.log('Usuario creado:', newUser);
           onCreateUsuario(newUser);
           setIsModalOpen(false);
           showToast({
@@ -213,27 +225,41 @@ const CrearAsignacion = ({ onSuccess, onCancel, usuarios: initialUsuarios, onCre
   };
 
   if (isLoadingRealiza) {
-    return <div className="text-center text-gray-500">Cargando realiza...</div>;
+    return (
+      <div className="text-center text-gray-500">
+        Cargando gestiones de cultivo...
+        <div className="mt-2 flex justify-center">
+          <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-[#2e7d32]"></div>
+        </div>
+      </div>
+    );
   }
 
   if (errorRealiza) {
-    showToast({
-      title: 'Error al cargar realiza',
-      description: 'No se pudieron cargar los datos de realiza',
-      timeout: 5000,
-      variant: 'error',
-    });
-    return <div className="text-center text-red-500">Error al cargar realiza</div>;
+    return (
+      <div className="text-center text-red-500">
+        Error al cargar gestiones de cultivo
+        <button
+          onClick={() => {
+            console.log('Reintentando cargar realizaList');
+            refetchRealiza();
+          }}
+          className="ml-4 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+        >
+          Reintentar
+        </button>
+      </div>
+    );
   }
 
   return (
     <div className="p-6">
-      <h2 className="text-xl font-bold mb-4">Crear Nueva Asignación</h2>
+      <h2 className="text-xl font-bold mb-4 text-center">Gestión de Cultivo</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="flex items-center space-x-2">
           <div className="flex-1">
             <label htmlFor="fk_id_realiza" className="block text-sm font-medium text-gray-700">
-              Realiza
+              Gestión de Cultivo
             </label>
             <select
               id="fk_id_realiza"
@@ -244,7 +270,7 @@ const CrearAsignacion = ({ onSuccess, onCancel, usuarios: initialUsuarios, onCre
               required
               disabled={isPending}
             >
-              <option value="">Selecciona un realiza</option>
+              <option value="">Selecciona una gestión de cultivo</option>
               {realizaList.map((realiza: Realiza) => (
                 <option key={realiza.id} value={realiza.id}>
                   {`Plantación: ${realiza.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo || 'Sin cultivo'} - Actividad: ${
@@ -258,7 +284,7 @@ const CrearAsignacion = ({ onSuccess, onCancel, usuarios: initialUsuarios, onCre
             type="button"
             onClick={openCreateRealizaModal}
             className="mt-6 bg-green-700 text-white w-8 h-8 flex items-center justify-center rounded-full hover:bg-green-900 border border-green-800"
-            title="Crear nuevo realiza"
+            title="Crear nueva gestión de cultivo"
             disabled={isPending}
           >
             +
@@ -399,18 +425,36 @@ const CrearAsignacion = ({ onSuccess, onCancel, usuarios: initialUsuarios, onCre
         </div>
         <div className="flex justify-center space-x-4">
           <button
+            type="button"
+            onClick={onCancel}
+            className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 disabled:opacity-50"
+            disabled={isPending}
+          >
+            Cancelar
+          </button>
+          <button
             type="submit"
             className="bg-white text-[#2e7d32] px-4 py-2 rounded-md border border-[#2e7d32] hover:bg-[#2e7d32] hover:text-white disabled:opacity-50"
             disabled={isPending}
           >
-            {isPending ? 'Registrando...' : 'Registrar'}
+            {isPending ? (
+              <div className="flex items-center">
+                <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-[#2e7d32] mr-2"></div>
+                Registrando...
+              </div>
+            ) : (
+              'Registrar'
+            )}
           </button>
         </div>
       </form>
       {isModalOpen && modalContent && (
         <VentanaModal
           isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
+          onClose={() => {
+            console.log('Cerrando modal');
+            setIsModalOpen(false);
+          }}
           titulo=""
           contenido={modalContent}
         />
