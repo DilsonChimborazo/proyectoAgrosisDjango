@@ -3,6 +3,7 @@ import Button from '../globales/Button';
 import { Plus } from 'lucide-react';
 import { showToast } from './Toast';
 import { ZodSchema } from 'zod';
+import { Select, SelectItem } from '@nextui-org/react';
 
 interface Option {
   value: string | number;
@@ -145,7 +146,7 @@ const Formulario: React.FC<FormProps> = ({
                     handleChange(field.id, e.target.value);
                     if (field.onChange) {
                       field.onChange(e);
-                    }
+                    } 
                   }}
                   value={(formData[field.id] as string) || ''}
                   disabled={field.disabled}

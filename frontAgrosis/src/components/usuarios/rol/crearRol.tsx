@@ -4,6 +4,7 @@ import Formulario from '@/components/globales/Formulario';
 import { QueryObserverResult, RefetchOptions } from '@tanstack/react-query';
 import { showToast } from '@/components/globales/Toast';
 
+
 interface CrearRolProps {
   onClose: () => void;
   onCreated?: (options?: RefetchOptions) => Promise<QueryObserverResult>;
@@ -11,6 +12,7 @@ interface CrearRolProps {
 
 const CrearRol: React.FC<CrearRolProps> = ({ onClose, onCreated }) => {
   const mutation = useCreateRol();
+
 
   const formFields = [
     { id: 'rol', label: 'Rol', type: 'text' },
@@ -21,8 +23,11 @@ const CrearRol: React.FC<CrearRolProps> = ({ onClose, onCreated }) => {
     const { rol, fecha_creacion } = formData;
 
     if (!rol || !fecha_creacion) {
-      console.error("Todos los campos son obligatorios.");
-      return;
+      showToast({
+          title: 'Campos Incompletos',
+          description: "",
+          variant: 'error',
+        });
     }
 
     const newRol: Rol = {
@@ -40,13 +45,6 @@ const CrearRol: React.FC<CrearRolProps> = ({ onClose, onCreated }) => {
         onCreated?.();
         onClose(); 
       },
-      onError: () => {
-        showToast({
-          title: 'Error',
-          description: 'Ocurrió un error al crear el rol.',
-          variant: 'error',
-        });
-      }
     });
   };
 

@@ -60,6 +60,16 @@
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
   }
+
+  /* Aquí el truco para quitar fondo blanco al autocompletar */
+  .login-register input:-webkit-autofill,
+  .login-register textarea:-webkit-autofill,
+  .login-register select:-webkit-autofill {
+    -webkit-text-fill-color: white !important;
+    transition: background-color 9999s ease-in-out 0s !important;
+    caret-color: white !important;
+  }
+
 }
 
 @layer base {
@@ -68,7 +78,5 @@
   }
   body {
     @apply bg-background text-foreground;
-    }
+  }
 }
-
-
