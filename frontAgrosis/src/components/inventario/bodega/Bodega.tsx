@@ -388,8 +388,7 @@ const ListarBodega = () => {
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setViewMode("items")}
-            style={{ backgroundColor: '#C8E6C9' }}
-            className={`flex items-center px-4 py-2 rounded-lg ${viewMode === "items" ? "text-black" : "bg-gray-200"}`}
+            className={`flex items-center bg-green-600 text-white px-4 py-2 rounded-lg ${viewMode === "items" ? "text-black" : "bg-gray-200"}`}
             aria-label={`Ver ${tipoSeleccionado === "Herramienta" ? "herramientas" : "insumos"}`}
           >
             <List className="mr-2" size={18} />
@@ -397,7 +396,7 @@ const ListarBodega = () => {
           </button>
           <button
             onClick={() => setViewMode("movimientos")}
-            className={`flex items-center px-4 py-2 rounded-lg ${viewMode === "movimientos" ? "bg-green-600 text-white" : "bg-gray-200"}`}
+            className={`flex items-center px-4 py-2 rounded-lg ${viewMode === "movimientos" ? "bg-gray-400 text-white" : "bg-gray-200"}`}
             aria-label="Ver movimientos"
           >
             <MoveRight className="mr-2" size={18} />
@@ -436,11 +435,11 @@ const ListarBodega = () => {
 
       {viewMode === "items" ? (
         <div className="space-y-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
             <div
               onClick={handleCreateItem}
               style={{ backgroundColor: '#C8E6C9' }}
-              className="shadow-lg rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer transition-colors border border-gray-200 h-full min-h-[200px]"
+              className="shadow-lg rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer transition-colors border border-gray-200 h-full min-h-[200px]"
             >
               <div className="flex flex-col items-center">
                 {tipoSeleccionado === "Herramienta" ? (
@@ -452,10 +451,10 @@ const ListarBodega = () => {
                     <TestTube2 size={48} className="text-blue-600" />
                   </div>
                 )}
-                <p className="text-center text-lg text-black font-semibold mb-4">
+                <p className="text-center text-lg text-gray-900 font-semibold mb-4">
                   Agregar {tipoSeleccionado}
                 </p>
-                <button className="px-4 py-2 text-black ">
+                <button className="px-4  text-gray-900 ">
                   <Plus size={60} />
                 </button>
               </div>
@@ -499,7 +498,7 @@ const ListarBodega = () => {
       return (
         <div
           key={item.id}
-          className="shadow-lg rounded-lg p-4 flex flex-col justify-between cursor-pointer bg-white hover:bg-blue-50 transition-colors hover:shadow-xl border border-gray-200"
+          className="shadow-lg rounded-2xl p-4 flex flex-col justify-between cursor-pointer bg-white hover:bg-blue-50 transition-colors hover:shadow-xl border border-gray-200"
           onClick={() => handleItemClick(item)}
           role="button"
           tabIndex={0}
@@ -518,9 +517,47 @@ const ListarBodega = () => {
               )}
             </div>
 
-            <h3 className="font-semibold text-lg mb-2 line-clamp-2">
-              {esHerramienta ? item.nombre_h : item.nombre}
-            </h3>
+            <div className="flex items-center">
+              <h3 className="font-semibold text-lg mb-2 line-clamp-2">
+                {esHerramienta ? item.nombre_h : item.nombre}
+              </h3>
+              <div className="">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const movimientoRelacionado = movimientos?.find(
+                      (m) =>
+                        esHerramienta
+                          ? m.fk_id_herramientas?.id === item.id
+                          : m.fk_id_insumo?.id === item.id
+                    );
+                    if (movimientoRelacionado) {
+                      handleRowClick(movimientoRelacionado);
+                    } else if (isInsumo(item)) {
+                      setModalContenido(
+                        <ActualizarInsumos
+                          id={String(item.id)}
+                          onSuccess={() => {
+                            refetchInsumos();
+                            closeModal();
+                          }}
+                        />
+                      );
+                      setIsModalOpen(true);
+                    }
+                  }}
+                  className=" rounded-full px-2 font-bold hover:bg-gray-200"
+                  title="Editar"
+                  aria-label="Editar elemento"
+                >
+                  <Pencil
+                    size={16}
+                    className="text-green-600  p-1.5 w-8 h-8"
+                  />
+                </button>
+              </div>
+            </div>
+
 
             <div className="mt-2 mb-3">
               <p className="text-sm text-gray-600">Cantidad en stock:</p>
@@ -538,42 +575,6 @@ const ListarBodega = () => {
                 <p className="text-sm font-medium">{fechaVencimiento}</p>
               </div>
             )}
-
-            <div className="flex justify-end mt-3">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const movimientoRelacionado = movimientos?.find(
-                    (m) =>
-                      esHerramienta
-                        ? m.fk_id_herramientas?.id === item.id
-                        : m.fk_id_insumo?.id === item.id
-                  );
-                  if (movimientoRelacionado) {
-                    handleRowClick(movimientoRelacionado);
-                  } else if (isInsumo(item)) {
-                    setModalContenido(
-                      <ActualizarInsumos
-                        id={String(item.id)}
-                        onSuccess={() => {
-                          refetchInsumos();
-                          closeModal();
-                        }}
-                      />
-                    );
-                    setIsModalOpen(true);
-                  }
-                }}
-                className="p-1 rounded-full hover:bg-gray-200"
-                title="Editar"
-                aria-label="Editar elemento"
-              >
-                <Pencil
-                  size={16}
-                  className="text-white bg-green-600 rounded-full p-1.5 w-7 h-7"
-                />
-              </button>
-            </div>
           </div>
         </div>
       );
