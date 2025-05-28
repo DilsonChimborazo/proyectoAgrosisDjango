@@ -3,15 +3,19 @@ import axios from 'axios';
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
-
+export interface Rol {
+  id: number;
+  rol: string;
+}
 export interface Salario {
-    id: number;
-    precio_jornal: number;
-    horas_por_jornal: number;
-    fecha_inicio: string;
-    fecha_fin : string;
-    activo : boolean;
-    
+  id: number;
+  fk_id_rol: Rol;
+  precio_jornal: number;
+  horas_por_jornal: number;
+  fecha_inicio: string;
+  fecha_fin: string;
+  activo: boolean;
+
 }
 
 // Función para obtener la lista de producción

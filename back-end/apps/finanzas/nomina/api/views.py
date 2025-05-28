@@ -25,9 +25,6 @@ class NominaViewSet(ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path='reporte-por-persona')
     def reporte_por_persona(self, request):
-        """
-        Reporte de pagos agrupados por persona, con subtotales por actividad
-        """
         resultados = Nomina.objects.annotate(
             usuario_id=Coalesce(
                 F('fk_id_usuario__id'),
@@ -40,6 +37,10 @@ class NominaViewSet(ModelViewSet):
             usuario_apellido=Coalesce(
                 F('fk_id_usuario__apellido'),
                 F('fk_id_control_fitosanitario__fk_identificacion__apellido')
+            ),
+            usuario_rol=Coalesce(
+                F('fk_id_usuario__fk_id_rol__rol'),
+                F('fk_id_control_fitosanitario__fk_identificacion__fk_id_rol__rol')
             ),
             actividad=Case(
                 When(
@@ -57,14 +58,14 @@ class NominaViewSet(ModelViewSet):
             'usuario_id',
             'usuario_nombre',
             'usuario_apellido',
+            'usuario_rol',  # Nuevo campo
             'actividad'
         ).annotate(
             total_pagado=Sum('pago_total'),
-            cantidad_actividades=Count('pk', distinct=True)  # Corrección aplicada
+            cantidad_actividades=Count('pk', distinct=True)
         ).order_by('usuario_apellido', 'usuario_nombre')
 
         return Response(resultados)
-
     @action(detail=False, methods=['get'], url_path='reporte-por-actividad')
     def reporte_por_actividad(self, request):
         """

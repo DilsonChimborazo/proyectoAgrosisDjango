@@ -26,6 +26,12 @@ from apps.finanzas.trazabilidad_historica.models import SnapshotTrazabilidad, Re
 from apps.finanzas.trazabilidad_historica.api.serializers import SnapshotSerializer, ResumenTrazabilidadSerializer
 from apps.finanzas.trazabilidad_historica.services import TrazabilidadService
 
+
+from decimal import Decimal
+import logging
+
+logger = logging.getLogger(__name__)
+
 class CustomPagination(PageNumberPagination):
     permissions_clases = [IsAuthenticated]
     page_size = 10
@@ -169,32 +175,63 @@ class TrazabilidadPlantacionAPIView(APIView):
             })
         return detalle
 
+
     def _calcular_costo_mano_obra(self, programaciones, controles):
         costo_total = Decimal('0')
-        
-        salario_default = Salario.objects.filter(activo=True).first()
-        
-        for prog in programaciones:
-            salario = Salario.objects.filter(
-                fecha_inicio__lte=prog.fecha_realizada,
-                fecha_fin__gte=prog.fecha_realizada
-            ).first() or salario_default
-            
-            if salario:
-                horas = Decimal(prog.duracion) / Decimal('60')
-                jornales = horas / Decimal(salario.horas_por_jornal)
-                costo_total += jornales * salario.precio_jornal
 
+        # Procesar programaciones
+        for prog in programaciones:
+            usuarios = prog.fk_id_asignacionActividades.fk_identificacion.all()
+            if not usuarios:
+                logger.warning(f"Programación {prog.id} sin usuarios asignados")
+                continue
+
+            horas = Decimal(prog.duracion) / Decimal('60')
+            numero_usuarios = len(usuarios)
+            horas_por_usuario = horas / numero_usuarios if numero_usuarios > 0 else horas
+
+            for usuario in usuarios:
+                if not usuario.fk_id_rol:
+                    logger.error(f"Usuario {usuario.id} no tiene rol asignado")
+                    continue
+
+                salario = Salario.objects.filter(
+                    fk_id_rol=usuario.fk_id_rol,
+                    fecha_inicio__lte=prog.fecha_realizada,
+                    activo=True
+                ).order_by('-fecha_inicio').first()
+
+                if salario and salario.horas_por_jornal > 0:
+                    logger.info(f"Usuario {usuario.id}, Rol: {usuario.fk_id_rol.rol}, Salario: {salario.precio_jornal}")
+                    jornales = horas_por_usuario / Decimal(salario.horas_por_jornal)
+                    costo_total += jornales * salario.precio_jornal
+                else:
+                    logger.warning(f"No se encontró salario activo para el rol {usuario.fk_id_rol.rol} en la fecha {prog.fecha_realizada}")
+
+        # Procesar controles fitosanitarios
         for control in controles:
+            usuario = control.fk_identificacion
+            if not usuario:
+                logger.warning(f"Control fitosanitario {control.id} sin usuario asignado")
+                continue
+
+            if not usuario.fk_id_rol:
+                logger.error(f"Usuario {usuario.id} no tiene rol asignado")
+                continue
+
             salario = Salario.objects.filter(
+                fk_id_rol=usuario.fk_id_rol,
                 fecha_inicio__lte=control.fecha_control,
-                fecha_fin__gte=control.fecha_control
-            ).first() or salario_default
-            
-            if salario:
+                activo=True
+            ).order_by('-fecha_inicio').first()
+
+            if salario and salario.horas_por_jornal > 0:
+                logger.info(f"Control {control.id}, Usuario {usuario.id}, Rol: {usuario.fk_id_rol.rol}, Salario: {salario.precio_jornal}")
                 horas = Decimal(control.duracion) / Decimal('60')
                 jornales = horas / Decimal(salario.horas_por_jornal)
                 costo_total += jornales * salario.precio_jornal
+            else:
+                logger.warning(f"No se encontró salario activo para el rol {usuario.fk_id_rol.rol} en la fecha {control.fecha_control}")
 
         return round(costo_total, 2)
 
