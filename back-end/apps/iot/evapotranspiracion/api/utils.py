@@ -2,70 +2,62 @@ from math import exp
 from decimal import Decimal
 from django.core.exceptions import ObjectDoesNotExist
 import logging
+from datetime import date
 
 logger = logging.getLogger(__name__)
 
-def calcular_eto(mediciones, altitud=1000):
+def calcular_eto(mediciones):
     try:
-        # Buscar las mediciones necesarias iterando sobre la lista
+        # Buscar la medición de temperatura (único dato necesario para Blaney-Criddle)
         temp = None
-        humedad = None
-        viento = None
-        radiacion = None
-        presion = None
-
         for medicion in mediciones:
             sensor = medicion.fk_id_sensor
             tipo_sensor = sensor.tipo_sensor
             if tipo_sensor == 'TEMPERATURA':
                 temp = medicion
-            elif tipo_sensor == 'HUMEDAD_AMBIENTAL':
-                humedad = medicion
-            elif tipo_sensor == 'VELOCIDAD_VIENTO':
-                viento = medicion
-            elif tipo_sensor == 'ILUMINACION':
-                radiacion = medicion
-            elif tipo_sensor == 'PRESION_ATMOSFERICA':
-                presion = medicion
+                break
 
-        # Verificar que todas las mediciones requeridas estén presentes
-        if not all([temp, humedad, viento, radiacion]):
-            raise ValueError("Faltan datos de sensores requeridos")
+        if not temp:
+            raise ValueError("Falta dato de temperatura")
 
         temperatura = Decimal(str(temp.valor_medicion))
-        humedad_relativa = Decimal(str(humedad.valor_medicion))
-        velocidad_viento = Decimal(str(viento.valor_medicion))
-        radiacion_solar = Decimal(str(radiacion.valor_medicion))
 
-        # Validar rangos
-        for medicion, tipo in [(temp, 'TEMPERATURA'), (humedad, 'HUMEDAD_AMBIENTAL'), (viento, 'VELOCIDAD_VIENTO'), (radiacion, 'ILUMINACION')]:
-            sensor = medicion.fk_id_sensor
-            if not (sensor.medida_minima <= float(medicion.valor_medicion) <= sensor.medida_maxima):
-                raise ValueError(f"Valor fuera de rango para {tipo}: {medicion.valor_medicion}")
+        # Validar rango de temperatura
+        sensor = temp.fk_id_sensor
+        if not (sensor.medida_minima <= float(temp.valor_medicion) <= sensor.medida_maxima):
+            raise ValueError(f"Valor fuera de rango para TEMPERATURA: {temp.valor_medicion}")
 
-        if presion:
-            presion_atm = Decimal(str(presion.valor_medicion))
-        else:
-            presion_atm = Decimal('101.3') * ((Decimal('293') - Decimal('0.0065') * Decimal(str(altitud))) / Decimal('293')) ** Decimal('5.26')
+        # Latitud estática del Tecnoparque Yamboró (1°53'31.7"N ≈ 1.892139° N)
+        latitude = 1.892139
 
-        gamma = Decimal('0.000665') * presion_atm
+        # Hemisferio estático (Norte)
+        hemisphere = 'Norte'
+
+        # Mes actual (estático basado en la fecha actual)
         
-        # Calcular delta de manera más clara
-        temp_float = float(temperatura)
-        exp_term = Decimal(str(exp((17.27 * temp_float) / (temp_float + 237.3))))
-        es_term = Decimal('0.6108') * exp_term
-        delta_numerator = Decimal('4098') * es_term
-        delta_denominator = Decimal(str(temp_float + 237.3)) ** 2
-        delta = delta_numerator / delta_denominator
+        month = date.today().month
 
-        es = es_term
-        ea = es * (humedad_relativa / Decimal('100'))
-        rn = radiacion_solar * Decimal('0.0864')
-        G = Decimal('0')
-        u2 = velocidad_viento
-        numerador = Decimal('0.408') * delta * (rn - G) + gamma * (Decimal('900') / (temperatura + Decimal('273'))) * u2 * (es - ea)
-        denominador = delta + gamma * (Decimal('1') + Decimal('0.34') * u2)
-        eto = numerador / denominador
+        # Tabla mejorada de 'p' (porcentaje de horas diurnas) ajustada para latitud ~1.89° N
+        # Valores basados en tablas estándar de Blaney-Criddle para hemisferio norte
+        p_values = {
+            0: [0.270, 0.280, 0.270, 0.260, 0.270, 0.280, 0.290, 0.290, 0.280, 0.270, 0.260, 0.260],  # Latitud 0°
+            1: [0.275, 0.285, 0.275, 0.265, 0.275, 0.285, 0.295, 0.295, 0.285, 0.275, 0.265, 0.265],  # Latitud 1°
+            2: [0.280, 0.290, 0.280, 0.270, 0.280, 0.290, 0.300, 0.300, 0.290, 0.280, 0.270, 0.270],  # Latitud 2°
+        }
+
+        # Ajustar latitud para buscar el valor más cercano en la tabla
+        lat_rounded = round(latitude)
+        if lat_rounded not in p_values:
+            lat_rounded = min(p_values.keys(), key=lambda x: abs(x - lat_rounded))
+
+        # Ajustar mes (1-12) a índice (0-11)
+        month_index = month - 1
+
+        # Obtener el valor de 'p'
+        p = Decimal(str(p_values[lat_rounded][month_index]))
+
+        # Calcular ETo: E = p (0.46T + 8.13)
+        eto = p * (Decimal('0.46') * temperatura + Decimal('8.13'))
 
         return round(eto, 2)
     except Exception as e:
