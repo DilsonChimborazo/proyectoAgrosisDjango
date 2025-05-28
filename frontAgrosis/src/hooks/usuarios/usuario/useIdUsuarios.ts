@@ -19,7 +19,7 @@ interface Usuario {
     apellido: string;
     password?: string;
     fk_id_rol: Rol; 
-    ficha: Ficha; 
+    ficha?: Ficha | null;
 }
 
 const apiUrl = import.meta.env.VITE_API_URL;

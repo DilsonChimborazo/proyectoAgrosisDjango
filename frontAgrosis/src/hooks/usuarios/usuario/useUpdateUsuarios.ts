@@ -4,40 +4,41 @@ import axios from "axios";
 const apiUrl = import.meta.env.VITE_API_URL;
 
 interface Rol {
-    id: number;
-    nombre: string;
+  id: number;
+  nombre: string;
 }
 
 export interface Usuario {
-    id: number;
-    identificacion?: number;
-    email?: string;
-    nombre?: string;
-    apellido?: string;
-    password?: string;
-    fk_id_rol?: Rol;
+  id: number;
+  identificacion?: number;
+  email?: string;
+  nombre?: string;
+  apellido?: string;
+  password?: string;
+  fk_id_rol?: Rol;
+  ficha?: number | null; // ✅ incluir ficha como id o null
 }
 
 export const useActualizarUsuario = () => {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn: async (usuarioActualizado: Partial<Usuario>) => {
-            const token = localStorage.getItem("token");
-            if (!token) {
-                throw new Error("No se ha encontrado un token de autenticación");
-            }
+  return useMutation({
+    mutationFn: async (usuarioActualizado: Partial<Usuario>) => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("No se ha encontrado un token de autenticación");
+      }
 
-            const { id, ...datos } = usuarioActualizado;
+      const { id, ...datos } = usuarioActualizado;
 
-            const { data } = await axios.patch(`${apiUrl}usuario/${id}/`, datos, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+      const { data } = await axios.patch(`${apiUrl}usuario/${id}/`, datos, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-            return data;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["Usuario"] });
-        },
-    });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["Usuario"] });
+    },
+  });
 };

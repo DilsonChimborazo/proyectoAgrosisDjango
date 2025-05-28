@@ -1,15 +1,17 @@
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Eye, EyeOff, Facebook, MessageCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useCustomForm } from "@/hooks/validaciones/useCustomForm";
 import { loginSchema, LoginData } from "@/hooks/validaciones/useSchemas"; 
-import logoAgrosis from "../../../../public/agrosoft.png";
+import logoAgrosis from "../../../../public/def_AGROSIS_LOGOTIC4.png";
 import logoSena from "../../../../public/logoSena.png";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const {
     register,
@@ -45,6 +47,7 @@ export default function Login() {
       localStorage.setItem("token", responseData.access);
       if (responseData.refresh) localStorage.setItem("refreshToken", responseData.refresh);
       if (responseData.user) localStorage.setItem("user", JSON.stringify(responseData.user));
+      await queryClient.invalidateQueries(['perfilUsuario']);
       navigate("/principal");
     } catch (err: any) {
       setError(err.message);
@@ -71,12 +74,12 @@ export default function Login() {
         <div className="w-full md:w-1/2 flex flex-col justify-center p-8">
           <div className="flex items-center justify-center space-x-4 mb-4">
             <img src={logoSena} alt="SENA" className="w-12" />
-            <h2 className="text-2xl font-bold text-gray-300">AGROSIS</h2>
+            <h2 className="text-2xl font-bold text-gray-300">AGROSOFT</h2>
           </div>
           <p className="text-center text-gray-300 mb-6">¡Bienvenido!</p>
           {error && <p className="text-red-500 text-center mb-4">{error}</p>}
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 login-register">
             <div>
               <input
                 type="text"

@@ -24,8 +24,11 @@ const CrearFicha: React.FC<CrearFichaProps> = ({ onClose, onCreated }) => {
     const { numero_ficha, nombre_ficha, abreviacion, fecha_inicio, fecha_salida } = formData;
 
     if (!numero_ficha || !nombre_ficha || !abreviacion || !fecha_inicio || !fecha_salida) {
-      console.error("Todos los campos son obligatorios.");
-      return;
+      showToast({
+          title: 'Campos Incompletos',
+          description: "",
+          variant: 'error',
+        });
     }
 
     const newFicha: Ficha = {
@@ -46,13 +49,6 @@ const CrearFicha: React.FC<CrearFichaProps> = ({ onClose, onCreated }) => {
         onCreated?.();
         onClose(); 
       },
-      onError: () => {
-        showToast({
-          title: 'Error',
-          description: 'Ocurrió un error al crear una ficha.',
-          variant: 'error',
-        });
-      }
     });
   };
 

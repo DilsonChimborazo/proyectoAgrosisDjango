@@ -211,6 +211,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = './static'
 
+
 AUTH_USER_MODEL = 'usuario.Usuarios'  # 'usuario' es el nombre de la app y 'Usuario' es el nombre del modelo
 
 REST_FRAMEWORK = {
@@ -234,7 +235,7 @@ EMAIL_HOST_USER = 'agrosofSena@gmail.com'
 EMAIL_HOST_PASSWORD = 'epcv duva nhwm hzlj'  # Usa una contraseña de aplicación
 DEFAULT_FROM_EMAIL = 'agrosofSena@gmail.com'  # Asegúrate de definir esto
 
-FRONTEND_URL = "http://10.4.24.90:5173"
+FRONTEND_URL = "http://10.4.22.122:5173"
 
 
 

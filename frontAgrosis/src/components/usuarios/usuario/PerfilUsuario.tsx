@@ -7,7 +7,7 @@ import { showToast } from "@/components/globales/Toast";
 
 
 const PerfilUsuario: React.FC = () => {
-  const { perfil, isLoading, error, updatePerfil, isUpdating } = usePerfilUsuario();
+  const { perfil, isLoading, error, updatePerfil, isUpdating, refetchPerfil} = usePerfilUsuario();
 
 
   const [formData, setFormData] = useState<FormData>({
@@ -36,7 +36,7 @@ const PerfilUsuario: React.FC = () => {
     }
   }, [perfil]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     setFormError(null);
@@ -66,7 +66,7 @@ const PerfilUsuario: React.FC = () => {
     };
   }, [preview]);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     const result = perfilSchema.safeParse(formData);
@@ -84,7 +84,8 @@ const PerfilUsuario: React.FC = () => {
     delete dataToUpdate.password;
   }
 
-  updatePerfil(dataToUpdate);
+  await updatePerfil(dataToUpdate);
+  await refetchPerfil();
 
   showToast({
           title: 'Perfil actualizado',

@@ -67,12 +67,13 @@ const updatePerfil = async (formData: FormData): Promise<Usuario> => {
   data.append('nombre', formData.nombre);
   data.append('apellido', formData.apellido);
   data.append('email', formData.email);
+  
   if (formData.img) {
     data.append('img', formData.img);
   }
   if (formData.password !== undefined && formData.password !== '') {
   data.append('password', formData.password);
-}
+  }
 
   try {
     const response = await axios.put(`${apiUrl}usuario/img/`, data, {
@@ -93,7 +94,7 @@ export const usePerfilUsuario = () => {
   const { setUsuario } = useAuth(); // Accedemos al AuthContext
 
   const perfilQuery = useQuery({
-    queryKey: ['perfil'],
+    queryKey: ['perfilUsuario'],
     queryFn: fetchPerfil,
     staleTime: 1000 * 60 * 10, // 10 minutos
     retry: 1,
@@ -102,16 +103,17 @@ export const usePerfilUsuario = () => {
   const updateMutation = useMutation({
     mutationFn: updatePerfil,
     onSuccess: (data: Usuario) => {
-      queryClient.setQueryData(['perfil'], data); // Actualiza la caché de React Query
+      queryClient.setQueryData(['perfilUsuario'], data); // Actualiza la caché de React Query
       setUsuario(data); // Actualiza el contexto global
     },
   });
 
   return {
     perfil: perfilQuery.data,
-    isLoading: perfilQuery.isPending,
+    isLoading: perfilQuery.isLoading,
     error: perfilQuery.error,
-    updatePerfil: updateMutation.mutate,
+    updatePerfil: updateMutation.mutateAsync,
     isUpdating: updateMutation.isPending,
+    refetchPerfil: perfilQuery.refetch, 
   };
 };

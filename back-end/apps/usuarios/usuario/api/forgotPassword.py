@@ -7,9 +7,10 @@ from django.conf import settings
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework import status
-
 User = get_user_model()
 serializer = URLSafeTimedSerializer(settings.SECRET_KEY)
+
+
 
 def generar_link_recuperacion(usuario):
     """Genera un token encriptado con tiempo de expiración."""
@@ -33,15 +34,46 @@ def solicitar_recuperacion(request):
     reset_link = generar_link_recuperacion(usuario)
 
     # Enviar correo en HTML con el token oculto visualmente
-    html_content = format_html(
-        """
-        <p>Hola,</p>
-        <p>Has solicitado restablecer tu contraseña. Haz clic en el siguiente botón para continuar:</p>
-        <p><a href="{}" style="background-color:#4CAF50;color:white;padding:10px 20px;text-decoration:none;border-radius:5px;">Restablecer contraseña</a></p>
-        <p>Este enlace expirará en 24 horas.</p>
-        """,
-        reset_link
-    )
+    html_content = format_html("""
+<table style="width: 100%; background-color: #e9f5ec; padding: 40px 0; font-family: Arial, sans-serif;">
+  <tr>
+    <td align="center">
+      <table style="width: 600px; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <tr>
+          <td style="background-color: #3CB371; padding: 20px; text-align: center;">
+            <h1 style="color: #ffffff; font-size: 24px; margin: 0;">Recuperación de contraseña</h1>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 30px;">
+            <p style="font-size: 16px; color: #333;">Hola,</p>
+            <p style="font-size: 16px; color: #333;">
+              Has solicitado restablecer tu contraseña. Haz clic en el botón de abajo para continuar con el proceso.
+            </p>
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="{}"
+                 style="background-color: #2e8b57; color: white; padding: 12px 24px;
+                        text-decoration: none; border-radius: 6px; font-weight: bold;
+                        display: inline-block;">
+                Restablecer contraseña
+              </a>
+            </div>
+            <p style="font-size: 14px; color: #777;">
+              Este enlace expirará en 24 horas por motivos de seguridad. Si no solicitaste este cambio, puedes ignorar este mensaje.
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="background-color: #f0f0f0; padding: 20px; text-align: center; font-size: 12px; color: #777;">
+            © 2025 Agrosoft TIC-Yamboró. Todos los derechos reservados.
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+""",reset_link)
+
 
     email_message = EmailMessage(
         subject="Recuperación de contraseña",

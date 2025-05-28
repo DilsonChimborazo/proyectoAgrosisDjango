@@ -64,6 +64,14 @@ class EscribirUsuarioSerializer(ModelSerializer):
 
     def update(self, instance, validated_data):
         print("VALIDATED DATA EN UPDATE:", validated_data)
+
+        remove_img = validated_data.pop('remove_img', False)
+
+        if remove_img:
+            # Solo borrar la imagen si existe y no es la imagen por defecto
+            if instance.img and instance.img.name != 'imagenes/defecto.png':
+                instance.img.delete(save=False)
+            instance.img = None
     
         password = validated_data.pop('password', None)
         if password:
