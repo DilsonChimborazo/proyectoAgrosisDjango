@@ -47,31 +47,38 @@ const styles = `
     transform: translateY(-5px);
   }
   .card-temperatura {
-    background: linear-gradient(135deg, #FF4500 0%, #FF8C00 100%);
+    background-color:rgba(2, 19, 10, 0.42);
+    border:solid #F2620F 1px;
     color: white;
   }
   .card-humedad {
-    background: linear-gradient(135deg, #10B981 0%, #34D399 100%);
+    background-color:rgba(2, 19, 10, 0.42);
+    border:solid #0CE86C 1px;
     color: white;
   }
   .card-iluminacion {
-    background: linear-gradient(135deg, #FFD700 0%, #FFEC00 100%);
+    background-color:rgba(2, 19, 10, 0.42);
+    border:solid #FFFAA2 1px;
     color: white;
   }
   .card-viento {
-    background: linear-gradient(135deg, #4682B4 0%, #87CEEB 100%);
+    background-color:rgba(2, 19, 10, 0.42);
+    border:solid #0099DD 1px;
     color: white;
   }
   .card-presion {
-    background: linear-gradient(135deg, #8A2BE2 0%, #BA55D3 100%);
+    background-color:rgba(2, 19, 10, 0.42);
+    border:solid rgb(118, 42, 128) 1px;
     color: white;
   }
   .card-aire {
-    background: linear-gradient(135deg, #32CD32 0%, #90EE90 100%);
+    background-color:rgba(2, 19, 10, 0.42);
+    border:solid rgb(121, 121, 121) 1px;
     color: white;
   }
   .card-default {
-    background: linear-gradient(135deg, #808080 0%, #A9A9A9 100%);
+    background-color:rgba(2, 19, 10, 0.42);
+    border:solid rgb(241, 43, 60) 1px;
     color: white;
   }
   .card-glass {
@@ -144,7 +151,7 @@ const styles = `
     justify-content: center;
     padding: 0.75rem 1.5rem;
     border-radius: 1rem;
-    background: linear-gradient(135deg, #10B981 0%, #3B82F6 100%);
+    background: linear-gradient(135deg, #4682b4 0%, #87CEEB 100%);
     color: white;
     font-weight: 600;
     font-size: 1rem;
@@ -247,13 +254,13 @@ const icons: { [key: string]: string } = {
 };
 
 const COLORS: { [key: string]: string } = {
-  temperatura: "#FF4500",
-  humedad: "#10B981",
-  iluminacion: "#FFD700",
-  viento: "#4682B4",
-  presion: "#8A2BE2",
-  aire: "#32CD32",
-  default: "#808080",
+  temperatura: "#F2620F",
+  humedad: "#0CE86C",
+  iluminacion: "#FFFAA2",
+  viento: "#0099DD",
+  presion: "rgb(129, 40, 141) 1p",
+  aire: "rgba(124, 124, 124, 0.85)",
+  default: "rgba(238, 23, 23, 0.94)",
 };
 
 // Nueva función para mapear tipos de sensores a valores esperados
@@ -615,8 +622,8 @@ const HomePage = () => {
               >
                 <div className="flex flex-col items-center w-full mb-2">
                   <div className="flex items-center space-x-2">
+                    <h3 className="text-sm font-semibold ms-11">{sensor.nombre}</h3>
                     <span className="text-2xl">{sensor.icon}</span>
-                    <h3 className="text-sm font-semibold">{sensor.nombre}</h3>
                   </div>
                   <span className="text-[0.65rem] font-semibold bg-white bg-opacity-20 p-0 m-0 rounded-[0.330rem] inline-block leading-[0.65rem] w-fit">
                     Activo
@@ -654,7 +661,7 @@ const HomePage = () => {
                   <svg width="40" height="80" viewBox="0 0 40 80">
                     <rect x="15" y="10" width="10" height="60" fill="#E5E7EB" rx="5" />
                     <rect
-                      x="15"
+                      x="10"
                       y={70 - (chartData.normalizedValue * 0.6)}
                       width="10"
                       height={chartData.normalizedValue * 0.6}
