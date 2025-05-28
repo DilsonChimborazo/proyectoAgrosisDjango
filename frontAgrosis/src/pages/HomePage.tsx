@@ -11,7 +11,6 @@ import {
   PieChart,
   Pie,
   Cell,
-  Legend,
 } from "recharts";
 import {
   Carousel,
@@ -58,7 +57,7 @@ const styles = `
   }
   .card-iluminacion {
     background-color:rgba(2, 19, 10, 0.42);
-    border:solid #FFFAA2 1px;
+    border:solid #FFD801 1px;
     color: white;
   }
   .card-viento {
@@ -256,7 +255,7 @@ const icons: { [key: string]: string } = {
 const COLORS: { [key: string]: string } = {
   temperatura: "#F2620F",
   humedad: "#0CE86C",
-  iluminacion: "#FFFAA2",
+  iluminacion: "#FFD801",
   viento: "#0099DD",
   presion: "rgb(129, 40, 141) 1p",
   aire: "rgba(124, 124, 124, 0.85)",
@@ -849,37 +848,57 @@ const HomePage = () => {
           )}
         </div>
 
-        <div className="card-glass">
+        <div className="card-glass text-left" style={{ maxWidth: '550px', margin: '0 auto' }}>
           <h2 className="chart-label">ÚLTIMOS VALORES DE SENSORES</h2>
           {latestSensorValues.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={latestSensorValues}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={120}
-                  label={({ value }) => `${value}`}
-                >
-                  {latestSensorValues.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={getPieColor(entry, index)}
+            <div className="flex flex-col items-center">
+              <ResponsiveContainer width="110%" height={200}>
+                <PieChart>
+                  <Pie
+                    data={latestSensorValues}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={40}
+                    outerRadius={80}
+                    label={({ value }) => `${value}`}
+                    labelLine={false}
+                  >
+                    {latestSensorValues.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={getPieColor(entry, index)}
+                      />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+              {/* Custom Legend Below Pie Chart */}
+              <div style={{ 
+                fontSize: '0.75rem', 
+                paddingTop: '10px', 
+                width: '100%', 
+                textAlign: 'center', 
+                color: '#4a4a4a', 
+                lineHeight: '1.2' 
+              }}>
+                {latestSensorValues.map((entry, index) => (
+                  <div key={index} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '5px 0' }}>
+                    <span
+                      style={{
+                        display: 'inline-block',
+                        width: '10px',
+                        height: '10px',
+                        backgroundColor: getPieColor(entry, index),
+                        marginRight: '5px',
+                      }}
                     />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value, name) => [`${value}`, name]} />
-                <Legend
-                  layout="vertical"
-                  align="center"
-                  verticalAlign="bottom"
-                  wrapperStyle={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
+                    <span className="text-left">{entry.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           ) : (
             <p className="text-gray-500">No hay datos disponibles para los sensores</p>
           )}
