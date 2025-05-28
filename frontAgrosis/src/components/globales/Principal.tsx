@@ -1,6 +1,6 @@
 import { ReactNode, useState, useEffect } from "react";
-import { Button, Input } from "@heroui/react";
-import { Menu, Search, ChevronDown, ChevronUp, LogOut, Copyright } from "lucide-react";
+import { Button } from "@heroui/react";
+import { Menu, ChevronDown, ChevronUp, LogOut, Copyright } from "lucide-react";
 import { Home, User, Calendar, Map, Leaf, DollarSign, Bug, Clipboard, Cpu } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import Notification from '@/components/trazabilidad/notificacion/Notificacion';
@@ -56,8 +56,6 @@ const menuItems = [
     name: "Inventario",
     icon: <Clipboard size={18} />,
     submenu: [
-      { name: "Insumos", path: "/insumos" },
-      { name: "Herramientas", path: "/herramientas" },
       { name: "Bodega", path: "/bodega" },
     ],
   },
@@ -77,7 +75,6 @@ export default function Principal({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false); 
   const [active, setActive] = useState<string>("");
   const [openMenus, setOpenMenus] = useState<{ [key: string]: boolean }>({});
-  const [searchQuery, setSearchQuery] = useState<string>("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -116,14 +113,6 @@ export default function Principal({ children }: LayoutProps) {
     navigate("/");
   };
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  };
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Search submitted: ", searchQuery);
-  };
 
   return (
     <div className="relative flex h-screen w-full overflow-x-hidden">
@@ -140,16 +129,16 @@ export default function Principal({ children }: LayoutProps) {
       >
 
         {/*logos del proyecto*/ }
-        <div className="flex items-center justify-center p-4 bg-white rounded-lg ">
+        <div className="flex items-center justify-between p-4 bg-white rounded-lg ">
           <img 
             src="/logoSena.png" 
             alt="SENA" 
-            className="w-16 shadow-sm"
+            className="w-16"
           />       
           <img 
             src="/agrosoft.png" 
             alt="logo" 
-            className="w-32  shadow-sm"
+            className="w-28 "
           />
         </div>
 
@@ -159,7 +148,7 @@ export default function Principal({ children }: LayoutProps) {
               {item.submenu ? (
                 <button
                   onClick={() => toggleMenu(item.name)}
-                  className={`flex items-center gap-3 w-full shadow-lg p-3 sm:p-4 rounded-full transition-all duration-300 ${
+                  className={`flex items-center gap-3 w-full shadow-lg p-3 sm:p-4 rounded-2xl transition-all duration-300 ${
                     active === item.name ? "bg-gray-300 text-gray-800 shadow-inner" : "bg-white hover:bg-gray-200"
                   } mb-2`}
                 >
@@ -170,7 +159,7 @@ export default function Principal({ children }: LayoutProps) {
               ) : (
                 <Link to={item.path} onClick={() => setActive(item.name)}>
                   <button
-                    className={`flex items-center gap-3 w-full shadow-lg p-3 sm:p-4 rounded-full transition-all duration-300 ${
+                    className={`flex items-center gap-3 w-full shadow-lg p-3 sm:p-4 rounded-2xl transition-all duration-300 ${
                       active === item.name ? "bg-gray-300 text-gray-800 shadow-inner" : "bg-white hover:bg-gray-200"
                     } mb-2`}
                   >
@@ -210,15 +199,11 @@ export default function Principal({ children }: LayoutProps) {
             <Button isIconOnly variant="light" className="text-white" onClick={() => setSidebarOpen(!sidebarOpen)}>
               <Menu size={20} />
             </Button>
-            <form onSubmit={handleSearchSubmit}>
-              <Input
-                className="w-48 sm:w-64 ml-2"
-                endContent={<Search size={20} className="ml-2 text-green-700" />}
-                placeholder="Buscar..."
-                value={searchQuery}
-                onChange={handleSearchChange}
-              />
-            </form>
+            <h1 className="text-lg sm:text-xl ms-4 ">
+              Bienvenido a AgroSoft: <span className="font-semibold text-gray-200"> {usuario
+                ? `${usuario?.nombre || "Nombre no disponible"} ${usuario?.apellido || "Apellido no disponible"}`
+                : "Usuario no identificado"}</span> 🌱
+            </h1>
           </div>
           <div className="flex items-center space-x-2 sm:space-x-4">
             <Notification />
@@ -257,7 +242,7 @@ export default function Principal({ children }: LayoutProps) {
             <footer className="fixed mt-32 bottom-0 left-0 w-full bg-green-700 text-white p-2 text-center text-sm z-40">
               <div className="flex flex-col items-center justify-center text-md">
                 <div className="flex items-center gap-1">
-                  Centro de Gestión y Desarrollo Sostenible Surcolombiano <Copyright size={12} />
+                  Centro de Gestión y Desarrollo Sostenible Surcolombiano <Copyright size={12} /> {new Date().getFullYear()}
                 </div>
                 <div>Regional Pitalito-Huila</div>
               </div>
