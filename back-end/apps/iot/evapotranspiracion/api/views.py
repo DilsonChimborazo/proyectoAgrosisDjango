@@ -49,21 +49,16 @@ class EvapotranspiracionViewSet(ViewSet):
             if not mediciones.exists():
                 return Response({"error": "No hay mediciones para hoy"}, status=status.HTTP_404_NOT_FOUND)
 
-            eto = calcular_eto(mediciones, altitud=1000)  # Ajusta la altitud según sea necesario
-            cultivo = plantacion.fk_id_cultivo
-            etapa = cultivo.etapa_actual.lower() if cultivo.etapa_actual else ""
-            if etapa == "inicial":
-                kc = Decimal(str(cultivo.kc_inicial)) if cultivo.kc_inicial is not None else Decimal('1.0')
-            elif etapa == "desarrollo":
-                kc = Decimal(str(cultivo.kc_desarrollo)) if cultivo.kc_desarrollo is not None else Decimal('1.0')
-            elif etapa == "final":
-                kc = Decimal(str(cultivo.kc_final)) if cultivo.kc_final is not None else Decimal('1.0')
-            else:
-                kc = Decimal('1.0')
-                logger.warning(f"Etapa desconocida '{etapa}' para cultivo {cultivo.id}. Usando kc=1.0")
+            # Calcular ETo usando Blaney-Criddle
+            eto = calcular_eto(mediciones)
 
-            etc = eto * kc
+            # Usar un kc promedio para todos los cultivos
+            kc_promedio = Decimal('0.85')  
+            logger.info(f"Usando kc promedio: {kc_promedio}")
 
+            etc = eto * kc_promedio
+
+            # Guardar el cálculo
             evap = Evapotranspiracion.objects.create(
                 fk_id_plantacion=plantacion,
                 fecha=date.today(),
