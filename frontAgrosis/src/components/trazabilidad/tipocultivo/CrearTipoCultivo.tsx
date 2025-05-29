@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useCrearTipoCultivo } from '@/hooks/trazabilidad/tipoCultivo/useCrearTipoCultivo';
 import Formulario from '../../globales/Formulario';
 import { showToast } from '@/components/globales/Toast';
@@ -8,7 +7,6 @@ interface CrearTipoCultivoProps {
 }
 
 const CICLO_OPCIONES = [
-  { value: '', label: 'Seleccione el tipo de cultivo' },
   { value: 'Perennes', label: 'Perennes' },
   { value: 'Semiperennes', label: 'Semiperennes' },
   { value: 'Transitorios', label: 'Transitorios' },
@@ -19,7 +17,7 @@ const CrearTipoCultivo = ({ onSuccess }: CrearTipoCultivoProps) => {
 
   const formFields = [
     { id: 'nombre', label: 'Nombre', type: 'text', required: true },
-    { id: 'descripcion', label: 'Descripción', type: 'textarea', required: false },
+    { id: 'descripcion', label: 'Descripción', type: 'textarea', required: true },
     {
       id: 'ciclo_duracion',
       label: 'Ciclo de Duración',
@@ -34,34 +32,25 @@ const CrearTipoCultivo = ({ onSuccess }: CrearTipoCultivoProps) => {
     const descripcion = formData.descripcion as string;
     const cicloDuracion = formData.ciclo_duracion as string;
 
-    if (!nombre) {
-      showToast({
-        title: 'Error al crear tipo de cultivo',
-        description: 'El nombre es obligatorio',
-        timeout: 5000,
-        variant: 'error',
-      });
-      return;
-    }
 
-    if (!cicloDuracion) {
+    if (!nombre || !descripcion || !cicloDuracion) {
       showToast({
-        title: 'Error al crear tipo de cultivo',
-        description: 'Debe seleccionar un ciclo de duración',
-        timeout: 5000,
+        title: 'Aviso',
+        description: 'Todos los campos son obligatorios',
+        timeout: 3000,
         variant: 'error',
       });
       return;
     }
 
     createTipoCultivo(
-      { nombre, descripcion: descripcion || '', ciclo_duracion: cicloDuracion },
+      { nombre, descripcion, ciclo_duracion: cicloDuracion },
       {
         onSuccess: () => {
           showToast({
             title: 'Tipo de cultivo creado exitosamente',
             description: 'El tipo de cultivo ha sido registrado en el sistema',
-            timeout: 4000,
+            timeout: 3000,
             variant: 'success',
           });
           onSuccess();
@@ -70,7 +59,7 @@ const CrearTipoCultivo = ({ onSuccess }: CrearTipoCultivoProps) => {
           showToast({
             title: 'Error al crear tipo de cultivo',
             description: error.response?.data?.detail || 'Ocurrió un error al registrar el tipo de cultivo',
-            timeout: 5000,
+            timeout: 3000,
             variant: 'error',
           });
         },

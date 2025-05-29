@@ -7,7 +7,7 @@ export interface TipoCultivo {
     id: number;
     nombre: string;
     descripcion: string;
-    ciclo_duracion: string; // Agregado para manejar el ciclo de duración
+    ciclo_duracion: string;
 }
 
 export const useCrearTipoCultivo = () => {

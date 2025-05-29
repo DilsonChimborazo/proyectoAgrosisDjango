@@ -425,14 +425,6 @@ const CrearAsignacion = ({ onSuccess, onCancel, usuarios: initialUsuarios, onCre
         </div>
         <div className="flex justify-center space-x-4">
           <button
-            type="button"
-            onClick={onCancel}
-            className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 disabled:opacity-50"
-            disabled={isPending}
-          >
-            Cancelar
-          </button>
-          <button
             type="submit"
             className="bg-white text-[#2e7d32] px-4 py-2 rounded-md border border-[#2e7d32] hover:bg-[#2e7d32] hover:text-white disabled:opacity-50"
             disabled={isPending}

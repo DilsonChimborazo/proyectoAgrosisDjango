@@ -11,14 +11,13 @@ interface CrearEspecieProps {
   onCancel?: () => void;
 }
 
-const CrearEspecie = ({ onSuccess, onCancel }: CrearEspecieProps) => {
+const CrearEspecie = ({ onSuccess }: CrearEspecieProps) => {
   const mutation = useCrearEspecie();
   const { data: tiposCultivo = [], isLoading: isLoadingTiposCultivo, refetch: refetchTiposCultivo } = useTipoCultivo();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const tipoCultivoOptions = useMemo(() => {
     return [
-      { value: '', label: 'Seleccione un tipo de cultivo' },
       ...tiposCultivo.map((tipo: TipoCultivo) => ({
         value: tipo.id.toString(),
         label: tipo.nombre || 'Sin nombre',
@@ -31,7 +30,7 @@ const CrearEspecie = ({ onSuccess, onCancel }: CrearEspecieProps) => {
       showToast({
         title: 'Error al crear especie',
         description: 'No hay tipos de cultivo registrados',
-        timeout: 5000,
+        timeout: 3000,
         variant: 'error',
       });
     }
@@ -63,7 +62,7 @@ const CrearEspecie = ({ onSuccess, onCancel }: CrearEspecieProps) => {
       showToast({
         title: 'Error al crear especie',
         description: 'Todos los campos son obligatorios',
-        timeout: 5000,
+        timeout: 3000,
         variant: 'error',
       });
       return;
@@ -81,7 +80,7 @@ const CrearEspecie = ({ onSuccess, onCancel }: CrearEspecieProps) => {
         showToast({
           title: 'Especie creada exitosamente',
           description: 'La especie ha sido registrada en el sistema',
-          timeout: 4000,
+          timeout: 3000,
           variant: 'success',
         });
         console.log('✅ onSuccess de CrearEspecie ejecutado');
@@ -92,8 +91,8 @@ const CrearEspecie = ({ onSuccess, onCancel }: CrearEspecieProps) => {
       onError: (error: any) => {
         showToast({
           title: 'Error al crear especie',
-          description: error.response?.data?.detail || 'Ocurrió un error al registrar la especie',
-          timeout: 5000,
+          description: error.response?.data?.detail,
+          timeout: 3000,
           variant: 'error',
         });
       },
