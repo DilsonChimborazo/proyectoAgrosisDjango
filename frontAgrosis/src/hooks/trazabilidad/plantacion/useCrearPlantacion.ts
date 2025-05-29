@@ -9,6 +9,8 @@ export interface Plantacion {
     cantidad_transplante: number;
     fecha_plantacion: string;
     fk_id_semillero: number;
+    latitud: number | null;
+    longitud: number | null;
 }
 
 export const useCrearPlantacion = () => {

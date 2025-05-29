@@ -10,8 +10,10 @@ class Plantacion(models.Model):
     cantidad_transplante = models.IntegerField()
     fecha_plantacion = models.DateField()
     fk_id_semillero = models.ForeignKey(Semillero, on_delete=models.SET_NULL, null=True)
+    latitud = models.DecimalField(max_digits=10, decimal_places=6, null=True, blank=True)
+    longitud = models.DecimalField(max_digits=10, decimal_places=6, null=True, blank=True)
 
 
     
-    def _str_(self): 
+    def __str__(self): 
         return f"Cultivo: {self.fk_id_cultivo.nombre_cultivo} Era: {self.fk_id_eras}"
