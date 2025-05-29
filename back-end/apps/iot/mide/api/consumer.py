@@ -157,24 +157,9 @@ class MideConsumer(AsyncWebsocketConsumer):
                 logger.error(f"Error al calcular ETo para plantación {plantacion.id}: {str(e)}")
                 return
 
-            # Seleccionar kc según etapa_actual
-            cultivo = await sync_to_async(lambda: plantacion.fk_id_cultivo)()
-            etapa = await sync_to_async(lambda: cultivo.etapa_actual.lower() if cultivo.etapa_actual else "")()
-            kc_inicial = await sync_to_async(lambda: cultivo.kc_inicial)()
-            kc_desarrollo = await sync_to_async(lambda: cultivo.kc_desarrollo)()
-            kc_final = await sync_to_async(lambda: cultivo.kc_final)()
+            kc_promedio = Decimal('0.85')
 
-            if etapa == "inicial":
-                kc = Decimal(str(kc_inicial)) if kc_inicial is not None else Decimal('1.0')
-            elif etapa == "desarrollo":
-                kc = Decimal(str(kc_desarrollo)) if kc_desarrollo is not None else Decimal('1.0')
-            elif etapa == "final":
-                kc = Decimal(str(kc_final)) if kc_final is not None else Decimal('1.0')
-            else:
-                kc = Decimal('1.0')
-                logger.warning(f"Etapa desconocida '{etapa}' para cultivo {cultivo.id}. Usando kc=1.0")
-
-            etc = eto * kc
+            etc = eto * kc_promedio
 
             # Guardar un nuevo registro de evapotranspiración
             evap = await sync_to_async(Evapotranspiracion.objects.create)(

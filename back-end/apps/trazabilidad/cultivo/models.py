@@ -18,7 +18,7 @@ class Cultivo(models.Model):
     kc_final = models.DecimalField(max_digits=5, decimal_places=2, default=0.8)
 
     # Etapa actual (selección manual)
-    etapa_actual = models.CharField(max_length=20, choices=ETAPAS, default='inicial')
+    etapa_actual = models.CharField(max_length=20, choices=ETAPAS, default='final')
 
     fk_id_especie = models.ForeignKey(Especie, on_delete=models.SET_NULL, null=True)
 

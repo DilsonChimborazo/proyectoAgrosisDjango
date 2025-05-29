@@ -49,14 +49,26 @@ class EvapotranspiracionViewSet(ViewSet):
             if not mediciones.exists():
                 return Response({"error": "No hay mediciones para hoy"}, status=status.HTTP_404_NOT_FOUND)
 
+            # Depurar las mediciones utilizadas
+            logger.info(f"Mediciones encontradas para hoy (plantación {pk}):")
+            for m in mediciones:
+                logger.info(f"  - Sensor: {m.fk_id_sensor.nombre_sensor}, Valor: {m.valor_medicion}, Tipo: {type(m.valor_medicion).__name__}, Fecha: {m.fecha_medicion}")
+
             # Calcular ETo usando Blaney-Criddle
             eto = calcular_eto(mediciones)
+            logger.info(f"Valor calculado de ETo: {eto}, Tipo: {type(eto).__name__}")
 
             # Usar un kc promedio para todos los cultivos
-            kc_promedio = Decimal('0.85')  
-            logger.info(f"Usando kc promedio: {kc_promedio}")
+            kc_promedio = Decimal('0.85')
+            logger.info(f"Valor de kc_promedio usado: {kc_promedio}, Tipo: {type(kc_promedio).__name__}")
 
-            etc = eto * kc_promedio
+            # Convertir eto a Decimal para evitar problemas de precisión
+            eto_decimal = Decimal(str(eto))
+            logger.info(f"Conversión de ETo a Decimal: {eto_decimal}, Tipo: {type(eto_decimal).__name__}")
+
+            # Calcular etc y depurar
+            etc = eto_decimal * kc_promedio
+            logger.info(f"Cálculo de etc: ETo ({eto_decimal}) * kc_promedio ({kc_promedio}) = {etc}, Tipo: {type(etc).__name__}")
 
             # Guardar el cálculo
             evap = Evapotranspiracion.objects.create(
@@ -71,6 +83,8 @@ class EvapotranspiracionViewSet(ViewSet):
         except Plantacion.DoesNotExist:
             return Response({"error": "Plantación no encontrada"}, status=status.HTTP_404_NOT_FOUND)
         except ValueError as e:
+            logger.error(f"Error en el cálculo de ETo: {str(e)}")
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except AttributeError:
+            logger.error("Faltan datos de sensores en las mediciones")
             return Response({"error": "Faltan datos de sensores"}, status=status.HTTP_400_BAD_REQUEST)

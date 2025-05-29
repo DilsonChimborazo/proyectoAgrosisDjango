@@ -99,6 +99,7 @@ export function useEvapotranspiracion(plantacionId: number) {
           etc: Number(message.etc) || 0,
           fecha: new Date(message.fecha).toISOString(),
         };
+        console.log('📈 Nuevos datos:', newData);
 
         // Agregar nuevos datos sin filtrar duplicados por fecha
         if (newData.plantacion_id === plantacionId) {
