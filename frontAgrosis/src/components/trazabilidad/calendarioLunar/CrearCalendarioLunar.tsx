@@ -1,71 +1,99 @@
-import { useState } from "react";
-import { useCrearCalendarioLunar } from "../../../hooks/trazabilidad/calendarioLunar/useCrearCalendarioLunar";
-import Formulario from "../../globales/Formulario";
-import { showToast } from "@/components/globales/Toast"; // Importar el toast
+import React, { useState } from 'react';
+import { useCrearCalendarioLunar } from '@/hooks/trazabilidad/calendarioLunar/useCrearCalendarioLunar';
 
 interface CrearCalendarioLunarProps {
   closeModal: () => void;
+  fechaInicial?: string;
 }
 
-const CrearCalendarioLunar = ({ closeModal }: CrearCalendarioLunarProps) => {
+const CrearCalendarioLunar: React.FC<CrearCalendarioLunarProps> = ({ closeModal, fechaInicial }) => {
   const mutation = useCrearCalendarioLunar();
 
-  const formFields = [
-    { id: "fecha", label: "Fecha", type: "date", required: true },
-    { id: "descripcion_evento", label: "Descripción del Evento", type: "text", required: true },
-    { id: "evento", label: "Evento", type: "text", required: true },
-  ];
+  const [formData, setFormData] = useState({
+    fecha: fechaInicial || '',
+    descripcion_evento: '',
+    evento: '',
+  });
 
-  const handleSubmit = (formData: { [key: string]: string }) => {
-    if (!formData.fecha || !formData.descripcion_evento || !formData.evento) {
-      showToast({
-        title: "Error",
-        description: "Todos los campos son obligatorios.",
-        timeout: 5000,
-        variant: "error",
-      });
-      return;
-    }
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
 
-    const fechaISO = new Date(formData.fecha).toISOString().split("T")[0];
-
-    const nuevoCalendarioLunar = {
-      fecha: fechaISO,
-      descripcion_evento: formData.descripcion_evento.trim(),
-      evento: formData.evento.trim(),
-    };
-
-    console.log("🚀 Enviando calendario lunar al backend:", nuevoCalendarioLunar);
-
-    mutation.mutate(nuevoCalendarioLunar, {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    mutation.mutate(formData, {
       onSuccess: () => {
-        showToast({
-          title: "Calendario creado",
-          description: "El calendario lunar ha sido registrado correctamente.",
-          timeout: 4000,
-          variant: "success",
-        });
-        closeModal(); // Cerrar el modal tras éxito
+        closeModal();
       },
       onError: (error) => {
-        showToast({
-          title: "Error al crear calendario",
-          description: error.response?.data?.detail || "Ocurrió un problema al registrar.",
-          timeout: 5000,
-          variant: "error",
-        });
+        alert('Error al crear actividad');
+        console.error(error);
       },
     });
   };
 
   return (
-    <Formulario
-      fields={formFields}
-      onSubmit={handleSubmit}
-      isError={mutation.isError}
-      isSuccess={mutation.isSuccess}
-      title="Registra Nuevo Calendario Lunar"
-    />
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
+      <div className="bg-white rounded-lg p-6 w-96 max-w-full shadow-lg relative">
+        <button
+          className="absolute top-2 right-3 text-gray-600 hover:text-gray-900 font-bold"
+          onClick={closeModal}
+          aria-label="Cerrar modal"
+        >
+          &times;
+        </button>
+
+        <h3 className="text-xl font-semibold mb-4">Registra un evento en el calendario</h3>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <label className="flex flex-col">
+            Fecha:
+            <input
+              type="date"
+              name="fecha"
+              value={formData.fecha}
+              onChange={handleChange}
+              required
+              className="border rounded px-2 py-1"
+            />
+          </label>
+
+          <label className="flex flex-col">
+            Evento:
+            <input
+              type="text"
+              name="evento"
+              value={formData.evento}
+              onChange={handleChange}
+              required
+              className="border rounded px-2 py-1"
+              placeholder="Nombre del evento"
+            />
+          </label>
+
+          <label className="flex flex-col">
+            Descripción:
+            <textarea
+              name="descripcion_evento"
+              value={formData.descripcion_evento}
+              onChange={handleChange}
+              required
+              className="border rounded px-2 py-1"
+              placeholder="Detalles del evento"
+            />
+          </label>
+
+          <button
+            type="submit"
+            disabled={mutation.isPending}
+            className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded"
+          >
+            {mutation.isPending ? 'Guardando...' : 'Guardar'}
+          </button>
+        </form>
+      </div>
+    </div>
   );
 };
 
