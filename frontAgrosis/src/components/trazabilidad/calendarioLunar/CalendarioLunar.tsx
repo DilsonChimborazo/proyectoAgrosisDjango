@@ -1,137 +1,153 @@
-import { useState } from "react";
-import { useCalendarioLunar } from "../../../hooks/trazabilidad/calendarioLunar/useCalendarioLunar";
-import useCalendarioActivos from "../../../hooks/trazabilidad/calendarioLunar/useCalendariosActivos";
-import VentanaModal from "../../globales/VentanasModales";
-import Tabla from "../../globales/Tabla";
-import CrearCalendarioLunar from "./CrearCalendarioLunar";
-import ActualizarCalendarioLunar from "../calendarioLunar/ActualizarCalendario";
+import React, { useEffect, useState, useMemo } from 'react';
+import { obtenerFaseLunar } from '@/hooks/trazabilidad/calendarioLunar/apiLunar';
+import CrearCalendarioLunar from './CrearCalendarioLunar';
+import { useCalendarioLunar, CalendarioLunar as EventoCalendario } from '@/hooks/trazabilidad/calendarioLunar/useCalendarioLunar';
 
-const CalendariosLunares = () => {
-  const { data: calendarios, error, isLoading } = useCalendarioLunar();
-  const { generarPDF } = useCalendarioActivos();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
-  const [selectedCalendario, setSelectedCalendario] = useState<any>(null);
+interface DiaLunar {
+  fecha: string;
+  fase: string;
+}
 
-  const openModal = (calendario: any) => {
-    setSelectedCalendario(calendario);
-    setIsModalOpen(true);
+const traducirFase = (fase: string): string => {
+  const traducciones: Record<string, string> = {
+    'New Moon': 'Luna nueva',
+    'Waxing Crescent': 'Luna creciente',
+    'First Quarter': 'Cuarto creciente',
+    'Waxing Gibbous': 'Gibosa creciente',
+    'Full Moon': 'Luna llena',
+    'Waning Gibbous': 'Gibosa menguante',
+    'Last Quarter': 'Cuarto menguante',
+    'Waning Crescent': 'Luna menguante',
+  };
+  return traducciones[fase] || fase;
+};
+
+const colorFase = (fase: string): string => {
+  const colores: Record<string, string> = {
+    'New Moon': 'bg-gray-800',
+    'Waxing Crescent': 'bg-green-500',
+    'First Quarter': 'bg-yellow-400',
+    'Waxing Gibbous': 'bg-blue-400',
+    'Full Moon': 'bg-purple-500',
+    'Waning Gibbous': 'bg-indigo-400',
+    'Last Quarter': 'bg-pink-400',
+    'Waning Crescent': 'bg-red-400',
+  };
+  return colores[fase] || 'bg-gray-300';
+};
+
+const CalendarioLunar: React.FC = () => {
+  const [datos, setDatos] = useState<DiaLunar[]>([]);
+  const [modalAbierto, setModalAbierto] = useState(false);
+  const [fechaSeleccionada, setFechaSeleccionada] = useState<string>('');
+  const fechaActual = new Date();
+  const anio = fechaActual.getFullYear();
+  const mes = fechaActual.getMonth(); // 0-indexed
+  const nombreMes = fechaActual.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+
+  const { data: eventos, refetch } = useCalendarioLunar();
+
+  useEffect(() => {
+    const obtenerDatos = async () => {
+      const diasEnMes = new Date(anio, mes + 1, 0).getDate();
+      const promesas = [];
+
+      for (let dia = 1; dia <= diasEnMes; dia++) {
+        const fecha = `${anio}-${(mes + 1).toString().padStart(2, '0')}-${dia.toString().padStart(2, '0')}`;
+        promesas.push(obtenerFaseLunar(fecha).then(fase => ({ fecha, fase })));
+      }
+
+      const resultados = await Promise.all(promesas);
+      setDatos(resultados);
+    };
+
+    obtenerDatos();
+  }, [anio, mes]);
+
+  // Agrupar eventos por fecha para mostrar varios en el mismo día
+  const eventosPorFecha = useMemo(() => {
+    const agrupados: Record<string, EventoCalendario[]> = {};
+    eventos?.forEach(evento => {
+      if (!agrupados[evento.fecha]) {
+        agrupados[evento.fecha] = [];
+      }
+      agrupados[evento.fecha].push(evento);
+    });
+    return agrupados;
+  }, [eventos]);
+
+  const primerDiaSemana = new Date(anio, mes, 1).getDay();
+  const diasVacios = Array(primerDiaSemana).fill(null);
+
+  const abrirModal = (fecha: string) => {
+    setFechaSeleccionada(fecha);
+    setModalAbierto(true);
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setSelectedCalendario(null);
+  const cerrarModal = () => {
+    setModalAbierto(false);
+    setFechaSeleccionada('');
+    refetch();
   };
-
-  const openCreateModal = () => {
-    setIsCreateModalOpen(true);
-  };
-
-  const closeCreateModal = () => {
-    setIsCreateModalOpen(false);
-  };
-
-  const openUpdateModal = (calendario: any) => {
-    setSelectedCalendario(calendario);
-    setIsUpdateModalOpen(true);
-  };
-
-  const closeUpdateModal = () => {
-    setIsUpdateModalOpen(false);
-    setSelectedCalendario(null);
-  };
-
-  const handleUpdate = (calendario: { id: number }) => {
-    if (!calendario.id) {
-      console.error("❌ El ID del calendario no está definido.");
-      return;
-    }
-    openUpdateModal(calendario);
-  };
-
-  if (isLoading)
-    return (
-      <div className="text-center text-gray-500">
-        Cargando calendarios lunares...
-      </div>
-    );
-
-  if (error)
-    return (
-      <div className="text-center text-red-500">
-        Error al cargar los calendarios lunares: {error.message}
-      </div>
-    );
-
-  const tablaData = (calendarios ?? []).map((calendario) => ({
-    id: calendario.id,
-    fecha: calendario.fecha
-      ? new Date(calendario.fecha).toLocaleDateString("es-ES", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        })
-      : "Sin fecha",
-    descripcion_evento: calendario.descripcion_evento || "N/A",
-    evento: calendario.evento || "Sin evento",
-  }));
-
-  const headers = ["ID", "Fecha", "Descripcion Evento", "Evento"];
 
   return (
-    <div className="overflow-x-auto rounded-lg">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-bold">Calendarios Lunares</h2>
-        <button
-          className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
-          onClick={generarPDF}
-        >
-          Descargar PDF
-        </button>
+    <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="bg-gray-100 rounded-2xl p-6 shadow-lg">
+        <h2 className="text-3xl font-bold text-center mb-6 capitalize text-gray-700">{nombreMes}</h2>
+
+        <div className="grid grid-cols-7 gap-2 mb-3 text-center font-semibold text-gray-500">
+          <span>Dom</span><span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span>
+        </div>
+
+        <div className="grid grid-cols-7 gap-3">
+          {diasVacios.map((_, index) => (
+            <div key={`vacio-${index}`} className="h-24"></div>
+          ))}
+
+          {datos.map(dia => {
+            const eventosDelDia = eventosPorFecha[dia.fecha] || [];
+
+            return (
+              <div
+                key={dia.fecha}
+                className="bg-white h-24 p-2 rounded-xl shadow-md flex flex-col justify-between border border-gray-200 cursor-pointer hover:bg-gray-200 relative"
+                onClick={() => abrirModal(dia.fecha)}
+                title={`Fase lunar: ${traducirFase(dia.fase)}${eventosDelDia.length > 0 ? ` - ${eventosDelDia.length} evento(s)` : ''}`}
+              >
+                <span className="text-gray-800 font-bold z-20 relative">
+                  {Number(dia.fecha.split('-')[2])}
+                </span>
+
+                {/* Eventos sobre la fase lunar */}
+                <div className="absolute top-6 left-2 right-2 max-h-12 overflow-y-auto text-[10px] text-blue-700 z-30">
+                  {eventosDelDia.map(evento => (
+                    <span key={evento.id} title={evento.descripcion_evento} className="block truncate">
+                      📌 {evento.evento}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="flex items-center gap-1 text-xs text-gray-600 mt-auto z-10 relative">
+                  <span
+                    className={`w-3 h-3 rounded-full ${colorFase(dia.fase)}`}
+                    title={traducirFase(dia.fase)}
+                  ></span>
+                  <span className="truncate">{traducirFase(dia.fase)}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
-      <Tabla
-        title="Lista de Calendarios Lunares"
-        headers={headers}
-        data={tablaData}
-        onClickAction={openModal}
-        onUpdate={handleUpdate}
-        onCreate={openCreateModal}
-        createButtonTitle="Crear"
-      />
-
-      {selectedCalendario && (
-        <VentanaModal
-          isOpen={isModalOpen}
-          onClose={closeModal}
-          titulo="Detalles del Calendario Lunar"
-          contenido={selectedCalendario}
+      {modalAbierto && (
+        <CrearCalendarioLunar
+          closeModal={cerrarModal}
+          fechaInicial={fechaSeleccionada}
         />
       )}
-
-      <VentanaModal
-        isOpen={isCreateModalOpen}
-        onClose={closeCreateModal}
-        titulo="Registra Nuevo Calendario Lunar"
-        contenido={<CrearCalendarioLunar closeModal={closeCreateModal} />}
-      />
-
-      <VentanaModal
-        isOpen={isUpdateModalOpen}
-        onClose={closeUpdateModal}
-        titulo="Actualizar Calendario Lunar"
-        contenido={
-          selectedCalendario && (
-            <ActualizarCalendarioLunar
-              calendario={selectedCalendario}
-              closeModal={closeUpdateModal}
-            />
-          )
-        }
-      />
     </div>
   );
 };
 
-export default CalendariosLunares;
+export default CalendarioLunar;
