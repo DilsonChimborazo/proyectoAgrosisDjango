@@ -195,14 +195,14 @@ export default function Principal({ children }: LayoutProps) {
           className="fixed top-0 left-0 w-full bg-green-700 text-white p-2 sm:p-4 flex justify-between items-center z-40 transition-all duration-300"
           style={{ zIndex: 40 }}
         >
-          <div className={`flex items-center transition-all duration-300 ${sidebarOpen ? "ml-48 sm:ml-64" : "ml-0"}`}>
+          <div className={`flex items-center justify-center transition-all duration-300 ${sidebarOpen ? "ml-48 sm:ml-64" : "ml-0"}`}>
             <Button isIconOnly variant="light" className="text-white" onClick={() => setSidebarOpen(!sidebarOpen)}>
               <Menu size={20} />
             </Button>
-            <h1 className="text-lg sm:text-xl ms-4 ">
-              Bienvenido a AgroSoft: <span className="font-semibold text-gray-200"> {usuario
-                ? `${usuario?.nombre || "Nombre no disponible"} ${usuario?.apellido || "Apellido no disponible"}`
-                : "Usuario no identificado"}</span> 🌱
+          </div>
+          <div className={`flex items-center text-3xl font-semibold justify-center transition-all duration-300 ${sidebarOpen ? "ml-48 sm:ml-64" : "ml-0"}`}>
+            <h1 className="text-center ">
+              Bienvenido a AgroSoft 🌱
             </h1>
           </div>
           <div className="flex items-center space-x-2 sm:space-x-4">
@@ -232,7 +232,7 @@ export default function Principal({ children }: LayoutProps) {
               onClick={handleLogout}
               className="flex items-center gap-2 px-4 py-2 hover:text-yellow-100 text-white"
             >
-              <LogOut size={18} />
+              <LogOut size={20} />
             </button>
           </div>
         </div>

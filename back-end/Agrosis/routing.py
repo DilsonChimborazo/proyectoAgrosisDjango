@@ -12,7 +12,7 @@ from apps.inventario.insumo.api.consumer import NotificationInsumoConsumer
 
 
 websocket_urlpatterns = [
-    re_path(r'ws/asignacion_actividades/$', AsignacionActividadesConsumer.as_asgi()),
+    re_path(r'ws/api/asignacion_actividades/$', AsignacionActividadesConsumer.as_asgi()),
     re_path(r'ws/api/mide/$', MideConsumer.as_asgi()),
     re_path(r'ws/api/sensores/$', SensorConsumer.as_asgi()),
     re_path(r"ws/api/evapotranspiracion/$", EvapotranspiracionConsumer.as_asgi()),
