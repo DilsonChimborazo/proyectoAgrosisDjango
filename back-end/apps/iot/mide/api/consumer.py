@@ -152,7 +152,7 @@ class MideConsumer(AsyncWebsocketConsumer):
 
             # Calcular ETo con las mediciones más recientes
             try:
-                eto = await sync_to_async(calcular_eto)(mediciones, altitud=1000)
+                eto = await sync_to_async(calcular_eto)(mediciones)
             except ValueError as e:
                 logger.error(f"Error al calcular ETo para plantación {plantacion.id}: {str(e)}")
                 return
