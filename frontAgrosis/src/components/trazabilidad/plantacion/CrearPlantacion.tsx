@@ -119,7 +119,7 @@ const CrearPlantacion = ({ onSuccess, onCancel }: CrearPlantacionProps) => {
       id: "cantidad_transplante",
       label: "Cantidad Transplante",
       type: "number",
-      step: "1", // Solo enteros
+      step: "1", 
     },  
   ];
 

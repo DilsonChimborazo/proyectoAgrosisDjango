@@ -21,9 +21,9 @@ interface AsignacionTabla {
   plantacion: string;
   actividad: string;
   usuarios: string[];
-  fecha_realizada: string | null;
-  duracion: number | null;
-  cantidad_insumo: number | null;
+  fecha_realizada: string | null | string; // Añadido string para "No asignada"
+  duracion: number | null | string; // Añadido string para "No asignada"
+  cantidad_insumo: number | null | string; // Añadido string para "No asignada"
   img: string | null | React.ReactNode;
   unidad_medida: string;
 }
@@ -80,6 +80,18 @@ const ListarAsignacion = () => {
   const { data: programaciones = [], isLoading: isLoadingProgramaciones, error: errorProgramaciones, refetch: refetchProgramaciones } = useProgramacion();
   const { data: unidadesMedida = [], isLoading: isLoadingUnidadesMedida, error: errorUnidadesMedida } = useMedidas();
 
+  // Mostrar toasts al cargar los datos
+  useEffect(() => {
+    if (asignaciones.length === 0 && !isLoadingAsignaciones && !errorAsignaciones) {
+      showToast({
+        title: 'Aviso',
+        description: 'No hay asignaciones disponibles. Crea una nueva asignación para empezar.',
+        timeout: 3000,
+        variant: 'info',
+      });
+    }
+  }, [unidadesMedida, asignaciones, realizaList, isLoadingUnidadesMedida, isLoadingAsignaciones, isLoadingRealiza, errorUnidadesMedida, errorAsignaciones, errorRealiza]);
+
   // Depuración: Mostrar datos recibidos
   useEffect(() => {
     console.log('Asignaciones:', asignaciones);
@@ -120,7 +132,7 @@ const ListarAsignacion = () => {
           showToast({
             title: 'Asignación Creada',
             description: 'La asignación se ha registrado correctamente.',
-            timeout: 4000,
+            timeout: 3000,
             variant: 'success',
           });
         }}
@@ -147,10 +159,10 @@ const ListarAsignacion = () => {
         plantacion: `Sin cultivo (No hay datos en realizaList)`,
         actividad: `Sin actividad (No hay datos en realizaList)`,
         usuarios: ['Sin usuarios'],
-        fecha_realizada: null,
-        duracion: null,
-        cantidad_insumo: null,
-        img: 'Sin imagen',
+        fecha_realizada: 'No asignada',
+        duracion: 'No asignada',
+        cantidad_insumo: 'No asignada',
+        img: 'No asignada',
         unidad_medida: 'No asignada',
       }));
     }
@@ -189,7 +201,7 @@ const ListarAsignacion = () => {
         unidadMedida = unidad ? unidad.nombre_medida : `Unidad no encontrada (ID: ${unidadMedidaId})`;
       }
 
-      let imgElement: React.ReactNode = 'Sin imagen';
+      let imgElement: React.ReactNode = 'No asignada';
       let imgUrl: string | null = null;
       if (programacion?.img) {
         if (typeof programacion.img === 'string') {
@@ -219,12 +231,12 @@ const ListarAsignacion = () => {
         estado: asignacion.estado as 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada',
         fecha_programada: asignacion.fecha_programada || 'Sin fecha',
         observaciones: asignacion.observaciones || 'Sin observaciones',
-        plantacion: realiza?.fk_id_plantacion?.fk_id_semillero?.nombre_semilla ?? realiza?.fk_id_plantacion?.nombre ?? `Sin cultivo (fk_id_realiza: ${realizaId || 'N/A'})`,
+        plantacion: realiza?.fk_id_plantacion?.fk_id_semillero?.nombre_semilla ?? realiza?.fk_id_plantacion?.nombre_cultivo ?? `Sin cultivo (fk_id_realiza: ${realizaId || 'N/A'})`,
         actividad: realiza?.fk_id_actividad?.nombre_actividad ?? `Sin actividad (fk_id_realiza: ${realizaId || 'N/A'})`,
         usuarios: usuariosAsignados.length > 0 ? usuariosAsignados : ['Sin usuarios'],
-        fecha_realizada: programacion?.fecha_realizada || null,
-        duracion: programacion?.duracion ?? null,
-        cantidad_insumo: programacion?.cantidad_insumo ?? null,
+        fecha_realizada: programacion?.fecha_realizada || 'No asignada',
+        duracion: programacion?.duracion ?? 'No asignada',
+        cantidad_insumo: programacion?.cantidad_insumo ?? 'No asignada',
         img: imgElement,
         unidad_medida: unidadMedida,
       };
@@ -250,7 +262,7 @@ const ListarAsignacion = () => {
     showToast({
       title: 'Error al cargar datos',
       description: error.message || 'No se pudieron cargar las asignaciones',
-      timeout: 5000,
+      timeout: 3000,
       variant: 'error',
     });
     return <div className="text-center text-red-500">Error al cargar datos. Intenta de nuevo.</div>;
@@ -325,7 +337,7 @@ const ListarAsignacion = () => {
                   showToast({
                     title: 'Programación Actualizada',
                     description: 'La programación se ha actualizado correctamente.',
-                    timeout: 4000,
+                    timeout: 3000,
                     variant: 'success',
                   });
                 }}
@@ -336,21 +348,6 @@ const ListarAsignacion = () => {
         </>
       )}
       <div className="bg-white rounded-lg shadow p-6">
-        {unidadesMedida.length === 0 && !isLoadingUnidadesMedida && !errorUnidadesMedida && (
-          <div className="text-center text-yellow-500 mb-4">
-            No hay unidades de medida disponibles. Por favor, crea algunas unidades de medida para asignarlas a las programaciones.
-          </div>
-        )}
-        {asignaciones.length === 0 && !isLoadingAsignaciones && !errorAsignaciones && (
-          <div className="text-center text-gray-500 mb-4">
-            No hay asignaciones disponibles. Crea una nueva asignación para empezar.
-          </div>
-        )}
-        {realizaList.length === 0 && !isLoadingRealiza && !errorRealiza && (
-          <div className="text-center text-yellow-500 mb-4">
-            No hay datos en realiza. Por favor, asegúrate de que existan registros en realiza para mapear actividades y plantaciones.
-          </div>
-        )}
         <Tabla
           title="Lista de Asignaciones"
           headers={headers}
