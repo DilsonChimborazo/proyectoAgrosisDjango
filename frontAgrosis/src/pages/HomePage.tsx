@@ -660,8 +660,8 @@ const HomePage = () => {
                   <svg width="40" height="80" viewBox="0 0 40 80">
                     <rect x="15" y="10" width="10" height="60" fill="#E5E7EB" rx="5" />
                     <rect
-                      x="10"
-                      y={70 - (chartData.normalizedValue * 0.6)}
+                      x="15"
+                      y={71 - (chartData.normalizedValue * 0.6)}
                       width="10"
                       height={chartData.normalizedValue * 0.6}
                       fill={COLORS.temperatura}
@@ -781,7 +781,7 @@ const HomePage = () => {
                     <circle cx="30" cy="30" r="20" fill="none" stroke="#E5E7EB" strokeWidth="4" />
                     <circle
                       cx="30"
-                      cy="30"
+                      cy="50"
                       r="20"
                       fill="none"
                       stroke={COLORS[tipoSensor] || COLORS.default}
