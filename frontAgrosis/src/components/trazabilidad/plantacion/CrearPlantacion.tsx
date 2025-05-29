@@ -97,12 +97,6 @@ const CrearPlantacion = ({ onSuccess, onCancel }: CrearPlantacionProps) => {
       onExtraButtonClick: () => setMostrarModalCultivo(true),
     },
     {
-      id: "cantidad_transplante",
-      label: "Cantidad Transplante",
-      type: "number",
-      step: "1", // Solo enteros
-    },
-    {
       id: "fecha_plantacion",
       label: "Fecha de Plantación",
       type: "date",
@@ -121,6 +115,12 @@ const CrearPlantacion = ({ onSuccess, onCancel }: CrearPlantacionProps) => {
         </div>
       ) : null,
     },
+    {
+      id: "cantidad_transplante",
+      label: "Cantidad Transplante",
+      type: "number",
+      step: "1", // Solo enteros
+    },  
   ];
 
   const handleSubmit = (formData: { [key: string]: string }) => {
