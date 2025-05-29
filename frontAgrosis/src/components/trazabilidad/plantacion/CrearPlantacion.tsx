@@ -9,7 +9,7 @@ import VentanaModal from "../../globales/VentanasModales";
 import CrearEra from "../../iot/eras/CrearEras";
 import CrearCultivo from "../cultivos/CrearCultivos";
 import CrearSemillero from "../semillero/CrearSemillero";
-import { showToast } from '@/components/globales/Toast';
+import { showToast } from "@/components/globales/Toast";
 
 interface CrearPlantacionProps {
   onSuccess: () => void;
@@ -25,6 +25,7 @@ interface FormField {
   extraButtonText?: string;
   onExtraButtonClick?: () => void;
   extraContent?: React.ReactNode;
+  step?: string; // Para inputs numéricos con valores decimales
 }
 
 const CrearPlantacion = ({ onSuccess, onCancel }: CrearPlantacionProps) => {
@@ -66,6 +67,18 @@ const CrearPlantacion = ({ onSuccess, onCancel }: CrearPlantacionProps) => {
 
   const formFields: FormField[] = [
     {
+      id: "latitud",
+      label: "Latitud",
+      type: "number",
+      step: "0.000001", // Permite valores decimales con hasta 6 decimales
+    },
+    {
+      id: "longitud",
+      label: "Longitud",
+      type: "number",
+      step: "0.000001", // Permite valores decimales con hasta 6 decimales
+    },
+    {
       id: "fk_id_eras",
       label: "Era",
       type: "select",
@@ -82,11 +95,6 @@ const CrearPlantacion = ({ onSuccess, onCancel }: CrearPlantacionProps) => {
       hasExtraButton: true,
       extraButtonText: "Crear Cultivo",
       onExtraButtonClick: () => setMostrarModalCultivo(true),
-    },
-    {
-      id: "cantidad_transplante",
-      label: "Cantidad Transplante",
-      type: "number",
     },
     {
       id: "fecha_plantacion",
@@ -107,10 +115,18 @@ const CrearPlantacion = ({ onSuccess, onCancel }: CrearPlantacionProps) => {
         </div>
       ) : null,
     },
+    {
+      id: "cantidad_transplante",
+      label: "Cantidad Transplante",
+      type: "number",
+      step: "1", // Solo enteros
+    },  
   ];
 
   const handleSubmit = (formData: { [key: string]: string }) => {
     const errors: string[] = [];
+
+    // Validaciones
     if (!formData.fk_id_eras) errors.push("Era es obligatoria");
     if (!formData.fk_id_cultivo) errors.push("Cultivo es obligatorio");
     if (!formData.cantidad_transplante || parseInt(formData.cantidad_transplante) <= 0) {
@@ -118,13 +134,20 @@ const CrearPlantacion = ({ onSuccess, onCancel }: CrearPlantacionProps) => {
     }
     if (!formData.fecha_plantacion) errors.push("Fecha de Plantación es obligatoria");
     if (!formData.fk_id_semillero) errors.push("Semillero es obligatorio");
+    // Validar que latitud y longitud sean válidos si se proporcionan
+    if (formData.latitud && isNaN(Number(formData.latitud))) {
+      errors.push("Latitud debe ser un número válido");
+    }
+    if (formData.longitud && isNaN(Number(formData.longitud))) {
+      errors.push("Longitud debe ser un número válido");
+    }
 
     if (errors.length > 0) {
       showToast({
-        title: 'Error al crear plantación',
+        title: "Error al crear plantación",
         description: errors.join(", "),
         timeout: 5000,
-        variant: 'error',
+        variant: "error",
       });
       return;
     }
@@ -133,32 +156,33 @@ const CrearPlantacion = ({ onSuccess, onCancel }: CrearPlantacionProps) => {
       fk_id_eras: parseInt(formData.fk_id_eras),
       fk_id_cultivo: parseInt(formData.fk_id_cultivo),
       cantidad_transplante: parseInt(formData.cantidad_transplante),
-      fecha_plantacion: new Date(formData.fecha_plantacion).toISOString().split('T')[0],
+      fecha_plantacion: new Date(formData.fecha_plantacion).toISOString().split("T")[0],
       fk_id_semillero: parseInt(formData.fk_id_semillero),
+      latitud: formData.latitud ? Number(formData.latitud) : null,
+      longitud: formData.longitud ? Number(formData.longitud) : null,
     };
 
     mutation.mutate(nuevaPlantacion, {
       onSuccess: () => {
         showToast({
-          title: 'Plantación creada exitosamente',
-          description: 'La plantación ha sido registrada en el sistema',
+          title: "Plantación creada exitosamente",
+          description: "La plantación ha sido registrada en el sistema",
           timeout: 4000,
-          variant: 'success',
+          variant: "success",
         });
         onSuccess();
       },
       onError: (error) => {
         showToast({
-          title: 'Error al crear plantación',
-          description: error.message || 'Error al crear la plantación. Intenta de nuevo.',
+          title: "Error al crear plantación",
+          description: error.message || "Error al crear la plantación. Intenta de nuevo.",
           timeout: 5000,
-          variant: 'error',
+          variant: "error",
         });
       },
     });
   };
 
-  // 👉 Esta función se pasa como onSuccess a los formularios de creación
   const cerrarYActualizar = async () => {
     setMostrarModalEra(false);
     setMostrarModalCultivo(false);

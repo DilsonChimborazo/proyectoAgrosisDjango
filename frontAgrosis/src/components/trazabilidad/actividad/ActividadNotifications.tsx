@@ -14,7 +14,7 @@ const ActividadNotifications: React.FC = () => {
   const socketRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
-    const wsUrl = "ws://127.0.0.1:8000/ws/api/asignacion_actividades/";
+    const wsUrl = "ws://192.168.0.106:8000/ws/api/asignacion_actividades/";
     socketRef.current = new WebSocket(wsUrl);
 
     socketRef.current.onopen = () => {
