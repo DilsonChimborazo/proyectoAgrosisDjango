@@ -1,87 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import { TrazabilidadCultivoReporte, SnapshotTrazabilidad, ResumenTrazabilidad } from '@/components/finanzas/trazabilidad/Types';
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
-export interface TrazabilidadCultivoReporte {
-  plantacion_id: number;
-  cultivo: string;
-  especie?: string;
-  fecha_plantacion: string;
-  era?: string;
-  lote?: string;
-  total_tiempo_minutos: number;
-  total_horas: number;
-  jornales: number;
-  costo_mano_obra: number;
-  egresos_insumos: number;
-  ingresos_ventas: number;
-  beneficio_costo: number;
-  detalle_actividades: DetalleActividad[];
-  detalle_insumos: DetalleInsumo[];
-  detalle_ventas: DetalleVenta[];
-  resumen: Resumen;
-}
-
-export interface DetalleActividad {
-  id: number;
-  estado: string;
-  fecha_programada: string;
-  fecha_realizada?: string;
-  actividad: string;
-  responsable?: string;
-  duracion_minutos: number;
-  observaciones: string;
-  tipo_control?: string;
-  pea?: string;
-}
-
-export interface DetalleInsumo {
-  tipo: 'Actividad' | 'Control Fitosanitario';
-  nombre: string;
-  tipo_insumo: string;
-  cantidad: number;
-  unidad_medida?: string;
-  cantidad_base?: number;
-  precio_por_base?: number;
-  costo_total: number;
-  fecha: string;
-  actividad_asociada?: string;
-  pea?: string;
-}
-
-export interface DetalleVenta {
-  cantidad: number;
-  precio_unidad: number;
-  ingreso_total: number;
-  fecha: string;
-  unidad_medida?: string;
-  produccion_asociada?: string;
-}
-
-export interface Resumen {
-  total_actividades: number;
-  total_controles: number;
-  total_ventas: number;
-  total_insumos: number;
-  costo_total: number;
-  balance: number;
-}
-
-export interface SnapshotTrazabilidad {
-  id: number;
-  fecha_registro: string;
-  version: number;
-  trigger?: string;
-  datos: TrazabilidadCultivoReporte;
-}
-
-export interface ResumenTrazabilidad {
-  ultima_actualizacion: string;
-  datos_actuales: TrazabilidadCultivoReporte;
-}
-
-// Función auxiliar para formatear fechas
 const formatDate = (dateStr: string | null | undefined): string => {
   if (!dateStr) return 'Sin fecha';
   const date = new Date(dateStr);
@@ -105,7 +27,28 @@ const transformarDatosTrazabilidad = (data: any): TrazabilidadCultivoReporte => 
   detalle_ventas: data.detalle_ventas?.map((ven: any) => ({
     ...ven,
     fecha: formatDate(ven.fecha),
-  })) || []
+  })) || [],
+  
+  costo_mano_obra_acumulado: data.costo_mano_obra_acumulado ?? 0,
+  egresos_insumos_acumulado: data.egresos_insumos_acumulado ?? 0,
+  ingresos_ventas_acumulado: data.ingresos_ventas_acumulado ?? 0,
+  beneficio_costo_acumulado: data.beneficio_costo_acumulado ?? 0,
+  total_cantidad_producida_base_acumulado: data.total_cantidad_producida_base_acumulado ?? 0,
+  precio_minimo_venta_por_unidad_acumulado: data.precio_minimo_venta_por_unidad_acumulado ?? 0,
+
+  costo_incremental_ultima_cosecha: data.costo_incremental_ultima_cosecha ?? 0,
+  cantidad_incremental_ultima_cosecha: data.cantidad_incremental_ultima_cosecha ?? 0,
+  precio_minimo_incremental_ultima_cosecha: data.precio_minimo_incremental_ultima_cosecha ?? 0,
+
+  // Nuevos campos
+  precio_minimo_recuperar_inversion: data.precio_minimo_recuperar_inversion ?? 0,
+  stock_disponible_total: data.stock_disponible_total ?? 0,
+
+  resumen: {
+    ...data.resumen,
+    costo_total_acumulado: data.resumen?.costo_total_acumulado ?? 0,
+    balance_acumulado: data.resumen?.balance_acumulado ?? 0,
+  }
 });
 
 const fetchTrazabilidadActual = async (plantacionId: number) => {
@@ -125,7 +68,11 @@ const fetchResumenActual = async (plantacionId: number) => {
       Authorization: `Bearer ${token}`
     }
   });
-  return transformarDatosTrazabilidad(data.datos_actuales);
+  const transformedDatosActuales = transformarDatosTrazabilidad(data.datos_actuales);
+  return {
+    ...data, 
+    datos_actuales: transformedDatosActuales 
+  } as ResumenTrazabilidad;
 };
 
 const fetchHistorialTrazabilidad = async (plantacionId: number) => {
@@ -142,7 +89,7 @@ const fetchHistorialTrazabilidad = async (plantacionId: number) => {
 };
 
 export const useTrazabilidadActual = (plantacionId: number) => {
-  return useQuery({
+  return useQuery<TrazabilidadCultivoReporte, Error>({
     queryKey: ["trazabilidadActual", plantacionId],
     queryFn: () => fetchTrazabilidadActual(plantacionId),
     enabled: !!plantacionId,
@@ -151,7 +98,7 @@ export const useTrazabilidadActual = (plantacionId: number) => {
 };
 
 export const useResumenActual = (plantacionId: number) => {
-  return useQuery({
+  return useQuery<ResumenTrazabilidad, Error>({
     queryKey: ["resumenActual", plantacionId],
     queryFn: () => fetchResumenActual(plantacionId),
     enabled: !!plantacionId

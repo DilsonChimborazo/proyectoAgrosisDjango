@@ -1,10 +1,12 @@
+// Componente 1: TrazabilidadHistorica.tsx
+
 import { useState, useMemo } from 'react';
 import { useTrazabilidadActual, useResumenActual, useHistorialTrazabilidad } from '@/hooks/finanzas/consultas/useTrazabilidadHistorica';
 import PlantacionSelector from './PlantacionSelector';
 import ResumenTrazabilidad from './ResumenTrazabilidad';
 import ModalesTrazabilidad from './ModalesTrazabilidad';
 import { usePlantacion } from '@/hooks/trazabilidad/plantacion/usePlantacion';
-import { SnapshotTrazabilidad} from './Types';
+import { SnapshotTrazabilidad } from './Types';
 
 const TrazabilidadHistorica = () => {
     const [plantacionSeleccionada, setPlantacionSeleccionada] = useState<number | null>(null);
@@ -14,7 +16,8 @@ const TrazabilidadHistorica = () => {
 
     const { data: plantaciones, isLoading: loadingPlantaciones } = usePlantacion();
     const { data: trazabilidadData, isLoading } = useTrazabilidadActual(plantacionSeleccionada || 0);
-    const { data: resumenActual } = useResumenActual(plantacionSeleccionada || 0);
+    // useResumenActual ahora devuelve el tipo correcto ResumenTrazabilidad con precio_minimo_venta_por_unidad
+    const { data: resumenActual } = useResumenActual(plantacionSeleccionada || 0); 
     const { data: historial } = useHistorialTrazabilidad(plantacionSeleccionada || 0);
 
     const ordenarSnapshots = useMemo(() => {
@@ -57,7 +60,8 @@ const TrazabilidadHistorica = () => {
                 loadingPlantaciones={loadingPlantaciones}
                 plantacionSeleccionada={plantacionSeleccionada}
                 onPlantacionChange={handlePlantacionChange}
-                onVerResumen={() => abrirModal('resumen', resumenActual || trazabilidadData)}
+                // Asegúrate de que `onVerResumen` reciba los datos correctos del resumen (incluyendo el nuevo campo)
+                onVerResumen={() => abrirModal('resumen', resumenActual || trazabilidadData)} 
                 onVerEvolucion={() => abrirModal('evolucion', ordenarSnapshots)}
                 onCompararVersiones={() => abrirModal('comparar', ordenarSnapshots)}
                 onExportarReporte={() => abrirModal('exportar', trazabilidadData)}
@@ -86,4 +90,3 @@ const TrazabilidadHistorica = () => {
 };
 
 export default TrazabilidadHistorica;
-

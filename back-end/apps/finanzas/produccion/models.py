@@ -9,7 +9,7 @@ class Produccion(models.Model):
     stock_disponible = models.DecimalField(max_digits=20, decimal_places=0, default=0)
     fk_id_plantacion = models.ForeignKey(Plantacion, on_delete=models.SET_NULL, null=True)
     fk_unidad_medida = models.ForeignKey(UnidadMedida, on_delete=models.SET_NULL, null=True)
-    
+
     cantidad_en_base = models.DecimalField(
         max_digits=20,
         decimal_places=3,

@@ -37,7 +37,7 @@ export interface Cultivo {
 export interface Plantacion {
     id: number;
     fk_id_eras: Eras | null;
-    fk_id_cultivo: Cultivo | null;
+    fk_id_cultivo: Cultivo;
     cantidad_transplante: number;
     fecha_plantacion: string;
     fk_id_semillero: Semillero | null;

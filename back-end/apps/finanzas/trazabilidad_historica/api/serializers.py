@@ -1,8 +1,6 @@
 from rest_framework import serializers
 from apps.finanzas.trazabilidad_historica.models import SnapshotTrazabilidad, ResumenTrazabilidad
 
-
-
 class SnapshotSerializer(serializers.ModelSerializer):
     class Meta:
         model = SnapshotTrazabilidad
@@ -12,5 +10,5 @@ class SnapshotSerializer(serializers.ModelSerializer):
 class ResumenTrazabilidadSerializer(serializers.ModelSerializer):
     class Meta:
         model = ResumenTrazabilidad
-        fields = ['ultima_actualizacion', 'datos_actuales']
+        fields = ['ultima_actualizacion', 'datos_actuales', 'precio_minimo_venta_por_unidad']
         read_only_fields = fields

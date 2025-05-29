@@ -26,8 +26,6 @@ from apps.finanzas.trazabilidad_historica.models import SnapshotTrazabilidad, Re
 from apps.finanzas.trazabilidad_historica.api.serializers import SnapshotSerializer, ResumenTrazabilidadSerializer
 from apps.finanzas.trazabilidad_historica.services import TrazabilidadService
 
-
-from decimal import Decimal
 import logging
 
 logger = logging.getLogger(__name__)
@@ -75,7 +73,6 @@ class TrazabilidadPlantacionAPIView(APIView):
         detalle = []
         for programacion in programaciones:
             asignacion = programacion.fk_id_asignacionActividades
-            # Manejar múltiples usuarios en fk_identificacion (ManyToManyField)
             usuarios = asignacion.fk_identificacion.all()
             responsables = ", ".join(
                 f"{usuario.nombre} {usuario.apellido}" for usuario in usuarios
@@ -110,7 +107,6 @@ class TrazabilidadPlantacionAPIView(APIView):
     def _get_detalle_insumos(self, asignaciones, controles):
         detalle = []
         
-        # Obtener salidas de bodega para insumos
         salidas_bodega = Bodega.objects.filter(
             fk_id_asignacion__in=asignaciones,
             movimiento='Salida',
@@ -139,7 +135,6 @@ class TrazabilidadPlantacionAPIView(APIView):
                 )
             })
         
-        # Obtener insumos de controles fitosanitarios
         for control in controles:
             if control.fk_id_insumo:
                 detalle.append({
@@ -175,12 +170,10 @@ class TrazabilidadPlantacionAPIView(APIView):
             })
         return detalle
 
-
-    def _calcular_costo_mano_obra(self, programaciones, controles):
+    def _calcular_costo_mano_obra(self, programaciones_queryset, controles_queryset):
         costo_total = Decimal('0')
 
-        # Procesar programaciones
-        for prog in programaciones:
+        for prog in programaciones_queryset:
             usuarios = prog.fk_id_asignacionActividades.fk_identificacion.all()
             if not usuarios:
                 logger.warning(f"Programación {prog.id} sin usuarios asignados")
@@ -202,14 +195,12 @@ class TrazabilidadPlantacionAPIView(APIView):
                 ).order_by('-fecha_inicio').first()
 
                 if salario and salario.horas_por_jornal > 0:
-                    logger.info(f"Usuario {usuario.id}, Rol: {usuario.fk_id_rol.rol}, Salario: {salario.precio_jornal}")
                     jornales = horas_por_usuario / Decimal(salario.horas_por_jornal)
                     costo_total += jornales * salario.precio_jornal
                 else:
                     logger.warning(f"No se encontró salario activo para el rol {usuario.fk_id_rol.rol} en la fecha {prog.fecha_realizada}")
 
-        # Procesar controles fitosanitarios
-        for control in controles:
+        for control in controles_queryset:
             usuario = control.fk_identificacion
             if not usuario:
                 logger.warning(f"Control fitosanitario {control.id} sin usuario asignado")
@@ -226,7 +217,6 @@ class TrazabilidadPlantacionAPIView(APIView):
             ).order_by('-fecha_inicio').first()
 
             if salario and salario.horas_por_jornal > 0:
-                logger.info(f"Control {control.id}, Usuario {usuario.id}, Rol: {usuario.fk_id_rol.rol}, Salario: {salario.precio_jornal}")
                 horas = Decimal(control.duracion) / Decimal('60')
                 jornales = horas / Decimal(salario.horas_por_jornal)
                 costo_total += jornales * salario.precio_jornal
@@ -235,81 +225,149 @@ class TrazabilidadPlantacionAPIView(APIView):
 
         return round(costo_total, 2)
 
+
     def calcular_trazabilidad(self, plantacion_id):
         try:
             plantacion = Plantacion.objects.get(id=plantacion_id)
             cultivo = plantacion.fk_id_cultivo
             
-            asignaciones = Asignacion_actividades.objects.filter(
+            asignaciones_all = Asignacion_actividades.objects.filter(
                 fk_id_realiza__fk_id_plantacion=plantacion
             ).select_related(
                 'fk_id_realiza__fk_id_actividad'
             ).prefetch_related(
-                'fk_identificacion'  # Corregido: ManyToManyField
+                'fk_identificacion'
             )
             
-            programaciones = Programacion.objects.filter(
-                fk_id_asignacionActividades__in=asignaciones,
+            programaciones_all = Programacion.objects.filter(
+                fk_id_asignacionActividades__in=asignaciones_all,
                 estado='Completada'
             ).select_related(
                 'fk_id_asignacionActividades__fk_id_realiza__fk_id_actividad'
             ).prefetch_related(
-                'fk_id_asignacionActividades__fk_identificacion'  # Corregido: ManyToManyField
+                'fk_id_asignacionActividades__fk_identificacion'
             )
             
-            total_minutos = programaciones.aggregate(total=Sum('duracion'))['total'] or 0
-            
-            controles = Control_fitosanitario.objects.filter(
+            controles_all = Control_fitosanitario.objects.filter(
                 fk_id_plantacion=plantacion
             ).select_related(
                 'fk_id_insumo',
                 'fk_unidad_medida',
                 'fk_id_pea',
-                'fk_identificacion'  # Asumiendo que es ForeignKey; si es ManyToManyField, usar prefetch_related
+                'fk_identificacion'
             )
             
-            tiempo_controles = controles.aggregate(total=Sum('duracion'))['total'] or 0
-            total_minutos += tiempo_controles
+            producciones_all = Produccion.objects.filter(fk_id_plantacion=plantacion).order_by('fecha')
+
+            # --- CÁLCULO DE DATOS ACUMULADOS ---
             
-            total_horas = round(total_minutos / 60, 2)
+            total_minutos_acumulado = programaciones_all.aggregate(total=Sum('duracion'))['total'] or 0
+            tiempo_controles_acumulado = controles_all.aggregate(total=Sum('duracion'))['total'] or 0
+            total_minutos_acumulado += tiempo_controles_acumulado
+            total_horas_acumulado = round(Decimal(total_minutos_acumulado) / Decimal('60'), 2)
             
             salario_default = Salario.objects.filter(activo=True).first()
             horas_por_jornal = salario_default.horas_por_jornal if salario_default else 8
-            jornales = round(total_horas / horas_por_jornal, 2)
+            jornales_acumulado = round(total_horas_acumulado / Decimal(horas_por_jornal), 2)
             
-            costo_mano_obra = self._calcular_costo_mano_obra(programaciones, controles)
+            costo_mano_obra_acumulado = self._calcular_costo_mano_obra(programaciones_all, controles_all)
             
-            nominas = Nomina.objects.filter(
-                fk_id_programacion__in=programaciones
-            ).select_related('fk_id_salario')
-            costo_real_nominas = nominas.aggregate(total=Sum('pago_total'))['total'] or 0
-            
-            egresos_bodega = Bodega.objects.filter(
-                fk_id_asignacion__in=asignaciones,
+            egresos_bodega_acumulado = Bodega.objects.filter(
+                fk_id_asignacion__in=asignaciones_all,
                 movimiento='Salida',
                 fk_id_insumo__isnull=False
             ).aggregate(total=Sum('costo_insumo'))['total'] or 0
             
-            egresos_controles = controles.aggregate(total=Sum('costo_insumo'))['total'] or 0
-            egresos_insumos = egresos_bodega + egresos_controles
+            egresos_controles_acumulado = controles_all.aggregate(total=Sum('costo_insumo'))['total'] or 0
+            egresos_insumos_acumulado = egresos_bodega_acumulado + egresos_controles_acumulado
             
-            producciones = Produccion.objects.filter(fk_id_plantacion=plantacion)
-            ventas = Venta.objects.filter(
-                items__produccion__in=producciones
+            total_cantidad_producida_base_acumulado = producciones_all.aggregate(
+                total=Sum('cantidad_en_base')
+            )['total'] or Decimal('0')
+
+            ventas_all = Venta.objects.filter(
+                items__produccion__in=producciones_all
             ).distinct()
             
-            ingresos_ventas = ItemVenta.objects.filter(
-                venta__in=ventas
+            ingresos_ventas_acumulado = ItemVenta.objects.filter(
+                venta__in=ventas_all
             ).aggregate(
                 total=Sum(F('precio_unidad') * F('cantidad'))
             )['total'] or 0
             
-            detalle_actividades = self._get_detalle_actividades(programaciones, controles)
-            detalle_insumos = self._get_detalle_insumos(asignaciones, controles)
-            detalle_ventas = self._get_detalle_ventas(ventas)
+            costo_total_acumulado = costo_mano_obra_acumulado + egresos_insumos_acumulado
+            beneficio_costo_acumulado = round((ingresos_ventas_acumulado / costo_total_acumulado), 2) if costo_total_acumulado > 0 else 0
+            balance_acumulado = ingresos_ventas_acumulado - costo_total_acumulado
             
-            costo_total = costo_mano_obra + egresos_insumos
-            beneficio_costo = round((ingresos_ventas / costo_total), 2) if costo_total > 0 else 0
+            precio_minimo_venta_por_unidad_acumulado = Decimal('0')
+            if total_cantidad_producida_base_acumulado > 0:
+                precio_minimo_venta_por_unidad_acumulado = round(costo_total_acumulado / total_cantidad_producida_base_acumulado, 4)
+            
+            # --- CÁLCULOS PARA EL COSTO INCREMENTAL / ÚLTIMA COSECHA ---
+            
+            costo_incremental_ultima_cosecha = Decimal('0')
+            cantidad_incremental_ultima_cosecha = Decimal('0')
+            precio_minimo_incremental_ultima_cosecha = Decimal('0')
+            fecha_ultima_produccion = None
+            
+            if producciones_all.exists():
+                ultima_produccion = producciones_all.last()
+                fecha_ultima_produccion = ultima_produccion.fecha
+
+                penultima_produccion = producciones_all.filter(fecha__lt=fecha_ultima_produccion).order_by('-fecha').first()
+                
+                fecha_inicio_periodo_incremental = plantacion.fecha_plantacion
+                if penultima_produccion:
+                    fecha_inicio_periodo_incremental = penultima_produccion.fecha
+
+                programaciones_incremental = programaciones_all.filter(
+                    fk_id_asignacionActividades__fecha_programada__gte=fecha_inicio_periodo_incremental,
+                    fk_id_asignacionActividades__fecha_programada__lte=fecha_ultima_produccion 
+                )
+                
+                controles_incremental = controles_all.filter(
+                    fecha_control__gte=fecha_inicio_periodo_incremental,
+                    fecha_control__lte=fecha_ultima_produccion 
+                )
+                
+                costo_mano_obra_incremental = self._calcular_costo_mano_obra(
+                    programaciones_incremental, controles_incremental
+                )
+                
+                egresos_bodega_incremental = Bodega.objects.filter(
+                    fk_id_asignacion__in=programaciones_incremental.values_list('fk_id_asignacionActividades', flat=True),
+                    movimiento='Salida',
+                    fk_id_insumo__isnull=False,
+                    fecha__gte=fecha_inicio_periodo_incremental,
+                    fecha__lte=fecha_ultima_produccion
+                ).aggregate(total=Sum('costo_insumo'))['total'] or 0
+                
+                egresos_controles_incremental = controles_incremental.aggregate(total=Sum('costo_insumo'))['total'] or 0
+                egresos_insumos_incremental = egresos_bodega_incremental + egresos_controles_incremental
+                
+                costo_incremental_ultima_cosecha = costo_mano_obra_incremental + egresos_insumos_incremental
+                
+                cantidad_incremental_ultima_cosecha = ultima_produccion.cantidad_en_base or Decimal('0')
+
+                if cantidad_incremental_ultima_cosecha > 0:
+                    precio_minimo_incremental_ultima_cosecha = round(costo_incremental_ultima_cosecha / cantidad_incremental_ultima_cosecha, 4)
+            
+            # --- NUEVO CÁLCULO: PRECIO MÍNIMO PARA RECUPERAR INVERSIÓN ---
+            # Costo a cubrir = Costo Total Acumulado - Ingresos Acumulados. Si es negativo, significa que ya hay ganancia.
+            costo_a_cubrir_neto = max(Decimal('0'), costo_total_acumulado - ingresos_ventas_acumulado) 
+            
+            # Producción restante para cubrir ese costo. Si ya se vendió todo, esto es 0.
+            # Asumimos que stock_disponible en Produccion es la cantidad en unidad base.
+            stock_disponible_total = producciones_all.aggregate(total=Sum('stock_disponible'))['total'] or Decimal('0')
+
+            precio_minimo_recuperar_inversion = Decimal('0')
+            if stock_disponible_total > 0:
+                precio_minimo_recuperar_inversion = round(costo_a_cubrir_neto / stock_disponible_total, 4)
+            # --- FIN DE CÁLCULO DE RECUPERACIÓN ---
+
+            detalle_actividades = self._get_detalle_actividades(programaciones_all, controles_all)
+            detalle_insumos = self._get_detalle_insumos(asignaciones_all, controles_all)
+            detalle_ventas = self._get_detalle_ventas(ventas_all)
             
             return {
                 "plantacion_id": plantacion.id,
@@ -318,45 +376,70 @@ class TrazabilidadPlantacionAPIView(APIView):
                 "fecha_plantacion": plantacion.fecha_plantacion,
                 "era": plantacion.fk_id_eras.descripcion if plantacion.fk_id_eras else None,
                 "lote": plantacion.fk_id_eras.fk_id_lote.nombre_lote if plantacion.fk_id_eras and plantacion.fk_id_eras.fk_id_lote else None,
-                "total_tiempo_minutos": total_minutos,
-                "total_horas": total_horas,
-                "jornales": jornales,
-                "costo_mano_obra": float(costo_mano_obra),
-                "costo_real_nominas": float(costo_real_nominas),
-                "diferencia_costo": float(costo_mano_obra - costo_real_nominas),
-                "egresos_insumos": float(egresos_insumos),
-                "ingresos_ventas": float(ingresos_ventas),
-                "beneficio_costo": float(beneficio_costo),
+                
+                # Datos Acumulados
+                "total_tiempo_minutos": total_minutos_acumulado,
+                "total_horas": total_horas_acumulado,
+                "jornales": jornales_acumulado,
+                "costo_mano_obra_acumulado": float(costo_mano_obra_acumulado),
+                "egresos_insumos_acumulado": float(egresos_insumos_acumulado),
+                "ingresos_ventas_acumulado": float(ingresos_ventas_acumulado),
+                "beneficio_costo_acumulado": float(beneficio_costo_acumulado),
+                "total_cantidad_producida_base_acumulado": float(total_cantidad_producida_base_acumulado),
+                "precio_minimo_venta_por_unidad_acumulado": float(precio_minimo_venta_por_unidad_acumulado),
+                
+                # Datos Incremental/Última Cosecha
+                "costo_incremental_ultima_cosecha": float(costo_incremental_ultima_cosecha),
+                "cantidad_incremental_ultima_cosecha": float(cantidad_incremental_ultima_cosecha),
+                "precio_minimo_incremental_ultima_cosecha": float(precio_minimo_incremental_ultima_cosecha),
+
+                # Nuevo: Precio Mínimo para Recuperar Inversión
+                "precio_minimo_recuperar_inversion": float(precio_minimo_recuperar_inversion),
+                "stock_disponible_total": float(stock_disponible_total),
+                
                 "detalle_actividades": detalle_actividades,
                 "detalle_insumos": detalle_insumos,
                 "detalle_ventas": detalle_ventas,
+                
                 "resumen": {
                     "total_actividades": len(detalle_actividades),
-                    "total_controles": controles.count(),
-                    "total_ventas": ventas.count(),
+                    "total_controles": controles_all.count(),
+                    "total_ventas": ventas_all.count(),
                     "total_insumos": len(detalle_insumos),
-                    "costo_total": float(costo_total),
-                    "balance": float(ingresos_ventas - costo_total)
+                    "costo_total_acumulado": float(costo_total_acumulado),
+                    "balance_acumulado": float(balance_acumulado)
                 }
             }
             
+        except Plantacion.DoesNotExist:
+            logger.warning(f"Plantación con ID {plantacion_id} no encontrada.")
+            return {}
         except Exception as e:
+            logger.error(f"Error en calcular_trazabilidad para plantación {plantacion_id}: {e}", exc_info=True)
             raise e
 
     def get(self, request, plantacion_id):
         try:
             resultado = self.calcular_trazabilidad(plantacion_id)
             
-            if request.query_params.get('save', 'false').lower() == 'true':
-                snapshot = TrazabilidadService.crear_snapshot(
-                    plantacion_id=plantacion_id,
-                    datos=resultado,
-                    trigger='consulta_manual'
-                )
-                resultado['snapshot_id'] = snapshot.id
+            # --- ESTE BLOQUE SE ELIMINÓ O COMENTÓ PARA EVITAR DOBLES SNAPSHOTS ---
+            # if request.query_params.get('save', 'false').lower() == 'true':
+            #     if resultado:
+            #         snapshot = TrazabilidadService.crear_snapshot(
+            #             plantacion_id=plantacion_id,
+            #             datos=resultado,
+            #             trigger='consulta_manual'
+            #         )
+            #         resultado['snapshot_id'] = snapshot.id
+            #     else:
+            #         return Response({"error": "No se pudieron calcular los datos de trazabilidad para guardar el snapshot."}, status=status.HTTP_400_BAD_REQUEST)
+            # --- FIN DEL BLOQUE ELIMINADO ---
             
+            if not resultado:
+                return Response({"error": "Plantación no encontrada"}, status=status.HTTP_404_NOT_FOUND)
+
             return Response(resultado)
-        
+            
         except Plantacion.DoesNotExist:
             return Response({"error": "Plantación no encontrada"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
@@ -380,9 +463,9 @@ class ResumenActualTrazabilidadAPIView(APIView):
             resumen = ResumenTrazabilidad.objects.get(plantacion_id=plantacion_id)
             serializer = ResumenTrazabilidadSerializer(resumen)
             return Response(serializer.data)
-        
+            
         except ResumenTrazabilidad.DoesNotExist:
             return Response({"error": "No hay datos de trazabilidad para esta plantación"}, 
-                          status=status.HTTP_404_NOT_FOUND)
+                            status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
