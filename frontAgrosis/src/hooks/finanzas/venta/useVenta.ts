@@ -27,9 +27,9 @@ export interface Produccion {
 export interface CrearItemVenta {
   produccion: number; // Solo el ID
   cantidad: number;
+  precio_unidad: number; // <-- ¡RESTAURAR ESTE CAMPO!
   unidad_medida: number; // Solo el ID
 }
-
 
 export interface ItemVenta {
   id: number;
@@ -118,7 +118,7 @@ export const useCrearVenta = () => {
       queryClient.invalidateQueries({ queryKey: ["ventas"] });
       queryClient.invalidateQueries({ queryKey: ["producciones"] });
       queryClient.invalidateQueries({ queryKey: ["stock"] });
-      navigate("/ventas");
+      navigate("/stock");
     },
     onError: (error: Error) => {
       console.error("Error al crear la venta:", error.message);

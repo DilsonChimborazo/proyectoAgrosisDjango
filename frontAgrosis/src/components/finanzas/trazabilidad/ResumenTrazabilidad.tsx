@@ -188,7 +188,7 @@ const ResumenTrazabilidad = ({
                                     </div>
 
                                     {/* Tarjeta para Precio Mínimo de Venta ACUMULADO */}
-                                    <div
+                                    {/*<div
                                         className="p-4 rounded-lg border border-teal-200 bg-teal-50 cursor-pointer hover:shadow-md transition"
                                         onClick={() => handleCardClick('precioMinimoAcumulado')}
                                     >
@@ -204,7 +204,7 @@ const ResumenTrazabilidad = ({
                                         <p className="text-xs mt-2">
                                             Producido (Acum.): {safeNumberFormat((trazabilidadData.total_cantidad_producida_base_acumulado || 0))} unidades base
                                         </p>
-                                    </div>
+                                    </div>*/}
 
                                     {/* Tarjeta para Precio Mínimo de Venta INCREMENTAL */}
                                     {trazabilidadData.precio_minimo_incremental_ultima_cosecha !== undefined && (

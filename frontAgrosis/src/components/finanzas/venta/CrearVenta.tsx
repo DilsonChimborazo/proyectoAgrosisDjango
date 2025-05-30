@@ -62,13 +62,29 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
       produccion.precio_sugerido_venta === null ||
       produccion.precio_sugerido_venta === undefined ||
       !unidadVenta ||
-      !unidadProduccion
+      !unidadProduccion ||
+      unidadProduccion.factor_conversion === 0 // Evitar división por cero
     ) {
+      console.log("DEBUG CALC PRICE: Falta data o factor_conversion es cero", {
+        produccion: produccion?.id,
+        precioSugerido: produccion?.precio_sugerido_venta,
+        unidadVenta: unidadVenta?.id,
+        unidadProduccion: unidadProduccion?.id,
+        factorProd: unidadProduccion?.factor_conversion
+      });
       return undefined;
     }
 
     const precioPorUnidadBase = produccion.precio_sugerido_venta / unidadProduccion.factor_conversion;
-    return precioPorUnidadBase * unidadVenta.factor_conversion;
+    console.log("DEBUG CALC PRICE: precioPorUnidadBase", precioPorUnidadBase);
+    if (isNaN(precioPorUnidadBase)) { // Si el resultado es NaN, algo anda mal
+      console.error("DEBUG CALC PRICE: precioPorUnidadBase es NaN. Revisar datos de producción.");
+      return undefined;
+    }
+
+    const precioCalculado = precioPorUnidadBase * unidadVenta.factor_conversion;
+    console.log("DEBUG CALC PRICE: precioCalculado", precioCalculado);
+    return precioCalculado;
   };
 
   const precioUnitarioCalculado = calcularPrecioPorUnidadDeVenta(
@@ -81,15 +97,24 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
   const totalVentaConDescuento = totalSinDescuento * (1 - descuentoPorcentaje / 100);
 
   useEffect(() => {
+    console.log("DEBUG USEEFFECT: produccionActual:", produccionActual);
+    console.log("DEBUG USEEFFECT: unidadSeleccionadaParaVenta:", unidadSeleccionadaParaVenta);
+    console.log("DEBUG USEEFFECT: unidadProduccionOriginal:", unidadProduccionOriginal);
+    console.log("DEBUG USEEFFECT: precioUnitarioCalculado (después de cálculo):", precioUnitarioCalculado);
+
     setProductoActual((prev) => ({
       ...prev,
-      precioUnidad: precioUnitarioCalculado,
+      // Solo asigna si es un número válido y no NaN
+      precioUnidad: (typeof precioUnitarioCalculado === 'number' && !isNaN(precioUnitarioCalculado)) ? precioUnitarioCalculado : undefined,
     }));
-  }, [produccionActual, unidadSeleccionadaParaVenta, precioUnitarioCalculado]);
+  }, [produccionActual, unidadSeleccionadaParaVenta, precioUnitarioCalculado, unidades]); // Añadimos 'unidades' como dependencia para asegurarnos que se re-evalúe si las unidades cargan después.
 
   // --- Funciones de manejo de UI/lógica ---
   const seleccionarProducto = (produccion: ProduccionType) => {
     const unidadProduccion = unidades.find((u) => u.id === produccion.fk_unidad_medida?.id);
+    console.log("DEBUG SELECCIONAR PROD: Producción seleccionada:", produccion);
+    console.log("DEBUG SELECCIONAR PROD: Unidad de producción asociada:", unidadProduccion);
+
 
     setProductoActual({
       produccionId: produccion.id,
@@ -97,31 +122,41 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
       stockDisponible: produccion.stock_disponible,
       unidadBaseProduccion: unidadProduccion?.unidad_base,
       nombreUnidadMedidaProduccion: unidadProduccion?.nombre_medida,
-      cantidad: undefined,
-      precioUnidad: undefined,
-      unidadMedidaId: produccion.fk_unidad_medida?.id,
+      cantidad: undefined, // Reiniciar cantidad
+      precioUnidad: undefined, // Reiniciar precio, se recalculará en el useEffect
+      unidadMedidaId: produccion.fk_unidad_medida?.id, // Precarga la unidad de la producción como default para la venta
     });
     setError(null);
   };
 
   const agregarProducto = () => {
-    if (!productoActual.produccionId || !productoActual.cantidad || !unidadSeleccionadaParaVenta) {
-      setError('Cantidad y Unidad de Medida de Venta son obligatorios');
-      showToast({ title: 'Faltan campos por completar en el producto', timeout: 3000 });
-      return;
+    console.log("DEBUG AGREGAR PROD: Validando...");
+    console.log({
+        produccionId: productoActual.produccionId,
+        cantidad: productoActual.cantidad,
+        unidadSeleccionadaParaVenta: unidadSeleccionadaParaVenta,
+        precioUnitarioCalculado: precioUnitarioCalculado
+    });
+
+    // Validación más robusta para el precio y la cantidad
+    if (!productoActual.produccionId ||             // No hay producción seleccionada
+        !productoActual.cantidad ||                  // Cantidad no ingresada
+        productoActual.cantidad <= 0 ||              // Cantidad es cero o negativa
+        !unidadSeleccionadaParaVenta ||              // No hay unidad de venta seleccionada
+        precioUnitarioCalculado === undefined ||     // El precio calculado es undefined
+        isNaN(precioUnitarioCalculado) ||            // El precio calculado es NaN
+        precioUnitarioCalculado <= 0                 // El precio calculado es cero o negativo
+    )
+    {
+        setError('Por favor, complete todos los campos requeridos y asegure que la cantidad y el precio sean válidos.');
+        showToast({ title: 'Faltan campos o datos inválidos en el producto', timeout: 3000 });
+        return;
     }
 
-    if (precioUnitarioCalculado === undefined || precioUnitarioCalculado <= 0) {
-      setError(
-        'El precio unitario no pudo ser calculado o es cero. Asegure que la producción tenga un precio sugerido y una unidad de medida de venta válida.',
-      );
-      showToast({ title: 'Error en cálculo de precio', timeout: 3000 });
-      return;
-    }
 
     const produccion = producciones.find((p) => p.id === productoActual.produccionId);
     if (!produccion) {
-      setError('Producción no encontrada');
+      setError('Producción no encontrada. Seleccione una producción válida.');
       showToast({ title: 'Producción no encontrada', timeout: 3000 });
       return;
     }
@@ -139,16 +174,10 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
       return;
     }
 
-    if (productoActual.cantidad <= 0) {
-      setError('La cantidad debe ser mayor a 0');
-      showToast({ title: 'La cantidad debe ser mayor a 0', timeout: 3000 });
-      return;
-    }
-
     const nuevoProducto: ProductoSeleccionado = {
       produccionId: productoActual.produccionId!,
       cantidad: productoActual.cantidad!,
-      precioUnidad: precioUnitarioCalculado!,
+      precioUnidad: precioUnitarioCalculado!, // El precio ya está calculado y validado aquí
       unidadMedidaId: productoActual.unidadMedidaId!,
       nombreProduccion: produccion.nombre_produccion,
       stockDisponible: produccion.stock_disponible,
@@ -187,7 +216,13 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
       produccion: producto.produccionId,
       cantidad: producto.cantidad,
       unidad_medida: producto.unidadMedidaId,
+      // **CAMBIO CRÍTICO: Envía el precio_unidad que YA está calculado y validado**
+      precio_unidad: producto.precioUnidad,
     }));
+
+    // Línea añadida: DEBUGGING - Muestra los items que se van a enviar
+    console.log("DEBUG FINALIZAR VENTA: Items a enviar:", itemsParaEnviar);
+
 
     crearVentaMutation.mutate(
       {
@@ -409,7 +444,7 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
                 <input
                   type="text"
                   className="w-full pl-8 p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm bg-gray-100 cursor-not-allowed"
-                  value={precioUnitarioCalculado !== undefined ? precioUnitarioCalculado.toFixed(2) : ''}
+                  value={precioUnitarioCalculado !== undefined && !isNaN(precioUnitarioCalculado) ? precioUnitarioCalculado.toFixed(2) : ''} // Asegurar que no sea NaN
                   readOnly
                   disabled={true}
                 />
@@ -421,34 +456,21 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
               </div>
             </div>
 
-            {unidadSeleccionadaParaVenta && productoActual.cantidad && precioUnitarioCalculado !== undefined && (
-              <div className="bg-white p-3 rounded-lg border border-gray-200 text-sm">
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="text-gray-600">Subtotal p. actual:</div>
-                  <div className="font-medium text-right">
-                    ${subtotalProductoActual.toFixed(2)}
-                  </div>
-                  <div className="text-gray-600">Precio por unidad base:</div>
-                  <div className="font-medium text-right">
-                    ${(precioUnitarioCalculado / unidadSeleccionadaParaVenta.factor_conversion).toFixed(2)} /{' '}
-                    {unidadSeleccionadaParaVenta.unidad_base}
-                  </div>
-                </div>
-              </div>
-            )}
-
             <Button
               text="Agregar a la venta"
               onClick={agregarProducto}
               variant="green"
               size="md"
               className="w-full mt-2"
+              // REVISAR LAS CONDICIONES DE DISABLED AQUÍ
               disabled={
-                !productoActual.produccionId ||
-                !productoActual.cantidad ||
-                !unidadSeleccionadaParaVenta ||
-                precioUnitarioCalculado === undefined ||
-                productoActual.cantidad <= 0
+                !productoActual.produccionId ||             // No hay producción seleccionada
+                !productoActual.cantidad ||                  // Cantidad no ingresada
+                productoActual.cantidad <= 0 ||              // Cantidad es cero o negativa
+                !unidadSeleccionadaParaVenta ||              // No hay unidad de venta seleccionada
+                precioUnitarioCalculado === undefined ||     // El precio calculado es undefined
+                isNaN(precioUnitarioCalculado) ||            // El precio calculado es NaN
+                precioUnitarioCalculado <= 0                 // El precio calculado es cero o negativo
               }
             />
           </div>
@@ -557,7 +579,7 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
       )}
 
       {/* Botones de Acción - Alineados a la derecha en una sola línea */}
-      <div className="flex justify-end gap-3 mt-6"> {/* CAMBIO CLAVE DE POSICIÓN */}
+      <div className="flex justify-end gap-3 mt-6">
         <Button text="Cancelar" variant="outline" size="md" onClick={onClose} />
         <Button
           text="Finalizar Venta"
