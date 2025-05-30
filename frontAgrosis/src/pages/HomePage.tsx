@@ -32,52 +32,52 @@ const styles = `
     font-family: Arial, sans-serif;
   }
   .dashboard-container {
-    padding: 1rem; /* Reducido para móviles */
+    padding: 1rem;
     min-height: 100vh;
   }
   .card {
     border-radius: 1.5rem;
-    padding: 1rem; /* Ajustado para responsividad */
+    padding: 1rem;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s ease;
-    margin-bottom: 1rem; /* Espaciado entre cartas */
+    margin-bottom: 1rem;
   }
   .card:hover {
     transform: translateY(-5px);
   }
   .card-temperatura {
-    background-color:rgba(2, 19, 10, 0.42);
-    border:solid #F2620F 1px;
+    background-color: rgba(2, 19, 10, 0.42);
+    border: solid #F2620F 1px;
     color: white;
   }
   .card-humedad {
-    background-color:rgba(2, 19, 10, 0.42);
-    border:solid #0CE86C 1px;
+    background-color: rgba(2, 19, 10, 0.42);
+    border: solid #0CE86C 1px;
     color: white;
   }
   .card-iluminacion {
-    background-color:rgba(2, 19, 10, 0.42);
-    border:solid #FFD801 1px;
+    background-color: rgba(2, 19, 10, 0.42);
+    border: solid #FFD801 1px;
     color: white;
   }
   .card-viento {
-    background-color:rgba(2, 19, 10, 0.42);
-    border:solid #0099DD 1px;
+    background-color: rgba(2, 19, 10, 0.42);
+    border: solid #0099DD 1px;
     color: white;
   }
   .card-presion {
-    background-color:rgba(2, 19, 10, 0.42);
-    border:solid rgb(118, 42, 128) 1px;
+    background-color: rgba(2, 19, 10, 0.42);
+    border: solid rgb(118, 42, 128) 1px;
     color: white;
   }
   .card-aire {
-    background-color:rgba(2, 19, 10, 0.42);
-    border:solid rgb(121, 121, 121) 1px;
+    background-color: rgba(2, 19, 10, 0.42);
+    border: solid rgb(121, 121, 121) 1px;
     color: white;
   }
   .card-default {
-    background-color:rgba(2, 19, 10, 0.42);
-    border:solid rgb(241, 43, 60) 1px;
+    background-color: rgba(2, 19, 10, 0.42);
+    border: solid rgb(241, 43, 60) 1px;
     color: white;
   }
   .card-glass {
@@ -125,7 +125,7 @@ const styles = `
   .measurement {
     text-align: center;
     width: 100%;
-    font-size: 1.5rem; /* Ajustado para responsividad */
+    font-size: 1.5rem;
   }
   .chart-label {
     font-size: 0.9rem;
@@ -157,15 +157,13 @@ const styles = `
     cursor: pointer;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    margin-bottom: 1rem; /* Espaciado en móviles */
+    margin-bottom: 1rem;
   }
   .evapo-button:hover, .create-sensor-button:hover {
     transform: translateY(-3px);
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
   }
-
-  /* Media queries para responsividad */
-  @media (max-width: 640px) { /* Móviles */
+  @media (max-width: 640px) {
     .dashboard-container {
       padding: 0.5rem;
     }
@@ -177,7 +175,7 @@ const styles = `
       font-size: 1.2rem;
     }
     .grid-cols-1, .grid-cols-2, .grid-cols-3, .grid-cols-4, .grid-cols-5 {
-      grid-template-columns: 1fr; /* Una columna en móviles */
+      grid-template-columns: 1fr;
     }
     .evapo-button, .create-sensor-button {
       padding: 0.5rem 1rem;
@@ -187,10 +185,9 @@ const styles = `
       font-size: 0.8rem;
     }
   }
-
-  @media (min-width: 641px) and (max-width: 1024px) { /* Tablets */
+  @media (min-width: 641px) and (max-width: 1024px) {
     .grid-cols-1, .grid-cols-2, .grid-cols-3, .grid-cols-4, .grid-cols-5 {
-      grid-template-columns: repeat(2, 1fr); /* Dos columnas en tablets */
+      grid-template-columns: repeat(2, 1fr);
     }
     .card {
       padding: 1rem;
@@ -207,6 +204,10 @@ styleSheet.innerText = styles;
 document.head.appendChild(styleSheet);
 
 const wsUrl = import.meta.env.VITE_WS_URL;
+
+interface User {
+  fk_id_rol?: { rol: string };
+}
 
 interface Sensor {
   id: number;
@@ -257,12 +258,11 @@ const COLORS: { [key: string]: string } = {
   humedad: "#0CE86C",
   iluminacion: "#FFD801",
   viento: "#0099DD",
-  presion: "rgb(129, 40, 141) 1p",
+  presion: "rgb(129, 40, 141)",
   aire: "rgba(124, 124, 124, 0.85)",
   default: "rgba(238, 23, 23, 0.94)",
 };
 
-// Nueva función para mapear tipos de sensores a valores esperados
 const mapSensorType = (tipoSensor: string | undefined | null): string => {
   if (!tipoSensor) {
     console.warn("tipo_sensor es undefined o null, usando 'default'");
@@ -315,9 +315,16 @@ const HomePage = () => {
   const [realTimeData, setRealTimeData] = useState<{ [key: number]: RealTimeData }>({});
   const [sensorDisplayData, setSensorDisplayData] = useState<SensorDisplayData[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [esAdministrador, setEsAdministrador] = useState(false);
   const navigate = useNavigate();
 
-  // Depuración: Mostrar los datos de los sensores
+  // Verificar si el usuario es administrador
+  useEffect(() => {
+    const usuarioGuardado = localStorage.getItem("user");
+    const usuario: User | null = usuarioGuardado ? JSON.parse(usuarioGuardado) : null;
+    setEsAdministrador(usuario?.fk_id_rol?.rol === "Administrador");
+  }, []);
+
   useEffect(() => {
     console.log("Datos de sensores recibidos:", sensors);
   }, [sensors]);
@@ -544,7 +551,7 @@ const HomePage = () => {
           formattedValue,
           value: realTimeEntry.valor,
           name: `${sensor.nombre_sensor} (${realTimeEntry.nombre_cultivo} - ${realTimeEntry.nombre_era})`,
-          tipo: tipoSensor, // Añadimos el tipo para mapear el color
+          tipo: tipoSensor,
         };
       })
       .filter((entry) => entry !== null && entry.value !== 0);
@@ -587,12 +594,14 @@ const HomePage = () => {
         <button className="evapo-button" onClick={handleEvapoClick}>
           Ver Evapotranspiración
         </button>
-        <button className="create-sensor-button" onClick={openCreateModal}>
-          Crear Sensor
-        </button>
+        {esAdministrador && (
+          <button className="create-sensor-button" onClick={openCreateModal}>
+            Crear Sensor
+          </button>
+        )}
       </div>
 
-      {isModalOpen && (
+      {esAdministrador && isModalOpen && (
         <VentanaModal
           isOpen={isModalOpen}
           onClose={closeModal}
@@ -609,7 +618,6 @@ const HomePage = () => {
           const tipoSensor = mapSensorType(sensorInfo?.tipo_sensor);
           const cardClass = `card-${tipoSensor}`;
 
-          // Depuración: Mostrar el tipo de sensor y la clase asignada
           console.log(`Sensor: ${sensor.nombre}, tipo_sensor: ${sensorInfo?.tipo_sensor}, tipoSensor mapeado: ${tipoSensor}, clase asignada: ${cardClass}`);
 
           if (!chartData) {
@@ -814,25 +822,25 @@ const HomePage = () => {
                     <ResponsiveContainer width="100%" height={200}>
                       <LineChart data={chartsData[Number(sensorId)] || []}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                        <XAxis 
-                          dataKey="fecha" 
-                          label={{ value: 'Tiempo', position: 'insideBottomRight', offset: -5 }} 
+                        <XAxis
+                          dataKey="fecha"
+                          label={{ value: 'Tiempo', position: 'insideBottomRight', offset: -5 }}
                           tick={{ fontSize: 12 }}
                         />
-                        <YAxis 
-                          label={{ value: 'Valor', angle: -90, position: 'insideLeft' }} 
+                        <YAxis
+                          label={{ value: 'Valor', angle: -90, position: 'insideLeft' }}
                           tick={{ fontSize: 12 }}
                         />
-                        <Tooltip 
+                        <Tooltip
                           formatter={(value: number) => [value, getSensorName(Number(sensorId))]}
                           labelFormatter={(label) => `Fecha: ${label}`}
                         />
-                        <Line 
-                          type="monotone" 
-                          dataKey="valor" 
+                        <Line
+                          type="monotone"
+                          dataKey="valor"
                           stroke={getLineColor(Number(sensorId))}
-                          strokeWidth="2" 
-                          dot={{ r: 4, fill: getLineColor(Number(sensorId)) }} 
+                          strokeWidth="2"
+                          dot={{ r: 4, fill: getLineColor(Number(sensorId)) }}
                           activeDot={{ r: 6 }}
                         />
                       </LineChart>
@@ -852,7 +860,7 @@ const HomePage = () => {
           <h2 className="chart-label">ÚLTIMOS VALORES DE SENSORES</h2>
           {latestSensorValues.length > 0 ? (
             <div className="flex flex-col items-center">
-              <ResponsiveContainer width="110%" height={200}>
+              <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
                   <Pie
                     data={latestSensorValues}
@@ -874,14 +882,13 @@ const HomePage = () => {
                   </Pie>
                 </PieChart>
               </ResponsiveContainer>
-              {/* Custom Legend Below Pie Chart */}
-              <div style={{ 
-                fontSize: '0.75rem', 
-                paddingTop: '10px', 
-                width: '100%', 
-                textAlign: 'center', 
-                color: '#4a4a4a', 
-                lineHeight: '1.2' 
+              <div style={{
+                fontSize: '0.75rem',
+                paddingTop: '10px',
+                width: '100%',
+                textAlign: 'center',
+                color: '#4a4a4a',
+                lineHeight: '1.2'
               }}>
                 {latestSensorValues.map((entry, index) => (
                   <div key={index} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '5px 0' }}>
