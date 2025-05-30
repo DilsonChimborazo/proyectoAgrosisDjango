@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import CrearSalario from "@/components/finanzas/salario/CrearSalario";
 import VentanaModal from '@/components/globales/VentanasModales';
 
+
 type Filtros = {
   persona: string;
   actividad: string;
