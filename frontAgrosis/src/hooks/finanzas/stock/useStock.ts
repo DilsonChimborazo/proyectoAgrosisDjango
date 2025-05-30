@@ -54,6 +54,7 @@ export interface Produccion {
   cantidad_producida: number;
   fecha: string;
   stock_disponible: number;
+  precio_sugerido_venta: number | null; 
   fk_id_plantacion: Plantacion | null;
   fk_unidad_medida: UnidadMedida | null;
   cantidad_en_base: number | null;
@@ -65,6 +66,7 @@ export interface ItemVenta {
     id: number;
     fecha: string;
     total: number;
+    descuento_porcentaje: number;
   };
   produccion: Produccion;
   precio_unidad: number;

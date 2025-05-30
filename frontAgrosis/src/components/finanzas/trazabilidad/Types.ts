@@ -52,8 +52,8 @@ interface Resumen {
     total_controles: number;
     total_ventas: number;
     total_insumos: number;
-    costo_total: number;
-    balance: number;
+    costo_total_acumulado: number; 
+    balance_acumulado: number;     
 }
 
 export type { Resumen };
@@ -65,19 +65,33 @@ interface TrazabilidadCultivoReporte {
     fecha_plantacion: string;
     era?: string;
     lote?: string;
+    
+    // Campos acumulados
     total_tiempo_minutos: number;
     total_horas: number;
     jornales: number;
-    costo_mano_obra: number;
-    egresos_insumos: number;
-    ingresos_ventas: number;
-    beneficio_costo: number;
+    costo_mano_obra_acumulado: number;
+    egresos_insumos_acumulado: number;   
+    ingresos_ventas_acumulado: number;   
+    beneficio_costo_acumulado: number;   
+    total_cantidad_producida_base_acumulado: number; 
+    precio_minimo_venta_por_unidad_acumulado: number; 
+
     detalle_actividades: DetalleActividad[];
     detalle_insumos: DetalleInsumo[];
     detalle_ventas: DetalleVenta[];
     resumen: Resumen;
 
-    [key: string]: any;
+    // Campos incrementales
+    costo_incremental_ultima_cosecha: number;
+    cantidad_incremental_ultima_cosecha: number;
+    precio_minimo_incremental_ultima_cosecha: number;
+
+    // Nuevo campo: Precio Mínimo para Recuperar Inversión
+    precio_minimo_recuperar_inversion: number;
+    stock_disponible_total: number; // Para mostrar el stock disponible total que debe cubrir la pérdida
+
+    [key: string]: any; 
 }
 
 export type { TrazabilidadCultivoReporte };
@@ -95,6 +109,7 @@ export type { SnapshotTrazabilidad };
 interface ResumenTrazabilidad {
     ultima_actualizacion: string;
     datos_actuales: TrazabilidadCultivoReporte;
+    precio_minimo_venta_por_unidad: number; 
 }
 
 export type { ResumenTrazabilidad };

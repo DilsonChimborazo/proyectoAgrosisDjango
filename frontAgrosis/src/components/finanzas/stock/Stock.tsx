@@ -9,15 +9,15 @@ import CrearProduccion from "../produccion/CrearProduccion";
 
 const Stock = () => {
   const { data: stockData, isLoading, error, refetch } = useStock();
-  const [selectedStock, setSelectedStock] = useState<object | null>(null);
+  const [selectedStock, setSelectedStock] = useState<any | null>(null); // Usar 'any' temporalmente para flexibilidad de renderizado
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [isVentaModalOpen, setIsVentaModalOpen] = useState(false);
   const [isProduccionModalOpen, setIsProduccionModalOpen] = useState(false);
 
   // Abrir modal detalle stock
-  const openModalHandler = (stock: object) => {
-    setSelectedStock(stock);
+  const openModalHandler = (stock: any) => {
+    setSelectedStock(stock.rawData); 
     setIsModalOpen(true);
   };
 
@@ -31,29 +31,50 @@ const Stock = () => {
   const cerrarModalConExito = () => {
     setIsVentaModalOpen(false);
     setIsProduccionModalOpen(false);
-    refetch();
+    refetch(); 
   };
 
   // Renderiza los detalles de un registro de stock
   const renderStockDetails = (stock: any) => {
     if (!stock) return <p>No hay detalles disponibles</p>;
 
+    const tipoMovimiento = stock.movimiento;
+    const nombreProducto = stock.fk_id_produccion?.nombre_produccion || stock.fk_id_item_venta?.produccion?.nombre_produccion || 'N/A';
+    const unidadMedida = stock.fk_id_produccion?.fk_unidad_medida?.nombre_medida || stock.fk_id_item_venta?.unidad_medida?.nombre_medida || 'N/A';
+    const unidadBase = stock.fk_id_produccion?.fk_unidad_medida?.unidad_base || stock.fk_id_item_venta?.unidad_medida?.unidad_base || 'N/A';
+
     return (
-      <div className="space-y-1">
-        <p><strong>Origen:</strong> {stock.origen}</p>
-        <p><strong>Nombre:</strong> {stock.nombre}</p>
-        <p><strong>Movimiento:</strong> {stock.movimiento}</p>
-        <p><strong>Fecha:</strong> {stock.fecha}</p>
-        <p><strong>Cantidad:</strong> {stock.cantidad}</p>
-        {stock.precioUnidad !== null && stock.precioUnidad !== undefined && (
-          <p><strong>Precio por unidad:</strong> ${stock.precioUnidad}</p>
-        )}
-        {stock.ventaInfo && (
+      <div className="space-y-3 p-4 bg-gray-50 rounded-lg">
+        <h3 className="text-lg font-bold text-gray-800 border-b pb-2 mb-2">Detalles del Movimiento</h3>
+        <p><strong>ID Movimiento:</strong> {stock.id}</p>
+        <p><strong>Tipo de Movimiento:</strong> <span className={tipoMovimiento === "Entrada" ? "text-green-600 font-semibold" : "text-red-600 font-semibold"}>{tipoMovimiento}</span></p>
+        <p><strong>Fecha:</strong> {format(new Date(stock.fecha), "dd 'de' MMMM 'de' yyyy, HH:mm", { locale: es })}</p>
+        <p><strong>Cantidad:</strong> {stock.cantidad} {unidadMedida} ({unidadBase})</p>
+
+        {stock.fk_id_produccion && (
           <div className="mt-4 border-t pt-2">
-            <h4 className="font-bold">Información de Venta:</h4>
-            <p><strong>ID Venta:</strong> {stock.ventaInfo.ventaId}</p>
-            <p><strong>Fecha Venta:</strong> {stock.ventaInfo.fechaVenta}</p>
-            <p><strong>Total Venta:</strong> ${stock.ventaInfo.totalVenta?.toFixed(2)}</p>
+            <h4 className="font-bold text-gray-700">Información de Producción:</h4>
+            <p><strong>Producción:</strong> {nombreProducto}</p>
+            <p><strong>Stock Inicial:</strong> {stock.fk_id_produccion.cantidad_en_base} {stock.fk_id_produccion.fk_unidad_medida?.unidad_base}</p>
+            <p><strong>Stock Disponible (actual):</strong> {stock.fk_id_produccion.stock_disponible} {stock.fk_id_produccion.fk_unidad_medida?.unidad_base}</p>
+            {stock.fk_id_produccion.precio_sugerido_venta !== null && (
+              <p><strong>Precio Sugerido Venta:</strong> ${stock.fk_id_produccion.precio_sugerido_venta?.toFixed(2)}/{stock.fk_id_produccion.fk_unidad_medida?.unidad_base}</p>
+            )}
+          </div>
+        )}
+
+        {stock.fk_id_item_venta && (
+          <div className="mt-4 border-t pt-2">
+            <h4 className="font-bold text-gray-700">Información de Venta:</h4>
+            <p><strong>ID Venta:</strong> {stock.fk_id_item_venta.venta.id}</p>
+            <p><strong>Producto Vendido:</strong> {nombreProducto}</p>
+            <p><strong>Cantidad Vendida:</strong> {stock.fk_id_item_venta.cantidad} {stock.fk_id_item_venta.unidad_medida?.nombre_medida}</p>
+            <p><strong>Precio por unidad de Venta:</strong> ${stock.fk_id_item_venta.precio_unidad?.toFixed(2)}/{stock.fk_id_item_venta.unidad_medida?.nombre_medida}</p>
+            <p><strong>Subtotal del Item:</strong> ${stock.fk_id_item_venta.subtotal?.toFixed(2)}</p>
+            <p><strong>Total de la Venta:</strong> ${stock.fk_id_item_venta.venta.total?.toFixed(2)}</p>
+            {stock.fk_id_item_venta.venta.descuento_porcentaje > 0 && (
+              <p><strong>Descuento Aplicado:</strong> {stock.fk_id_item_venta.venta.descuento_porcentaje}%</p>
+            )}
           </div>
         )}
       </div>
@@ -72,61 +93,45 @@ const Stock = () => {
   // Mapeo y formateo de datos para la tabla
   const mappedStock = (stockData || []).map((registro) => {
     // Obtener fecha preferida
-    const fecha = registro.fk_id_produccion?.fecha || registro.fk_id_item_venta?.venta?.fecha || registro.fecha;
+    const fecha = registro.fecha; 
     const fechaFormateada = fecha
-      ? format(new Date(fecha), "dd 'de' MMMM yyyy", { locale: es })
+      ? format(new Date(fecha), "dd 'de' MMMM 'de' yyyy", { locale: es })
       : "Fecha no disponible";
 
     const tipoMovimiento = registro.movimiento;
     const origen = tipoMovimiento === "Entrada" ? "Producción" : "Venta";
 
     let nombre = "No disponible";
-    let unidadBase = "";
-    let precioUnidad = null;
-    let ventaInfo = null;
+    let unidadDisplay = "";
 
     if (tipoMovimiento === "Entrada" && registro.fk_id_produccion) {
       nombre =
         registro.fk_id_produccion.nombre_produccion ||
         registro.fk_id_produccion.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo ||
         "No disponible";
-
-      unidadBase = registro.fk_id_produccion.fk_unidad_medida?.unidad_base || "";
+      unidadDisplay = registro.fk_id_produccion.fk_unidad_medida?.nombre_medida || registro.fk_id_produccion.fk_unidad_medida?.unidad_base || "";
     } else if (tipoMovimiento === "Salida" && registro.fk_id_item_venta) {
-      // Para salidas (ventas), mostramos el nombre del producto vendido
       nombre =
         registro.fk_id_item_venta.produccion?.nombre_produccion ||
         registro.fk_id_item_venta.produccion?.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo ||
         "No disponible";
-
-      unidadBase = registro.fk_id_item_venta.unidad_medida?.unidad_base || "";
-      precioUnidad = registro.fk_id_item_venta.precio_unidad;
-
-      // Información adicional de la venta
-      if (registro.fk_id_item_venta.venta) {
-        ventaInfo = {
-          ventaId: registro.fk_id_item_venta.venta.id,
-          fechaVenta: registro.fk_id_item_venta.venta.fecha
-            ? format(new Date(registro.fk_id_item_venta.venta.fecha), "dd 'de' MMMM yyyy", { locale: es })
-            : "Fecha no disponible",
-          totalVenta: registro.fk_id_item_venta.venta.total
-        };
-      }
+      unidadDisplay = registro.fk_id_item_venta.unidad_medida?.nombre_medida || registro.fk_id_item_venta.unidad_medida?.unidad_base || "";
     }
 
     return {
       id: registro.id,
       origen,
-      nombre: tipoMovimiento === "Salida" ? (
+      nombre: (
         <div>
           <div className="font-semibold">{nombre}</div>
-          {ventaInfo && (
+          {tipoMovimiento === "Salida" && registro.fk_id_item_venta?.venta && (
             <div className="text-sm text-gray-600">
-              Venta #{ventaInfo.ventaId} - {ventaInfo.fechaVenta}
+              Venta #{registro.fk_id_item_venta.venta.id}
+              {registro.fk_id_item_venta.venta.descuento_porcentaje > 0 && ` (-${registro.fk_id_item_venta.venta.descuento_porcentaje}%)`}
             </div>
           )}
         </div>
-      ) : nombre,
+      ),
       movimiento: (
         <span
           className={
@@ -139,10 +144,8 @@ const Stock = () => {
         </span>
       ),
       fecha: fechaFormateada,
-      cantidad: `${registro.cantidad} ${unidadBase}`,
-      precioUnidad,
-      rawData: registro,
-      ventaInfo // Pasamos la información de venta para el modal
+      cantidad: `${registro.cantidad} ${unidadDisplay}`,
+      rawData: registro, 
     };
   });
 
@@ -184,6 +187,7 @@ const Stock = () => {
           onClose={closeModal}
           titulo="Detalle de Movimiento de Stock"
           contenido={renderStockDetails(selectedStock)}
+          size="lg"
         />
       )}
 
@@ -193,7 +197,7 @@ const Stock = () => {
           isOpen={isVentaModalOpen}
           onClose={cerrarModalConExito}
           titulo="Registrar Venta"
-          size="1.5xl" // Usar el nuevo tamaño intermedio
+          size="1.5xl"
           contenido={<CrearVenta onClose={cerrarModalConExito} onSuccess={cerrarModalConExito} />}
         />
       )}

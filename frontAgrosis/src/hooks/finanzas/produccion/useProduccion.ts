@@ -54,6 +54,7 @@ export interface Produccion {
   cantidad_producida: number;
   fecha: string;
   stock_disponible: number;
+  precio_sugerido_venta: number | null;
   fk_id_plantacion: Plantacion | null;
   fk_unidad_medida: UnidadMedida | null;
   cantidad_en_base: number | null;
@@ -68,7 +69,18 @@ const fetchProduccion = async (): Promise<Produccion[]> => {
         Authorization: `Bearer ${token}`,
       },
     });
-    return data;
+    // **IMPORTANTE: Parsear los valores numéricos si la API los devuelve como string**
+    return data.map(p => ({
+      ...p,
+      cantidad_producida: Number(p.cantidad_producida),
+      stock_disponible: Number(p.stock_disponible),
+      precio_sugerido_venta: p.precio_sugerido_venta !== null ? Number(p.precio_sugerido_venta) : null,
+      cantidad_en_base: p.cantidad_en_base !== null ? Number(p.cantidad_en_base) : null,
+      fk_unidad_medida: p.fk_unidad_medida ? {
+        ...p.fk_unidad_medida,
+        factor_conversion: Number(p.fk_unidad_medida.factor_conversion)
+      } : null
+    }));
   } catch (error) {
     console.error("Error al obtener los datos de producción:", error);
     throw new Error("No se pudo obtener la lista de producción");

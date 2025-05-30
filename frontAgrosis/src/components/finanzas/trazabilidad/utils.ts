@@ -1,8 +1,10 @@
+// utils.ts
+
 export const generarAnalisisDiferencias = (datosViejo: any, datosNuevo: any) => {
     const diffBC = datosNuevo.beneficio_costo - datosViejo.beneficio_costo;
-    const diffIngresos = datosNuevo.ingresos_ventas - datosViejo.ingresos_ventas;
+    const diffIngresos = datosNuevo.ingresos_ventas - datosViejo.ingresos_ventos;
     const diffEgresos = (datosNuevo.costo_mano_obra + datosNuevo.egresos_insumos) - 
-                       (datosViejo.costo_mano_obra + datosViejo.egresos_insumos);
+                        (datosViejo.costo_mano_obra + datosViejo.egresos_insumos);
     
     let analisis = [];
     
@@ -32,4 +34,3 @@ export const generarAnalisisDiferencias = (datosViejo: any, datosNuevo: any) => 
     
     return analisis.join(' ');
 };
-

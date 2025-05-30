@@ -20,9 +20,14 @@ class TrazabilidadService:
                 trigger=trigger
             )
             
+            # Actualizar o crear el resumen de trazabilidad
             ResumenTrazabilidad.objects.update_or_create(
                 plantacion_id=plantacion_id,
-                defaults={'datos_actuales': datos}
+                defaults={
+                    'datos_actuales': datos,
+                    # Aquí pasamos el nuevo campo
+                    'precio_minimo_venta_por_unidad': datos.get('precio_minimo_venta_por_unidad', 0.0) 
+                }
             )
             return snapshot
     
@@ -38,5 +43,12 @@ class TrazabilidadService:
         """Nueva implementación que usa el cliente HTTP para evitar import circular"""
         from django.test import Client
         client = Client()
+        # Nota: En producción, es recomendable refactorizar calcular_trazabilidad a una función interna
+        # para evitar dependencias HTTP para cálculos internos.
         response = client.get(f'/api/trazabilidad/plantacion/{plantacion_id}/')
-        return response.data
+        if response.status_code == 200:
+            return response.data
+        else:
+            logger.error(f"Error al generar datos de trazabilidad para plantación {plantacion_id}: {response.status_code} - {response.content}")
+            # Considera devolver un diccionario con valores por defecto o lanzar una excepción
+            return {}

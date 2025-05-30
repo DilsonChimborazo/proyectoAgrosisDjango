@@ -5,13 +5,14 @@ const apiUrl = import.meta.env.VITE_API_URL;
 
 // Interfaz para los datos de creación (puede ser diferente a la de listado)
 export interface CrearSalarioData {
-    id: number;
-    precio_jornal: number;
-    horas_por_jornal: number;
-    fecha_inicio: string;
-    fecha_fin : string;
-    activo : boolean;
-    
+  id: number;
+  fk_id_rol: number;
+  precio_jornal: number;
+  horas_por_jornal: number;
+  fecha_inicio: string;
+  fecha_fin: string;
+  activo: boolean;
+
 }
 
 export const useCrearSalario = () => {
