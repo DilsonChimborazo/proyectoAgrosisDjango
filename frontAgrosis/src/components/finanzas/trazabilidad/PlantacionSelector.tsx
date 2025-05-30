@@ -77,13 +77,6 @@ const PlantacionSelector = ({
                             icon={GitCompare}
                             disabled={!historialDisponible}
                         />
-                        <Button 
-                            text="Exportar Reporte" 
-                            variant="outline" 
-                            onClick={onExportarReporte}
-                            className="w-full flex justify-center items-center gap-2"
-                            icon={Download}
-                        />
                     </div>
                 )}
             </div>
