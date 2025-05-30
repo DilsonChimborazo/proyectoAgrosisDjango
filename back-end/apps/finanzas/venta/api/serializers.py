@@ -14,6 +14,7 @@ class ItemVentaSerializer(serializers.ModelSerializer):
             'precio_por_unidad_base', 'cantidad', 'unidad_medida',
             'cantidad_en_base', 'subtotal'
         ]
+        read_only_fields = ['id', 'cantidad_en_base', 'subtotal', 'precio_por_unidad', 'precio_por_unidad_base']
 
     def get_precio_por_unidad(self, obj):
         return obj.precio_por_unidad_de_medida()
@@ -40,7 +41,7 @@ class VentaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Venta
-        fields = ['id', 'fecha', 'total', 'items']
+        fields = ['id', 'fecha', 'total', 'descuento_porcentaje', 'items']
         read_only_fields = ['fecha', 'total']
 
 
@@ -49,23 +50,29 @@ class CrearVentaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Venta
-        fields = ['id', 'items']
+        fields = ['id', 'descuento_porcentaje', 'items'] # Agregamos descuento_porcentaje
+        read_only_fields = ['total', 'fecha'] # Total se calcula, fecha auto_now_add
 
     def create(self, validated_data):
         items_data = validated_data.pop('items')
-        venta = Venta.objects.create(**validated_data)
+        descuento_porcentaje = validated_data.pop('descuento_porcentaje', 0) # Obtener descuento
+
+        venta = Venta.objects.create(descuento_porcentaje=descuento_porcentaje, **validated_data)
 
         for item_data in items_data:
             ItemVenta.objects.create(venta=venta, **item_data)
 
+        venta.actualizar_total() 
         return venta
 
     def update(self, instance, validated_data):
         items_data = validated_data.pop('items', None)
+        instance.descuento_porcentaje = validated_data.get('descuento_porcentaje', instance.descuento_porcentaje)
 
         if items_data is not None:
             instance.items.all().delete()
             for item_data in items_data:
                 ItemVenta.objects.create(venta=instance, **item_data)
-
+        super().update(instance, validated_data)
+        instance.actualizar_total()
         return instance

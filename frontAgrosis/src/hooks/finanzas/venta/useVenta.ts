@@ -18,20 +18,19 @@ export interface Produccion {
   cantidad_producida: number;
   fecha: string;
   stock_disponible: number;
+  precio_sugerido_venta: number | null; 
   fk_unidad_medida: UnidadMedida;
   cantidad_en_base: number;
 }
 
-// Interfaz para crear items de venta (sin id ni subtotal)
+
 export interface CrearItemVenta {
   produccion: number; // Solo el ID
   cantidad: number;
-  precio_unidad: number;
   unidad_medida: number; // Solo el ID
-  cantidad_en_base: number;
 }
 
-// Interfaz para la respuesta del item de venta
+
 export interface ItemVenta {
   id: number;
   produccion: Produccion;
@@ -42,11 +41,17 @@ export interface ItemVenta {
   subtotal: number;
 }
 
+
+export interface CrearVentaData {
+  items: CrearItemVenta[];
+  descuento_porcentaje?: number;
+}
+
 export interface Venta {
   id: number;
   fecha: string;
   total: number;
-  completada: boolean;
+  descuento_porcentaje: number;
   items: ItemVenta[];
 }
 
@@ -80,10 +85,8 @@ const fetchVentas = async (): Promise<Venta[]> => {
   } catch (error) {
     if (axios.isAxiosError(error)) {
       if (error.response?.status === 401) {
-        // Manejar la expiración del token aquí si es necesario
         console.error('Token expirado o inválido');
-        // Opcional: redirigir al login
-        window.location.href = '/login';
+        // window.location.href = '/login'; // Descomentar si quieres redirigir
       }
       throw new Error(error.response?.data?.message || 'Error al obtener ventas');
     }
@@ -97,14 +100,14 @@ export const useCrearVenta = () => {
   const navigate = useNavigate();
 
   return useMutation({
-    mutationFn: async (ventaData: { items: CrearItemVenta[] }) => {
+    mutationFn: async (ventaData: CrearVentaData) => {
       try {
         const response = await api.post('/ventas/', ventaData);
         return response.data;
       } catch (error) {
         if (axios.isAxiosError(error)) {
           throw new Error(
-            error.response?.data?.message || 
+            error.response?.data?.message ||
             'Error al crear la venta'
           );
         }
@@ -131,7 +134,7 @@ const fetchVenta = async (id: number): Promise<Venta> => {
   } catch (error) {
     if (axios.isAxiosError(error)) {
       throw new Error(
-        error.response?.data?.message || 
+        error.response?.data?.message ||
         'Error al obtener la venta'
       );
     }
@@ -144,14 +147,14 @@ export const useActualizarVenta = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, ventaData }: { id: number, ventaData: Partial<Venta> }) => {
+    mutationFn: async ({ id, ventaData }: { id: number, ventaData: Partial<CrearVentaData> }) => {
       try {
         const response = await api.patch(`/ventas/${id}/`, ventaData);
         return response.data;
       } catch (error) {
         if (axios.isAxiosError(error)) {
           throw new Error(
-            error.response?.data?.message || 
+            error.response?.data?.message ||
             'Error al actualizar la venta'
           );
         }
@@ -161,6 +164,7 @@ export const useActualizarVenta = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["ventas"] });
       queryClient.invalidateQueries({ queryKey: ["producciones"] });
+      queryClient.invalidateQueries({ queryKey: ["stock"] });
     },
   });
 };

@@ -7,6 +7,13 @@ class Produccion(models.Model):
     cantidad_producida = models.DecimalField(null=True, max_digits=20, decimal_places=3)
     fecha = models.DateField()
     stock_disponible = models.DecimalField(max_digits=20, decimal_places=0, default=0)
+    precio_sugerido_venta = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Precio sugerido por la unidad de medida de esta producción (ej: por Kg, por unidad)." # <-- CAMBIO AQUI
+    )
     fk_id_plantacion = models.ForeignKey(Plantacion, on_delete=models.SET_NULL, null=True)
     fk_unidad_medida = models.ForeignKey(UnidadMedida, on_delete=models.SET_NULL, null=True)
 

@@ -1,7 +1,7 @@
 from django.db import models
 from apps.finanzas.produccion.models import Produccion
 from apps.inventario.unidadMedida.models import UnidadMedida
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 class Venta(models.Model):
     fecha = models.DateField(auto_now_add=True)
@@ -11,12 +11,22 @@ class Venta(models.Model):
         default=0,
         validators=[MinValueValidator(0)]
     )
-    
+    descuento_porcentaje = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        help_text="Porcentaje de descuento aplicado al total de la venta (0-100)"
+    )
     def __str__(self):
         return f"Venta #{self.id} - {self.fecha} - ${self.total}"
 
     def calcular_total(self):
-        return sum(item.subtotal() for item in self.items.all())
+        subtotal_items = sum(item.subtotal() for item in self.items.all())
+        if self.descuento_porcentaje > 0:
+            descuento_monto = subtotal_items * (self.descuento_porcentaje / 100)
+            return subtotal_items - descuento_monto
+        return subtotal_items
 
     def actualizar_total(self):
         self.total = self.calcular_total()
@@ -24,19 +34,19 @@ class Venta(models.Model):
 
 class ItemVenta(models.Model):
     venta = models.ForeignKey(
-        Venta, 
-        on_delete=models.CASCADE, 
+        Venta,
+        on_delete=models.CASCADE,
         related_name='items'
     )
     produccion = models.ForeignKey(
-        Produccion, 
+        Produccion,
         on_delete=models.PROTECT,
         related_name='ventas'
     )
     precio_unidad = models.DecimalField(
         max_digits=10, 
         decimal_places=2,
-        validators=[MinValueValidator(0)]
+        validators=[MinValueValidator(0)],
     )
     cantidad = models.DecimalField(
         max_digits=20, 
@@ -59,14 +69,28 @@ class ItemVenta(models.Model):
         return self.precio_unidad * self.cantidad
 
     def precio_por_unidad_de_medida(self):
-        return self.precio_unidad / self.cantidad if self.cantidad else 0
-    
+        return self.precio_unidad 
     def precio_por_unidad_base(self):
-        return self.precio_unidad / self.cantidad_en_base if self.cantidad_en_base else 0
+        if self.cantidad_en_base and self.cantidad_en_base > 0:
+            return self.subtotal() / self.cantidad_en_base
+        return 0
 
     def save(self, *args, **kwargs):
         if self.unidad_medida and self.cantidad:
             self.cantidad_en_base = self.unidad_medida.convertir_a_base(self.cantidad)
+        else:
+            self.cantidad_en_base = 0 
+        if self.produccion and self.produccion.precio_sugerido_venta is not None:
+            produccion_unit = self.produccion.fk_unidad_medida
+            if produccion_unit and self.unidad_medida:
+                precio_por_base_desde_produccion = self.produccion.precio_sugerido_venta / produccion_unit.factor_conversion
+
+                self.precio_unidad = precio_por_base_desde_produccion * self.unidad_medida.factor_conversion
+            else:
+                self.precio_unidad = 0 
+        else:
+
+            self.precio_unidad = 0
         super().save(*args, **kwargs)
         self.venta.actualizar_total()
 
