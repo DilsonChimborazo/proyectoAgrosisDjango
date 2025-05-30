@@ -8,39 +8,54 @@ interface GraficosTrazabilidadProps {
 
 const GraficosTrazabilidad = ({ data, tipo }: GraficosTrazabilidadProps) => {
     if (!data || data.length === 0) return <p>No hay datos históricos para mostrar</p>;
-    
+
     if (tipo === 'evolucion') {
         const datosGrafico = {
             labels: data.map((s: any) => new Date(s.fecha_registro).toLocaleDateString()),
             datasets: [
                 {
                     label: 'Relación Beneficio/Costo',
-                    data: data.map((s: any) => s.datos.beneficio_costo),
+                    data: data.map((s: any) => {
+                        const val = parseFloat(s.datos.beneficio_costo_acumulado); // Usar el campo correcto
+                        return isNaN(val) ? 0 : val; // Si no es un número, usa 0
+                    }),
                     borderColor: '#3B82F6',
                     backgroundColor: '#3B82F6',
-                    yAxisID: 'y'
+                    yAxisID: 'y' // Esto está bien si GraficoLinea lo acepta
                 },
                 {
                     label: 'Ingresos',
-                    data: data.map((s: any) => s.datos.ingresos_ventas),
+                    data: data.map((s: any) => {
+                        const val = parseFloat(s.datos.ingresos_ventas_acumulado); // Usar el campo correcto
+                        return isNaN(val) ? 0 : val; // Si no es un número, usa 0
+                    }),
                     borderColor: '#10B981',
                     backgroundColor: '#10B981',
                     yAxisID: 'y1'
                 },
                 {
                     label: 'Egresos',
-                    data: data.map((s: any) => s.datos.costo_mano_obra + s.datos.egresos_insumos),
+                    data: data.map((s: any) => {
+                        const costoManoObra = parseFloat(s.datos.costo_mano_obra_acumulado); // Usar el campo correcto
+                        const egresosInsumos = parseFloat(s.datos.egresos_insumos_acumulado); // Usar el campo correcto
+                        const val1 = isNaN(costoManoObra) ? 0 : costoManoObra;
+                        const val2 = isNaN(egresosInsumos) ? 0 : egresosInsumos;
+                        return val1 + val2; // La suma será un número
+                    }),
                     borderColor: '#EF4444',
                     backgroundColor: '#EF4444',
                     yAxisID: 'y1'
                 }
             ]
         };
-        
+        console.log('Datos para GraficoLinea:', JSON.stringify(datosGrafico, null, 2));
+        console.log('ESTRUCTURA DE LA PROP "data" ORIGINAL:', JSON.stringify(data, null, 2)); // MUY IMPORTANTE
+        console.log('Tipo recibido:', tipo);
+
         return (
             <div className="space-y-6">
                 <div className="h-80">
-                    <GraficoLinea 
+                    <GraficoLinea
                         datos={datosGrafico}
                         titulo="Evolución de Rentabilidad"
                         opciones={{
@@ -75,9 +90,9 @@ const GraficosTrazabilidad = ({ data, tipo }: GraficosTrazabilidadProps) => {
                         }}
                     />
                 </div>
-                
+
                 <div className="h-80">
-                    <GraficoBarras 
+                    <GraficoBarras
                         datos={{
                             labels: data.map((s: any) => `v${s.version}`),
                             datasets: [
@@ -94,7 +109,7 @@ const GraficosTrazabilidad = ({ data, tipo }: GraficosTrazabilidadProps) => {
             </div>
         );
     }
-    
+
     return null;
 };
 
