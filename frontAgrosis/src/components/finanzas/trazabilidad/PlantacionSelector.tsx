@@ -55,13 +55,13 @@ const PlantacionSelector = ({
                 
                 {plantacionSeleccionada && (
                     <div className="mt-6 space-y-2">
-                        <Button 
+                        {/*<Button 
                             text="Ver Resumen Actual" 
                             variant="green" 
                             onClick={onVerResumen}
                             className="w-full flex justify-center items-center gap-2"
                             icon={BarChart2}
-                        />
+                        />*/}
                         <Button 
                             text="Ver Evolución" 
                             variant="success" 
