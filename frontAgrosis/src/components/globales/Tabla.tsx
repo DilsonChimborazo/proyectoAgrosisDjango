@@ -139,7 +139,7 @@ const Tabla = <T extends Record<string, any>>({
   const hasActions = onClickAction || onUpdate;
 
   return (
-    <div className="m-2 sm:m-5 bg-white rounded-3xl shadow-lg">
+    <div className="m-2 sm:m-5 bg-white rounded-3xl">
       <h2 className="text-center text-xl sm:text-3xl font-semibold capitalize p-3">{title}</h2>
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 px-4 sm:px-8 py-4">
         <div className="relative w-full md:w-1/2">

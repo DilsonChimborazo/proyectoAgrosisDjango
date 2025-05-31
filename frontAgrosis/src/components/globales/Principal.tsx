@@ -7,8 +7,6 @@ import Notification from '@/components/trazabilidad/notificacion/Notificacion';
 import { useAuth } from "@/context/AuthContext";
 import { showToast } from "./Toast";
 
-
-
 interface LayoutProps {
   children: ReactNode;
 }
@@ -80,28 +78,22 @@ export default function Principal({ children }: LayoutProps) {
   const navigate = useNavigate();
 
   useEffect(() => {
-  const handleStorageChange = () => {
-    const usuarioGuardado = localStorage.getItem('user');
-    if (usuarioGuardado) {
-      setUsuario(JSON.parse(usuarioGuardado));
-    } else {
-      setUsuario(null);
-    }
+    const handleStorageChange = () => {
+      const usuarioGuardado = localStorage.getItem('user');
+      if (usuarioGuardado) {
+        setUsuario(JSON.parse(usuarioGuardado));
+      } else {
+        setUsuario(null);
+      }
+    };
 
-  };
+    window.addEventListener('storage', handleStorageChange);
+    handleStorageChange();
 
-  // Escuchar cambios en localStorage
-  window.addEventListener('storage', handleStorageChange);
-
-  // Llamar a la función al montar el componente
-  handleStorageChange();
-
-  return () => {
-    // Limpiar el listener cuando el componente se desmonte
-    window.removeEventListener('storage', handleStorageChange);
-  };
-}, []);
-
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
 
   const toggleMenu = (name: string) => {
     setOpenMenus((prev) => ({ ...prev, [name]: !prev[name] }));
@@ -111,15 +103,14 @@ export default function Principal({ children }: LayoutProps) {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     localStorage.removeItem("refreshToken");
-            showToast({
-              title: "Sesión cerrada",
-              description: "Cerraste la sesion ¡Vuelve Pronto!",
-              timeout: 4000,
-              variant: "error"
-            });
+    showToast({
+      title: "Sesión cerrada",
+      description: "Cerraste la sesion ¡Vuelve Pronto!",
+      timeout: 4000,
+      variant: "error"
+    });
     navigate("/");
   };
-
 
   return (
     <div className="relative flex h-screen w-full overflow-x-hidden">
@@ -128,28 +119,30 @@ export default function Principal({ children }: LayoutProps) {
         <img src="/fondo.jpg" alt="Fondo" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-black opacity-50"></div>
       </div>
+      
       {/* Sidebar */}
       <div
         className={`bg-white p-2 overflow-auto sm:p-4 flex flex-col w-48 sm:w-64 h-full fixed top-0 left-0 z-20 border-t-4 border-r-4 rounded-tr-3xl transition-all duration-300 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-48 sm:-translate-x-64"
+          sidebarOpen 
+            ? "translate-x-0 shadow-lg" 
+            : "-translate-x-full sm:-translate-x-64"
         }`}
       >
-
-        {/*logos del proyecto*/ }
-        <div className="flex items-center justify-between p-4 bg-white rounded-lg ">
+        {/* Logos del proyecto */}
+        <div className="flex items-center justify-between p-4 bg-white rounded-lg">
           <img 
             src="/logoSena.png" 
             alt="SENA" 
-            className="w-16"
+            className="w-14 sm:w-16" // Pequeño: w-10 (2.5rem), Grande: sm:w-14 (3.5rem)
           />       
           <img 
             src="/agrosoft.png" 
             alt="logo" 
-            className="w-28 "
+            className="w-20 sm:w-28" // Pequeño: w-16 (4rem), Grande: sm:w-20 (5rem)
           />
         </div>
 
-        <nav className="mt-4 text-center text-base sm:text-lg flex-1 overflow-y-auto ">
+        <nav className="mt-4 text-center text-base sm:text-lg flex-1 overflow-y-auto">
           {menuItems.map((item) => (
             <div key={item.name}>
               {item.submenu ? (
@@ -164,7 +157,13 @@ export default function Principal({ children }: LayoutProps) {
                   {openMenus[item.name] ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                 </button>
               ) : (
-                <Link to={item.path} onClick={() => setActive(item.name)}>
+                <Link 
+                  to={item.path} 
+                  onClick={() => {
+                    setActive(item.name);
+                    setSidebarOpen(false); 
+                  }}
+                >
                   <button
                     className={`flex items-center gap-3 w-full shadow-lg p-3 sm:p-4 rounded-2xl transition-all duration-300 ${
                       active === item.name ? "bg-gray-300 text-gray-800 shadow-inner" : "bg-white hover:bg-gray-200"
@@ -179,7 +178,14 @@ export default function Principal({ children }: LayoutProps) {
               {item.submenu && openMenus[item.name] && (
                 <div className="ml-4 sm:ml-6 mt-2">
                   {item.submenu.map((subItem) => (
-                    <Link to={subItem.path} key={subItem.name} onClick={() => setActive(subItem.name)}>
+                    <Link 
+                      to={subItem.path} 
+                      key={subItem.name} 
+                      onClick={() => {
+                        setActive(subItem.name);
+                        setSidebarOpen(false); 
+                      }}
+                    >
                       <button
                         className={`block w-full text-left p-2 sm:p-3 rounded-lg transition-all duration-300 ${
                           active === subItem.name ? "bg-gray-200 text-gray-900" : "hover:bg-gray-100"
@@ -196,32 +202,57 @@ export default function Principal({ children }: LayoutProps) {
         </nav>
       </div>
 
-      {/* Contenido Principal */}
-      <div className={`flex flex-col transition-all duration-300 w-full ${sidebarOpen ? "pl-48 sm:pl-64" : "pl-0"}`}>
+      {/* Overlay para móviles */}
+      {sidebarOpen && (
         <div
-          className="fixed top-0 left-0 w-full bg-green-700 text-white pe-9 sm:p-2 lg:p-4 flex justify-between items-center  transition-all duration-300"
-          style={{ zIndex: 10 }}
-        >
-          <div className={`flex items-center justify-center transition-all duration-300 ${sidebarOpen ? "ml-48 sm:ml-64" : "ml-0"}`}>
-            <Button isIconOnly variant="light" className="text-white" onClick={() => setSidebarOpen(!sidebarOpen)}>
-              <Menu size={20} />
-            </Button>
-          </div>
-          <div className={`flex items-center sm:text-xs md:text-base lg:text-3xl font-semibold justify-center transition-all duration-300 ${sidebarOpen ? "ml-48 sm:ml-64" : "ml-0"}`}>
-            <h1 className="text-center ">
-              Bienvenido a AgroSoft 🌱
-            </h1>
-          </div>
-          <div className="flex items-center space-x-2 sm:space-x-4">
-            <Notification />
-            <p className="hidden sm:block"> | </p>
+          className="fixed inset-0 bg-black bg-opacity-50 z-10 sm:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Contenido Principal */}
+      <div className={`flex flex-col transition-all duration-300 w-full ${
+        sidebarOpen ? "sm:pl-64" : ""
+      }`}>
+      {/* Barra de navegación superior */}
+      <div className="fixed top-0 left-0 w-full bg-green-700 text-white pe-9 sm:p-2 lg:p-4 flex items-center z-40 transition-all duration-300" style={{ zIndex: 10 }}>
+        {/* Botón del menú - Se mueve solo en desktop */}
+        <div className={`transition-all duration-300 ${sidebarOpen ? 'sm:translate-x-64' : 'sm:translate-x-0'}`}>
+          <Button 
+            isIconOnly 
+            variant="light" 
+            className="text-white" 
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+          >
+            <Menu size={20} />
+          </Button>
+        </div>
+
+        {/* Título - Comportamiento responsive */}
+        <div className="flex-1 sm:absolute sm:left-1/2 sm:transform sm:-translate-x-1/2 text-center px-2 overflow-hidden">
+          <h1 className="sm:text-base lg:text-3xl font-semibold truncate">
+            Bienvenido a AgroSoft 🌱
+          </h1>
+          {/* Nombre del usuario solo en móviles */}
+          {usuario && (
+            <p className="text-xs sm:hidden truncate">
+              {usuario.nombre} {usuario.apellido}
+            </p>
+          )}
+        </div>
+
+        {/* Sección derecha */}
+        <div className="flex items-center space-x-2 sm:space-x-4 ml-auto">
+          <Notification />
+          <p className="hidden sm:block"> | </p>
+          {/* Avatar solo visible en desktop */}
+          <div className="hidden sm:flex items-center space-x-2">
             <img
               src={usuario?.img_url || 'http://localhost:8000/media/imagenes/defecto.png'}
               alt="Foto de perfil"
               className="w-8 h-8 rounded-full object-cover"
               onError={(e) => {
                 const target = e.currentTarget;
-                console.log('Error cargando imagen, usando defecto');
                 if (!target.src.includes('defecto.png')) {
                   target.src = 'http://localhost:8000/media/imagenes/defecto.png';
                 }
@@ -232,21 +263,27 @@ export default function Principal({ children }: LayoutProps) {
               onClick={() => navigate("/perfil")}
             >
               {usuario
-                ? `${usuario?.nombre || "Nombre no disponible"} ${usuario?.apellido || "Apellido no disponible"}`
-                : "Usuario no identificado"}
+                ? `${usuario?.nombre?.split(' ')[0] || ""} ${usuario?.apellido?.split(' ')[0] || ""}`
+                : "Usuario"}
             </span>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-2 hover:text-yellow-100 text-white"
-            >
-              <LogOut size={20} />
-            </button>
           </div>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 px-2 sm:px-4 py-2 hover:text-yellow-100 text-white"
+          >
+            <LogOut size={20} />
+          </button>
         </div>
-        <div className="flex flex-col min-h-[calc(100vh-3rem)] pt-10 sm:mt-16m z-0">
+      </div>
+
+        {/* Contenido de la página */}
+        <div className="flex flex-col min-h-[calc(100vh-3rem)] pt-16 sm:pt-16 z-0">
           <div className="flex-1 p-2 sm:p-6 mb-10 overflow-auto">
             {children}
-          <footer className="fixed bottom-0 left-0 w-full bg-green-700 text-white p-2 text-center  text-xs sm:text-sm">
+          </div>
+          
+          {/* Footer */}
+          <footer className="fixed bottom-0 left-0 w-full bg-green-700 text-white p-2 text-center text-xs sm:text-sm">
             <div className="flex flex-col items-center justify-center">
               <div className="flex items-center gap-1 flex-wrap justify-center">
                 <span className="whitespace-normal">
@@ -258,7 +295,6 @@ export default function Principal({ children }: LayoutProps) {
               <div className="text-xs sm:text-sm">Regional Pitalito-Huila</div>
             </div>
           </footer>
-          </div>
         </div>
       </div>
     </div>
