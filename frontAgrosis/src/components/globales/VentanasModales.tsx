@@ -46,29 +46,29 @@ const VentanaModal: React.FC<VentanaModalProps> = ({
   };
 
   return (
-    <div className="fixed mt-12 inset-0 z-50 bg-gray-500 bg-opacity-70 flex justify-center items-start pt-4 sm:pt-6 md:pt-8 lg:pt-10 overflow-y-auto p-2 sm:p-3 md:p-4">
+    <div className="fixed inset-0 z-50 bg-gray-500 bg-opacity-70 flex justify-center items-start pt-4 sm:pt-6 md:pt-8 p-2 sm:p-3 md:p-4">
       <div
         className={`
           relative bg-white rounded-lg shadow-lg
           ${sizeClasses[size]}
           max-h-[90vh] sm:max-h-[85vh]
-          p-3 sm:p-4 md:p-6 lg:p-8
+          p-2 sm:p-4 md:p-6 lg:p-8
           overflow-y-auto
           ${modalClassName}
         `}
       >
         <button
-          className="absolute top-2 right-2 sm:top-3 sm:right-3 p-2 rounded-full hover:bg-gray-200 transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="absolute top-1 right-1 sm:top-2 sm:right-2 p-1 sm:p-2 rounded-full hover:bg-gray-200 transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
           onClick={onClose}
           aria-label="Cerrar modal"
         >
-          <X size={18} className="text-gray-600 sm:w-5 sm:h-5" />
+          <X size={16}  className="text-gray-600" />
         </button>
-        <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold mb-2 sm:mb-3 md:mb-4 text-gray-800">
+        <h2 className="text-sm sm:text-base md:text-lg lg:text-xl font-semibold mb-1 sm:mb-2 md:mb-3 text-gray-800">
           {titulo}
         </h2>
 
-        <div className="overflow-y-auto max-h-[calc(90vh-100px)] sm:max-h-[calc(85vh-120px)] md:max-h-[calc(85vh-140px)]">
+        <div className="overflow-y-auto max-h-[calc(90vh-80px)] sm:max-h-[calc(85vh-100px)] md:max-h-[calc(85vh-120px)]">
           {variant === 'table' ? (
             data.length > 0 ? (
               <Tabla
@@ -86,7 +86,7 @@ const VentanaModal: React.FC<VentanaModalProps> = ({
                 }}
               />
             ) : (
-              <p className="text-gray-500 text-sm sm:text-base text-center">
+              <p className="text-gray-500 text-xs sm:text-sm text-center">
                 No hay datos disponibles
               </p>
             )

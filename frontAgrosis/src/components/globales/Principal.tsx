@@ -5,6 +5,8 @@ import { Home, User, Calendar, Map, Leaf, DollarSign, Bug, Clipboard, Cpu } from
 import { Link, useNavigate } from "react-router-dom";
 import Notification from '@/components/trazabilidad/notificacion/Notificacion';
 import { useAuth } from "@/context/AuthContext";
+import { showToast } from "./Toast";
+
 
 
 interface LayoutProps {
@@ -109,7 +111,12 @@ export default function Principal({ children }: LayoutProps) {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     localStorage.removeItem("refreshToken");
-    alert("Sesión finalizada. Por favor, vuelve a iniciar sesión.");
+            showToast({
+              title: "Sesión cerrada",
+              description: "Cerraste la sesion ¡Vuelve Pronto!",
+              timeout: 4000,
+              variant: "error"
+            });
     navigate("/");
   };
 
@@ -123,7 +130,7 @@ export default function Principal({ children }: LayoutProps) {
       </div>
       {/* Sidebar */}
       <div
-        className={`bg-white p-2 overflow-auto sm:p-4 flex flex-col w-48 sm:w-64 h-full fixed top-0 left-0 z-50 border-t-4 border-r-4 rounded-tr-3xl transition-all duration-300 ${
+        className={`bg-white p-2 overflow-auto sm:p-4 flex flex-col w-48 sm:w-64 h-full fixed top-0 left-0 z-20 border-t-4 border-r-4 rounded-tr-3xl transition-all duration-300 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-48 sm:-translate-x-64"
         }`}
       >
@@ -142,7 +149,7 @@ export default function Principal({ children }: LayoutProps) {
           />
         </div>
 
-        <nav className="mt-4 text-center text-base sm:text-lg flex-1 overflow-y-auto z-30">
+        <nav className="mt-4 text-center text-base sm:text-lg flex-1 overflow-y-auto ">
           {menuItems.map((item) => (
             <div key={item.name}>
               {item.submenu ? (
@@ -192,15 +199,15 @@ export default function Principal({ children }: LayoutProps) {
       {/* Contenido Principal */}
       <div className={`flex flex-col transition-all duration-300 w-full ${sidebarOpen ? "pl-48 sm:pl-64" : "pl-0"}`}>
         <div
-          className="fixed top-0 left-0 w-full bg-green-700 text-white p-2 sm:p-4 flex justify-between items-center z-40 transition-all duration-300"
-          style={{ zIndex: 40 }}
+          className="fixed top-0 left-0 w-full bg-green-700 text-white pe-9 sm:p-2 lg:p-4 flex justify-between items-center  transition-all duration-300"
+          style={{ zIndex: 10 }}
         >
           <div className={`flex items-center justify-center transition-all duration-300 ${sidebarOpen ? "ml-48 sm:ml-64" : "ml-0"}`}>
             <Button isIconOnly variant="light" className="text-white" onClick={() => setSidebarOpen(!sidebarOpen)}>
               <Menu size={20} />
             </Button>
           </div>
-          <div className={`flex items-center text-3xl font-semibold justify-center transition-all duration-300 ${sidebarOpen ? "ml-48 sm:ml-64" : "ml-0"}`}>
+          <div className={`flex items-center sm:text-xs md:text-base lg:text-3xl font-semibold justify-center transition-all duration-300 ${sidebarOpen ? "ml-48 sm:ml-64" : "ml-0"}`}>
             <h1 className="text-center ">
               Bienvenido a AgroSoft 🌱
             </h1>
@@ -239,14 +246,18 @@ export default function Principal({ children }: LayoutProps) {
         <div className="flex flex-col min-h-[calc(100vh-3rem)] mt-12 sm:mt-16m z-20">
           <div className="flex-1 p-2 sm:p-6 mb-10 overflow-auto">
             {children}
-            <footer className="fixed mt-32 bottom-0 left-0 w-full bg-green-700 text-white p-2 text-center text-sm z-40">
-              <div className="flex flex-col items-center justify-center text-md">
-                <div className="flex items-center gap-1">
-                  Centro de Gestión y Desarrollo Sostenible Surcolombiano <Copyright size={12} /> {new Date().getFullYear()}
-                </div>
-                <div>Regional Pitalito-Huila</div>
+          <footer className="fixed bottom-0 left-0 w-full bg-green-700 text-white p-2 text-center  text-xs sm:text-sm">
+            <div className="flex flex-col items-center justify-center">
+              <div className="flex items-center gap-1 flex-wrap justify-center">
+                <span className="whitespace-normal">
+                  Centro de Gestión y Desarrollo Sostenible Surcolombiano
+                </span>
+                <Copyright size={12} />
+                <span>{new Date().getFullYear()}</span>
               </div>
-            </footer>
+              <div className="text-xs sm:text-sm">Regional Pitalito-Huila</div>
+            </div>
+          </footer>
           </div>
         </div>
       </div>
