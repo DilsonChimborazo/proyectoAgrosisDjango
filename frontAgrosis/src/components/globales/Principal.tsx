@@ -235,7 +235,7 @@ export default function Principal({ children }: LayoutProps) {
           </h1>
           {/* Nombre del usuario solo en móviles */}
           {usuario && (
-            <p className="text-xs sm:hidden truncate">
+            <p className="text-xs sm:hidden truncate" onClick={() => navigate("/perfil")}>
               {usuario.nombre} {usuario.apellido}
             </p>
           )}
