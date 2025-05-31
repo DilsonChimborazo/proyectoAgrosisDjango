@@ -243,7 +243,7 @@ export default function Principal({ children }: LayoutProps) {
             </button>
           </div>
         </div>
-        <div className="flex flex-col min-h-[calc(100vh-3rem)] mt-12 sm:mt-16m z-20">
+        <div className="flex flex-col min-h-[calc(100vh-3rem)] pt-10 sm:mt-16m z-0">
           <div className="flex-1 p-2 sm:p-6 mb-10 overflow-auto">
             {children}
           <footer className="fixed bottom-0 left-0 w-full bg-green-700 text-white p-2 text-center  text-xs sm:text-sm">

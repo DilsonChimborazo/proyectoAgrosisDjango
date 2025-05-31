@@ -143,15 +143,6 @@ const HistoricalDataTable = () => {
             title="Registros del Sensor"
             headers={["ID", "Fecha", "Valor", "Unidad"]}
             data={filteredData}
-            onClickAction={(row) => {
-              console.log("🖱️ Click en fila:", row);
-            }}
-            onUpdate={() => {
-              alert("No puedes actualizar mediciones");
-            }}
-            onCreate={() => {
-              alert("No puedes crear mediciones");
-            }}
             createButtonTitle="Nuevo Registro"
             extraButton={
               <DescargarTablaPDF
