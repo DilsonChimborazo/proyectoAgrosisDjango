@@ -46,7 +46,7 @@ const VentanaModal: React.FC<VentanaModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-gray-500 bg-opacity-70 flex justify-center items-start pt-4 sm:pt-6 md:pt-8 p-2 sm:p-3 md:p-4">
+    <div className="fixed inset-0 z-50 bg-gray-500 bg-opacity-70 flex justify-center items-start pt-4 sm:pt-6 md:pt-20 p-2 sm:p-3 md:p-4">
       <div
         className={`
           relative bg-white rounded-lg shadow-lg

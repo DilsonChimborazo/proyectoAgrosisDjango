@@ -603,11 +603,9 @@ const ListarBodega = () => {
               "Movimiento",
             ]}
             data={mappedMovimientos}
-            onClickAction={(item) => handleRowClick(item.rawData)}
-            onUpdate={(row) => handleRowClick(row.rawData)}
             onCreate={() => {
               setModalContenido(
-                <RegistrarSalidaBodega
+                <RegistrarSalidaBodega 
                   herramientas={herramientas || []}
                   insumos={insumos || []}
                   asignaciones={asignaciones || []}
