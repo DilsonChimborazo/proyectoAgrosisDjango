@@ -218,7 +218,7 @@ const ListarBodega = () => {
   const [selectedItem, setSelectedItem] = useState<Herramienta | Insumo | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [tipoSeleccionado, setTipoSeleccionado] = useState<"Herramienta" | "Insumo">("Herramienta");
+  const [tipoSeleccionado, setTipoSeleccionado] = useState<"Herramienta" | "Insumo">("Insumo");
   const [modalContenido, setModalContenido] = useState<React.ReactNode>(null);
   const [viewMode, setViewMode] = useState<"items" | "movimientos">("items");
   const [terminoBusqueda, setTerminoBusqueda] = useState("");
@@ -443,11 +443,11 @@ const ListarBodega = () => {
             >
               <div className="flex flex-col items-center">
                 {tipoSeleccionado === "Herramienta" ? (
-                  <div className="bg-gray-100 rounded-full p-3 mb-4">
+                  <div className=" rounded-full p-3 mb-4">
                     <Hammer size={48} className="text-blue-600" />
                   </div>
                 ) : (
-                  <div className="bg-gray-100 rounded-full p-3 mb-4">
+                  <div className="rounded-full p-3 mb-4">
                     <TestTube2 size={48} className="text-blue-600" />
                   </div>
                 )}

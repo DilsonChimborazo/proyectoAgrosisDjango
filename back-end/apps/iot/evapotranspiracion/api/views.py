@@ -12,6 +12,50 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Definir el diccionario kc_values
+kc_values = {
+    'Cereales': {'inicial': Decimal('0.35'), 'desarrollo': Decimal('1.15'), 'final': Decimal('0.45')},
+    'Hortalizas': {'inicial': Decimal('0.50'), 'desarrollo': Decimal('1.00'), 'final': Decimal('0.80')},
+    'Leguminosas': {'inicial': Decimal('0.40'), 'desarrollo': Decimal('1.10'), 'final': Decimal('0.50')},
+    'Árboles Frutales': {'inicial': Decimal('0.60'), 'desarrollo': Decimal('0.90'), 'final': Decimal('0.75')},
+    'Tubérculos': {'inicial': Decimal('0.45'), 'desarrollo': Decimal('1.05'), 'final': Decimal('0.70')},
+    'Cultivos Forrajeros': {'inicial': Decimal('0.40'), 'desarrollo': Decimal('1.20'), 'final': Decimal('0.85')}
+}
+
+# Diccionario de rangos de días por etapa según tipo de cultivo
+etapas_dias = {
+    'Cereales': {
+        'inicial': (10, 20),  # 10–20 días
+        'desarrollo': (20, 65),  # 30–45 días de desarrollo vegetativo + inicio de floración
+        'final': (65, 130)  # Floración (15–25 días) + maduración (30–50 días)
+    },
+    'Hortalizas': {
+        'inicial': (10, 20),  # 10–20 días
+        'desarrollo': (20, 60),  # 20–40 días de desarrollo vegetativo + inicio de floración
+        'final': (60, 120)  # Floración (20–30 días) + maduración (20–30 días)
+    },
+    'Leguminosas': {
+        'inicial': (8, 15),  # 8–15 días
+        'desarrollo': (15, 55),  # 25–40 días de desarrollo vegetativo + inicio de floración
+        'final': (55, 100)  # Floración (15–25 días) + maduración (20–35 días)
+    },
+    'Árboles Frutales': {
+        'inicial': (30, 60),  # 30–60 días (inicio de ciclo productivo)
+        'desarrollo': (60, 240),  # 60–180 días (crecimiento vegetativo/floración)
+        'final': (240, 360)  # 180–360 días (fructificación/maduración)
+    },
+    'Tubérculos': {
+        'inicial': (15, 25),  # 15–25 días
+        'desarrollo': (25, 75),  # 30–50 días de desarrollo vegetativo + inicio de tuberización
+        'final': (75, 140)  # Tuberización (30–40 días) + maduración (30–40 días)
+    },
+    'Cultivos Forrajeros': {
+        'inicial': (10, 20),  # Estimado, similar a cereales
+        'desarrollo': (20, 60),  # Estimado
+        'final': (60, 100)  # Estimado
+    }
+}
+
 class EvapotranspiracionViewSet(ViewSet):
     def list(self, request):
         logger.info("Solicitud recibida en EvapotranspiracionViewSet.list")
@@ -58,17 +102,46 @@ class EvapotranspiracionViewSet(ViewSet):
             eto = calcular_eto(mediciones)
             logger.info(f"Valor calculado de ETo: {eto}, Tipo: {type(eto).__name__}")
 
-            # Usar un kc promedio para todos los cultivos
-            kc_promedio = Decimal('0.85')
-            logger.info(f"Valor de kc_promedio usado: {kc_promedio}, Tipo: {type(kc_promedio).__name__}")
+            # Determinar la etapa de crecimiento basada en fecha_plantacion
+            if not hasattr(plantacion, 'fecha_plantacion'):
+                logger.error("El modelo Plantacion no tiene fecha_plantacion")
+                return Response({"error": "El modelo Plantacion no tiene fecha_plantacion"}, status=status.HTTP_400_BAD_REQUEST)
+
+            dias_desde_plantacion = (date.today() - plantacion.fecha_plantacion).days
+            logger.info(f"Días desde plantación: {dias_desde_plantacion}")
+
+            # Obtener el tipo de cultivo directamente
+            tipo_cultivo = plantacion.fk_id_cultivo.nombre_cultivo
+            if tipo_cultivo not in kc_values:
+                logger.error(f"Tipo de cultivo no encontrado en kc_values: {tipo_cultivo}")
+                return Response({"error": f"Tipo de cultivo no soportado: {tipo_cultivo}"}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Determinar la etapa de crecimiento según los días transcurridos
+            etapas = etapas_dias.get(tipo_cultivo)
+            if not etapas:
+                logger.error(f"Rangos de días no definidos para el cultivo: {tipo_cultivo}")
+                return Response({"error": f"Rangos de días no definidos para el cultivo: {tipo_cultivo}"}, status=status.HTTP_400_BAD_REQUEST)
+
+            if dias_desde_plantacion < etapas['inicial'][1]:
+                etapa = 'inicial'
+            elif dias_desde_plantacion < etapas['desarrollo'][1]:
+                etapa = 'desarrollo'
+            else:
+                etapa = 'final'
+
+            logger.info(f"Etapa de crecimiento calculada: {etapa} para cultivo {tipo_cultivo}")
+
+            # Seleccionar el valor de kc según el tipo de cultivo y la etapa
+            kc = kc_values[tipo_cultivo][etapa]
+            logger.info(f"Valor de kc usado: {kc}, Tipo: {type(kc).__name__}, Cultivo: {tipo_cultivo}, Etapa: {etapa}")
 
             # Convertir eto a Decimal para evitar problemas de precisión
             eto_decimal = Decimal(str(eto))
             logger.info(f"Conversión de ETo a Decimal: {eto_decimal}, Tipo: {type(eto_decimal).__name__}")
 
             # Calcular etc y depurar
-            etc = eto_decimal * kc_promedio
-            logger.info(f"Cálculo de etc: ETo ({eto_decimal}) * kc_promedio ({kc_promedio}) = {etc}, Tipo: {type(etc).__name__}")
+            etc = eto_decimal * kc
+            logger.info(f"Cálculo de etc: ETo ({eto_decimal}) * kc ({kc}) = {etc}, Tipo: {type(etc).__name__}")
 
             # Guardar el cálculo
             evap = Evapotranspiracion.objects.create(

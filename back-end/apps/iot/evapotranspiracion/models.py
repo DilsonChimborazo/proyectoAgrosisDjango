@@ -9,11 +9,10 @@ class Evapotranspiracion(models.Model):
     fk_id_plantacion = models.ForeignKey(Plantacion, on_delete=models.CASCADE, related_name="evapotranspiraciones")
     fecha = models.DateField()
     eto = models.DecimalField(max_digits=8, decimal_places=2)
-    etc = models.DecimalField(max_digits=8, decimal_places=2, default=0.85)
+    etc = models.DecimalField(max_digits=8, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        # Se eliminó unique_together para permitir múltiples registros
         pass
 
     def __str__(self):
