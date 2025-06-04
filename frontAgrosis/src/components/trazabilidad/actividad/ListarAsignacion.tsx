@@ -320,7 +320,7 @@ const ListarAsignacion = () => {
           <VentanaModal
             isOpen={isProgramacionModalOpen}
             onClose={closeModal}
-            titulo="Actualizar Programación"
+            titulo=""
             contenido={
               <CrearProgramacion
                 asignacionId={selectedAsignacion.id}

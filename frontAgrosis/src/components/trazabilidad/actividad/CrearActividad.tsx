@@ -9,7 +9,7 @@ interface CrearActividadProps {
   onCancel?: () => void;
 }
 
-const CrearActividad = ({ onSuccess, onCancel }: CrearActividadProps) => {
+const CrearActividad = ({ onSuccess }: CrearActividadProps) => {
   const [nombreActividad, setNombreActividad] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -55,7 +55,7 @@ const CrearActividad = ({ onSuccess, onCancel }: CrearActividadProps) => {
 
   return (
     <div className="p-4">
-      <h2 className="text-lg font-bold mb-4">Crear Nueva Actividad</h2>
+      <h2 className="text-2xl font-semibold mb-6 text-center text-gray-800">Registrar Nueva Actividad</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="font-semibold">Nombre de la Actividad:</label>
