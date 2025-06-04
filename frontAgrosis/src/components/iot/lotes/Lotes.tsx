@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { useLotes } from "../../../hooks/iot/lote/useLotes";
-import PdfLotesActivos from '@/components/iot/lotes/PdfLotesActivos';
 import Tabla from "../../globales/Tabla";
 import VentanaModal from "../../globales/VentanasModales";
 import CrearLote from "./CrearLote";
 import EditarLote from "./EditarLote";
 import Switch from 'react-switch';
 import { useNavigate } from "react-router-dom";
+import DescargarTablaPDF from "../../globales/DescargarTablaPDF";
 
 const Lotes = () => {
   const { data: lotes, isLoading, error, refetch } = useLotes();
@@ -123,6 +123,17 @@ const Lotes = () => {
   };
 
   const headers = ["ID", "Nombre", "dimencion", "Estado"];
+  const columnasPDF = ["ID", "Nombre", "dimencion", "Estado"];
+  const datosPDF = lotes && Array.isArray(lotes)
+    ? lotes
+        .sort((a, b) => (a.estado === b.estado ? 0 : a.estado ? -1 : 1))
+        .map((lote) => [
+          lote.id.toString(),
+          lote.nombre_lote,
+          lote.dimencion,
+          lote.estado ? "Activo" : "Inactivo",
+        ])
+    : [];
 
   if (isLoading) return <div>Cargando lotes...</div>;
   if (error instanceof Error) {
@@ -171,7 +182,14 @@ const Lotes = () => {
         onUpdate={handleUpdateClick}
         onCreate={openCreateModal}
         createButtonTitle="Crear"
-        extraButton={<PdfLotesActivos />}
+        extraButton={
+          <DescargarTablaPDF
+            nombreArchivo="LotesRegistrados.pdf"
+            titulo="Reporte de Lotes Registrados"
+            columnas={columnasPDF}
+            datos={datosPDF}
+          />
+        }
       />
 
       {isModalOpen && (

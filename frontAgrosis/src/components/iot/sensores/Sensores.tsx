@@ -4,6 +4,7 @@ import VentanaModal from '../../globales/VentanasModales';
 import Tabla from '../../globales/Tabla';
 import CrearSensor from './CrearSensor';
 import EditarSensor from './EditarSensores';
+import DescargarTablaPDF from '../../globales/DescargarTablaPDF';
 
 const Sensores = () => {
   const { data: sensores, error, isLoading, refetch } = useSensores();
@@ -64,6 +65,18 @@ const Sensores = () => {
   };
 
   const headers = ['ID', 'Nombre', 'Tipo', 'Unidad', 'Descripcion', 'Medida Minima', 'Medida Maxima'];
+  const columnasPDF = ['ID', 'Nombre', 'Tipo', 'Unidad', 'Descripcion', 'Medida Minima', 'Medida Maxima'];
+  const datosPDF = sensores && Array.isArray(sensores)
+    ? sensores.map((sensor) => [
+        sensor.id.toString(),
+        sensor.nombre_sensor || 'Sin nombre',
+        sensor.tipo_sensor || 'Sin tipo',
+        sensor.unidad_medida || 'Sin unidad',
+        sensor.descripcion || 'Sin descripción',
+        sensor.medida_minima?.toString() ?? 'No definida',
+        sensor.medida_maxima?.toString() ?? 'No definida',
+      ])
+    : [];
 
   if (isLoading) return <div className="text-center text-gray-500">Cargando...</div>;
   if (error) return <div className="text-center text-red-500">Error al cargar los datos: {error.message}</div>;
@@ -88,6 +101,14 @@ const Sensores = () => {
         onUpdate={handleUpdateClick}
         onCreate={openCreateModal}
         createButtonTitle="Crear"
+        extraButton={
+          <DescargarTablaPDF
+            nombreArchivo="SensoresRegistrados.pdf"
+            titulo="Reporte de Sensores Registrados"
+            columnas={columnasPDF}
+            datos={datosPDF}
+          />
+        }
       />
 
       {isModalOpen && (

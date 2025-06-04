@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import  {useEvapotranspiracion}  from '../../../hooks/iot/evapotranspiracion/useEvapotranspiracion';
+import { useEvapotranspiracion } from '../../../hooks/iot/evapotranspiracion/useEvapotranspiracion';
 import Tabla from '../../globales/Tabla';
 import VentanaModal from '../../globales/VentanasModales';
 import { useNavigate } from 'react-router-dom';
@@ -8,7 +8,6 @@ import { Chart as ChartJS, LineElement, PointElement, LinearScale, TimeScale, Ti
 import { ChartData } from 'chart.js';
 import 'chart.js/auto';
 import { Button, Select, SelectItem } from '@heroui/react';
-import { RefreshCw } from 'lucide-react';
 import axios from 'axios';
 
 // Registrar componentes de chart.js
@@ -52,7 +51,7 @@ const Evapotranspiracion = () => {
   const [plantacionId, setPlantacionId] = useState<number>(0);
   const [plantaciones, setPlantaciones] = useState<Plantacion[]>([]);
   const [errorPlantaciones, setErrorPlantaciones] = useState<string | null>(null);
-  const { data, latestData, loading, error, fetchData } = useEvapotranspiracion(plantacionId);
+  const { data, latestData, loading, error } = useEvapotranspiracion(plantacionId);
   const [selectedEvapo, setSelectedEvapo] = useState<EvapoData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContenido, setModalContenido] = useState<React.ReactNode>(null);
@@ -147,16 +146,9 @@ const Evapotranspiracion = () => {
     setIsModalOpen(false);
   };
 
-  const handleUpdate = (evapo: { id: number }) => {
-    navigate(`/EditarEvapotranspiracion/${evapo.id}`);
-  };
-
+ 
   const handleCreate = () => {
     navigate("/crear-evapotranspiracion");
-  };
-
-  const handleRefresh = () => {
-    fetchData();
   };
 
   const headers = [
@@ -208,16 +200,6 @@ const Evapotranspiracion = () => {
               </SelectItem>
             ))}
           </Select>
-          <Button
-            variant="light"
-            className="text-gray-600 hover:text-blue-500"
-            onClick={handleRefresh}
-            disabled={loading}
-            aria-label="Refrescar datos de evapotranspiración"
-          >
-            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
-            <span className="ml-2">Refrescar</span>
-          </Button>
         </div>
       </div>
 
@@ -312,8 +294,8 @@ const Evapotranspiracion = () => {
             title="Histórico de Mediciones"
             headers={headers}
             data={mappedData}
+            showCreateButton={false}
             onClickAction={handleRowClick}
-            onUpdate={handleUpdate}
             onCreate={handleCreate}
             createButtonTitle="Crear"
           />
