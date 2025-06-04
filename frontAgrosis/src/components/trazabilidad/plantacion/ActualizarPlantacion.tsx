@@ -79,6 +79,7 @@ const ActualizarPlantacion = ({ id, onSuccess }: ActualizarPlantacionProps) => {
   }));
 
 
+
   const handleSubmit = (data: Record<string, string>) => {
     const errors: string[] = [];
 
@@ -106,6 +107,7 @@ const ActualizarPlantacion = ({ id, onSuccess }: ActualizarPlantacionProps) => {
       return;
     }
 
+
     actualizarPlantacion.mutate(
       {
         id: +id,
@@ -116,6 +118,7 @@ const ActualizarPlantacion = ({ id, onSuccess }: ActualizarPlantacionProps) => {
         fk_id_semillero: parseInt(data.fk_id_semillero),
         latitud: data.latitud ? Number(data.latitud) : null,
         longitud: data.longitud ? Number(data.longitud) : null,
+
 
       },
       {
