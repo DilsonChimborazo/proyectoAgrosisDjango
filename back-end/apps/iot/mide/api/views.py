@@ -24,7 +24,7 @@ class MideViewSet(ModelViewSet):
         return super().get_serializer(*args, **kwargs)
 
     def list(self, request, *args, **kwargs):
-        print("📡 Endpoint /api/mediciones/ alcanzado")
+        print("📡 Endpoint /api/mediciones/alcanzado")
         return super().list(request, *args, **kwargs)
 
     @action(detail=False, methods=['get'], url_path='por-sensor/(?P<sensor_id>[^/.]+)')

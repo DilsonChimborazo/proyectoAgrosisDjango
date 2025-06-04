@@ -311,7 +311,7 @@ void loop() {
       sendWebSocketData(5, 1, pHSimulado);  // pH
 
       mostrarEnOLED(temperatura, humedad, luzSimulada, vientoSimulado);
-    } else {r
+    } else {
       Serial.println("⚠ Error al leer DHT22: valores inválidos");
       display.clearDisplay();
       display.setTextColor(SSD1306_WHITE);
