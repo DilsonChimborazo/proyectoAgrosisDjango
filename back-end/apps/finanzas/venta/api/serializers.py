@@ -3,6 +3,26 @@ from apps.finanzas.venta.models import Venta, ItemVenta
 from apps.finanzas.produccion.api.serializers import ProduccionSerializer
 from apps.inventario.unidadMedida.api.serilizers import UnidadMedidaSerializer
 
+class ItemVentaFacturaSerializer(serializers.ModelSerializer):
+    produccion = ProduccionSerializer()
+    unidad_medida = UnidadMedidaSerializer()
+
+    class Meta:
+        model = ItemVenta
+        fields = [
+            'id', 'produccion', 'precio_unidad', 'cantidad',
+            'unidad_medida', 'cantidad_en_base', 'subtotal'
+        ]
+        read_only_fields = fields
+
+class VentaFacturaSerializer(serializers.ModelSerializer):
+    items = ItemVentaFacturaSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Venta
+        fields = ['id', 'fecha', 'total', 'descuento_porcentaje', 'items']
+        read_only_fields = fields
+
 class ItemVentaSerializer(serializers.ModelSerializer):
     precio_por_unidad = serializers.SerializerMethodField()
     precio_por_unidad_base = serializers.SerializerMethodField()
@@ -19,9 +39,8 @@ class ItemVentaSerializer(serializers.ModelSerializer):
     def get_precio_por_unidad(self, obj):
         return obj.precio_por_unidad_de_medida()
 
-    def get_precio_por_unidad_base(self, obj):
+    def get_precio_por_unidad_base(self, obj):  # Corregido: añadidos los paréntesis ()
         return obj.precio_por_unidad_base()
-
 
 class LeerItemVentaSerializer(serializers.ModelSerializer):
     produccion = ProduccionSerializer()
@@ -35,7 +54,6 @@ class LeerItemVentaSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = fields
 
-
 class VentaSerializer(serializers.ModelSerializer):
     items = LeerItemVentaSerializer(many=True, read_only=True)
 
@@ -44,25 +62,24 @@ class VentaSerializer(serializers.ModelSerializer):
         fields = ['id', 'fecha', 'total', 'descuento_porcentaje', 'items']
         read_only_fields = ['fecha', 'total']
 
-
 class CrearVentaSerializer(serializers.ModelSerializer):
     items = ItemVentaSerializer(many=True)
 
     class Meta:
         model = Venta
-        fields = ['id', 'descuento_porcentaje', 'items'] # Agregamos descuento_porcentaje
-        read_only_fields = ['total', 'fecha'] # Total se calcula, fecha auto_now_add
+        fields = ['id', 'descuento_porcentaje', 'items']
+        read_only_fields = ['total', 'fecha']
 
     def create(self, validated_data):
         items_data = validated_data.pop('items')
-        descuento_porcentaje = validated_data.pop('descuento_porcentaje', 0) # Obtener descuento
+        descuento_porcentaje = validated_data.pop('descuento_porcentaje', 0)
 
         venta = Venta.objects.create(descuento_porcentaje=descuento_porcentaje, **validated_data)
 
         for item_data in items_data:
             ItemVenta.objects.create(venta=venta, **item_data)
 
-        venta.actualizar_total() 
+        venta.actualizar_total()
         return venta
 
     def update(self, instance, validated_data):
