@@ -4,7 +4,7 @@ import { Menu, ChevronDown, ChevronUp, LogOut, Copyright } from "lucide-react";
 import { Home, User, Calendar, Map, Leaf, DollarSign, Bug, Clipboard, Cpu } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import Notification from '@/components/trazabilidad/notificacion/Notificacion';
-import { useAuth } from "@/context/AuthContext";
+import { useAuthContext } from "@/context/AuthContext";
 import { showToast } from "./Toast";
 
 interface LayoutProps {
@@ -71,7 +71,7 @@ const menuItems = [
 ];
 
 export default function Principal({ children }: LayoutProps) {
-  const { usuario, setUsuario } = useAuth();
+  const { usuario, setUsuario } = useAuthContext();
   const [sidebarOpen, setSidebarOpen] = useState(false); 
   const [active, setActive] = useState<string>("");
   const [openMenus, setOpenMenus] = useState<{ [key: string]: boolean }>({});

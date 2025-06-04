@@ -111,9 +111,19 @@ class UsuarioViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         if Usuarios.objects.count() == 0:
+            # El primer usuario semilla
             serializer.save(is_staff=True, is_superuser=True)
         else:
-            serializer.save()
+            # Los demás usuarios: revisa si tienen rol de Administrador
+            rol_id = self.request.data.get("fk_id_rol")
+    
+            try:
+                rol = Rol.objects.get(id=rol_id)
+                es_admin = rol.rol == "Administrador"
+            except Rol.DoesNotExist:
+                es_admin = False
+    
+            serializer.save(is_staff=es_admin)
 
     def get_serializer_context(self):
         return {'request': self.request}

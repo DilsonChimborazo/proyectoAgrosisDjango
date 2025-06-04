@@ -1,18 +1,18 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { Usuario } from '../hooks/usuarios/usuario/usePerfilUsuarios';
 import { Spinner } from "@heroui/react";
+import { useNavigate } from 'react-router-dom';
 
 interface AuthContextType {
   usuario: Usuario | null;
   setUsuario: (usuario: Usuario | null) => void;
   loading: boolean;
+  logout: () => void;
 }
 
 export default function LoadingBox() {
   return (
-    <div 
-      className="fixed inset-0 flex justify-center items-center bg-white bg-opacity-90 z-50"
-    >
+    <div className="fixed inset-0 flex justify-center items-center bg-white bg-opacity-90 z-50">
       <div className="bg-white shadow-lg rounded-2xl border border-green-200 p-6 flex flex-col items-center space-y-4">
         <Spinner color="success" labelColor="success" />
         <p className="text-sm text-gray-600">Por favor, espera un momento.</p>
@@ -24,21 +24,39 @@ export default function LoadingBox() {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const navigate = useNavigate();
   const [usuario, setUsuario] = useState<Usuario | null>(() => {
     const stored = localStorage.getItem('user');
     return stored ? JSON.parse(stored) : null;
   });
   const [loading, setLoading] = useState(true);
 
-  // Sincronizar el usuario entre pestañas
+  const logout = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
+    setUsuario(null);
+    navigate('/');
+  };
+
+  // Escuchar cambios desde otras pestañas
   useEffect(() => {
-    const syncUsuario = () => {
-      const stored = localStorage.getItem('user');
-      setUsuario(stored ? JSON.parse(stored) : null);
+    const syncStorage = (event: StorageEvent) => {
+      if (event.key === 'user') {
+        if (event.newValue) {
+          setUsuario(JSON.parse(event.newValue));
+        } else {
+          logout();
+        }
+      }
+
+      if (event.key === 'token' && !event.newValue) {
+        logout();
+      }
     };
 
-    window.addEventListener('storage', syncUsuario);
-    return () => window.removeEventListener('storage', syncUsuario);
+    window.addEventListener('storage', syncStorage);
+    return () => window.removeEventListener('storage', syncStorage);
   }, []);
 
   // Guardar el usuario en localStorage cuando cambia
@@ -50,26 +68,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [usuario]);
 
-  // Establecer loading como false al montar
+  // Verificar que el token existe al iniciar
   useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      logout();
+    }
     setLoading(false);
   }, []);
 
   if (loading) {
-  return <LoadingBox/>
-}
+    return <LoadingBox />;
+  }
 
   return (
-    <AuthContext.Provider value={{ usuario, setUsuario, loading }}>
+    <AuthContext.Provider value={{ usuario, setUsuario, loading, logout }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => {
+export const useAuthContext = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth debe usarse dentro de <AuthProvider>');
+    throw new Error('useAuthContext debe usarse dentro de <AuthProvider>');
   }
   return context;
 };

@@ -42,7 +42,7 @@ const CalendarioLunar: React.FC = () => {
   const [fechaSeleccionada, setFechaSeleccionada] = useState<string>('');
   const fechaActual = new Date();
   const anio = fechaActual.getFullYear();
-  const mes = fechaActual.getMonth(); // 0-indexed
+  const mes = fechaActual.getMonth();
   const nombreMes = fechaActual.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
 
   const { data: eventos, refetch } = useCalendarioLunar();
@@ -64,7 +64,6 @@ const CalendarioLunar: React.FC = () => {
     obtenerDatos();
   }, [anio, mes]);
 
-  // Agrupar eventos por fecha para mostrar varios en el mismo día
   const eventosPorFecha = useMemo(() => {
     const agrupados: Record<string, EventoCalendario[]> = {};
     eventos?.forEach(evento => {
@@ -91,17 +90,19 @@ const CalendarioLunar: React.FC = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      <div className="bg-gray-100 rounded-2xl p-6 shadow-lg">
-        <h2 className="text-3xl font-bold text-center mb-6 capitalize text-gray-700">{nombreMes}</h2>
+    <div className="w-full max-w-full px-2 sm:px-4 md:px-6 py-6">
+      <div className="bg-gray-100 rounded-2xl p-4 sm:p-6 shadow-lg">
+        <h2 className="text-2xl sm:text-3xl font-bold text-center mb-6 capitalize text-gray-700">
+          {nombreMes}
+        </h2>
 
-        <div className="grid grid-cols-7 gap-2 mb-3 text-center font-semibold text-gray-500">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 gap-2 mb-3 text-center font-semibold text-gray-500 text-xs sm:text-sm">
           <span>Dom</span><span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span>
         </div>
 
-        <div className="grid grid-cols-7 gap-3">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 gap-2 sm:gap-3">
           {diasVacios.map((_, index) => (
-            <div key={`vacio-${index}`} className="h-24"></div>
+            <div key={`vacio-${index}`} className="h-20 md:h-24"></div>
           ))}
 
           {datos.map(dia => {
@@ -110,24 +111,27 @@ const CalendarioLunar: React.FC = () => {
             return (
               <div
                 key={dia.fecha}
-                className="bg-white h-24 p-2 rounded-xl shadow-md flex flex-col justify-between border border-gray-200 cursor-pointer hover:bg-gray-200 relative"
+                className="bg-white h-20 md:h-24 p-2 rounded-xl shadow-sm flex flex-col justify-between border border-gray-200 cursor-pointer hover:bg-gray-200 relative text-[10px] sm:text-xs"
                 onClick={() => abrirModal(dia.fecha)}
                 title={`Fase lunar: ${traducirFase(dia.fase)}${eventosDelDia.length > 0 ? ` - ${eventosDelDia.length} evento(s)` : ''}`}
               >
-                <span className="text-gray-800 font-bold z-20 relative">
+                <span className="text-gray-800 font-bold z-20 relative text-xs sm:text-sm">
                   {Number(dia.fecha.split('-')[2])}
                 </span>
 
-                {/* Eventos sobre la fase lunar */}
-                <div className="absolute top-6 left-2 right-2 max-h-12 overflow-y-auto text-[10px] text-blue-700 z-30">
+                <div className="absolute top-6 left-2 right-2 max-h-12 overflow-y-auto text-blue-700 z-30 space-y-0.5">
                   {eventosDelDia.map(evento => (
-                    <span key={evento.id} title={evento.descripcion_evento} className="block truncate">
+                    <span
+                      key={evento.id}
+                      title={evento.descripcion_evento}
+                      className="block truncate whitespace-nowrap"
+                    >
                       📌 {evento.evento}
                     </span>
                   ))}
                 </div>
 
-                <div className="flex items-center gap-1 text-xs text-gray-600 mt-auto z-10 relative">
+                <div className="flex items-center gap-1 text-gray-600 mt-auto z-10 relative">
                   <span
                     className={`w-3 h-3 rounded-full ${colorFase(dia.fase)}`}
                     title={traducirFase(dia.fase)}
