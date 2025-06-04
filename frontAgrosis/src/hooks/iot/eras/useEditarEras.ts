@@ -6,6 +6,7 @@ const apiUrl = import.meta.env.VITE_API_URL;
 export interface Eras {
   id: number;
   fk_id_lote: number;
+  nombre: string;
   descripcion: string;
   estado: boolean;
 }
@@ -28,13 +29,12 @@ const useEditarEras = () => {
       };
       console.log("📋 Encabezados de la solicitud:", headers);
 
+      const url = `${apiUrl}eras/${eraActualizada.id}/`;
+      console.log("🔍 URL de la solicitud:", url);
+      console.log("📦 Datos enviados:", eraActualizada);
+
       try {
-        console.log("🚀 Enviando solicitud de actualización para la era:", eraActualizada);
-        const { data } = await axios.put(
-          `${apiUrl}eras/${eraActualizada.id}/`, // Aseguramos el formato del endpoint
-          eraActualizada,
-          { headers }
-        );
+        const { data } = await axios.put(url, eraActualizada, { headers });
         console.log("✅ Respuesta del servidor:", data);
         return data;
       } catch (error) {

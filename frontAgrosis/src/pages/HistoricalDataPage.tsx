@@ -143,7 +143,6 @@ const HistoricalDataTable = () => {
             title="Registros del Sensor"
             headers={["ID", "Fecha", "Valor", "Unidad"]}
             data={filteredData}
-            createButtonTitle="Nuevo Registro"
             extraButton={
               <DescargarTablaPDF
                 nombreArchivo={`reporte_sensor_${sensor?.nombre_sensor || "desconocido"}.pdf`}
