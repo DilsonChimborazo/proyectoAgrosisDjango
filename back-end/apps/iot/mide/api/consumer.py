@@ -5,9 +5,6 @@ from asgiref.sync import sync_to_async
 from apps.iot.mide.models import Mide
 from apps.iot.sensores.models import Sensores
 from apps.trazabilidad.plantacion.models import Plantacion
-from apps.iot.evapotranspiracion.api.utils import calcular_eto
-from apps.iot.evapotranspiracion.models import Evapotranspiracion
-from django.utils import timezone
 import logging
 
 logger = logging.getLogger(__name__)
@@ -97,10 +94,6 @@ class MideConsumer(AsyncWebsocketConsumer):
             # Enviar datos al grupo de Mide
             await self.channel_layer.group_send("mide", {"type": "enviar_dato", "message": message})
 
-            # Calcular y guardar evapotranspiración con la nueva medición
-            fecha_medicion = await sync_to_async(lambda: nuevo_mide.fecha_medicion.date())()
-            await self.calcular_y_guardar_evapotranspiracion(plantacion, fecha_medicion)
-
         except Exception as e:
             error_msg = f"❌ Error al procesar mensaje WebSocket: {str(e)}"
             logger.error(error_msg)
@@ -113,63 +106,3 @@ class MideConsumer(AsyncWebsocketConsumer):
             await self.send(text_data=mensaje)
         except Exception as e:
             logger.error(f"❌ Error al enviar datos WebSocket: {e}")
-
-    async def calcular_y_guardar_evapotranspiracion(self, plantacion, fecha):
-        try:
-            # Verificar si la plantación tiene cultivo asociado
-            has_cultivo = await sync_to_async(lambda: bool(plantacion.fk_id_cultivo))()
-            if not has_cultivo:
-                logger.warning(f"Plantación {plantacion.id} no tiene cultivo asociado. No se calcula ETo.")
-                return
-
-            # Obtener las últimas mediciones disponibles para la plantación (una por tipo de sensor)
-            mediciones = await sync_to_async(
-                lambda: list(
-                    Mide.objects.filter(
-                        fk_id_plantacion=plantacion
-                    ).select_related('fk_id_sensor').order_by('-fecha_medicion')[:4]
-                )
-            )()
-
-            # Verificar si hay suficientes datos para calcular ETo
-            required_sensors = ['TEMPERATURA', 'HUMEDAD_AMBIENTAL', 'VELOCIDAD_VIENTO', 'ILUMINACION']
-            sensor_types = set()
-            for medicion in mediciones:
-                tipo_sensor = await sync_to_async(lambda: medicion.fk_id_sensor.tipo_sensor)()
-                sensor_types.add(tipo_sensor)
-            
-            if not all(sensor_type in sensor_types for sensor_type in required_sensors):
-                logger.info(f"No hay suficientes datos de sensores para plantación {plantacion.id}")
-                return
-
-            # Log para depurar las mediciones utilizadas
-            mediciones_log = []
-            for m in mediciones:
-                tipo_sensor = await sync_to_async(lambda: m.fk_id_sensor.tipo_sensor)()
-                valor_medicion = await sync_to_async(lambda: str(m.valor_medicion))()
-                mediciones_log.append(f"{tipo_sensor}: {valor_medicion}")
-            logger.info(f"Mediciones utilizadas: {mediciones_log}")
-
-            # Calcular ETo con las mediciones más recientes
-            try:
-                eto = await sync_to_async(calcular_eto)(mediciones)
-            except ValueError as e:
-                logger.error(f"Error al calcular ETo para plantación {plantacion.id}: {str(e)}")
-                return
-
-            kc_promedio = Decimal('0.85')
-
-            etc = eto * kc_promedio
-
-            # Guardar un nuevo registro de evapotranspiración
-            evap = await sync_to_async(Evapotranspiracion.objects.create)(
-                fk_id_plantacion=plantacion,
-                fecha=fecha,
-                eto=eto,
-                etc=etc,
-                created_at=timezone.now()
-            )
-            logger.info(f"Evapotranspiración calculada y guardada: ETo={eto}, ETc={etc} para plantación {plantacion.id}")
-
-        except Exception as e:
-            logger.error(f"Error al calcular y guardar evapotranspiración: {str(e)}")
