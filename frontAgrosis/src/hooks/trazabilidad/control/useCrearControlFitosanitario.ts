@@ -12,8 +12,8 @@ export interface ControlFitosanitario {
     fk_id_pea: number;
     fk_id_insumo: number;
     cantidad_insumo: number;
-    fk_unidad_medida: number | null;
-    fk_identificacion: number | null;
+    fk_unidad_medida: number;
+    fk_identificacion: number[];
     img: File;
 }
 
@@ -36,9 +36,9 @@ export const useCrearControlFitosanitario = () => {
             formData.append('fk_id_insumo', String(nuevoControl.fk_id_insumo));
             formData.append('cantidad_insumo', String(nuevoControl.cantidad_insumo));
             formData.append('fk_unidad_medida', String(nuevoControl.fk_unidad_medida));
-            if (nuevoControl.fk_identificacion !== null) {
-                formData.append('fk_identificacion', String(nuevoControl.fk_identificacion));
-            }
+            nuevoControl.fk_identificacion.forEach((id, index) => {
+                formData.append(`fk_identificacion[${index}]`, String(id));
+            });
             formData.append('img', nuevoControl.img);
             console.log("FormData enviado al backend:", {
                 fecha_control: formData.get('fecha_control'),
@@ -50,7 +50,7 @@ export const useCrearControlFitosanitario = () => {
                 fk_id_insumo: formData.get('fk_id_insumo'),
                 cantidad_insumo: formData.get('cantidad_insumo'),
                 fk_unidad_medida: formData.get('fk_unidad_medida'),
-                fk_identificacion: formData.get('fk_identificacion'),
+                fk_identificacion: formData.getAll('fk_identificacion'),
                 img: formData.get('img'),
             });
 

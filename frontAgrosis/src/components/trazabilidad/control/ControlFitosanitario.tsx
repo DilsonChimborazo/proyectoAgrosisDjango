@@ -86,8 +86,8 @@ const ControlFitosanitario = () => {
     insumo: control.fk_id_insumo ? control.fk_id_insumo.nombre : 'Sin insumo',
     cantidad_insumo: control.cantidad_insumo,
     unidad_medida: control.fk_unidad_medida ? control.fk_unidad_medida.nombre_medida : 'Sin unidad',
-    usuario: control.fk_identificacion
-      ? control.fk_identificacion.identificacion
+    usuario: Array.isArray(control.fk_identificacion) && control.fk_identificacion.length > 0
+      ? control.fk_identificacion.map((u: any) => u.nombre).join(' / ')
       : 'Sin usuario',
     img: control.img ? (
       <img
@@ -168,7 +168,9 @@ const ControlFitosanitario = () => {
                 <p><strong>Insumo:</strong> {(selectedControl as any).fk_id_insumo?.nombre || 'Sin insumo'}</p>
                 <p><strong>Cantidad Insumo:</strong> {(selectedControl as any).cantidad_insumo || '0'}</p>
                 <p><strong>Unidad Medida:</strong> {(selectedControl as any).fk_unidad_medida?.nombre_medida || 'Sin unidad'}</p>
-                <p><strong>Usuario:</strong> {(selectedControl as any).fk_identificacion?.nombre || 'Sin usuario'}</p>
+                <p><strong>Usuario:</strong> {Array.isArray((selectedControl as any).fk_identificacion) && (selectedControl as any).fk_identificacion.length > 0
+                  ? (selectedControl as any).fk_identificacion.map((u: any) => u.nombre).join(' / ')
+                  : 'Sin usuario'}</p>
                 {(selectedControl as any).img && (
                   <p className="col-span-2">
                     <strong>Imagen:</strong>

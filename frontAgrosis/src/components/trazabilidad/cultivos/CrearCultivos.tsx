@@ -128,7 +128,7 @@ const CrearCultivo = ({ onSuccess }: CrearCultivoProps) => {
       <VentanaModal
         isOpen={mostrarModalEspecie}
         onClose={cerrarYActualizar}
-        titulo="Crear Especie"
+        titulo=""
         contenido={
           <CrearEspecie
             onSuccess={cerrarYActualizar} // Cierra el modal y actualiza al crear especie
