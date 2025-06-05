@@ -1,13 +1,20 @@
+// src/hooks/trazabilidad/asignacion/useAsignacion.ts
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
 const apiUrl = import.meta.env.VITE_API_URL;
+
+export interface Rol{
+  id: number;
+  rol: string;
+}
 
 export interface Usuario {
   id: number;
   nombre: string;
   apellido: string;
   email: string;
+  fk_id_rol: Rol
 }
 
 export interface Actividad {
@@ -84,16 +91,45 @@ export interface Asignacion {
   fk_identificacion: number[]; // Cambiado a number[] para ManyToManyField
 }
 
+// Configurar el interceptor de Axios para incluir el token de autenticación
+const getAuthToken = () => {
+  return localStorage.getItem('token') || null; // Ajusta según dónde almacenes el token
+};
+
+axios.interceptors.request.use(
+  (config) => {
+    const token = getAuthToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`; // Incluye el token en todas las solicitudes
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Función para obtener las asignaciones
 const fetchAsignaciones = async (): Promise<Asignacion[]> => {
   try {
     const { data } = await axios.get(`${apiUrl}asignaciones_actividades/`);
     return data;
   } catch (error: any) {
-    console.error("Error al obtener asignaciones:", error.response?.data || error.message);
-    throw new Error("No se pudo obtener la lista de asignaciones");
+    console.error('Error al obtener asignaciones:', error.response?.data || error.message);
+    throw new Error('No se pudo obtener la lista de asignaciones');
   }
 };
 
+// Función para finalizar una asignación
+export const finalizarAsignacion = async (id: number): Promise<Asignacion> => {
+  try {
+    const { data } = await axios.post(`${apiUrl}asignaciones_actividades/${id}/finalizar/`);
+    return data.asignacion; // El backend devuelve la asignación actualizada en 'asignacion'
+  } catch (error: any) {
+    console.error('Error al finalizar asignación:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.error || 'No se pudo finalizar la asignación');
+  }
+};
+
+// Hook para obtener las asignaciones
 export const useAsignacion = () => {
   return useQuery<Asignacion[], Error>({
     queryKey: ['Asignaciones'],

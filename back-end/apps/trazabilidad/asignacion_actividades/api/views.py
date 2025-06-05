@@ -1,7 +1,9 @@
+# apps/trazabilidad/asignacion_actividades/api/views.py
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from apps.trazabilidad.asignacion_actividades.models import Asignacion_actividades
 from apps.trazabilidad.asignacion_actividades.api.serializers import (
     LeerAsignacion_actividadesSerializer,
@@ -13,12 +15,15 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from django.core.mail import send_mail
 from django.conf import settings
+from .permissions import IsUsuarioAsignacion  # Importar el permiso corregido
 
 class Asignacion_actividadesModelViewSet(ModelViewSet):
     queryset = Asignacion_actividades.objects.select_related(
         'fk_id_realiza__fk_id_plantacion__fk_id_cultivo',
-        'fk_id_realiza__fk_id_actividad',  # Añadido para optimizar la relación con actividad
+        'fk_id_realiza__fk_id_actividad',
     ).prefetch_related('fk_identificacion').all()
+
+    permission_classes = [IsAuthenticated, IsUsuarioAsignacion]  # Usar el nuevo permiso
 
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve']:
@@ -79,6 +84,43 @@ class Asignacion_actividadesModelViewSet(ModelViewSet):
             )
 
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    @action(detail=True, methods=['post'], url_path='finalizar')
+    def finalizar(self, request, pk=None):
+        """
+        Acción para que un usuario asignado marque la asignación como Completada.
+        """
+        asignacion = self.get_object()
+        if asignacion.estado == 'Completada':
+            return Response({'error': 'La asignación ya está completada'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        asignacion.estado = 'Completada'
+        asignacion.save()
+
+        # Enviar notificación por WebSocket a todos los usuarios asignados
+        actividad = asignacion.fk_id_realiza.fk_id_actividad if asignacion.fk_id_realiza else None
+        usuarios = asignacion.fk_identificacion.all()
+        channel_layer = get_channel_layer()
+        for usuario in usuarios:
+            async_to_sync(channel_layer.group_send)(
+                "asignacion_actividades_notifications",
+                {
+                    "type": "asignacion_notification",
+                    "message": {
+                        "id": asignacion.id,
+                        "usuario": f"{usuario.nombre} {usuario.apellido}",
+                        "actividad": actividad.nombre_actividad if actividad else "No especificado",
+                        "fecha": str(asignacion.fecha_programada),
+                        "estado": asignacion.estado,
+                        "observaciones": f"Asignación completada por {request.user.nombre} {request.user.apellido}",
+                    }
+                }
+            )
+
+        return Response({
+            'message': 'Asignación marcada como Completada',
+            'asignacion': LeerAsignacion_actividadesSerializer(asignacion).data
+        }, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], url_path='reporte-asignaciones')
     def reporte_asignaciones(self, request):

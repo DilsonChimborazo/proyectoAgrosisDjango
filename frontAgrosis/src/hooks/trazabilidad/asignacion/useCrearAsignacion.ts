@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
+import { showToast } from '@/components/globales/Toast'; // Asegúrate de importar showToast
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -43,7 +44,7 @@ export interface Semillero {
 export interface Plantacion {
   id: number;
   descripcion: string;
-  fk_id_cultivo: Cultivo; // Corregido de fk_id_especie a fk_id_cultivo
+  fk_id_cultivo: Cultivo;
   cantidad_transplante?: number;
   fk_id_semillero?: Semillero;
   fecha_plantacion: string;
@@ -68,27 +69,64 @@ export interface Asignacion {
   fecha_programada: string;
   observaciones: string;
   fk_id_realiza: Realiza | number;
-  fk_identificacion: number[]; // Cambiado a number[] para ManyToManyField
+  fk_identificacion: number[];
 }
 
 // Interfaz para los datos de entrada (POST)
 export interface CrearAsignacionDTO {
-  estado: 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada';
-  fecha_programada: string;
+  estado: 'Pendiente'; // Solo 'Pendiente' al crear
+  fecha_programada: string; // Formato ISO (YYYY-MM-DD)
   observaciones: string;
   fk_id_realiza: number;
-  fk_identificacion: number[]; // Cambiado a number[] para ManyToManyField
+  fk_identificacion: number[]; // Array de IDs de usuarios
 }
 
-// Función para crear una asignación
+// Función para crear una asignación con validación y depuración
 const crearAsignacion = async (asignacionData: CrearAsignacionDTO): Promise<Asignacion> => {
   try {
-    const response = await axios.post(`${apiUrl}asignaciones_actividades/`, asignacionData);
-    console.log("Asignación creada exitosamente:", response.data);
+    // Validación básica en el frontend
+    if (!asignacionData.fecha_programada || !/^\d{4}-\d{2}-\d{2}$/.test(asignacionData.fecha_programada)) {
+      throw new Error('La fecha programada debe estar en formato YYYY-MM-DD (ejemplo: 2025-06-05)');
+    }
+    if (!asignacionData.fk_id_realiza || asignacionData.fk_id_realiza <= 0) {
+      throw new Error('El ID de realiza es inválido');
+    }
+    if (!asignacionData.fk_identificacion || asignacionData.fk_identificacion.length === 0) {
+      throw new Error('Debe asignar al menos un usuario');
+    }
+    if (asignacionData.fk_identificacion.some(id => id <= 0)) {
+      throw new Error('Los IDs de usuarios en fk_identificacion deben ser válidos');
+    }
+
+    // Depuración: Mostrar datos enviados con detalle
+    console.log('Datos enviados a crearAsignacion:', JSON.stringify(asignacionData, null, 2));
+
+    const response = await axios.post(`${apiUrl}asignaciones_actividades/`, asignacionData, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    console.log('Respuesta del backend:', JSON.stringify(response.data, null, 2));
     return response.data;
   } catch (error: any) {
-    console.error("Error al crear asignación:", error.response?.data || error.message);
-    throw new Error("No se pudo crear la asignación");
+    // Mejor manejo de errores para capturar detalles específicos
+    const errorDetails = error.response?.data || error.message;
+    let errorMessage = 'No se pudo crear la asignación';
+    
+    if (error.response?.data) {
+      if (typeof error.response.data === 'object') {
+        // Si el backend devuelve un objeto con errores por campo
+        const errors = Object.entries(error.response.data)
+          .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
+          .join('; ');
+        errorMessage = errors || errorMessage;
+      } else {
+        errorMessage = error.response.data.detail || error.response.data.message || errorMessage;
+      }
+    }
+
+    console.error('Error detallado al crear asignación:', errorMessage, errorDetails);
+    throw new Error(errorMessage);
   }
 };
 
@@ -100,6 +138,20 @@ export const useCrearAsignacion = () => {
     onSuccess: () => {
       // Invalidar la consulta de asignaciones para recargar la lista
       queryClient.invalidateQueries({ queryKey: ['Asignaciones'] });
+      showToast({
+        title: 'Éxito',
+        description: 'La asignación se ha creado correctamente.',
+        timeout: 3000,
+        variant: 'success',
+      });
+    },
+    onError: (error) => {
+      showToast({
+        title: 'Error',
+        description: error.message || 'Ocurrió un error al crear la asignación.',
+        timeout: 3000,
+        variant: 'error',
+      });
     },
   });
 };
