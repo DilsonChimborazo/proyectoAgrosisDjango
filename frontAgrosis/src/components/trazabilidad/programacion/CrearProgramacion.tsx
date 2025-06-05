@@ -38,6 +38,7 @@ const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess,
   });
   const [isUnidadModalOpen, setIsUnidadModalOpen] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const isCompleted = existingProgramacion?.estado === 'Completada';
 
   useEffect(() => {
     if (existingProgramacion) {
@@ -61,6 +62,15 @@ const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess,
   }, [formData.img]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    if (isCompleted) {
+      showToast({
+        title: 'Acción no permitida',
+        description: 'No se puede editar una asignación ya finalizada.',
+        timeout: 5000,
+        variant: 'error',
+      });
+      return;
+    }
     const { name, value, files } = e.target as HTMLInputElement;
     if (name === 'img' && files) {
       setFormData((prev) => ({ ...prev, img: files[0] }));
@@ -70,15 +80,31 @@ const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess,
   };
 
   const validateForm = () => {
-    if (!formData.fecha_realizada) return 'Debe ingresar la fecha realizada';
-    if (!formData.duracion || Number(formData.duracion) <= 0) return 'Debe ingresar una duración válida';
-    if (!formData.cantidad_insumo || Number(formData.cantidad_insumo) <= 0) return 'Debe ingresar una cantidad de insumo válida';
-    if (!formData.fk_unidad_medida) return 'Debe seleccionar una unidad de medida';
+    if (
+      !formData.fecha_realizada ||
+      !formData.duracion ||
+      Number(formData.duracion) <= 0 ||
+      !formData.cantidad_insumo ||
+      Number(formData.cantidad_insumo) <= 0 ||
+      !formData.fk_unidad_medida
+    ) {
+      return 'Todos los campos son obligatorios';
+    }
     return null;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (isCompleted) {
+      showToast({
+        title: 'Acción no permitida',
+        description: 'No se puede editar una asignación ya finalizada.',
+        timeout: 5000,
+        variant: 'error',
+      });
+      return;
+    }
 
     const validationError = validateForm();
     if (validationError) {
@@ -129,10 +155,10 @@ const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess,
                 });
                 onSuccess();
               },
-              onError: (err: any) => {
+              onError: () => {
                 showToast({
                   title: 'Error al actualizar asignación',
-                  description: err.message || 'Por favor, intenta de nuevo.',
+                  description: 'Por favor, intenta de nuevo.',
                   timeout: 5000,
                   variant: 'error',
                 });
@@ -140,16 +166,16 @@ const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess,
             }
           );
         },
-        onError: (err: any) => {
+        onError: () => {
           showToast({
             title: 'Error al crear programación',
-            description: err.message || 'Por favor, intenta de nuevo.',
+            description: 'Por favor, intenta de nuevo.',
             timeout: 5000,
             variant: 'error',
           });
         },
       });
-    } catch (err) {
+    } catch {
       showToast({
         title: 'Error al crear programación',
         description: 'Error inesperado al crear la programación.',
@@ -160,6 +186,15 @@ const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess,
   };
 
   const handleOpenUnidadModal = () => {
+    if (isCompleted) {
+      showToast({
+        title: 'Acción no permitida',
+        description: 'No se puede editar una asignación ya finalizada.',
+        timeout: 5000,
+        variant: 'error',
+      });
+      return;
+    }
     setIsUnidadModalOpen(true);
   };
 
@@ -255,7 +290,7 @@ const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess,
         </div>
         <div>
           <label htmlFor="img" className="block text-sm font-medium text-gray-700">
-            Imagen (opcional)
+            Imagen
           </label>
           <input
             type="file"

@@ -254,7 +254,7 @@ const CrearAsignacion = ({ onSuccess, onCancel, usuarios: initialUsuarios, onCre
 
   return (
     <div className="p-6">
-      <h1 className="text-xl font-bold mb-4 text-center">Registrar Asignación</h1>
+      <h2 className="text-xl font-bold mb-4 text-center">Gestión de Cultivo</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="flex items-center space-x-2">
           <div className="flex-1">
@@ -389,6 +389,9 @@ const CrearAsignacion = ({ onSuccess, onCancel, usuarios: initialUsuarios, onCre
             disabled={isPending}
           >
             <option value="Pendiente">Pendiente</option>
+            <option value="Completada">Completada</option>
+            <option value="Cancelada">Cancelada</option>
+            <option value="Reprogramada">Reprogramada</option>
           </select>
         </div>
         <div>

@@ -1,11 +1,13 @@
+// src/hooks/useAuth.ts
 import { useState } from "react";
+import { useAuthContext } from "../../../context/AuthContext";
 
 export function useAuth() {
   const [error, setError] = useState<string | null>(null);
+  const { setUsuario, logout: logoutGlobal } = useAuthContext();
 
   const login = async (identificacion: string, password: string) => {
     setError(null);
-
     const apiUrl = import.meta.env.VITE_API_URL;
 
     if (!apiUrl) {
@@ -23,44 +25,44 @@ export function useAuth() {
       });
 
       const data = await response.json();
-      console.log("Respuesta completa de la API:", data); 
 
-
-      if (!response.ok) {
-        console.error("Error en la autenticación:", response.status);
+      if (!response.ok || !data.access) {
         throw new Error(data.detail || "Error en la autenticación.");
       }
 
-      if (!data.access) {
-        throw new Error("El token de acceso no fue proporcionado por la API.");
-      }
-
       localStorage.setItem("token", data.access);
-      console.log("Token de acceso guardado exitosamente:", data.access);
-
       if (data.refresh) {
         localStorage.setItem("refreshToken", data.refresh);
-        console.log("Refresh token guardado:", data.refresh);
       }
+
+      // Obtener perfil del usuario usando el token
+      const perfilResponse = await fetch(`${apiUrl}perfil/`, {
+        headers: {
+          Authorization: `Bearer ${data.access}`,
+        },
+      });
+
+      if (!perfilResponse.ok) {
+        throw new Error("No se pudo obtener el perfil del usuario.");
+      }
+
+      const perfil = await perfilResponse.json();
+      localStorage.setItem("user", JSON.stringify(perfil));
+      setUsuario(perfil);
 
       return { success: true };
     } catch (err: any) {
-      console.error("Error en el proceso de autenticación:", err); 
       setError(err.message);
       return { success: false };
     }
   };
 
   const logout = () => {
-    if (typeof localStorage !== "undefined") {
-      localStorage.removeItem("token");
-      localStorage.removeItem("refreshToken");
-      console.log("Tokens eliminados exitosamente.");
-    } else {
-      console.warn("localStorage no está disponible.");
-    }
+    localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user");
+    logoutGlobal(); // limpia el contexto + redirige
   };
 
   return { login, logout, error };
 }
-

@@ -4,6 +4,7 @@ import { useRealiza, Realiza } from '@/hooks/trazabilidad/realiza/useRealiza';
 import { useUsuarios, Usuario } from '@/hooks/usuarios/usuario/useUsuarios';
 import { useProgramacion } from '@/hooks/trazabilidad/programacion/useProgramacion';
 import { useMedidas } from '@/hooks/inventario/unidadMedida/useMedidad';
+import { useCurrentUser } from '@/hooks/trazabilidad/asignacion/useCurrentUser';
 import VentanaModal from '../../globales/VentanasModales';
 import Tabla from '../../globales/Tabla';
 import CrearAsignacionModal from './CrearAsignacion';
@@ -11,7 +12,7 @@ import CrearProgramacion from '../programacion/CrearProgramacion';
 import { showToast } from '@/components/globales/Toast';
 
 // URL base del servidor donde se almacenan las imágenes
-const BASE_URL = 'http://localhost:8000'; // Ajusta según tu servidor
+const BASE_URL = 'http://localhost:8000';
 
 interface AsignacionTabla {
   id: number;
@@ -21,9 +22,9 @@ interface AsignacionTabla {
   plantacion: string;
   actividad: string;
   usuarios: string[];
-  fecha_realizada: string | null | string; // Añadido string para "No asignada"
-  duracion: number | null | string; // Añadido string para "No asignada"
-  cantidad_insumo: number | null | string; // Añadido string para "No asignada"
+  fecha_realizada: string | null | string;
+  duracion: number | null | string;
+  cantidad_insumo: number | null | string;
   img: string | null | React.ReactNode;
   unidad_medida: string;
 }
@@ -66,7 +67,7 @@ const DetalleAsignacionModal = memo(({ item, realizaList, usuarios }: { item: As
   );
 });
 
-const ListarAsignacion = () => {
+const ListarAsignacion: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isProgramacionModalOpen, setIsProgramacionModalOpen] = useState(false);
@@ -74,6 +75,7 @@ const ListarAsignacion = () => {
   const [modalContenido, setModalContenido] = useState<React.ReactNode>(null);
   const [imagenAmpliada, setImagenAmpliada] = useState<string | null>(null);
 
+  const { data: user, isLoading: isLoadingUser, error: errorUser } = useCurrentUser();
   const { data: asignaciones = [], isLoading: isLoadingAsignaciones, error: errorAsignaciones, refetch: refetchAsignaciones } = useAsignacion();
   const { data: realizaList = [], isLoading: isLoadingRealiza, error: errorRealiza } = useRealiza();
   const { data: usuarios = [], isLoading: isLoadingUsuarios, error: errorUsuarios } = useUsuarios();
@@ -90,7 +92,7 @@ const ListarAsignacion = () => {
         variant: 'info',
       });
     }
-  }, [unidadesMedida, asignaciones, realizaList, isLoadingUnidadesMedida, isLoadingAsignaciones, isLoadingRealiza, errorUnidadesMedida, errorAsignaciones, errorRealiza]);
+  }, [asignaciones, isLoadingAsignaciones, errorAsignaciones]);
 
   // Depuración: Mostrar datos recibidos
   useEffect(() => {
@@ -100,49 +102,8 @@ const ListarAsignacion = () => {
     console.log('Programaciones:', programaciones);
     console.log('Unidades Medida:', unidadesMedida);
     console.log('Realiza IDs disponibles:', realizaList.map((r) => r.id));
-  }, [asignaciones, realizaList, usuarios, programaciones, unidadesMedida]);
-
-  const handleItemClick = (item: AsignacionTabla) => {
-    const asignacion = asignaciones.find((a) => a.id === item.id) ?? null;
-    setSelectedAsignacion(asignacion);
-    setIsDetailModalOpen(true);
-  };
-
-  const handleUpdateClick = (item: AsignacionTabla) => {
-    const asignacion = asignaciones.find((a) => a.id === item.id);
-    if (!asignacion) return;
-    setSelectedAsignacion(asignacion);
-    setIsProgramacionModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setIsDetailModalOpen(false);
-    setIsProgramacionModalOpen(false);
-    setModalContenido(null);
-    setSelectedAsignacion(null);
-  };
-
-  const handleCreateAsignacion = () => {
-    setModalContenido(
-      <CrearAsignacionModal
-        onSuccess={() => {
-          refetchAsignaciones();
-          closeModal();
-          showToast({
-            title: 'Asignación Creada',
-            description: 'La asignación se ha registrado correctamente.',
-            timeout: 3000,
-            variant: 'success',
-          });
-        }}
-        onCancel={closeModal}
-        usuarios={usuarios}
-        onCreateUsuario={() => refetchAsignaciones()}
-      />
-    );
-    setIsModalOpen(true);
-  };
+    console.log('Usuario actual:', user);
+  }, [asignaciones, realizaList, usuarios, programaciones, unidadesMedida, user]);
 
   const tablaData: AsignacionTabla[] = useMemo(() => {
     if (!asignaciones.length) {
@@ -169,9 +130,8 @@ const ListarAsignacion = () => {
 
     return asignaciones.map((asignacion) => {
       const realizaId = typeof asignacion.fk_id_realiza === 'object' ? asignacion.fk_id_realiza?.id : asignacion.fk_id_realiza;
-      console.log(`Asignacion ID: ${asignacion.id}, fk_id_realiza:`, asignacion.fk_id_realiza, 'Realiza ID:', realizaId);
+      console.log(`Mapeando asignación ID: ${asignacion.id}, fk_id_realiza: ${realizaId}`);
       const realiza = realizaList.find((r) => r.id === realizaId);
-      console.log('Realiza encontrado:', realiza);
       if (!realiza) {
         console.warn(`No se encontró realiza para fk_id_realiza: ${realizaId}`);
       }
@@ -179,7 +139,8 @@ const ListarAsignacion = () => {
       const usuariosAsignados = Array.isArray(asignacion.fk_identificacion)
         ? asignacion.fk_identificacion
             .map((id) => {
-              const usuario = usuarios.find((u) => u.id === (typeof id === 'object' ? id.id : id));
+              const usuarioId = typeof id === 'object' ? id.id : id;
+              const usuario = usuarios.find((u) => u.id === usuarioId);
               return usuario ? `${usuario.nombre} ${usuario.apellido}` : null;
             })
             .filter((u): u is string => !!u)
@@ -243,6 +204,7 @@ const ListarAsignacion = () => {
     });
   }, [asignaciones, realizaList, usuarios, programaciones, unidadesMedida]);
 
+  // Depuración: Mostrar tablaData después de que se haya inicializado
   useEffect(() => {
     console.log('Tabla Data:', tablaData);
     return () => {
@@ -254,8 +216,117 @@ const ListarAsignacion = () => {
     };
   }, [tablaData]);
 
-  const loading = isLoadingAsignaciones || isLoadingRealiza || isLoadingUsuarios || isLoadingProgramaciones || isLoadingUnidadesMedida;
-  const error = errorAsignaciones || errorRealiza || errorUsuarios || errorProgramaciones || errorUnidadesMedida;
+  const handleItemClick = (item: AsignacionTabla) => {
+    const asignacion = asignaciones.find((a) => a.id === item.id) ?? null;
+    setSelectedAsignacion(asignacion);
+    setIsDetailModalOpen(true);
+  };
+
+  const handleUpdateClick = (item: AsignacionTabla) => {
+    if (!user) {
+      showToast({
+        title: 'Error',
+        description: 'Debes iniciar sesión para actualizar una programación.',
+        timeout: 3000,
+        variant: 'error',
+      });
+      return;
+    }
+    const asignacion = asignaciones.find((a) => a.id === item.id);
+    if (!asignacion) {
+      showToast({
+        title: 'Error',
+        description: 'Asignación no encontrada.',
+        timeout: 3000,
+        variant: 'error',
+      });
+      return;
+    }
+    if (asignacion.estado === 'Completada') {
+      showToast({
+        title: 'Acción no permitida',
+        description: 'No se puede editar una asignación ya finalizada.',
+        timeout: 3000,
+        variant: 'error',
+      });
+      return;
+    }
+    console.log('Asignación encontrada:', asignacion);
+    console.log('Usuario ID:', user.id, 'fk_identificacion:', asignacion.fk_identificacion);
+    const userAssigned = Array.isArray(asignacion.fk_identificacion)
+      ? asignacion.fk_identificacion.some((id) => (typeof id === 'object' ? id.id : id) === user.id)
+      : false;
+    if (!userAssigned) {
+      showToast({
+        title: 'Acceso Denegado',
+        description: 'No estás asignado a esta asignación para actualizarla.',
+        timeout: 3000,
+        variant: 'error',
+      });
+      return;
+    }
+    if (!['Aprendiz', 'Pasante'].includes(user.fk_id_rol?.rol)) {
+      showToast({
+        title: 'Acceso Denegado',
+        description: 'Solo los usuarios con rol Aprendiz o Pasante pueden actualizar asignaciones.',
+        timeout: 3000,
+        variant: 'error',
+      });
+      return;
+    }
+    setSelectedAsignacion(asignacion);
+    setIsProgramacionModalOpen(true);
+  };
+
+  const handleCreateAsignacion = () => {
+    if (!user) {
+      showToast({
+        title: 'Error',
+        description: 'Debes iniciar sesión para crear una asignación.',
+        timeout: 3000,
+        variant: 'error',
+      });
+      return;
+    }
+    if (['Aprendiz', 'Pasante'].includes(user.fk_id_rol?.rol)) {
+      showToast({
+        title: 'Acceso Denegado',
+        description: 'No tienes permiso para crear una asignación.',
+        timeout: 3000,
+        variant: 'error',
+      });
+      return;
+    }
+    setModalContenido(
+      <CrearAsignacionModal
+        onSuccess={() => {
+          refetchAsignaciones();
+          closeModal();
+          showToast({
+            title: 'Asignación Creada',
+            description: 'La asignación se ha registrado correctamente.',
+            timeout: 3000,
+            variant: 'success',
+          });
+        }}
+        onCancel={closeModal}
+        usuarios={usuarios}
+        onCreateUsuario={() => refetchAsignaciones()}
+      />
+    );
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setIsDetailModalOpen(false);
+    setIsProgramacionModalOpen(false);
+    setModalContenido(null);
+    setSelectedAsignacion(null);
+  };
+
+  const loading = isLoadingAsignaciones || isLoadingRealiza || isLoadingUsuarios || isLoadingProgramaciones || isLoadingUnidadesMedida || isLoadingUser;
+  const error = errorAsignaciones || errorRealiza || errorUsuarios || errorProgramaciones || errorUnidadesMedida || errorUser;
 
   if (loading) return <div className="text-center text-gray-500">Cargando asignaciones...</div>;
   if (error) {
@@ -283,28 +354,52 @@ const ListarAsignacion = () => {
     'Estado',
   ];
 
-  const renderRow = (item: AsignacionTabla) => (
-    <tr key={item.id} className="hover:bg-gray-100 cursor-pointer">
-      <td className="p-3">{item.id}</td>
-      <td className="p-3">{item.fecha_programada}</td>
-      <td className="p-3">
-        {item.usuarios[0] === 'Sin usuarios' ? (
-          <span className="text-gray-500">Sin usuarios</span>
-        ) : (
-          <span className="text-gray-700">{item.usuarios.join(' - ')}</span>
-        )}
-      </td>
-      <td className="p-3">{item.actividad}</td>
-      <td className="p-3">{item.plantacion}</td>
-      <td className="p-3">{item.observaciones}</td>
-      <td className="p-3">{item.fecha_realizada}</td>
-      <td className="p-3">{item.duracion}</td>
-      <td className="p-3">{item.cantidad_insumo}</td>
-      <td className="p-3">{item.unidad_medida}</td>
-      <td className="p-3">{item.img}</td>
-      <td className="p-3">{item.estado}</td>
-    </tr>
-  );
+  const renderRow = (item: AsignacionTabla) => {
+    console.log('Renderizando fila para ID:', item.id, 'Estado:', item.estado, 'Usuario:', user);
+    return (
+      <tr key={item.id} className="hover:bg-gray-100 cursor-pointer">
+        <td className="p-3">{item.id}</td>
+        <td className="p-3">{item.fecha_programada}</td>
+        <td className="p-3">
+          {item.usuarios[0] === 'Sin usuarios' ? (
+            <span className="text-gray-500">Sin usuarios</span>
+          ) : (
+            <span className="text-gray-700">{item.usuarios.join(' - ')}</span>
+          )}
+        </td>
+        <td className="p-3">{item.actividad}</td>
+        <td className="p-3">{item.plantacion}</td>
+        <td className="p-3">{item.observaciones}</td>
+        <td className="p-3">{item.fecha_realizada}</td>
+        <td className="p-3">{item.duracion}</td>
+        <td className="p-3">{item.cantidad_insumo}</td>
+        <td className="p-3">{item.unidad_medida}</td>
+        <td className="p-3">{item.img}</td>
+        <td className="p-3">{item.estado}</td>
+        <td className="p-3">
+          <div className="flex space-x-2">
+            <button
+              onClick={() => handleItemClick(item)}
+              className="bg-gray-300 text-black px-2 py-1 rounded hover:bg-gray-400"
+            >
+              Ver detalles
+            </button>
+            {item.estado === 'Pendiente' &&
+              user &&
+              asignaciones.find((a) => a.id === item.id)?.fk_identificacion.some((id) => (typeof id === 'object' ? id.id : id) === user.id) &&
+              ['Aprendiz', 'Pasante'].includes(user.fk_id_rol?.rol) && (
+                <button
+                  onClick={() => handleUpdateClick(item)}
+                  className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600"
+                >
+                  Actualizar
+                </button>
+              )}
+          </div>
+        </td>
+      </tr>
+    );
+  };
 
   return (
     <div className="p-4 space-y-6">

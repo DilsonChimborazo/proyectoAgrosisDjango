@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
-import { useAuth } from '../../../context/AuthContext'; // Asegúrate que la ruta sea correcta
+import { useAuthContext } from '../../../context/AuthContext'; // Asegúrate que la ruta sea correcta
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -91,7 +91,7 @@ const updatePerfil = async (formData: FormData): Promise<Usuario> => {
 // Hook personalizado
 export const usePerfilUsuario = () => {
   const queryClient = useQueryClient();
-  const { setUsuario } = useAuth(); // Accedemos al AuthContext
+  const { setUsuario } = useAuthContext(); // Accedemos al AuthContext
 
   const perfilQuery = useQuery({
     queryKey: ['perfilUsuario'],
