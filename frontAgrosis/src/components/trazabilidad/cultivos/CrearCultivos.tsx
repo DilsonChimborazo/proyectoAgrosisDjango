@@ -4,7 +4,7 @@ import { useEspecie } from '@/hooks/trazabilidad/especie/useEspecie';
 import CrearEspecie from '../especie/CrearEspecie';
 import { useState } from 'react';
 import VentanaModal from '../../globales/VentanasModales';
-import { showToast } from '@/components/globales/Toast'; // Importamos el componente Toast
+import { showToast } from '@/components/globales/Toast';
 
 interface CrearCultivoProps {
   onSuccess: () => void;
@@ -42,8 +42,13 @@ const CrearCultivo = ({ onSuccess }: CrearCultivoProps) => {
     },
   ];
 
-  const handleSubmit = (formData: { [key: string]: string }) => {
-    if (!formData.nombre_cultivo || !formData.descripcion || !formData.fk_id_especie) {
+  const handleSubmit = (formData: { [key: string]: string | File }) => {
+    // Convertimos los valores a string, ya que sabemos que este formulario solo tiene campos de texto o select
+    const formDataAsStrings = Object.fromEntries(
+      Object.entries(formData).map(([key, value]) => [key, typeof value === 'string' ? value : ''])
+    ) as { [key: string]: string };
+
+    if (!formDataAsStrings.nombre_cultivo || !formDataAsStrings.descripcion || !formDataAsStrings.fk_id_especie) {
       showToast({
         title: 'Error',
         description: 'Todos los campos son obligatorios',
@@ -52,8 +57,8 @@ const CrearCultivo = ({ onSuccess }: CrearCultivoProps) => {
       return;
     }
 
-    const idEspecie = parseInt(formData.fk_id_especie, 10);
-    if (isNaN(idEspecie) || formData.fk_id_especie === '') {
+    const idEspecie = parseInt(formDataAsStrings.fk_id_especie, 10);
+    if (isNaN(idEspecie) || formDataAsStrings.fk_id_especie === '') {
       showToast({
         title: 'Error',
         description: 'Debes seleccionar una especie válida',
@@ -63,8 +68,8 @@ const CrearCultivo = ({ onSuccess }: CrearCultivoProps) => {
     }
 
     const nuevoCultivo: CrearCultivoDTO = {
-      nombre_cultivo: formData.nombre_cultivo.trim(),
-      descripcion: formData.descripcion.trim(),
+      nombre_cultivo: formDataAsStrings.nombre_cultivo.trim(),
+      descripcion: formDataAsStrings.descripcion.trim(),
       fk_id_especie: idEspecie,
     };
 
@@ -82,7 +87,7 @@ const CrearCultivo = ({ onSuccess }: CrearCultivoProps) => {
           title: 'Error',
           description: 'No se pudo crear el cultivo',
           variant: 'error',
-        });
+        });error
       },
     });
   };
@@ -131,7 +136,7 @@ const CrearCultivo = ({ onSuccess }: CrearCultivoProps) => {
         titulo=""
         contenido={
           <CrearEspecie
-            onSuccess={cerrarYActualizar} // Cierra el modal y actualiza al crear especie
+            onSuccess={cerrarYActualizar}
             onCancel={cerrarYActualizar}
           />
         }

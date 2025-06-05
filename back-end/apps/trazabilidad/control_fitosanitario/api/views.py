@@ -11,7 +11,6 @@ from apps.trazabilidad.control_fitosanitario.api.serializers import (
 
 class Control_fitosanitarioViewSet(ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
-
     queryset = Control_fitosanitario.objects.select_related(
         'fk_id_plantacion__fk_id_cultivo', 'fk_id_pea', 'fk_id_insumo', 'fk_unidad_medida'
     ).prefetch_related('fk_identificacion').all()

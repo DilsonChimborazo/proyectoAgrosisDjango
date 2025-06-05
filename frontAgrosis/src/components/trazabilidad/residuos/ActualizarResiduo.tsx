@@ -3,7 +3,7 @@ import { useResiduos } from "../../../hooks/trazabilidad/residuo/useResiduos";
 import { useResiduoPorId } from "../../../hooks/trazabilidad/residuo/useResiduoPorId";
 import { useActualizarResiduo } from "../../../hooks/trazabilidad/residuo/useActualizarResiduo";
 import Formulario from "../../globales/Formulario";
-import { showToast } from '@/components/globales/Toast'; // Importamos el componente Toast
+import { showToast } from '@/components/globales/Toast';
 
 interface ActualizarResiduo {
   id: string | number;
@@ -55,8 +55,13 @@ const ActualizarResiduo = ({ id, onSuccess }: ActualizarResiduo) => {
     label: t.nombre,
   }));
 
-  const handleSubmit = (data: Record<string, string>) => {
-    if (!data.fecha || !data.fk_id_cultivo || !data.fk_id_tipo_residuo) {
+  const handleSubmit = (formData: { [key: string]: string | File }) => {
+    // Convertimos los valores a string, ya que este formulario solo tiene campos de texto, fecha o select
+    const formDataAsStrings = Object.fromEntries(
+      Object.entries(formData).map(([key, value]) => [key, typeof value === 'string' ? value : ''])
+    ) as { [key: string]: string };
+
+    if (!formDataAsStrings.fecha || !formDataAsStrings.fk_id_cultivo || !formDataAsStrings.fk_id_tipo_residuo) {
       showToast({
         title: 'Error',
         description: 'Todos los campos son obligatorios',
@@ -68,11 +73,11 @@ const ActualizarResiduo = ({ id, onSuccess }: ActualizarResiduo) => {
     actualizarResiduo.mutate(
       {
         id: Number(id),
-        nombre: data.nombre,
-        fecha: data.fecha,
-        descripcion: data.descripcion,
-        fk_id_cultivo: data.fk_id_cultivo ? Number(data.fk_id_cultivo) : null,
-        fk_id_tipo_residuo: data.fk_id_tipo_residuo ? Number(data.fk_id_tipo_residuo) : null,
+        nombre: formDataAsStrings.nombre,
+        fecha: formDataAsStrings.fecha,
+        descripcion: formDataAsStrings.descripcion,
+        fk_id_cultivo: formDataAsStrings.fk_id_cultivo ? Number(formDataAsStrings.fk_id_cultivo) : null,
+        fk_id_tipo_residuo: formDataAsStrings.fk_id_tipo_residuo ? Number(formDataAsStrings.fk_id_tipo_residuo) : null,
       },
       {
         onSuccess: () => {
@@ -88,7 +93,7 @@ const ActualizarResiduo = ({ id, onSuccess }: ActualizarResiduo) => {
             title: 'Error',
             description: 'No se pudo actualizar el residuo',
             variant: 'error',
-          });
+          });err
         },
       }
     );
