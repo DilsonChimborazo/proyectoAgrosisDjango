@@ -30,10 +30,10 @@ WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org", -18000, 60000); // UTC-5 (Colombia)
 
 // 🌐 Configuración
-const char* websocket_server = "192.168.101.7";
+const char* websocket_server = "192.168.101.11";
 const int websocket_port = 8000;
 const char* websocket_path = "/ws/api/mide/";
-const char* sensoresUrl = "http://192.168.101.7:8000/api/sensores/";
+const char* sensoresUrl = "http://192.168.101.11:8000/api/sensores/";
 WebSocketsClient webSocket;
 
 // WiFiManager
@@ -63,9 +63,9 @@ float lastHumidity = 0.0;
 
 // Tiempo para actualizar
 unsigned long lastSensorUpdate = 0;
-const unsigned long sensorUpdateInterval = 60000; // 60 segundos
+const unsigned long sensorUpdateInterval = 60000 ; // 1 minutos
 unsigned long lastMideUpdate = 0;
-const unsigned long mideUpdateInterval = 15000; // 15 segundos
+const unsigned long mideUpdateInterval = 60000; //  1 minutos
 
 void IRAM_ATTR handleResetButton() {
   if (millis() - lastDebounceTime > DEBOUNCE_TIME) {
@@ -319,7 +319,7 @@ void loop() {
       display.setCursor(10, 20);
       display.println("Error DHT22");
       display.display();
-      delay(3000);
+      delay(100000);
     }
     lastMideUpdate = currentMillis;
   }
