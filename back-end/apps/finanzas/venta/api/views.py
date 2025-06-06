@@ -25,7 +25,6 @@ class VentaViewSet(ModelViewSet):
         serializer = VentaFacturaSerializer(venta)
         data = serializer.data
 
-        # Crear PDF con reportlab
         response = HttpResponse(content_type='application/pdf')
         response['Content-Disposition'] = f'attachment; filename="factura_venta_{pk}.pdf"'
         doc = SimpleDocTemplate(response, pagesize=letter)
@@ -35,12 +34,10 @@ class VentaViewSet(ModelViewSet):
         title = Paragraph(f"Factura - Venta #{pk}", styles['Heading1'])
         elements.append(title)
 
-        # Datos de la venta
         venta_data = [
             ['ID', str(data['id'])],
             ['Fecha', data['fecha']],
             ['Total', f"${data['total']:.2f}"],
-            ['Descuento (%)', f"{data['descuento_porcentaje']:.2f}%"],
         ]
         table_venta = Table(venta_data)
         table_venta.setStyle(TableStyle([
@@ -58,14 +55,18 @@ class VentaViewSet(ModelViewSet):
         ]))
         elements.append(table_venta)
 
-        # Datos de los ítems
-        items_data = [['Producto', 'Cantidad', 'Precio Unitario', 'Subtotal']]
+        items_data = [['Producto', 'Cantidad', 'Precio Unitario', 'Descuento (%)', 'Precio con Descuento', 'Subtotal']]
         for item in data['items']:
+            subtotal = item['subtotal']
+            descuento_porcentaje = item['descuento_porcentaje']
+            subtotal_con_descuento = subtotal * (1 - descuento_porcentaje / 100) if descuento_porcentaje > 0 else subtotal
             items_data.append([
                 item['produccion']['nombre_produccion'],
                 f"{item['cantidad']} {item['unidad_medida']['unidad_base']}",
                 f"${item['precio_unidad']:.2f}",
-                f"${item['subtotal']:.2f}",
+                f"{descuento_porcentaje:.2f}%",
+                f"${item['precio_unidad_con_descuento']:.2f}",
+                f"${subtotal_con_descuento:.2f}",
             ])
         table_items = Table(items_data)
         table_items.setStyle(TableStyle([

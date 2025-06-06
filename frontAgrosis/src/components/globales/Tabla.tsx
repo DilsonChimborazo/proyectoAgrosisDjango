@@ -23,6 +23,7 @@ interface TablaProps<T extends Record<string, any>> {
   renderCell?: (row: T, columnKey: string) => React.ReactNode;
   onRowClick?: (row: T) => void;
   rowClassName?: (row: T) => string;
+  showCreateButton?: boolean; // Nueva prop para controlar el botón de Crear
 }
 
 const Tabla = <T extends Record<string, any>>({
@@ -38,7 +39,8 @@ const Tabla = <T extends Record<string, any>>({
   hiddenColumnsByDefault = ['id'],
   renderCell,
   onRowClick,
-  rowClassName
+  rowClassName,
+  showCreateButton = true, // Por defecto, el botón se muestra
 }: TablaProps<T>) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState("");
@@ -206,14 +208,16 @@ const Tabla = <T extends Record<string, any>>({
           </div>
 
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-            <HerouiButton
-              title={createButtonTitle}
-              onClick={onCreate}
-              className="bg-transparent border-2 border-green-700 font-semibold text-green-700 hover:bg-green-700 hover:text-white rounded-xl shadow-md flex items-center justify-center text-sm w-full sm:w-auto"
-            >
-              {createButtonTitle}
-              <Plus size={16} className="ml-1" />
-            </HerouiButton>
+            {showCreateButton && onCreate && (
+              <HerouiButton
+                title={createButtonTitle}
+                onClick={onCreate}
+                className="bg-transparent border-2 border-green-700 font-semibold text-green-700 hover:bg-green-700 hover:text-white rounded-xl shadow-md flex items-center justify-center text-sm w-full sm:w-auto"
+              >
+                {createButtonTitle}
+                <Plus size={16} className="ml-1" />
+              </HerouiButton>
+            )}
             {extraButton && <div className="w-full sm:w-auto">{extraButton}</div>}
           </div>
         </div>
@@ -225,7 +229,6 @@ const Tabla = <T extends Record<string, any>>({
         </div>
       ) : (
         <>
-          {/* Vista de tabla para pantallas grandes */}
           <div className="hidden sm:block overflow-x-auto px-4 sm:px-7">
             <table className="min-w-full border-separate border-spacing-y-2">
               <thead>
@@ -311,7 +314,6 @@ const Tabla = <T extends Record<string, any>>({
             </table>
           </div>
 
-          {/* Vista de tarjetas para pantallas pequeñas */}
           <div className="block sm:hidden px-4 space-y-4">
             {paginatedData.map((row, index) => {
               const rowClass = rowClassName ? rowClassName(row) : 

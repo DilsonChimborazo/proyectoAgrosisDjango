@@ -28,22 +28,17 @@ const transformarDatosTrazabilidad = (data: any): TrazabilidadCultivoReporte => 
     ...ven,
     fecha: formatDate(ven.fecha),
   })) || [],
-  
   costo_mano_obra_acumulado: data.costo_mano_obra_acumulado ?? 0,
   egresos_insumos_acumulado: data.egresos_insumos_acumulado ?? 0,
   ingresos_ventas_acumulado: data.ingresos_ventas_acumulado ?? 0,
-  beneficio_costo_acumulado: data.beneficio_costo_acumulado ?? 0,
+  beneficio_costo_acumulado: Number(data.beneficio_costo_acumulado) || 0,
   total_cantidad_producida_base_acumulado: data.total_cantidad_producida_base_acumulado ?? 0,
   precio_minimo_venta_por_unidad_acumulado: data.precio_minimo_venta_por_unidad_acumulado ?? 0,
-
   costo_incremental_ultima_cosecha: data.costo_incremental_ultima_cosecha ?? 0,
   cantidad_incremental_ultima_cosecha: data.cantidad_incremental_ultima_cosecha ?? 0,
   precio_minimo_incremental_ultima_cosecha: data.precio_minimo_incremental_ultima_cosecha ?? 0,
-
-  // Nuevos campos
   precio_minimo_recuperar_inversion: data.precio_minimo_recuperar_inversion ?? 0,
   stock_disponible_total: data.stock_disponible_total ?? 0,
-
   resumen: {
     ...data.resumen,
     costo_total_acumulado: data.resumen?.costo_total_acumulado ?? 0,

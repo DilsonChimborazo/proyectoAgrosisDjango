@@ -28,30 +28,31 @@ export interface CrearItemVenta {
   cantidad: number;
   precio_unidad: number;
   unidad_medida: number;
+  descuento_porcentaje?: number;
 }
 
 export interface ItemVenta {
   id: number;
   produccion: Produccion;
   precio_unidad: number;
+  precio_unidad_con_descuento: number;
   cantidad: number;
   unidad_medida: UnidadMedida;
   cantidad_en_base: number;
   subtotal: number;
+  descuento_porcentaje: number;
 }
 
 export interface CrearVentaData {
   items: CrearItemVenta[];
-  descuento_porcentaje?: number;
 }
 
 export interface Venta {
   id: number;
   fecha: string;
   total: number;
-  descuento_porcentaje: number;
   items: ItemVenta[];
-  completada?: boolean; // Agregado como opcional
+  completada?: boolean;
 }
 
 // Crear una instancia de axios con configuración base

@@ -6,7 +6,6 @@ import { useNavigate } from 'react-router-dom';
 import jsPDF from 'jspdf';
 import Button from '@/components/globales/Button';
 
-// Extender el tipo de jsPDF para incluir lastAutoTable
 declare module 'jspdf' {
   interface jsPDF {
     lastAutoTable?: {
@@ -15,11 +14,18 @@ declare module 'jspdf' {
   }
 }
 
-const VentaComponent = () => {
+interface VentaComponentProps {
+  showButtons?: boolean; // Controlar si se muestran los botones
+}
+
+const VentaComponent = ({ showButtons = true }: VentaComponentProps) => {
   const navigate = useNavigate();
   const { data: ventas, isLoading, error } = useVentas();
   const [selectedVenta, setSelectedVenta] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Log de depuración
+  console.log('Ventas:', ventas);
 
   const openModalHandler = (venta: any) => {
     setSelectedVenta(venta);
@@ -41,7 +47,6 @@ const VentaComponent = () => {
   if (isLoading) return <div className="text-center text-gray-500">Cargando ventas...</div>;
   if (error) return <div className="text-center text-red-500">Error al cargar los datos: {error.message}</div>;
 
-  // Función para parsear el total de manera segura
   const parseTotal = (total: any) => {
     if (total === null || total === undefined) return 0;
     if (typeof total === 'number') return total;
@@ -52,7 +57,6 @@ const VentaComponent = () => {
     return 0;
   };
 
-  // Asegurarse de que ventas es un array y convertir total a número si es necesario
   const mappedVentas = (Array.isArray(ventas) ? ventas : []).map((venta) => {
     const total = parseTotal(venta.total);
     return {
@@ -61,136 +65,105 @@ const VentaComponent = () => {
       total: `$${total.toFixed(2)}`,
       cantidad_items: venta.items?.length || 0,
       detalles: venta.items?.map((item: any) =>
-        `${item.produccion?.nombre_produccion || 'Producto'} (${item.cantidad} ${item.unidad_medida?.nombre_medida || 'u'})`
+        `${item.produccion?.nombre_produccion || 'Producto'} (${item.cantidad} ${item.unidad_medida?.nombre_medida || 'u'}, Desc: ${item.descuento_porcentaje}%, Precio con Desc: $${item.precio_unidad_con_descuento})`
       ).join(', ') || 'Sin detalles',
-      // Guardamos los items completos para usarlos en el PDF
       items: venta.items || [],
-      // Guardamos el total numérico para cálculos
       totalNumerico: total
     };
   });
 
   const headers = ["ID", "Fecha", "Total", "Detalles"];
+
   const generarFacturaPDF = (venta: any) => {
     const doc = new jsPDF();
+    doc.setFont('helvetica', 'normal');
+    const primaryColor = [26, 60, 52] as [number, number, number];
+    const textColor = [45, 55, 72] as [number, number, number];
+    const bgColor = [247, 250, 252] as [number, number, number];
 
-    // Configuración base
+    const logoUrl = '/agrosoft.png';
+    doc.addImage(logoUrl, 'PNG', 15, 10, 60, 30);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(20);
+    doc.setFontSize(12);
+    doc.setTextColor(...textColor);
+    doc.text('Sistema de Gestión Agrícola', 15, 52);
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.setTextColor(...primaryColor);
+    doc.text('FACTURA', 195, 20, { align: 'right' });
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
+    doc.setTextColor(...textColor);
+    doc.text(`Número: ${venta.id}`, 195, 28, { align: 'right' });
+    doc.text(`Fecha: ${new Date(venta.fecha).toLocaleDateString()}`, 195, 36, { align: 'right' });
 
-    // Color principal
-    const primaryColor = [34, 139, 34] as [number, number, number];
-
-    // Logo
-    const logoUrl = '/agrosoft.png';
-    doc.addImage(logoUrl, 'PNG', 15, 15, 30, 15);
-
-    // Encabezado derecho
-    const rightMargin = 180;
-    doc.setFontSize(16);
-    doc.setTextColor(...primaryColor);
-    doc.text('FACTURA', rightMargin, 20, { align: 'right' });
-
-    doc.setFontSize(10);
-    doc.setTextColor(100, 100, 100);
-    doc.text(`N° ${venta.id}`, rightMargin, 26, { align: 'right' });
-    doc.text(`Fecha: ${new Date(venta.fecha).toLocaleDateString()}`, rightMargin, 32, { align: 'right' });
-
-    // Línea divisoria
     doc.setDrawColor(...primaryColor);
     doc.setLineWidth(0.3);
-    doc.line(15, 40, 195, 40);
+    doc.line(15, 60, 195, 60);
 
-    // Sección de productos
-    let yPosition = 50;
-
-    // Encabezado de productos
-    doc.setFillColor(...primaryColor);
-    doc.setTextColor(255, 255, 255);
-    doc.rect(15, yPosition, 180, 10, 'F');
-    doc.text('PRODUCTO', 20, yPosition + 7);
-    doc.text('TOTAL', 170, yPosition + 7, { align: 'right' });
-
-    yPosition += 15;
-
-    // Items de productos
-    doc.setTextColor(0, 0, 0);
-    const items = venta.items || [];
-    const lineHeight = 8;
-
-    items.forEach((item: any) => {
-      const precio = parseFloat(item.precio_unidad) || 0;
-      const cantidad = parseFloat(item.cantidad) || 0;
-      const subtotal = precio * cantidad;
-
-      // Nombre del producto
-      doc.setFont('helvetica', 'bold');
-      doc.text(item.produccion?.nombre_produccion || 'Producto', 20, yPosition);
-      doc.setFont('helvetica', 'normal');
-
-      // Detalles
-      doc.text(`${cantidad} ${item.unidad_medida?.nombre_medida || 'u'} x $${precio.toFixed(2)}`, 20, yPosition + lineHeight);
-
-      // Subtotal
-      doc.text(`$${subtotal.toFixed(2)}`, 170, yPosition + (lineHeight / 2), { align: 'right' });
-
-      // Línea divisoria
-      doc.setDrawColor(230, 230, 230);
-      doc.line(15, yPosition + lineHeight * 1.5, 195, yPosition + lineHeight * 1.5);
-
-      yPosition += lineHeight * 2;
-    });
-
-    // Totales - CÁLCULO CORREGIDO
-    const total = venta.totalNumerico !== undefined ? venta.totalNumerico : parseTotal(venta.total);
-    const descuentoPorcentaje = venta.descuento_porcentaje || 0;
-    const subtotal = descuentoPorcentaje > 0 ? total / (1 - descuentoPorcentaje / 100) : total;
-
-    yPosition += 15;
-
-    // Línea decorativa
-    doc.setDrawColor(...primaryColor);
-    doc.line(120, yPosition, 180, yPosition);
-    yPosition += 10;
-
-    // Subtotal
-    doc.text('SUBTOTAL:', 130, yPosition);
-    doc.text(`$${subtotal.toFixed(2)}`, 170, yPosition, { align: 'right' });
-    yPosition += lineHeight;
-
-    // Descuento - SOLO SI HAY DESCUENTO
-    if (descuentoPorcentaje > 0) {
-      doc.text('DESCUENTO:', 130, yPosition);
-      doc.text(`${descuentoPorcentaje.toFixed(2)}%`, 170, yPosition, { align: 'right' });
-      yPosition += lineHeight;
-    }
-
-    // Total
-    yPosition += 5;
+    let yPosition = 70;
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(12);
-    doc.text('TOTAL:', 130, yPosition);
-    doc.text(`$${total.toFixed(2)}`, 170, yPosition, { align: 'right' });
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
+    doc.setTextColor(...primaryColor);
+    doc.text('Detalles de la Venta', 15, yPosition);
+    yPosition += 10;
 
-    // Pie de página
-    yPosition += 25;
-    doc.setTextColor(150, 150, 150);
+    const items = venta.items || [];
+    items.forEach((item: any, index: number) => {
+      const precio = parseFloat(item.precio_unidad) || 0;
+      const precioConDescuento = parseFloat(item.precio_unidad_con_descuento) || precio;
+      const cantidad = parseFloat(item.cantidad) || 0;
+      const descuentoPorcentaje = parseFloat(item.descuento_porcentaje) || 0;
+      const subtotalConDescuento = precioConDescuento * cantidad;
+
+      doc.setFillColor(...bgColor);
+      doc.rect(15, yPosition, 180, 30, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.setTextColor(...textColor);
+      doc.text(`Producto: ${item.produccion?.nombre_produccion || 'Producto'}`, 20, yPosition + 8);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.text(`Cantidad: ${cantidad} ${item.unidad_medida?.nombre_medida || 'u'}`, 20, yPosition + 15);
+      doc.text(`Precio Unitario: $${precio.toFixed(2)}`, 20, yPosition + 22);
+      doc.text(`Descuento: ${descuentoPorcentaje.toFixed(2)}%`, 90, yPosition + 15);
+      doc.text(`Precio c/Descuento: $${precioConDescuento.toFixed(2)}`, 90, yPosition + 22);
+      doc.text(`Subtotal: $${subtotalConDescuento.toFixed(2)}`, 175, yPosition + 22, { align: 'right' });
+      doc.setDrawColor(200, 200, 200);
+      doc.setLineWidth(0.1);
+      doc.line(15, yPosition + 32, 195, yPosition + 32);
+      yPosition += 35;
+    });
+
+    yPosition += 10;
+    doc.setFillColor(...bgColor);
+    doc.rect(130, yPosition, 65, 15, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.setTextColor(...primaryColor);
+    doc.text('Total:', 135, yPosition + 10);
+    doc.setTextColor(...textColor);
+    doc.text(`$${venta.totalNumerico.toFixed(2)}`, 190, yPosition + 10, { align: 'right' });
+
+    yPosition += 30;
+    doc.setDrawColor(...primaryColor);
+    doc.setLineWidth(0.3);
+    doc.line(15, yPosition, 195, yPosition);
+    doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
-    doc.text('Gracias por su preferencia', 105, yPosition, { align: 'center' });
-    doc.text('Sistema AgroSoft - www.agrosoft.com', 105, yPosition + 6, { align: 'center' });
+    doc.setTextColor(100, 100, 100);
+    doc.text('Gracias por su preferencia', 105, yPosition + 10, { align: 'center' });
+    doc.text('Sistema AgroSoft - www.agrosoft.com', 105, yPosition + 16, { align: 'center' });
 
     doc.save(`factura_${venta.id}.pdf`);
   };
 
-  // Detalles de venta para el modal
   const renderDetallesVenta = (venta: any) => {
     if (!venta) return <p>No hay detalles disponibles</p>;
 
     const total = venta.totalNumerico !== undefined ? venta.totalNumerico : parseTotal(venta.total);
-    const descuentoPorcentaje = venta.descuento_porcentaje || 0;
-    const subtotal = descuentoPorcentaje > 0 ? total / (1 - descuentoPorcentaje / 100) : total;
     const items = venta.items || [];
 
     return (
@@ -199,13 +172,8 @@ const VentaComponent = () => {
           <h3 className="font-bold text-lg">Información General</h3>
           <p><strong>ID:</strong> {venta.id}</p>
           <p><strong>Fecha:</strong> {new Date(venta.fecha).toLocaleDateString()}</p>
-          <p><strong>Subtotal:</strong> ${subtotal.toFixed(2)}</p>
-          {descuentoPorcentaje > 0 && (
-            <p><strong>Descuento:</strong> {descuentoPorcentaje.toFixed(2)}%</p>
-          )}
           <p><strong>Total:</strong> ${total.toFixed(2)}</p>
         </div>
-
         <div>
           <h3 className="font-bold text-lg">Productos Vendidos</h3>
           {items.length > 0 ? (
@@ -216,34 +184,34 @@ const VentaComponent = () => {
                     <th className="border px-4 py-2">Producto</th>
                     <th className="border px-4 py-2">Cantidad</th>
                     <th className="border px-4 py-2">Precio Unitario</th>
+                    <th className="border px-4 py-2">Descuento</th>
+                    <th className="border px-4 py-2">Precio c/Desc</th>
                     <th className="border px-4 py-2">Subtotal</th>
                   </tr>
                 </thead>
                 <tbody>
                   {items.map((item: any, index: number) => {
                     const precio = typeof item.precio_unidad === 'string' ? parseFloat(item.precio_unidad) : item.precio_unidad || 0;
+                    const precioConDescuento = typeof item.precio_unidad_con_descuento === 'string' ? parseFloat(item.precio_unidad_con_descuento) : item.precio_unidad_con_descuento || precio;
                     const cantidad = typeof item.cantidad === 'string' ? parseFloat(item.cantidad) : item.cantidad || 0;
-                    const subtotal = precio * cantidad;
+                    const descuentoPorcentaje = typeof item.descuento_porcentaje === 'string' ? parseFloat(item.descuento_porcentaje) : item.descuento_porcentaje || 0;
+                    const subtotalConDescuento = precioConDescuento * cantidad;
 
                     return (
                       <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                         <td className="border px-4 py-2">{item.produccion?.nombre_produccion || 'Producto'}</td>
-                        <td className="border px-4 py-2 text-center">
-                          {cantidad} {item.unidad_medida?.nombre_medida || 'u'}
-                        </td>
+                        <td className="border px-4 py-2 text-center">{cantidad} {item.unidad_medida?.nombre_medida || 'u'}</td>
                         <td className="border px-4 py-2 text-right">${precio.toFixed(2)}</td>
-                        <td className="border px-4 py-2 text-right">${subtotal.toFixed(2)}</td>
+                        <td className="border px-4 py-2 text-center">{descuentoPorcentaje.toFixed(2)}%</td>
+                        <td className="border px-4 py-2 text-right">${precioConDescuento.toFixed(2)}</td>
+                        <td className="border px-4 py-2 text-right">${subtotalConDescuento.toFixed(2)}</td>
                       </tr>
                     );
                   })}
                 </tbody>
               </table>
               <div className="mt-4 text-right">
-                <Button
-                  text="Descargar Factura"
-                  onClick={() => generarFacturaPDF(venta)}
-                  variant="success"
-                />
+                <Button text="Descargar Factura" onClick={() => generarFacturaPDF(venta)} variant="success" />
               </div>
             </>
           ) : (
@@ -255,38 +223,40 @@ const VentaComponent = () => {
   };
 
   return (
-    <div className="mx-auto p-4">
-      <div className="flex gap-4 my-4">
-        <Button text="Registrar Venta" onClick={handleCreate} variant="green" />
-        <Button
-          text="Generar Reporte"
-          onClick={() => {
-            if (ventas && ventas.length > 0) {
-              generarFacturaPDF({
-                id: 'general',
-                fecha: new Date().toISOString(),
-                total: mappedVentas.reduce((sum, v) => sum + v.totalNumerico, 0),
-                descuento_porcentaje: 0,
-                items: ventas.flatMap(v => v.items || [])
-              });
-            } else {
-              alert('No hay ventas para generar el reporte');
-            }
-          }}
-          variant="success"
+    <div className="space-y-4">
+      {showButtons && (
+        <div className="flex gap-4">
+          <Button text="Registrar Venta" onClick={handleCreate} variant="green" />
+          <Button
+            text="Generar Reporte"
+            onClick={() => {
+              if (ventas && ventas.length > 0) {
+                generarFacturaPDF({
+                  id: 'general',
+                  fecha: new Date().toISOString(),
+                  total: mappedVentas.reduce((sum, v) => sum + v.totalNumerico, 0),
+                  items: ventas.flatMap(v => v.items || [])
+                });
+              } else {
+                alert('No hay ventas para generar el reporte');
+              }
+            }}
+            variant="success"
+          />
+        </div>
+      )}
+      {mappedVentas.length === 0 ? (
+        <p className="text-center text-gray-500 py-4">No hay ventas registradas.</p>
+      ) : (
+        <Tabla
+          title=""
+          headers={headers}
+          data={mappedVentas}
+          onClickAction={handleRowClick}
+          showCreateButton={false}
+          className="[&_table]:w-full [&_th]:py-2 [&_th]:bg-green-700 [&_th]:text-white [&_th]:font-bold [&_th]:text-sm [&_th:first-child]:rounded-tl-lg [&_th:last-child]:rounded-tr-lg [&_td]:px-3 [&_td]:py-2 [&_td]:text-sm"
         />
-      </div>
-
-      <Tabla
-        title="Lista de Ventas"
-        headers={headers}
-        data={mappedVentas}
-        onClickAction={handleRowClick}
-        onUpdate={handleUpdate}
-        onCreate={handleCreate}
-        createButtonTitle="Crear"
-      />
-
+      )}
       {selectedVenta && (
         <VentanaModal
           isOpen={isModalOpen}

@@ -70,7 +70,6 @@ const Salarios = () => {
         title="Salarios Registrados"
         headers={headers}
         data={mappedSalarios}
-        onClickAction={handleRowClick}
         onCreate={openCreateModal}
         createButtonTitle="Crear Salario"
       />

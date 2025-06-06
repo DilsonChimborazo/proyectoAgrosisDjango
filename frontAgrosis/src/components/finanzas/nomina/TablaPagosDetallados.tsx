@@ -6,7 +6,7 @@ import { CheckCircle2, XCircle, Filter, Check, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import CrearSalario from "@/components/finanzas/salario/CrearSalario";
 import VentanaModal from '@/components/globales/VentanasModales';
-
+import { useNavigate } from 'react-router-dom';
 
 type Filtros = {
   persona: string;
@@ -17,7 +17,7 @@ type Filtros = {
 type FilaPago = {
   id: number | undefined;
   fecha: string;
-  usuario: string; // Ahora representa una cadena con los nombres concatenados de los usuarios
+  usuario: string;
   actividad: string;
   tipo: string;
   pago_total: string;
@@ -36,7 +36,7 @@ type PagoDetallado = {
     id?: number;
     nombre?: string | null;
     apellido?: string | null;
-  }> | null; // Cambiado de usuario a usuarios
+  }> | null;
   salario?: {
     jornal?: number | null;
     horas_por_jornal?: number | null;
@@ -44,6 +44,7 @@ type PagoDetallado = {
 };
 
 const TablaPagosDetallados: React.FC = () => {
+  const navigate = useNavigate();
   const { data, isLoading, error, refetch } = usePagosDetallados();
   const { mutate: marcarPago, isPending } = useMarcarPago();
   const [filtros, setFiltros] = useState<Filtros>({
@@ -221,9 +222,15 @@ const TablaPagosDetallados: React.FC = () => {
         <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
           <button
             onClick={() => setIsSalarioModalOpen(true)}
-            className="bg-green-600 hover:bg-green-800 text-white font-bold py-2 px-3 md:px-4 rounded mr-0 md:mr-4 text-sm md:text-base"
+            className="bg-green-600 hover:bg-green-800 text-white font-bold py-2 px-3 md:px-4 rounded text-sm md:text-base"
           >
             Registrar Salario
+          </button>
+          <button
+            onClick={() => navigate('/salario')}
+            className="bg-green-600 hover:bg-green-800 text-white font-bold py-2 px-3 md:px-4 rounded text-sm md:text-base"
+          >
+            Ver Salarios
           </button>
           <h2 className="text-xl md:text-2xl font-bold text-gray-800 flex items-center">
             <Filter className="mr-2 w-4 h-4 md:w-6 md:h-6" /> Detalle de Pagos

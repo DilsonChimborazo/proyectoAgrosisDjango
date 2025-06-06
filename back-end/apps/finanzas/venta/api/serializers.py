@@ -10,8 +10,8 @@ class ItemVentaFacturaSerializer(serializers.ModelSerializer):
     class Meta:
         model = ItemVenta
         fields = [
-            'id', 'produccion', 'precio_unidad', 'cantidad',
-            'unidad_medida', 'cantidad_en_base', 'subtotal'
+            'id', 'produccion', 'precio_unidad', 'precio_unidad_con_descuento', 'cantidad',
+            'unidad_medida', 'cantidad_en_base', 'subtotal', 'descuento_porcentaje'
         ]
         read_only_fields = fields
 
@@ -20,27 +20,31 @@ class VentaFacturaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Venta
-        fields = ['id', 'fecha', 'total', 'descuento_porcentaje', 'items']
+        fields = ['id', 'fecha', 'total', 'items']
         read_only_fields = fields
 
 class ItemVentaSerializer(serializers.ModelSerializer):
     precio_por_unidad = serializers.SerializerMethodField()
     precio_por_unidad_base = serializers.SerializerMethodField()
+    subtotal_con_descuento = serializers.SerializerMethodField()
 
     class Meta:
         model = ItemVenta
         fields = [
-            'id', 'produccion', 'precio_unidad', 'precio_por_unidad',
+            'id', 'produccion', 'precio_unidad', 'precio_unidad_con_descuento', 'precio_por_unidad',
             'precio_por_unidad_base', 'cantidad', 'unidad_medida',
-            'cantidad_en_base', 'subtotal'
+            'cantidad_en_base', 'subtotal', 'descuento_porcentaje', 'subtotal_con_descuento'
         ]
-        read_only_fields = ['id', 'cantidad_en_base', 'subtotal', 'precio_por_unidad', 'precio_por_unidad_base']
+        read_only_fields = ['id', 'cantidad_en_base', 'subtotal', 'precio_por_unidad', 'precio_por_unidad_base', 'subtotal_con_descuento', 'precio_unidad_con_descuento']
 
     def get_precio_por_unidad(self, obj):
         return obj.precio_por_unidad_de_medida()
 
-    def get_precio_por_unidad_base(self, obj):  # Corregido: añadidos los paréntesis ()
+    def get_precio_por_unidad_base(self, obj):
         return obj.precio_por_unidad_base()
+
+    def get_subtotal_con_descuento(self, obj):
+        return obj.subtotal_con_descuento()
 
 class LeerItemVentaSerializer(serializers.ModelSerializer):
     produccion = ProduccionSerializer()
@@ -49,8 +53,8 @@ class LeerItemVentaSerializer(serializers.ModelSerializer):
     class Meta:
         model = ItemVenta
         fields = [
-            'id', 'produccion', 'precio_unidad', 'cantidad',
-            'unidad_medida', 'cantidad_en_base', 'subtotal'
+            'id', 'produccion', 'precio_unidad', 'precio_unidad_con_descuento', 'cantidad',
+            'unidad_medida', 'cantidad_en_base', 'subtotal', 'descuento_porcentaje'
         ]
         read_only_fields = fields
 
@@ -59,7 +63,7 @@ class VentaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Venta
-        fields = ['id', 'fecha', 'total', 'descuento_porcentaje', 'items']
+        fields = ['id', 'fecha', 'total', 'items']
         read_only_fields = ['fecha', 'total']
 
 class CrearVentaSerializer(serializers.ModelSerializer):
@@ -67,14 +71,12 @@ class CrearVentaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Venta
-        fields = ['id', 'descuento_porcentaje', 'items']
+        fields = ['id', 'items']
         read_only_fields = ['total', 'fecha']
 
     def create(self, validated_data):
         items_data = validated_data.pop('items')
-        descuento_porcentaje = validated_data.pop('descuento_porcentaje', 0)
-
-        venta = Venta.objects.create(descuento_porcentaje=descuento_porcentaje, **validated_data)
+        venta = Venta.objects.create(**validated_data)
 
         for item_data in items_data:
             ItemVenta.objects.create(venta=venta, **item_data)
@@ -84,8 +86,6 @@ class CrearVentaSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         items_data = validated_data.pop('items', None)
-        instance.descuento_porcentaje = validated_data.get('descuento_porcentaje', instance.descuento_porcentaje)
-
         if items_data is not None:
             instance.items.all().delete()
             for item_data in items_data:

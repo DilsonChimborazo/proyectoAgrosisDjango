@@ -68,8 +68,13 @@ def crear_o_actualizar_nomina_programacion(sender, instance, **kwargs):
 def crear_o_actualizar_nomina_control(sender, instance, **kwargs):
     """
     Crea o actualiza automáticamente una nómina cuando se crea o actualiza un control fitosanitario.
+    Solo considera al primer usuario del campo ManyToMany 'fk_identificacion'.
     """
-    salario = Salario.objects.filter(activo=True, fk_id_rol=instance.fk_identificacion.fk_id_rol).first()
+    usuario = instance.fk_identificacion.first()  # Toma el primer usuario (si hay)
+    if not usuario:
+        return
+
+    salario = Salario.objects.filter(activo=True, fk_id_rol=usuario.fk_id_rol).first()
     if salario and salario.horas_por_jornal > 0:
         minutos_trabajados = instance.duracion
         horas_trabajadas = minutos_trabajados / 60.0
@@ -78,7 +83,7 @@ def crear_o_actualizar_nomina_control(sender, instance, **kwargs):
 
         nomina, created = Nomina.objects.get_or_create(
             fk_id_control_fitosanitario=instance,
-            fk_id_usuario=instance.fk_identificacion,
+            fk_id_usuario=usuario,
             defaults={
                 "fk_id_salario": salario,
                 "pago_total": pago_total
