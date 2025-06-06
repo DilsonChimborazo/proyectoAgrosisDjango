@@ -8,12 +8,11 @@ export interface Lote {
     dimencion: string;
     nombre_lote: string;
     estado: boolean;
-    
 }
 
 export interface Eras {
     id: number;
-    nombre:string,
+    nombre: string;
     descripcion: string;
     fk_id_lote: Lote | null;
     estado: boolean;
@@ -31,7 +30,6 @@ export interface Cultivo {
     id: number;
     nombre_cultivo: string;
     descripcion: string;
-    
 }
 
 export interface Plantacion {
@@ -44,12 +42,27 @@ export interface Plantacion {
 }
 
 const fetchPlantaciones = async (): Promise<Plantacion[]> => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+        console.error("Error: No se ha encontrado un token de autenticación");
+        throw new Error("No se ha encontrado un token de autenticación");
+    }
+
     try {
-        const { data } = await axios.get(`${apiUrl}plantacion/`);
+        const { data } = await axios.get<Plantacion[]>(`${apiUrl}plantacion/`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
         return data;
     } catch (error) {
-        console.error("Error al obtener plantaciones:", error);
-        throw new Error("No se pudo obtener la lista de plantaciones");
+        if (axios.isAxiosError(error)) {
+            console.error("Error al obtener las plantaciones:", error.response?.data || error.message);
+            throw new Error(error.response?.data?.message || "No se pudo obtener la lista de plantaciones");
+        } else {
+            console.error("Error al obtener las plantaciones:", error);
+            throw new Error("No se pudo obtener la lista de plantaciones");
+        }
     }
 };
 
@@ -57,6 +70,6 @@ export const usePlantacion = () => {
     return useQuery<Plantacion[], Error>({
         queryKey: ['Plantaciones'],
         queryFn: fetchPlantaciones,
-        gcTime: 1000 * 60 * 10, 
+        staleTime: 1000 * 60 * 10,
     });
 };

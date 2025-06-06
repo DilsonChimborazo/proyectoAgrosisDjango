@@ -89,13 +89,17 @@ class TrazabilidadPlantacionAPIView(APIView):
             })
         
         for control in controles:
+            usuarios = control.fk_identificacion.all()
+            responsables = ", ".join(
+                f"{usuario.nombre} {usuario.apellido}" for usuario in usuarios
+            ) if usuarios else "Sin responsables"
             detalle.append({
                 'id': control.id,
                 'estado': 'Completada',
                 'fecha_programada': control.fecha_control,
                 'fecha_realizada': control.fecha_control,
                 'actividad': f"Control Fitosanitario ({control.get_tipo_control_display()})",
-                'responsable': f"{control.fk_identificacion.nombre} {control.fk_identificacion.apellido}" if control.fk_identificacion else None,
+                'responsable': responsables,
                 'duracion_minutos': control.duracion,
                 'observaciones': control.descripcion,
                 'tipo_control': control.tipo_control,
@@ -173,6 +177,7 @@ class TrazabilidadPlantacionAPIView(APIView):
     def _calcular_costo_mano_obra(self, programaciones_queryset, controles_queryset):
         costo_total = Decimal('0')
 
+        # Manejo de programaciones
         for prog in programaciones_queryset:
             usuarios = prog.fk_id_asignacionActividades.fk_identificacion.all()
             if not usuarios:
@@ -200,31 +205,35 @@ class TrazabilidadPlantacionAPIView(APIView):
                 else:
                     logger.warning(f"No se encontró salario activo para el rol {usuario.fk_id_rol.rol} en la fecha {prog.fecha_realizada}")
 
+        # Manejo de controles fitosanitarios
         for control in controles_queryset:
-            usuario = control.fk_identificacion
-            if not usuario:
-                logger.warning(f"Control fitosanitario {control.id} sin usuario asignado")
+            usuarios = control.fk_identificacion.all()
+            if not usuarios:
+                logger.warning(f"Control fitosanitario {control.id} sin usuarios asignados")
                 continue
 
-            if not usuario.fk_id_rol:
-                logger.error(f"Usuario {usuario.id} no tiene rol asignado")
-                continue
+            horas = Decimal(control.duracion) / Decimal('60')
+            numero_usuarios = len(usuarios)
+            horas_por_usuario = horas / numero_usuarios if numero_usuarios > 0 else horas
 
-            salario = Salario.objects.filter(
-                fk_id_rol=usuario.fk_id_rol,
-                fecha_inicio__lte=control.fecha_control,
-                activo=True
-            ).order_by('-fecha_inicio').first()
+            for usuario in usuarios:
+                if not usuario.fk_id_rol:
+                    logger.error(f"Usuario {usuario.id} no tiene rol asignado")
+                    continue
 
-            if salario and salario.horas_por_jornal > 0:
-                horas = Decimal(control.duracion) / Decimal('60')
-                jornales = horas / Decimal(salario.horas_por_jornal)
-                costo_total += jornales * salario.precio_jornal
-            else:
-                logger.warning(f"No se encontró salario activo para el rol {usuario.fk_id_rol.rol} en la fecha {control.fecha_control}")
+                salario = Salario.objects.filter(
+                    fk_id_rol=usuario.fk_id_rol,
+                    fecha_inicio__lte=control.fecha_control,
+                    activo=True
+                ).order_by('-fecha_inicio').first()
+
+                if salario and salario.horas_por_jornal > 0:
+                    jornales = horas_por_usuario / Decimal(salario.horas_por_jornal)
+                    costo_total += jornales * salario.precio_jornal
+                else:
+                    logger.warning(f"No se encontró salario activo para el rol {usuario.fk_id_rol.rol} en la fecha {control.fecha_control}")
 
         return round(costo_total, 2)
-
 
     def calcular_trazabilidad(self, plantacion_id):
         try:
@@ -253,7 +262,8 @@ class TrazabilidadPlantacionAPIView(APIView):
             ).select_related(
                 'fk_id_insumo',
                 'fk_unidad_medida',
-                'fk_id_pea',
+                'fk_id_pea'
+            ).prefetch_related(
                 'fk_identificacion'
             )
             
@@ -353,11 +363,7 @@ class TrazabilidadPlantacionAPIView(APIView):
                     precio_minimo_incremental_ultima_cosecha = round(costo_incremental_ultima_cosecha / cantidad_incremental_ultima_cosecha, 4)
             
             # --- NUEVO CÁLCULO: PRECIO MÍNIMO PARA RECUPERAR INVERSIÓN ---
-            # Costo a cubrir = Costo Total Acumulado - Ingresos Acumulados. Si es negativo, significa que ya hay ganancia.
             costo_a_cubrir_neto = max(Decimal('0'), costo_total_acumulado - ingresos_ventas_acumulado) 
-            
-            # Producción restante para cubrir ese costo. Si ya se vendió todo, esto es 0.
-            # Asumimos que stock_disponible en Produccion es la cantidad en unidad base.
             stock_disponible_total = producciones_all.aggregate(total=Sum('stock_disponible'))['total'] or Decimal('0')
 
             precio_minimo_recuperar_inversion = Decimal('0')
@@ -421,19 +427,6 @@ class TrazabilidadPlantacionAPIView(APIView):
     def get(self, request, plantacion_id):
         try:
             resultado = self.calcular_trazabilidad(plantacion_id)
-            
-            # --- ESTE BLOQUE SE ELIMINÓ O COMENTÓ PARA EVITAR DOBLES SNAPSHOTS ---
-            # if request.query_params.get('save', 'false').lower() == 'true':
-            #     if resultado:
-            #         snapshot = TrazabilidadService.crear_snapshot(
-            #             plantacion_id=plantacion_id,
-            #             datos=resultado,
-            #             trigger='consulta_manual'
-            #         )
-            #         resultado['snapshot_id'] = snapshot.id
-            #     else:
-            #         return Response({"error": "No se pudieron calcular los datos de trazabilidad para guardar el snapshot."}, status=status.HTTP_400_BAD_REQUEST)
-            # --- FIN DEL BLOQUE ELIMINADO ---
             
             if not resultado:
                 return Response({"error": "Plantación no encontrada"}, status=status.HTTP_404_NOT_FOUND)
