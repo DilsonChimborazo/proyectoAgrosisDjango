@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
-import { showToast } from '@/components/globales/Toast'; // Asegúrate de importar showToast
+import { showToast } from '@/components/globales/Toast';
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -78,7 +78,7 @@ export interface CrearAsignacionDTO {
   fecha_programada: string; // Formato ISO (YYYY-MM-DD)
   observaciones: string;
   fk_id_realiza: number;
-  fk_identificacion: number[]; // Array de IDs de usuarios
+  fk_identificacion: number[]; // Array de IDs de usuarios (sin restricción de roles)
 }
 
 // Función para crear una asignación con validación y depuración
@@ -94,8 +94,8 @@ const crearAsignacion = async (asignacionData: CrearAsignacionDTO): Promise<Asig
     if (!asignacionData.fk_identificacion || asignacionData.fk_identificacion.length === 0) {
       throw new Error('Debe asignar al menos un usuario');
     }
-    if (asignacionData.fk_identificacion.some(id => id <= 0)) {
-      throw new Error('Los IDs de usuarios en fk_identificacion deben ser válidos');
+    if (asignacionData.fk_identificacion.some(id => id <= 0 || !Number.isInteger(id))) {
+      throw new Error('Los IDs de usuarios en fk_identificacion deben ser enteros válidos y mayores que cero');
     }
 
     // Depuración: Mostrar datos enviados con detalle
@@ -112,7 +112,7 @@ const crearAsignacion = async (asignacionData: CrearAsignacionDTO): Promise<Asig
     // Mejor manejo de errores para capturar detalles específicos
     const errorDetails = error.response?.data || error.message;
     let errorMessage = 'No se pudo crear la asignación';
-    
+
     if (error.response?.data) {
       if (typeof error.response.data === 'object') {
         // Si el backend devuelve un objeto con errores por campo
@@ -149,7 +149,7 @@ export const useCrearAsignacion = () => {
       showToast({
         title: 'Error',
         description: error.message || 'Ocurrió un error al crear la asignación.',
-        timeout: 3000,
+        timeout: 5000, // Aumentar el tiempo para errores para que el usuario pueda leerlos
         variant: 'error',
       });
     },

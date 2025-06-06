@@ -44,7 +44,7 @@ const CrearAsignacion = ({ onSuccess, onCancel, usuarios: initialUsuarios, onCre
   const roleOptions: SelectOption[] = Array.from(
     new Set(usuarios.map((usuario) => usuario.fk_id_rol?.id || ''))
   )
-    .filter((fk_id_rol) => fk_id_rol) // Excluir roles nulos
+    .filter((fk_id_rol) => fk_id_rol)
     .map((fk_id_rol) => {
       const usuario = usuarios.find((u) => u.fk_id_rol?.id === fk_id_rol);
       return {
@@ -53,13 +53,11 @@ const CrearAsignacion = ({ onSuccess, onCancel, usuarios: initialUsuarios, onCre
       };
     });
 
-  // Filtrar usuarios según el rol seleccionado
-  const usuarioOptions: SelectOption[] = usuarios
-    .filter((usuario) => !selectedRole || String(usuario.fk_id_rol?.id) === selectedRole)
-    .map((usuario) => ({
-      value: String(usuario.id),
-      label: `${usuario.nombre} ${usuario.apellido} - Ficha: ${usuario.ficha || 'Sin ficha'} - Rol: ${usuario.fk_id_rol?.rol || 'Sin rol'}`,
-    }));
+  // Mostrar todos los usuarios sin filtrar por rol
+  const usuarioOptions: SelectOption[] = usuarios.map((usuario) => ({
+    value: String(usuario.id),
+    label: `${usuario.nombre} ${usuario.apellido} - Ficha: ${usuario.ficha || 'Sin ficha'} - Rol: ${usuario.fk_id_rol?.rol || 'Sin rol'}`,
+  }));
 
   // Manejar cambio en los campos del formulario
   const handleChange = (
@@ -73,10 +71,7 @@ const CrearAsignacion = ({ onSuccess, onCancel, usuarios: initialUsuarios, onCre
   const handleRoleChange = (selectedOption: SelectOption | null) => {
     const newRole = selectedOption ? selectedOption.value : '';
     setSelectedRole(newRole);
-    // Limpiar usuarios seleccionados si el rol cambia
-    if (newRole !== selectedRole) {
-      setFormData((prev) => ({ ...prev, fk_identificacion: [] }));
-    }
+    // No limpiar fk_identificacion, ya que ahora todos los usuarios están disponibles
   };
 
   // Manejar cambio de usuarios seleccionados
@@ -97,7 +92,7 @@ const CrearAsignacion = ({ onSuccess, onCancel, usuarios: initialUsuarios, onCre
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    console.time('handleSubmitAsignacion'); // Depuración de tiempo
+    console.time('handleSubmitAsignacion');
 
     const validationError = validateForm();
     if (validationError) {
@@ -163,7 +158,7 @@ const CrearAsignacion = ({ onSuccess, onCancel, usuarios: initialUsuarios, onCre
 
   // Abrir modal para crear realiza
   const openCreateRealizaModal = () => {
-    console.log('Abriendo modal de CrearRealiza'); // Depuración
+    console.log('Abriendo modal de CrearRealiza');
     setModalContent(
       <CrearRealiza
         onSuccess={async () => {
@@ -194,7 +189,7 @@ const CrearAsignacion = ({ onSuccess, onCancel, usuarios: initialUsuarios, onCre
 
   // Abrir modal para crear usuario
   const openCreateUsuarioModal = () => {
-    console.log('Abriendo modal de CrearUsuario'); // Depuración
+    console.log('Abriendo modal de CrearUsuario');
     setModalContent(
       <CrearUsuario
         isOpen={true}
@@ -292,7 +287,7 @@ const CrearAsignacion = ({ onSuccess, onCancel, usuarios: initialUsuarios, onCre
         </div>
         <div>
           <label htmlFor="rol" className="block text-sm font-medium text-gray-700">
-            Rol
+            Rol (Opcional)
           </label>
           <Select
             id="rol"

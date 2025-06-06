@@ -68,11 +68,11 @@ class EscribirAsignacion_actividadesSerializer(serializers.ModelSerializer):
         fields = ['id', 'fecha_programada', 'fk_id_realiza', 'fk_identificacion', 'estado', 'observaciones']
 
     def validate_fk_identificacion(self, value):
-        # Validar que los usuarios asignados sean Pasante o Aprendiz
+        # Validar que los usuarios asignados todos
         for user_id in value:
             try:
                 usuario = Usuarios.objects.get(id=user_id)
-                if usuario.fk_id_rol.rol not in ['Pasante', 'Aprendiz']:
+                if usuario.fk_id_rol.rol not in ['Pasante', 'Aprendiz', "Operario", "Administrador","Instructor"]:
                     raise serializers.ValidationError(
                         f"El usuario {usuario.nombre} {usuario.apellido} no es un Pasante o Aprendiz."
                     )

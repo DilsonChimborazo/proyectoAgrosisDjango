@@ -265,10 +265,10 @@ const ListarAsignacion: React.FC = () => {
       });
       return;
     }
-    if (!['Aprendiz', 'Pasante'].includes(user.fk_id_rol?.rol)) {
+    if (!['Aprendiz', 'Operario','Administrador','Instructor',"Pasante"].includes(user.fk_id_rol?.rol)) {
       showToast({
         title: 'Acceso Denegado',
-        description: 'Solo los usuarios con rol Aprendiz o Pasante pueden actualizar asignaciones.',
+        description: 'No tienes permiso para finalizar esta asignacion.',
         timeout: 3000,
         variant: 'error',
       });
@@ -288,7 +288,7 @@ const ListarAsignacion: React.FC = () => {
       });
       return;
     }
-    if (['Aprendiz', 'Pasante'].includes(user.fk_id_rol?.rol)) {
+    if (['Aprendiz', 'Operario'].includes(user.fk_id_rol?.rol)) {
       showToast({
         title: 'Acceso Denegado',
         description: 'No tienes permiso para crear una asignación.',

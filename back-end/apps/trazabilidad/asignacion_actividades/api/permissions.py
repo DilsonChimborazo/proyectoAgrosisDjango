@@ -30,7 +30,7 @@ class IsUsuarioAsignacion(BasePermission):
 
         # Para acciones de escritura (PUT, PATCH, DELETE), solo Administrador e Instructor
         if request.method in ["PUT", "PATCH", "DELETE"]:
-            return user_role in ["Administrador", "Instructor"]
+            return user_role in ["Administrador", "Instructor", "Operario"]
 
         # Para POST (excepto 'finalizar', que ya se manejó arriba), solo Administrador e Instructor
         if request.method == "POST" and view.action != 'finalizar':
