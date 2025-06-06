@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useEditarLote } from "@/hooks/iot/lote/useEditarLote";
 import { useLotePorId } from "@/hooks/iot/lote/useLotePorId"; 
 import Formulario from "../../globales/Formulario";
+import { showToast } from "@/components/globales/Toast";
 
 interface EditarLoteProps {
   id: string;
@@ -24,32 +25,78 @@ const EditarLote = ({ id, onSuccess }: EditarLoteProps) => {
       setFormData({
         dimencion: lote.dimencion ? lote.dimencion.toString() : "",
         nombre_lote: lote.nombre_lote || "",
-        estado: lote.estado || "",
+        estado: lote.estado ? "true" : "false", // Convertimos a string para el formulario
       });
     }
   }, [lote]);
 
-  const handleSubmit = (data: { [key: string]: string }) => {
+  useEffect(() => {
+    if (error) {
+      showToast({
+        title: "Error al cargar lote",
+        description: "No se pudo cargar la información del lote",
+        timeout: 5000,
+        variant: "error",
+      });
+    }
+  }, [error]);
+
+  const handleSubmit = (data: { [key: string]: string | File }) => {
     if (!id) return;
+
+    // Validaciones locales
+    const errors: string[] = [];
+    if (!data.dimencion || typeof data.dimencion !== "string" || isNaN(Number(data.dimencion))) 
+      errors.push("Dimensión es obligatoria y debe ser un número");
+    if (!data.nombre_lote || typeof data.nombre_lote !== "string") 
+      errors.push("Nombre del Lote es obligatorio");
+    if (!data.estado || typeof data.estado !== "string") 
+      errors.push("Estado es obligatorio");
+
+    if (errors.length > 0) {
+      showToast({
+        title: "Error al actualizar lote",
+        description: errors.join(", "),
+        timeout: 5000,
+        variant: "error",
+      });
+      return;
+    }
 
     const loteActualizado = {
       id: Number(id),
       dimencion: Number(data.dimencion) || 0,
-      nombre_lote: data.nombre_lote.trim() || "",
-      estado: data.estado.trim() || "",
+      nombre_lote: (data.nombre_lote as string).trim(),
+      estado: (data.estado as string) === "true", // Convertimos a boolean
     };
-
-    if (!loteActualizado.dimencion || !loteActualizado.nombre_lote || !loteActualizado.estado) {
-      console.error("⚠️ Datos inválidos. No se enviará la actualización.");
-      return;
-    }
 
     console.log("🚀 Enviando Lote actualizado:", loteActualizado);
 
     actualizarLote.mutate(loteActualizado, {
       onSuccess: () => {
         console.log("✅ Lote actualizado correctamente");
+        showToast({
+          title: "Éxito",
+          description: "Lote actualizado exitosamente",
+          timeout: 4000,
+          variant: "success",
+        });
         if (onSuccess) onSuccess();
+      },
+      onError: (error: any) => {
+        console.error("❌ Error al intentar actualizar el Lote:", error);
+        let errorMessage = "Error al actualizar el lote. Intenta de nuevo.";
+        if (error.response?.status === 401) {
+          errorMessage = "No estás autorizado. Verifica tu token o permisos.";
+        } else if (error.response?.data) {
+          errorMessage = JSON.stringify(error.response.data);
+        }
+        showToast({
+          title: "Error al actualizar lote",
+          description: errorMessage,
+          timeout: 5000,
+          variant: "error",
+        });
       },
     });
   };
@@ -63,7 +110,15 @@ const EditarLote = ({ id, onSuccess }: EditarLoteProps) => {
         fields={[
           { id: "dimencion", label: "Dimensión", type: "number" },
           { id: "nombre_lote", label: "Nombre del Lote", type: "text" },
-          { id: "estado", label: "Estado", type: "text" },
+          {
+            id: "estado",
+            label: "Estado",
+            type: "select",
+            options: [
+              { value: "true", label: "Activo" },
+              { value: "false", label: "Inactivo" },
+            ],
+          },
         ]}
         onSubmit={handleSubmit}  
         isError={actualizarLote.isError} 

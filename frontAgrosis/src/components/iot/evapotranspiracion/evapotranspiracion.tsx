@@ -138,6 +138,7 @@ const Evapotranspiracion = () => {
         };
     }, [data, range, plantacionId]);
 
+
     const openModalHandler = (evapo: EvapoData) => {
         setSelectedEvapo(evapo);
         setModalContenido(
@@ -149,16 +150,19 @@ const Evapotranspiracion = () => {
                 <p><strong>ETo:</strong> {evapo.eto.toFixed(2)} mm/día</p>
                 <p><strong>ETc:</strong> {evapo.etc.toFixed(2)} mm/día</p>
                 <p><strong>Fecha:</strong> {new Date(evapo.fecha).toLocaleString()}</p>
+
             </div>
         );
         setIsModalOpen(true);
     };
+
 
     const closeModal = () => {
         setSelectedEvapo(null);
         setModalContenido(null);
         setIsModalOpen(false);
     };
+
 
     const handleUpdate = (evapo: { id: number }) => {
         navigate(`/EditarEvapotranspiracion/${evapo.id}`);

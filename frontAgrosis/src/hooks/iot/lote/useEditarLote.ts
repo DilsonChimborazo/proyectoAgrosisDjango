@@ -7,7 +7,7 @@ export interface Lotes {
     id: number;
     dimencion: number;
     nombre_lote: string;
-    estado: string;
+    estado: boolean;
 }
 
 export const useEditarLote = () => {
@@ -18,18 +18,29 @@ export const useEditarLote = () => {
             const { id, ...datos } = loteActualizado;
 
             // Validar antes de enviar
-            if (!datos.dimencion || !datos.nombre_lote.trim() || !datos.estado.trim()) {
+            if (!datos.dimencion || !datos.nombre_lote.trim() || typeof datos.estado !== "boolean") {
                 throw new Error("⚠️ Datos inválidos. Por favor, revisa los campos.");
             }
 
-            console.log("📝 Enviando datos para actualizar:", datos);
+            const token = localStorage.getItem("token");
+            console.log("🔑 Token para actualizar lote:", token);
+
+            if (!token) {
+                throw new Error("No se encontró el token. Por favor, inicia sesión.");
+            }
+
+            const headers = {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`, // Añadimos el token
+            };
+            console.log("📋 Encabezados de la solicitud:", headers);
+
+            console.log("🔍 URL de la solicitud:", `${apiUrl}lote/${id}/`);
+            console.log("📦 Datos enviados:", datos);
 
             try {
-                const { data } = await axios.put(`${apiUrl}lote/${id}/`, datos, {
-                    headers: {
-                        "Content-Type": "application/json", 
-                    },
-                });
+                const { data } = await axios.put(`${apiUrl}lote/${id}/`, datos, { headers });
+                console.log("✅ Respuesta del servidor:", data);
                 return data;
             } catch (error: any) {
                 console.error("❌ Error en la solicitud:", error.response?.data || error.message);
@@ -40,7 +51,7 @@ export const useEditarLote = () => {
             console.log("✅ Lote actualizado con éxito");
             queryClient.invalidateQueries({ queryKey: ["lote"] });
         },
-        onError: (error) => {
+        onError: (error: any) => {
             console.error("❌ Error al actualizar el Lote:", error);
         },
     });
