@@ -254,7 +254,7 @@ const CrearAsignacion = ({ onSuccess, onCancel, usuarios: initialUsuarios, onCre
 
   return (
     <div className="p-6">
-      <h2 className="text-xl font-bold mb-4 text-center">Gestión de Cultivo</h2>
+      <h2 className="text-xl font-bold mb-4 text-center">Registrar Nueva Asignación</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="flex items-center space-x-2">
           <div className="flex-1">
