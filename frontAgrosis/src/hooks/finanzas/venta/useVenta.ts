@@ -23,36 +23,36 @@ export interface Produccion {
   cantidad_en_base: number;
 }
 
-
 export interface CrearItemVenta {
-  produccion: number; // Solo el ID
+  produccion: number;
   cantidad: number;
-  precio_unidad: number; // <-- ¡RESTAURAR ESTE CAMPO!
-  unidad_medida: number; // Solo el ID
+  precio_unidad: number;
+  unidad_medida: number;
+  descuento_porcentaje?: number;
 }
 
 export interface ItemVenta {
   id: number;
   produccion: Produccion;
   precio_unidad: number;
+  precio_unidad_con_descuento: number;
   cantidad: number;
   unidad_medida: UnidadMedida;
   cantidad_en_base: number;
   subtotal: number;
+  descuento_porcentaje: number;
 }
-
 
 export interface CrearVentaData {
   items: CrearItemVenta[];
-  descuento_porcentaje?: number;
 }
 
 export interface Venta {
   id: number;
   fecha: string;
   total: number;
-  descuento_porcentaje: number;
   items: ItemVenta[];
+  completada?: boolean;
 }
 
 // Crear una instancia de axios con configuración base
@@ -86,7 +86,6 @@ const fetchVentas = async (): Promise<Venta[]> => {
     if (axios.isAxiosError(error)) {
       if (error.response?.status === 401) {
         console.error('Token expirado o inválido');
-        // window.location.href = '/login'; // Descomentar si quieres redirigir
       }
       throw new Error(error.response?.data?.message || 'Error al obtener ventas');
     }

@@ -21,11 +21,14 @@ const formatNumber = (value: any, decimals: number = 2): string => {
 };
 
 // Función utilitaria para formatear números de manera segura con localización es-CO
-const safeNumberFormat = (value: any, options: { 
-    decimals?: number, 
-    isCurrency?: boolean 
-} = {}): string => {
-    const { decimals = 2, isCurrency = false } = options;
+const safeNumberFormat = (
+    value: any,
+    options: { 
+        decimals?: number;
+        isCurrency?: boolean;
+    } & Intl.NumberFormatOptions = {}
+): string => {
+    const { decimals = 2, isCurrency = false, ...formatOptions } = options;
     const num = typeof value === 'number' ? value : parseFloat(value);
     const formatted = isNaN(num) ? 0 : num;
     
@@ -35,17 +38,18 @@ const safeNumberFormat = (value: any, options: {
         return `$${formatted.toLocaleString(locale, {
             minimumFractionDigits: decimals,
             maximumFractionDigits: decimals,
-            useGrouping: true 
+            useGrouping: true,
+            ...formatOptions
         })}`;
     }
     
     return formatted.toLocaleString(locale, {
         minimumFractionDigits: decimals,
         maximumFractionDigits: decimals,
-        useGrouping: true
+        useGrouping: true,
+        ...formatOptions
     });
 };
-
 
 const ResumenTrazabilidad = ({
     plantacionSeleccionada,
@@ -187,26 +191,6 @@ const ResumenTrazabilidad = ({
                                         </p>
                                     </div>
 
-                                    {/* Tarjeta para Precio Mínimo de Venta ACUMULADO */}
-                                    {/*<div
-                                        className="p-4 rounded-lg border border-teal-200 bg-teal-50 cursor-pointer hover:shadow-md transition"
-                                        onClick={() => handleCardClick('precioMinimoAcumulado')}
-                                    >
-                                        <div className="flex justify-between items-start">
-                                            <div>
-                                                <p className="text-sm font-medium text-gray-500">Precio Mínimo Venta/Unidad (Acum.)</p>
-                                                <p className="text-2xl font-bold mt-1 text-teal-600">
-                                                    {safeNumberFormat((trazabilidadData.precio_minimo_venta_por_unidad_acumulado || 0), { minimumFractionDigits: 4, maximumFractionDigits: 4, isCurrency: true })}
-                                                </p>
-                                            </div>
-                                            <Tag className="h-6 w-6 text-teal-600" />
-                                        </div>
-                                        <p className="text-xs mt-2">
-                                            Producido (Acum.): {safeNumberFormat((trazabilidadData.total_cantidad_producida_base_acumulado || 0))} unidades base
-                                        </p>
-                                    </div>*/}
-
-                                    {/* Tarjeta para Precio Mínimo de Venta INCREMENTAL */}
                                     {trazabilidadData.precio_minimo_incremental_ultima_cosecha !== undefined && (
                                         <div
                                             className="p-4 rounded-lg border border-orange-200 bg-orange-50 cursor-pointer hover:shadow-md transition"
@@ -216,7 +200,7 @@ const ResumenTrazabilidad = ({
                                                 <div>
                                                     <p className="text-sm font-medium text-gray-500">Precio Mínimo Venta/Unidad (Última Cosecha)</p>
                                                     <p className="text-2xl font-bold mt-1 text-orange-600">
-                                                        {safeNumberFormat((trazabilidadData.precio_minimo_incremental_ultima_cosecha || 0), { minimumFractionDigits: 4, maximumFractionDigits: 4, isCurrency: true })}
+                                                        {safeNumberFormat((trazabilidadData.precio_minimo_incremental_ultima_cosecha || 0), { decimals: 4, isCurrency: true })}
                                                     </p>
                                                 </div>
                                                 <TrendingUp className="h-6 w-6 text-orange-600" />
@@ -225,12 +209,11 @@ const ResumenTrazabilidad = ({
                                                 Costo Incremental: {safeNumberFormat((trazabilidadData.costo_incremental_ultima_cosecha || 0), { isCurrency: true })}
                                             </p>
                                             <p className="text-xs mt-1">
-                                                Cantidad Última Cosecha: {safeNumberFormat((trazabilidadData.cantidad_incremental_ultima_cosecha || 0))} unidades base
+                                                Cantidad Última Cosecha: {safeNumberFormat((trazabilidadData.cantidad_incremental_ultima_cosecha || 0))}
                                             </p>
                                         </div>
                                     )}
 
-                                    {/* Nueva Tarjeta para Precio Mínimo para Recuperar Inversión */}
                                     {trazabilidadData.precio_minimo_recuperar_inversion !== undefined && (
                                         <div
                                             className={`p-4 rounded-lg border ${trazabilidadData.precio_minimo_recuperar_inversion > 0 ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'} cursor-pointer hover:shadow-md transition`}
@@ -240,17 +223,16 @@ const ResumenTrazabilidad = ({
                                                 <div>
                                                     <p className="text-sm font-medium text-gray-500">Precio Mínimo Venta/Unidad (Recuperar Inversión)</p>
                                                     <p className={`text-2xl font-bold mt-1 ${trazabilidadData.precio_minimo_recuperar_inversion > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                                                        {safeNumberFormat((trazabilidadData.precio_minimo_recuperar_inversion || 0), { minimumFractionDigits: 4, maximumFractionDigits: 4, isCurrency: true })}
+                                                        {safeNumberFormat((trazabilidadData.precio_minimo_recuperar_inversion || 0), { decimals: 4, isCurrency: true })}
                                                     </p>
                                                 </div>
                                                 <RefreshCcw className={`h-6 w-6 ${trazabilidadData.precio_minimo_recuperar_inversion > 0 ? 'text-red-600' : 'text-green-600'}`} />
                                             </div>
                                             <p className="text-xs mt-2">
-                                                Stock disponible para cubrir: {safeNumberFormat((trazabilidadData.stock_disponible_total || 0))} unidades base
+                                                Stock disponible para cubrir: {safeNumberFormat((trazabilidadData.stock_disponible_total || 0))}
                                             </p>
                                         </div>
                                     )}
-
                                 </div>
 
                                 {seccionAbierta === 'historial' && (
@@ -295,7 +277,6 @@ const ResumenTrazabilidad = ({
                                                     duración: `${a.duracion_minutos ? Math.round(a.duracion_minutos) : '0'} min`,
                                                     estado: a.estado || 'Sin estado'
                                                 }))}
-                                                onClickAction={(row) => onAbrirModal('actividad', row)}
                                                 rowsPerPageOptions={[5, 10]}
                                             />
                                         ) : (
@@ -320,7 +301,6 @@ const ResumenTrazabilidad = ({
                                                     cantidad: `${i.cantidad || '0'} ${i.unidad_medida || ''}`,
                                                     costo: safeNumberFormat((i.costo_total || 0), { isCurrency: true })
                                                 }))}
-                                                onClickAction={(row) => onAbrirModal('insumo', row)}
                                                 rowsPerPageOptions={[5, 10]}
                                             />
                                         ) : (
@@ -342,10 +322,9 @@ const ResumenTrazabilidad = ({
                                                 data={trazabilidadData.detalle_ventas.map((v) => ({
                                                     fecha: v.fecha || 'Sin fecha',
                                                     cantidad: `${v.cantidad || '0'} ${v.unidad_medida || ''}`,
-                                                    'precio_unitario': safeNumberFormat((v.precio_unidad || 0), { isCurrency: true }),
-                                                    total: safeNumberFormat((v.ingreso_total || 0), { isCurrency: true })
+                                                    'precio_unitario': safeNumberFormat((v.precio_unidad_con_descuento || 0), { isCurrency: true }),
+                                                    total: safeNumberFormat((v.total || 0), { isCurrency: true })
                                                 }))}
-                                                onClickAction={(row) => onAbrirModal('venta', row)}
                                                 rowsPerPageOptions={[5, 10]}
                                             />
                                         ) : (

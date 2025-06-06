@@ -4,28 +4,30 @@ from apps.finanzas.venta.models import Venta, ItemVenta
 class ItemVentaInline(admin.TabularInline):
     model = ItemVenta
     extra = 1
-    fields = ['produccion', 'cantidad', 'unidad_medida', 'cantidad_en_base', 'precio_unidad', 'subtotal'] # Mantenemos el orden
-    readonly_fields = ['subtotal', 'cantidad_en_base', 'precio_unidad'] # <-- CAMBIO AQUI
+    fields = ['produccion', 'cantidad', 'unidad_medida', 'cantidad_en_base', 'precio_unidad', 'descuento_porcentaje', 'precio_unidad_con_descuento', 'subtotal']
+    readonly_fields = ['subtotal', 'cantidad_en_base', 'precio_unidad', 'precio_unidad_con_descuento']
 
     def subtotal(self, instance):
         return instance.subtotal()
     subtotal.short_description = 'Subtotal'
 
+    def get_readonly_fields(self, request, obj=None):
+        # Si el objeto ya existe, hacemos que descuento_porcentaje sea de solo lectura para evitar modificaciones inconsistentes
+        if obj:
+            return self.readonly_fields + ('descuento_porcentaje',)
+        return self.readonly_fields
+
 @admin.register(Venta)
 class VentaAdmin(admin.ModelAdmin):
-    list_display = ['id', 'fecha', 'total', 'descuento_porcentaje', 'items_count']
+    list_display = ['id', 'fecha', 'total', 'items_count']
     list_filter = ['fecha']
     search_fields = ['id', 'items__produccion__nombre_produccion']
-    readonly_fields = ['total'] 
+    readonly_fields = ['total']
     inlines = [ItemVentaInline]
 
-    # Para permitir la edición de descuento_porcentaje en el formulario de Venta
     fieldsets = (
-        (None, {
-            'fields': ('descuento_porcentaje',)
-        }),
         ('Información de Venta', {
-            'fields': ('fecha', 'total',)
+            'fields': ('fecha', 'total')
         }),
     )
 
@@ -40,4 +42,4 @@ class VentaAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
-        obj.actualizar_total() 
+        obj.actualizar_total()
