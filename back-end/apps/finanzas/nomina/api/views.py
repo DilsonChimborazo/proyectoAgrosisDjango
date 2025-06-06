@@ -103,42 +103,43 @@ class NominaViewSet(ModelViewSet):
     @action(detail=False, methods=['get'], url_path='reporte-detallado')
     def reporte_detallado(self, request):
         """
-        Reporte detallado con todas las nóminas y su información relacionada
+        Reporte detallado con todas las nóminas y su información relacionada.
+        (Versión corregida para mostrar el usuario individual correcto)
         """
         nominas = Nomina.objects.select_related(
-            'fk_id_programacion',
-            'fk_id_programacion__fk_id_asignacionActividades',
             'fk_id_programacion__fk_id_asignacionActividades__fk_id_realiza__fk_id_actividad',
             'fk_id_control_fitosanitario',
             'fk_id_salario',
-            'fk_id_usuario'
-        ).prefetch_related(
-            'fk_id_control_fitosanitario__fk_identificacion'  # Usar prefetch_related para ManyToManyField
+            'fk_id_usuario__fk_id_rol',  # Incluimos el rol del usuario para eficiencia
+            'fk_id_usuario__ficha'      # Incluimos la ficha del usuario
         ).all()
 
         data = []
         for nomina in nominas:
-            if nomina.fk_id_programacion:
-                actividad = nomina.fk_id_programacion.fk_id_asignacionActividades.fk_id_realiza.fk_id_actividad.nombre_actividad
-                usuario = nomina.fk_id_usuario
+            # --- LÓGICA CORREGIDA ---
+            # 1. Obtener el usuario directamente de la nómina.
+            usuario = nomina.fk_id_usuario
+            
+            # 2. Preparar los datos del usuario. Siempre será una lista con un solo usuario.
+            if usuario:
                 usuarios_data = [
                     {'id': usuario.id, 'nombre': usuario.nombre, 'apellido': usuario.apellido}
-                ] if usuario else [{'id': None, 'nombre': 'Desconocido', 'apellido': 'Desconocido'}]
+                ]
+            else:
+                usuarios_data = [{'id': None, 'nombre': 'Usuario', 'apellido': 'Desconocido'}]
+
+            # 3. Determinar la actividad y el tipo
+            if nomina.fk_id_programacion:
+                actividad = nomina.fk_id_programacion.fk_id_asignacionActividades.fk_id_realiza.fk_id_actividad.nombre_actividad
                 tipo = 'Programación'
             elif nomina.fk_id_control_fitosanitario:
                 actividad = nomina.fk_id_control_fitosanitario.tipo_control
-                # Acceder a los usuarios relacionados a través de ManyToManyField
-                usuarios = nomina.fk_id_control_fitosanitario.fk_identificacion.all()
-                usuarios_data = [
-                    {'id': usuario.id, 'nombre': usuario.nombre, 'apellido': usuario.apellido}
-                    for usuario in usuarios
-                ] if usuarios else [{'id': None, 'nombre': 'Desconocido', 'apellido': 'Desconocido'}]
                 tipo = 'Control Fitosanitario'
             else:
                 actividad = "Desconocida"
-                usuarios_data = [{'id': None, 'nombre': 'Desconocido', 'apellido': 'Desconocido'}]
                 tipo = "Otro"
-
+                
+            # 4. Construir el objeto de respuesta
             data.append({
                 'id': nomina.id,
                 'fecha_pago': nomina.fecha_pago,
@@ -146,55 +147,10 @@ class NominaViewSet(ModelViewSet):
                 'pago_total': float(nomina.pago_total) if nomina.pago_total else 0,
                 'actividad': actividad,
                 'tipo_actividad': tipo,
-                'usuarios': usuarios_data,
+                'usuarios': usuarios_data, # Ahora 'usuarios' siempre contiene la persona correcta.
                 'salario': {
                     'jornal': float(nomina.fk_id_salario.precio_jornal) if nomina.fk_id_salario and nomina.fk_id_salario.precio_jornal else None,
                     'horas_por_jornal': nomina.fk_id_salario.horas_por_jornal if nomina.fk_id_salario else None
                 }
             })
-
         return Response(data)
-
-    @action(
-        detail=True,
-        methods=['patch'],
-        url_path='marcar-pagado',
-        url_name='marcar_pagado'
-    )
-    def marcar_pagado(self, request, pk=None):
-        try:
-            nomina = self.get_object()
-            
-            if nomina.pagado:
-                return Response(
-                    {'error': 'Este pago ya fue marcado como completado anteriormente'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            
-            nomina.pagado = True
-            nomina.fecha_pago = timezone.now().date()
-            nomina.save()
-            
-            return Response(
-                {
-                    'status': 'success',
-                    'message': 'Pago marcado como completado',
-                    'data': {
-                        'id': nomina.id,
-                        'fecha_pago': nomina.fecha_pago,
-                        'pagado': nomina.pagado
-                    }
-                },
-                status=status.HTTP_200_OK
-            )
-            
-        except Nomina.DoesNotExist:
-            return Response(
-                {'error': f'Nómina con ID {pk} no encontrada'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        except Exception as e:
-            return Response(
-                {'error': str(e)},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
