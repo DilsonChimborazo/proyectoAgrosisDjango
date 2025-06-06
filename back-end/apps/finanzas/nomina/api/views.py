@@ -110,9 +110,10 @@ class NominaViewSet(ModelViewSet):
             'fk_id_programacion__fk_id_asignacionActividades',
             'fk_id_programacion__fk_id_asignacionActividades__fk_id_realiza__fk_id_actividad',
             'fk_id_control_fitosanitario',
-            'fk_id_control_fitosanitario__fk_identificacion',
             'fk_id_salario',
             'fk_id_usuario'
+        ).prefetch_related(
+            'fk_id_control_fitosanitario__fk_identificacion'  # Usar prefetch_related para ManyToManyField
         ).all()
 
         data = []
@@ -126,10 +127,12 @@ class NominaViewSet(ModelViewSet):
                 tipo = 'Programación'
             elif nomina.fk_id_control_fitosanitario:
                 actividad = nomina.fk_id_control_fitosanitario.tipo_control
-                usuario = nomina.fk_id_control_fitosanitario.fk_identificacion
+                # Acceder a los usuarios relacionados a través de ManyToManyField
+                usuarios = nomina.fk_id_control_fitosanitario.fk_identificacion.all()
                 usuarios_data = [
                     {'id': usuario.id, 'nombre': usuario.nombre, 'apellido': usuario.apellido}
-                ] if usuario else [{'id': None, 'nombre': 'Desconocido', 'apellido': 'Desconocido'}]
+                    for usuario in usuarios
+                ] if usuarios else [{'id': None, 'nombre': 'Desconocido', 'apellido': 'Desconocido'}]
                 tipo = 'Control Fitosanitario'
             else:
                 actividad = "Desconocida"

@@ -4,7 +4,7 @@ from apps.trazabilidad.plantacion.models import Plantacion
 from apps.trazabilidad.plantacion.api.serializers import LeerPlantacionSerializer, escribirPlantacionSerializer
 
 class PlantacionViewSet(ModelViewSet):
-    permissions_clases = [IsAuthenticatedOrReadOnly]
+    permissions_classes = [IsAuthenticatedOrReadOnly]
     queryset = Plantacion.objects.all()
     
     def get_serializer_class(self):
