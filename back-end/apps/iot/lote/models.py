@@ -1,7 +1,7 @@
 from django.db import models
 
 class Lote(models.Model):
-    dimencion = models.CharField(max_length=50)
+    dimencion  = models.IntegerField() 
     nombre_lote = models.CharField(max_length=50)
     estado = models.BooleanField(default=True)
 

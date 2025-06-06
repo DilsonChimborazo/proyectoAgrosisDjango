@@ -10,6 +10,7 @@ export interface EvapoData {
     era_id: number | null;
     nombre_era: string;
     cultivo: string;
+    cantidad_agua:number;
     eto: number;
     etc: number;
     fecha: string;
@@ -61,12 +62,14 @@ export function useEvapotranspiracion(plantacionId: number) {
                 plantacion_id: item.fk_id_plantacion?.id || plantacionId,
                 nombre_plantacion: item.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo || 'Sin plantación',
                 era_id: item.fk_id_plantacion?.fk_id_eras?.id || null,
+                cantidad_agua: Number(item.cantidad_agua) || 0,
                 nombre_era: item.fk_id_plantacion?.fk_id_eras?.nombre || 'Sin era',
                 cultivo: item.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo || 'Sin cultivo',
                 eto: Number(item.eto) || 0,
                 etc: Number(item.etc) || 0,
                 fecha: item.fecha ? new Date(item.fecha).toISOString() : new Date().toISOString(),
             }));
+            console.log("esto si va aparecer",processedData)
 
             setHistoricalData(processedData);
         } catch (err: any) {
@@ -119,6 +122,7 @@ export function useEvapotranspiracion(plantacionId: number) {
                     era_id: message.era_id || null,
                     nombre_era: message.nombre_era || 'Sin era',
                     cultivo: message.cultivo || 'Sin cultivo',
+                    cantidad_agua: Number(message.cantidad_agua) || 0,
                     eto: Number(message.eto) || 0,
                     etc: Number(message.etc) || 0,
                     fecha: new Date(message.fecha).toISOString(),
@@ -179,6 +183,7 @@ export function useEvapotranspiracion(plantacionId: number) {
     }, [historicalData, wsData]);
 
     const latestData = combinedData.length > 0 ? combinedData[combinedData.length - 1] : null;
+    console.log("esto ya es el final", latestData)
 
     return {
         data: combinedData, // Combinación de datos históricos y en tiempo real

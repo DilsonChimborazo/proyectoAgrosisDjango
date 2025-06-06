@@ -255,7 +255,7 @@ const Evapotranspiracion = () => {
                     <div className="bg-blue-100 p-6 rounded-lg shadow-md">
                         <h3 className="text-lg font-semibold text-gray-700 mb-2">Recomendación de Riego</h3>
                         <p className="text-xl font-semibold text-blue-600">
-                            Aplica {latestData.etc.toFixed(2)} mm de agua hoy
+                            Aplica {latestData.cantidad_agua.toFixed(2)} L de agua hoy
                         </p>
                     </div>
                 </div>

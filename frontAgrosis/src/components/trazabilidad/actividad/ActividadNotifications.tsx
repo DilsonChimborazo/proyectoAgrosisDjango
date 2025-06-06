@@ -85,19 +85,7 @@ const ActividadNotifications: React.FC = () => {
 
   return (
     <div style={styles.container}>
-      <h2>Notificaciones de Asignaciones</h2>
-      {notifications.length === 0 ? (
-        <p>No hay notificaciones.</p>
-      ) : (
-        <ul style={styles.list}>
-          {notifications.map((notification, index) => (
-            <li key={index} style={styles.listItem}>
-              <strong>ID: {notification.id}</strong> - {notification.usuario} asignado a{" "}
-              <strong>{notification.actividad}</strong> para el {notification.fecha}
-            </li>
-          ))}
-        </ul>
-      )}
+
     </div>
   );
 };
