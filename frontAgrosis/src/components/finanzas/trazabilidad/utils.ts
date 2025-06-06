@@ -1,10 +1,8 @@
-// utils.ts
-
 export const generarAnalisisDiferencias = (datosViejo: any, datosNuevo: any) => {
-    const diffBC = datosNuevo.beneficio_costo - datosViejo.beneficio_costo;
-    const diffIngresos = datosNuevo.ingresos_ventas - datosViejo.ingresos_ventos;
-    const diffEgresos = (datosNuevo.costo_mano_obra + datosNuevo.egresos_insumos) - 
-                        (datosViejo.costo_mano_obra + datosViejo.egresos_insumos);
+    const diffBC = datosNuevo.beneficio_costo_acumulado - datosViejo.beneficio_costo_acumulado;
+    const diffIngresos = datosNuevo.ingresos_ventas_acumulado - datosViejo.ingresos_ventas_acumulado;
+    const diffEgresos = (datosNuevo.costo_mano_obra_acumulado + datosNuevo.egresos_insumos_acumulado) - 
+                        (datosViejo.costo_mano_obra_acumulado + datosViejo.egresos_insumos_acumulado);
     
     let analisis = [];
     
@@ -17,17 +15,17 @@ export const generarAnalisisDiferencias = (datosViejo: any, datosNuevo: any) => 
     }
     
     if (diffIngresos > 0) {
-        analisis.push(`Los ingresos aumentaron en $${diffIngresos.toLocaleString()}.`);
+        analisis.push(`Los ingresos aumentaron en $${diffIngresos.toLocaleString('es-CO')}.`);
     } else if (diffIngresos < 0) {
-        analisis.push(`Los ingresos disminuyeron en $${Math.abs(diffIngresos).toLocaleString()}.`);
+        analisis.push(`Los ingresos disminuyeron en $${Math.abs(diffIngresos).toLocaleString('es-CO')}.`);
     } else {
         analisis.push("Los ingresos se mantuvieron iguales.");
     }
     
     if (diffEgresos > 0) {
-        analisis.push(`Los egresos aumentaron en $${diffEgresos.toLocaleString()}.`);
+        analisis.push(`Los egresos aumentaron en $${diffEgresos.toLocaleString('es-CO')}.`);
     } else if (diffEgresos < 0) {
-        analisis.push(`Los egresos disminuyeron en $${Math.abs(diffEgresos).toLocaleString()}.`);
+        analisis.push(`Los egresos disminuyeron en $${Math.abs(diffEgresos).toLocaleString('es-CO')}.`);
     } else {
         analisis.push("Los egresos se mantuvieron iguales.");
     }

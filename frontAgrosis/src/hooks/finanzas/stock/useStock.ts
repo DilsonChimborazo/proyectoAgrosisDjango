@@ -1,8 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 
 const apiUrl = import.meta.env.VITE_API_URL;
-
 
 export interface UnidadMedida {
   id: number;
@@ -54,7 +53,7 @@ export interface Produccion {
   cantidad_producida: number;
   fecha: string;
   stock_disponible: number;
-  precio_sugerido_venta: number | null; 
+  precio_sugerido_venta: number | null;
   fk_id_plantacion: Plantacion | null;
   fk_unidad_medida: UnidadMedida | null;
   cantidad_en_base: number | null;
@@ -90,27 +89,94 @@ export interface Stock {
   };
 }
 
+const getToken = () => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    throw new Error('No se encontró el token de autenticación');
+  }
+  return token;
+};
 
-// Función para obtener los datos de Stock
-const fetchStock = async (): Promise<Stock[]> => {
+const fetchProducciones = async (): Promise<Produccion[]> => {
   try {
-    const token = localStorage.getItem('token');
+    const token = getToken();
+    const { data } = await axios.get(`${apiUrl}produccion/`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    // Manejar respuestas paginadas como { results: Produccion[] }
+    return Array.isArray(data) ? data : data.results || [];
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    console.error('Error fetching producciones:', axiosError.message, axiosError.response?.data);
+    throw new Error(`Error al obtener las producciones: ${axiosError.message}`);
+  }
+};
+
+const fetchStockByProduccion = async (produccionId: number): Promise<Stock[]> => {
+  try {
+    const token = getToken();
+    const { data } = await axios.get(`${apiUrl}stock/?fk_id_produccion=${produccionId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    // Manejar respuestas paginadas
+    return Array.isArray(data) ? data : data.results || [];
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    console.error('Error fetching stock by produccion:', axiosError.message, axiosError.response?.data);
+    throw new Error(`Error al obtener los movimientos de stock: ${axiosError.message}`);
+  }
+};
+
+const fetchAllStock = async (): Promise<Stock[]> => {
+  try {
+    const token = getToken();
     const { data } = await axios.get(`${apiUrl}stock/`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
     });
-    return data;
+    // Manejar respuestas paginadas
+    return Array.isArray(data) ? data : data.results || [];
   } catch (error) {
-    console.error("Error fetching stock:", error);
-    throw new Error("Error al obtener los movimientos de stock");
+    const axiosError = error as AxiosError;
+    console.error('Error fetching all stock:', axiosError.message, axiosError.response?.data);
+    throw new Error(`Error al obtener todos los movimientos de stock: ${axiosError.message}`);
   }
 };
 
-export const useStock = () => {
+export const useProducciones = () => {
+  return useQuery<Produccion[], Error>({
+    queryKey: ['producciones'],
+    queryFn: fetchProducciones,
+    staleTime: 1000 * 60 * 5,
+    retry: 2, // Reintentar 2 veces en caso de error
+  });
+};
+
+export const useStockByProduccion = (produccionId: number | null) => {
   return useQuery<Stock[], Error>({
-    queryKey: ['stock'],
-    queryFn: fetchStock,
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    queryKey: ['stock', produccionId],
+    queryFn: () => {
+      if (!produccionId) {
+        throw new Error('ID de producción no proporcionado');
+      }
+      return fetchStockByProduccion(produccionId);
+    },
+    enabled: !!produccionId,
+    staleTime: 1000 * 60 * 5,
+    retry: 2,
+  });
+};
+
+export const useAllStock = () => {
+  return useQuery<Stock[], Error>({
+    queryKey: ['allStock'],
+    queryFn: fetchAllStock,
+    staleTime: 1000 * 60 * 5,
+    retry: 2,
   });
 };

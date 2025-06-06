@@ -38,8 +38,8 @@ export type { DetalleInsumo };
 
 interface DetalleVenta {
     cantidad: number;
-    precio_unidad: number;
-    ingreso_total: number;
+    precio_unidad_con_descuento: number;
+    total: number;
     fecha: string;
     unidad_medida?: string;
     produccion_asociada?: string;

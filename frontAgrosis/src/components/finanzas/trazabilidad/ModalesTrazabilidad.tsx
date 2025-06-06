@@ -471,7 +471,7 @@ const ModalesTrazabilidad = ({ modalAbierto, comparando, onCerrarModal }: Modale
                     <div className="space-y-3">
                         <p><strong>Fecha:</strong> {ventaData.fecha || 'Sin fecha'}</p>
                         <p><strong>Cantidad:</strong> {ventaData.cantidad || '0'} {ventaData.unidad_medida || ''}</p>
-                        <p><strong>Precio unitario:</strong> {safeNumberFormat(ventaData.precio_unidad, { isCurrency: true })}</p>
+                        <p><strong>Precio unitario:</strong> {safeNumberFormat(ventaData.precio_unidad_con_descuento, { isCurrency: true })}</p>
                         <p><strong>Total:</strong> {safeNumberFormat(ventaData.ingreso_total, { isCurrency: true })}</p>
                     </div>
                 );
