@@ -328,8 +328,8 @@ const Evapotranspiracion = () => {
                         title="Histórico de Mediciones"
                         headers={headers}
                         data={mappedData}
+                        showCreateButton={false}
                         onClickAction={handleRowClick}
-                        onUpdate={handleUpdate}
                         onCreate={handleCreate}
                         createButtonTitle="Crear"
                     />

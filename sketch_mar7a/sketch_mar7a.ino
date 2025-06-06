@@ -30,10 +30,10 @@ WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org", -18000, 60000); // UTC-5 (Colombia)
 
 // 🌐 Configuración
-const char* websocket_server = "192.168.101.11";
+const char* websocket_server = "10.4.20.225";
 const int websocket_port = 8000;
 const char* websocket_path = "/ws/api/mide/";
-const char* sensoresUrl = "http://192.168.101.11:8000/api/sensores/";
+const char* sensoresUrl = "http://10.4.20.225:8000/api/sensores/";
 WebSocketsClient webSocket;
 
 // WiFiManager

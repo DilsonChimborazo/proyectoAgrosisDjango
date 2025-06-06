@@ -110,7 +110,6 @@ class NominaViewSet(ModelViewSet):
             'fk_id_programacion__fk_id_asignacionActividades',
             'fk_id_programacion__fk_id_asignacionActividades__fk_id_realiza__fk_id_actividad',
             'fk_id_control_fitosanitario',
-            'fk_id_control_fitosanitario__fk_identificacion',
             'fk_id_salario',
             'fk_id_usuario'
         ).all()

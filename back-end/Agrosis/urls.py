@@ -126,7 +126,6 @@ urlpatterns = [
     path('api/trazabilidad/plantacion/<int:plantacion_id>/', TrazabilidadPlantacionAPIView.as_view(), name='trazabilidad-plantacion'),
     path('api/trazabilidad/historico/<int:plantacion_id>/', HistoricoTrazabilidadAPIView.as_view(), name='historico-trazabilidad'),
 
-
     #TRAZABILIDAD
     path('api/', include(router_actividad.urls)),
     path('api/', include(router_cultivo.urls)),
