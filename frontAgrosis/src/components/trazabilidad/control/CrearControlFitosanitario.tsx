@@ -114,12 +114,12 @@ const CrearControlFitosanitario = ({ onSuccess }: CrearControlFitosanitarioProps
       onExtraButtonClick: () => setMostrarModalInsumo(true),
       extraContent: selectedInsumo ? (
         <div className="text-sm text-green-600 text-center">
-          Stock disponible del insumo seleccionado: {selectedInsumo.cantidad_insumo ?? 0} Gramos
+          Stock disponible del insumo seleccionado: {selectedInsumo.cantidad_en_base ?? 0} Gramos
         </div>
       ) : null,
     },
     {
-      id: 'cantidad_insumo',
+      id: 'cantidad_en_base',
       label: 'Cantidad de Insumo (gramos)',
       type: 'number',
       required: true,
@@ -159,7 +159,7 @@ const CrearControlFitosanitario = ({ onSuccess }: CrearControlFitosanitarioProps
       !formData.fk_id_pea ||
       !formData.fk_id_insumo ||
       !formData.fk_unidad_medida ||
-      !formData.cantidad_insumo ||
+      !formData.cantidad_en_base ||
       !formData.fk_identificacion ||
       (formData.fk_identificacion as string[]).length < 1
     ) {
@@ -172,16 +172,15 @@ const CrearControlFitosanitario = ({ onSuccess }: CrearControlFitosanitarioProps
       return;
     }
 
-    const cantidadInsumoIngresada = Number(formData.cantidad_insumo);
+    const cantidadInsumoIngresada = Number(formData.cantidad_en_base);
     const insumoSeleccionado = insumos.find(
       (insumo) => String(insumo.id) === formData.fk_id_insumo
     );
 
-    if (insumoSeleccionado && cantidadInsumoIngresada > (insumoSeleccionado.cantidad_insumo ?? 0)) {
+    if (insumoSeleccionado && cantidadInsumoIngresada > (insumoSeleccionado.cantidad_en_base ?? 0)) {
       showToast({
         title: 'Error en la cantidad de insumo',
-        description: `La cantidad ingresada (${cantidadInsumoIngresada}) excede el stock disponible (${insumoSeleccionado.cantidad_insumo ?? 0}).`,
-
+        description: `La cantidad ingresada (${cantidadInsumoIngresada}) excede el stock disponible (${insumoSeleccionado.cantidad_en_base ?? 0}).`,
         timeout: 5000,
         variant: 'error',
       });
