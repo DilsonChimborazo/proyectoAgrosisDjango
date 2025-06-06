@@ -31,10 +31,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 class CustomPagination(PageNumberPagination):
-    permissions_clases = [IsAuthenticated]
-    page_size = 10
+    permissions_classes = [IsAuthenticated]
+    page_size = 1000
     page_size_query_param = 'page_size'
-    max_page_size = 100
+    max_page_size = 1000
 
     def get_paginated_response(self, data):
         return Response({
@@ -162,8 +162,8 @@ class TrazabilidadPlantacionAPIView(APIView):
         for item in items_venta:
             detalle.append({
                 'cantidad': item.cantidad,
-                'precio_unidad': item.precio_unidad,
-                'ingreso_total': item.subtotal(),
+                'precio_unidad_con_descuento': item.precio_unidad_con_descuento,
+                'total': item.venta.total,
                 'fecha': item.venta.fecha,
                 'unidad_medida': item.unidad_medida.nombre_medida if item.unidad_medida else None,
                 'produccion_asociada': item.produccion.nombre_produccion if item.produccion else None
@@ -292,7 +292,7 @@ class TrazabilidadPlantacionAPIView(APIView):
             ingresos_ventas_acumulado = ItemVenta.objects.filter(
                 venta__in=ventas_all
             ).aggregate(
-                total=Sum(F('precio_unidad') * F('cantidad'))
+                total=Sum(F('precio_unidad_con_descuento') * F('cantidad'))
             )['total'] or 0
             
             costo_total_acumulado = costo_mano_obra_acumulado + egresos_insumos_acumulado

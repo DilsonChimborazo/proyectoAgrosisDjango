@@ -1,197 +1,400 @@
-import { useState } from "react";
-import { useStock } from "../../../hooks/finanzas/stock/useStock";
-import Tabla from "../../globales/Tabla";
-import VentanaModal from "../../globales/VentanasModales";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
-import CrearVenta from "../venta/CrearVenta";
-import CrearProduccion from "../produccion/CrearProduccion";
+import { useState } from 'react';
+import { useProducciones, useAllStock } from '../../../hooks/finanzas/stock/useStock';
+import { useVentas } from '@/hooks/finanzas/venta/useVenta';
+import VentaComponent from '../venta/Venta';
+import ProduccionComponent from '../produccion/Produccion';
+import Tabla from '../../globales/Tabla';
+import VentanaModal from '../../globales/VentanasModales';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
+import CrearVenta from '../venta/CrearVenta';
+import CrearProduccion from '../produccion/CrearProduccion';
+import { PlusCircle, Package, Loader2, MoreVertical, ChevronDown, ChevronUp, Activity, DollarSign } from 'lucide-react';
+import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 
-const Stock = () => {
-  const { data: stockData, isLoading, error, refetch } = useStock();
-  const [selectedStock, setSelectedStock] = useState<any | null>(null); // Usar 'any' temporalmente para flexibilidad de renderizado
-  const [isModalOpen, setIsModalOpen] = useState(false);
+const SeccionDesplegable = ({
+  titulo,
+  icono,
+  cantidad,
+  abierta,
+  onToggle,
+  children
+}: {
+  titulo: string;
+  icono: React.ReactNode;
+  cantidad: number;
+  abierta: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+}) => {
+  return (
+    <div className="border rounded-lg overflow-hidden">
+      <button
+        className="w-full flex justify-between items-center p-4 bg-gray-50 hover:bg-gray-100 transition"
+        onClick={onToggle}
+      >
+        <div className="flex items-center gap-3">
+          {icono}
+          <h3 className="font-medium">{titulo}</h3>
+          <span className="text-sm text-gray-500">({cantidad})</span>
+        </div>
+        {abierta ? <ChevronUp /> : <ChevronDown />}
+      </button>
+      {abierta && (
+        <div className="p-4 border-t">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+};
 
+const StockDashboard = () => {
+  const { data: producciones, isLoading: isProduccionesLoading, error: produccionesError, refetch } = useProducciones();
+  const { data: allStock, isLoading: isAllStockLoading, error: allStockError } = useAllStock();
+  const { data: ventas, isLoading: isVentasLoading, error: ventasError } = useVentas();
+  const [selectedProduccionId, setSelectedProduccionId] = useState<number | null>(null);
+  const [isMovimientosModalOpen, setIsMovimientosModalOpen] = useState(false);
+  const [isProductosModalOpen, setIsProductosModalOpen] = useState(false);
+  const [isValorModalOpen, setIsValorModalOpen] = useState(false);
   const [isVentaModalOpen, setIsVentaModalOpen] = useState(false);
   const [isProduccionModalOpen, setIsProduccionModalOpen] = useState(false);
+  const [seccionAbierta, setSeccionAbierta] = useState<string | null>(null);
 
-  // Abrir modal detalle stock
-  const openModalHandler = (stock: any) => {
-    setSelectedStock(stock.rawData); 
-    setIsModalOpen(true);
+  console.log('Producciones:', producciones);
+  console.log('Movimientos:', allStock);
+  console.log('Ventas:', ventas);
+
+  const toggleSeccion = (seccion: string) => {
+    setSeccionAbierta(seccionAbierta === seccion ? null : seccion);
   };
 
-  // Cerrar modal detalle stock
-  const closeModal = () => {
-    setSelectedStock(null);
-    setIsModalOpen(false);
+  const openMovimientosModal = (produccionId: number) => {
+    setSelectedProduccionId(produccionId);
+    setIsMovimientosModalOpen(true);
   };
 
-  // Cerrar modales venta/producción y refrescar lista
+  const closeMovimientosModal = () => {
+    setSelectedProduccionId(null);
+    setIsMovimientosModalOpen(false);
+  };
+
+  const closeProductosModal = () => {
+    setIsProductosModalOpen(false);
+  };
+
+  const closeValorModal = () => {
+    setIsValorModalOpen(false);
+  };
+
   const cerrarModalConExito = () => {
     setIsVentaModalOpen(false);
     setIsProduccionModalOpen(false);
-    refetch(); 
+    refetch();
   };
 
-  // Renderiza los detalles de un registro de stock
-  const renderStockDetails = (stock: any) => {
-    if (!stock) return <p>No hay detalles disponibles</p>;
+  const renderMovimientosDetails = () => {
+    if (!producciones || producciones.length === 0) return (
+      <p className="text-center text-gray-500 py-4">No hay datos disponibles.</p>
+    );
 
-    const tipoMovimiento = stock.movimiento;
-    const nombreProducto = stock.fk_id_produccion?.nombre_produccion || stock.fk_id_item_venta?.produccion?.nombre_produccion || 'N/A';
-    const unidadMedida = stock.fk_id_produccion?.fk_unidad_medida?.nombre_medida || stock.fk_id_item_venta?.unidad_medida?.nombre_medida || 'N/A';
-    const unidadBase = stock.fk_id_produccion?.fk_unidad_medida?.unidad_base || stock.fk_id_item_venta?.unidad_medida?.unidad_base || 'N/A';
+    const produccion = producciones.find(p => p.id === selectedProduccionId);
+    if (!produccion) return <p className="text-center text-gray-500 py-4">Producción no encontrada.</p>;
+
+    const precioSugerido = produccion.precio_sugerido_venta;
+    const precioSugeridoNumero = typeof precioSugerido === 'string' ? parseFloat(precioSugerido) : precioSugerido;
 
     return (
-      <div className="space-y-3 p-4 bg-gray-50 rounded-lg">
-        <h3 className="text-lg font-bold text-gray-800 border-b pb-2 mb-2">Detalles del Movimiento</h3>
-        <p><strong>ID Movimiento:</strong> {stock.id}</p>
-        <p><strong>Tipo de Movimiento:</strong> <span className={tipoMovimiento === "Entrada" ? "text-green-600 font-semibold" : "text-red-600 font-semibold"}>{tipoMovimiento}</span></p>
-        <p><strong>Fecha:</strong> {format(new Date(stock.fecha), "dd 'de' MMMM 'de' yyyy, HH:mm", { locale: es })}</p>
-        <p><strong>Cantidad:</strong> {stock.cantidad} {unidadMedida} ({unidadBase})</p>
-
-        {stock.fk_id_produccion && (
-          <div className="mt-4 border-t pt-2">
-            <h4 className="font-bold text-gray-700">Información de Producción:</h4>
-            <p><strong>Producción:</strong> {nombreProducto}</p>
-            <p><strong>Stock Inicial:</strong> {stock.fk_id_produccion.cantidad_en_base} {stock.fk_id_produccion.fk_unidad_medida?.unidad_base}</p>
-            <p><strong>Stock Disponible (actual):</strong> {stock.fk_id_produccion.stock_disponible} {stock.fk_id_produccion.fk_unidad_medida?.unidad_base}</p>
-            {stock.fk_id_produccion.precio_sugerido_venta !== null && (
-              <p><strong>Precio Sugerido Venta:</strong> ${stock.fk_id_produccion.precio_sugerido_venta?.toFixed(2)}/{stock.fk_id_produccion.fk_unidad_medida?.unidad_base}</p>
-            )}
-          </div>
-        )}
-
-        {stock.fk_id_item_venta && (
-          <div className="mt-4 border-t pt-2">
-            <h4 className="font-bold text-gray-700">Información de Venta:</h4>
-            <p><strong>ID Venta:</strong> {stock.fk_id_item_venta.venta.id}</p>
-            <p><strong>Producto Vendido:</strong> {nombreProducto}</p>
-            <p><strong>Cantidad Vendida:</strong> {stock.fk_id_item_venta.cantidad} {stock.fk_id_item_venta.unidad_medida?.nombre_medida}</p>
-            <p><strong>Precio por unidad de Venta:</strong> ${stock.fk_id_item_venta.precio_unidad?.toFixed(2)}/{stock.fk_id_item_venta.unidad_medida?.nombre_medida}</p>
-            <p><strong>Subtotal del Item:</strong> ${stock.fk_id_item_venta.subtotal?.toFixed(2)}</p>
-            <p><strong>Total de la Venta:</strong> ${stock.fk_id_item_venta.venta.total?.toFixed(2)}</p>
-            {stock.fk_id_item_venta.venta.descuento_porcentaje > 0 && (
-              <p><strong>Descuento Aplicado:</strong> {stock.fk_id_item_venta.venta.descuento_porcentaje}%</p>
-            )}
-          </div>
-        )}
+      <div className="p-4 bg-white rounded-lg shadow-sm">
+        <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2 mb-4">
+          Detalles de Producción
+        </h3>
+        <div className="space-y-2 text-sm text-gray-700">
+          <p><span className="font-semibold">Nombre:</span> {produccion.nombre_produccion}</p>
+          <p><span className="font-semibold">Stock Disponible:</span> {produccion.stock_disponible} {produccion.fk_unidad_medida?.unidad_base || 'N/A'}</p>
+          <p><span className="font-semibold">Unidad de Medida:</span> {produccion.fk_unidad_medida?.nombre_medida || 'N/A'}</p>
+          <p><span className="font-semibold">Precio Sugerido:</span> {precioSugeridoNumero != null && !isNaN(precioSugeridoNumero) ? `$${precioSugeridoNumero.toFixed(2)}` : 'N/A'}</p>
+        </div>
       </div>
     );
   };
 
-  if (isLoading) return <div className="text-center text-gray-500">Cargando movimientos de stock...</div>;
-
-  if (error)
-    return (
-      <div className="text-center text-red-500">
-        Error al cargar los datos: {error.message || "Error desconocido"}
-      </div>
+  const renderProductosDetails = () => {
+    const productosConStock = producciones?.filter(p => p.stock_disponible >= 1) || [];
+    if (productosConStock.length === 0) return (
+      <p className="text-center text-gray-500 py-4">No hay productos con stock disponible.</p>
     );
 
-  // Mapeo y formateo de datos para la tabla
-  const mappedStock = (stockData || []).map((registro) => {
-    // Obtener fecha preferida
-    const fecha = registro.fecha; 
-    const fechaFormateada = fecha
-      ? format(new Date(fecha), "dd 'de' MMMM 'de' yyyy", { locale: es })
-      : "Fecha no disponible";
+    return (
+      <div className="p-4 bg-white rounded-lg shadow-sm">
+        <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2 mb-4">
+          Productos con Stock
+        </h3>
+        <table className="w-full text-sm text-gray-700">
+          <thead>
+            <tr className="bg-green-700 text-white">
+              <th className="py-2 px-3 text-left rounded-tl-lg">Nombre</th>
+              <th className="py-2 px-3 text-left rounded-tr-lg">Stock Disponible</th>
+            </tr>
+          </thead>
+          <tbody>
+            {productosConStock.map((p) => (
+              <tr key={p.id} className="border-b border-gray-100 hover:bg-green-50">
+                <td className="py-2 px-3">{p.nombre_produccion}</td>
+                <td className="py-2 px-3">{p.stock_disponible} {p.fk_unidad_medida?.unidad_base || 'N/A'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
 
-    const tipoMovimiento = registro.movimiento;
-    const origen = tipoMovimiento === "Entrada" ? "Producción" : "Venta";
+  const renderValorDetails = () => {
+    const productosConStock = producciones?.filter(p => p.stock_disponible >= 1) || [];
+    if (productosConStock.length === 0) return (
+      <p className="text-center text-gray-500 py-4">No hay productos con stock disponible.</p>
+    );
 
-    let nombre = "No disponible";
-    let unidadDisplay = "";
+    return (
+      <div className="p-4 bg-white rounded-lg shadow-sm">
+        <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2 mb-4">
+          Valor Estimado por Producto
+        </h3>
+        <table className="w-full text-sm text-gray-700">
+          <thead>
+            <tr className="bg-green-700 text-white">
+              <th className="py-2 px-3 text-left rounded-tl-lg">Nombre</th>
+              <th className="py-2 px-3 text-left rounded-tr-lg">Valor Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {productosConStock.map((p) => {
+              const precioSugerido = p.precio_sugerido_venta;
+              const precioSugeridoNumero = typeof precioSugerido === 'string' ? parseFloat(precioSugerido) : precioSugerido;
+              const valorTotal = precioSugeridoNumero != null && !isNaN(precioSugeridoNumero) ? precioSugeridoNumero * p.stock_disponible : 0;
 
-    if (tipoMovimiento === "Entrada" && registro.fk_id_produccion) {
-      nombre =
-        registro.fk_id_produccion.nombre_produccion ||
-        registro.fk_id_produccion.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo ||
-        "No disponible";
-      unidadDisplay = registro.fk_id_produccion.fk_unidad_medida?.nombre_medida || registro.fk_id_produccion.fk_unidad_medida?.unidad_base || "";
-    } else if (tipoMovimiento === "Salida" && registro.fk_id_item_venta) {
-      nombre =
-        registro.fk_id_item_venta.produccion?.nombre_produccion ||
-        registro.fk_id_item_venta.produccion?.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo ||
-        "No disponible";
-      unidadDisplay = registro.fk_id_item_venta.unidad_medida?.nombre_medida || registro.fk_id_item_venta.unidad_medida?.unidad_base || "";
-    }
+              return (
+                <tr key={p.id} className="border-b border-gray-100 hover:bg-green-50">
+                  <td className="py-2 px-3">{p.nombre_produccion}</td>
+                  <td className="py-2 px-3">${valorTotal.toFixed(2)}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+
+  if (isProduccionesLoading || isAllStockLoading || isVentasLoading) return (
+    <div className="text-center py-8 text-gray-500 flex justify-center items-center">
+      <Loader2 className="animate-spin mr-2" size={24} />
+      Cargando datos...
+    </div>
+  );
+
+  if (produccionesError) return (
+    <div className="text-center py-8 text-red-500">
+      Error al cargar producciones: {produccionesError.message}
+    </div>
+  );
+
+  if (allStockError) return (
+    <div className="text-center py-8 text-red-500">
+      Error al cargar movimientos: {allStockError.message}
+    </div>
+  );
+
+  if (ventasError) return (
+    <div className="text-center py-8 text-red-500">
+      Error al cargar ventas: {ventasError.message}
+    </div>
+  );
+
+  const totalProductos = producciones?.filter(p => p.stock_disponible >= 1).length || 0;
+  const valorEstimado = producciones?.reduce((sum, p) => {
+    if (p.stock_disponible < 1) return sum;
+    const precio = typeof p.precio_sugerido_venta === 'string' ? parseFloat(p.precio_sugerido_venta) : p.precio_sugerido_venta;
+    return sum + ((precio != null && !isNaN(precio) ? precio : 0) * p.stock_disponible);
+  }, 0) || 0;
+
+  const mappedProducciones = (producciones || []).map((produccion) => {
+    const precioSugerido = produccion.precio_sugerido_venta;
+    const precioSugeridoNumero = typeof precioSugerido === 'string' ? parseFloat(precioSugerido) : precioSugerido;
 
     return {
-      id: registro.id,
-      origen,
-      nombre: (
-        <div>
-          <div className="font-semibold">{nombre}</div>
-          {tipoMovimiento === "Salida" && registro.fk_id_item_venta?.venta && (
-            <div className="text-sm text-gray-600">
-              Venta #{registro.fk_id_item_venta.venta.id}
-              {registro.fk_id_item_venta.venta.descuento_porcentaje > 0 && ` (-${registro.fk_id_item_venta.venta.descuento_porcentaje}%)`}
-            </div>
-          )}
-        </div>
-      ),
-      movimiento: (
-        <span
-          className={
-            tipoMovimiento === "Entrada"
-              ? "text-green-700 font-bold"
-              : "text-red-700 font-bold"
-          }
-        >
-          {tipoMovimiento}
+      id: produccion.id,
+      nombre: <span className="font-semibold text-gray-800">{produccion.nombre_produccion}</span>,
+      stock_disponible: (
+        <span className={produccion.stock_disponible > 0 ? "text-green-600" : "text-red-600"}>
+          {produccion.stock_disponible} {produccion.fk_unidad_medida?.unidad_base || 'N/A'}
         </span>
       ),
-      fecha: fechaFormateada,
-      cantidad: `${registro.cantidad} ${unidadDisplay}`,
-      rawData: registro, 
+      unidad_medida: produccion.fk_unidad_medida?.nombre_medida || 'N/A',
+      precio_sugerido: precioSugeridoNumero != null && !isNaN(precioSugeridoNumero) ? `$${precioSugeridoNumero.toFixed(2)}` : 'N/A',
     };
   });
 
-  const headers = ["ID", "Origen", "Nombre", "Movimiento", "Fecha", "Cantidad"];
+  const mappedMovimientos = (allStock || []).map((movimiento) => {
+    const nombreProducto = movimiento.fk_id_produccion?.nombre_produccion || movimiento.fk_id_item_venta?.produccion?.nombre_produccion || 'N/A';
+    const unidadBase = movimiento.fk_id_produccion?.fk_unidad_medida?.unidad_base || movimiento.fk_id_item_venta?.unidad_medida?.unidad_base || 'N/A';
+
+    return {
+      id: movimiento.id,
+      producto: nombreProducto,
+      tipo: (
+        <span className={movimiento.movimiento === "Entrada" ? "text-green-600 font-semibold" : "text-red-600 font-semibold"}>
+          {movimiento.movimiento}
+        </span>
+      ),
+      cantidad: `${movimiento.cantidad} ${unidadBase}`,
+      fecha: format(new Date(movimiento.fecha), "dd 'de' MMMM 'de' yyyy, HH:mm", { locale: es }),
+    };
+  });
+
+  const produccionesHeaders = ["ID", "Nombre", "Stock Disponible", "Unidad Medida", "Precio Sugerido"];
+  const movimientosHeaders = ["ID", "Producto", "Tipo", "Cantidad", "Fecha"];
 
   return (
-    <div className="mx-auto p-4 space-y-6">
-      <div className="flex justify-start mb-4 ml-5 space-x-4">
-        <button
-          onClick={() => setIsVentaModalOpen(true)}
-          className="bg-green-600 hover:bg-green-800 text-white font-bold py-2 px-4 rounded"
-          type="button"
-        >
-          Registrar Venta
-        </button>
-        <button
-          onClick={() => setIsProduccionModalOpen(true)}
-          className="bg-green-600 hover:bg-green-800 text-white font-bold py-2 px-4 rounded"
-          type="button"
-        >
-          Registrar Producción
-        </button>
+    <div className="mx-auto p-6 space-y-6 bg-transparent"> {/* Fondo transparente y espacio entre contenedores */}
+      {/* Contenedor 1: Título y Botones */}
+      <div className="bg-white p-4 rounded-lg shadow-md">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <h1 className="text-xl font-semibold text-gray-800 text-center flex items-center gap-2">
+            <Package size={24} className="text-green-600" />
+            Stock Actual
+          </h1>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setIsVentaModalOpen(true)}
+              className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg text-sm flex items-center gap-1 transition-colors"
+              type="button"
+            >
+              <PlusCircle size={16} />
+              Registrar Venta
+            </button>
+            <button
+              onClick={() => setIsProduccionModalOpen(true)}
+              className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg text-sm flex items-center gap-1 transition-colors"
+              type="button"
+            >
+              <PlusCircle size={16} />
+              Registrar Producción
+            </button>
+          </div>
+        </div>
       </div>
 
-      <Tabla
-        createButtonTitle="Crear"
-        title="Movimientos de Stock"
-        headers={headers}
-        data={mappedStock}
-        onClickAction={openModalHandler}
-        onUpdate={() => { }}
-        onCreate={() => { }}
-      />
+      {/* Contenedor 2: Tarjetas y Secciones Desplegables */}
+      <div className="bg-white p-4 rounded-lg shadow-md space-y-6">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <button
+            onClick={() => setIsProductosModalOpen(true)}
+            className="bg-green-100 p-3 rounded-lg border border-green-200 hover:bg-green-200 transition-colors flex-1"
+          >
+            <h3 className="font-semibold text-sm text-green-700">Total Productos</h3>
+            <p className="text-lg font-bold text-green-600">{totalProductos}</p>
+          </button>
+          <button
+            onClick={() => setIsValorModalOpen(true)}
+            className="bg-purple-100 p-3 rounded-lg border border-purple-200 hover:bg-purple-200 transition-colors flex-1"
+          >
+            <h3 className="font-semibold text-sm text-purple-700">Valor Estimado</h3>
+            <p className="text-lg font-bold text-purple-600">${valorEstimado.toLocaleString()}</p>
+          </button>
+        </div>
 
-      {/* Modal detalle stock */}
-      {selectedStock && (
+        <SeccionDesplegable
+          titulo="Inventario de Productos"
+          icono={<Package className="h-5 w-5 text-green-600" />}
+          cantidad={producciones?.length || 0}
+          abierta={seccionAbierta === 'productos'}
+          onToggle={() => toggleSeccion('productos')}
+        >
+          {producciones && producciones.length === 0 ? (
+            <p className="text-center text-gray-500 py-4">No hay productos registrados.</p>
+          ) : (
+            <Tabla
+              title=""
+              headers={produccionesHeaders}
+              data={mappedProducciones}
+              rowClassName={() => "hover:bg-green-50 transition-colors duration-150"}
+              className="[&_table]:w-full [&_th]:py-2 [&_th]:bg-green-700 [&_th]:text-white [&_th]:font-bold [&_th]:text-sm [&_th:first-child]:rounded-tl-lg [&_th:last-child]:rounded-tr-lg [&_td]:px-3 [&_td]:py-2 [&_td]:text-sm"
+            />
+          )}
+        </SeccionDesplegable>
+
+        <SeccionDesplegable
+          titulo="Movimientos de Stock"
+          icono={<Activity className="h-5 w-5 text-blue-600" />}
+          cantidad={allStock?.length || 0}
+          abierta={seccionAbierta === 'movimientos'}
+          onToggle={() => toggleSeccion('movimientos')}
+        >
+          {allStock && allStock.length === 0 ? (
+            <p className="text-center text-gray-500 py-4">No hay movimientos registrados.</p>
+          ) : (
+            <Tabla
+              title=""
+              headers={movimientosHeaders}
+              data={mappedMovimientos}
+              rowClassName={() => "hover:bg-gray-50 transition-colors duration-150"}
+              className="[&_table]:w-full [&_th]:py-2 [&_th]:bg-gray-700 [&_th]:text-white [&_th]:font-bold [&_th]:text-sm [&_th:first-child]:rounded-tl-lg [&_th:last-child]:rounded-tr-lg [&_td]:px-3 [&_td]:py-2 [&_td]:text-sm"
+            />
+          )}
+        </SeccionDesplegable>
+
+        <SeccionDesplegable
+          titulo="Ventas"
+          icono={<DollarSign className="h-5 w-5 text-green-600" />}
+          cantidad={ventas?.length || 0}
+          abierta={seccionAbierta === 'ventas'}
+          onToggle={() => toggleSeccion('ventas')}
+        >
+          <VentaComponent showButtons={false} />
+        </SeccionDesplegable>
+
+        <SeccionDesplegable
+          titulo="Producciones"
+          icono={<Package className="h-5 w-5 text-purple-600" />}
+          cantidad={producciones?.length || 0}
+          abierta={seccionAbierta === 'producciones'}
+          onToggle={() => toggleSeccion('producciones')}
+        >
+          <ProduccionComponent showButtons={false} />
+        </SeccionDesplegable>
+      </div>
+
+      {selectedProduccionId && (
         <VentanaModal
-          isOpen={isModalOpen}
-          onClose={closeModal}
-          titulo="Detalle de Movimiento de Stock"
-          contenido={renderStockDetails(selectedStock)}
-          size="lg"
+          isOpen={isMovimientosModalOpen}
+          onClose={closeMovimientosModal}
+          titulo="Detalles de Producción"
+          contenido={renderMovimientosDetails()}
+          size="md"
+          className="bg-white rounded-lg shadow-md max-w-lg mx-auto"
         />
       )}
 
-      {/* Modal Crear Venta */}
+      <VentanaModal
+        isOpen={isProductosModalOpen}
+        onClose={closeProductosModal}
+        titulo="Productos con Stock"
+        contenido={renderProductosDetails()}
+        size="md"
+        className="bg-white rounded-lg shadow-md max-w-lg mx-auto"
+      />
+
+      <VentanaModal
+        isOpen={isValorModalOpen}
+        onClose={closeValorModal}
+        titulo="Valor Estimado por Producto"
+        contenido={renderValorDetails()}
+        size="md"
+        className="bg-white rounded-lg shadow-md max-w-lg mx-auto"
+      />
+
       {isVentaModalOpen && (
         <VentanaModal
           isOpen={isVentaModalOpen}
@@ -199,20 +402,21 @@ const Stock = () => {
           titulo="Registrar Venta"
           size="1.5xl"
           contenido={<CrearVenta onClose={cerrarModalConExito} onSuccess={cerrarModalConExito} />}
+          className="bg-white rounded-lg shadow-md"
         />
       )}
 
-      {/* Modal Crear Producción */}
       {isProduccionModalOpen && (
         <VentanaModal
           isOpen={isProduccionModalOpen}
           onClose={cerrarModalConExito}
-          titulo=""
+          titulo="Registrar Producción"
           contenido={<CrearProduccion onClose={cerrarModalConExito} onSuccess={cerrarModalConExito} />}
+          className="bg-white rounded-lg shadow-md"
         />
       )}
     </div>
   );
 };
 
-export default Stock;
+export default StockDashboard;

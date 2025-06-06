@@ -1,3 +1,4 @@
+# apps/trazabilidad/asignacion_actividades/api/serializers.py
 from rest_framework import serializers
 from apps.trazabilidad.asignacion_actividades.models import Asignacion_actividades
 from apps.usuarios.usuario.models import Usuarios
@@ -44,7 +45,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
 # Serializador para leer asignaciones
 class LeerAsignacion_actividadesSerializer(serializers.ModelSerializer):
     fk_identificacion = serializers.SerializerMethodField()
-    fk_id_realiza = RealizaSerializer(read_only=True)  # Cambiado a serializador anidado
+    fk_id_realiza = RealizaSerializer(read_only=True)
 
     class Meta:
         model = Asignacion_actividades
@@ -65,6 +66,19 @@ class EscribirAsignacion_actividadesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Asignacion_actividades
         fields = ['id', 'fecha_programada', 'fk_id_realiza', 'fk_identificacion', 'estado', 'observaciones']
+
+    def validate_fk_identificacion(self, value):
+        # Validar que los usuarios asignados sean Pasante o Aprendiz
+        for user_id in value:
+            try:
+                usuario = Usuarios.objects.get(id=user_id)
+                if usuario.fk_id_rol.rol not in ['Pasante', 'Aprendiz']:
+                    raise serializers.ValidationError(
+                        f"El usuario {usuario.nombre} {usuario.apellido} no es un Pasante o Aprendiz."
+                    )
+            except Usuarios.DoesNotExist:
+                raise serializers.ValidationError(f"El usuario con ID {user_id} no existe.")
+        return value
 
     def create(self, validated_data):
         fk_identificacion_ids = validated_data.pop('fk_identificacion')

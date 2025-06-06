@@ -81,14 +81,20 @@ const Plantacion = () => {
 
   const plantacionesList = Array.isArray(plantaciones) ? plantaciones : [];
 
-  const mappedPlantaciones = plantacionesList.map((plantacion: any) => ({
-    id: plantacion.id,
-    cultivo: plantacion.fk_id_cultivo?.nombre_cultivo || 'Sin cultivo',
-    era: plantacion.fk_id_eras?.descripcion || 'Sin era',
-    cantidad_transplante: plantacion.cantidad_transplante,
-    fecha_plantacion: new Date(plantacion.fecha_plantacion).toLocaleDateString(),
-    semillero: plantacion.fk_id_semillero?.nombre_semilla || 'Sin semillero',
-  }));
+  const mappedPlantaciones = plantacionesList.map((plantacion: any) => {
+    // Split the fecha_plantacion string (expected format: YYYY-MM-DD)
+    const [year, month, day] = plantacion.fecha_plantacion.split('-');
+    const fechaFormateada = `${day}/${month}/${year}`;
+
+    return {
+      id: plantacion.id,
+      cultivo: plantacion.fk_id_cultivo?.nombre_cultivo || 'Sin cultivo',
+      era: plantacion.fk_id_eras?.descripcion || 'Sin era',
+      cantidad_transplante: plantacion.cantidad_transplante,
+      fecha_plantacion: fechaFormateada, // Use the manually formatted date
+      semillero: plantacion.fk_id_semillero?.nombre_semilla || 'Sin semillero',
+    };
+  });
 
   const headers = [
     'ID',

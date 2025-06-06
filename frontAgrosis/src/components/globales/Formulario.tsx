@@ -3,7 +3,7 @@ import Button from '../globales/Button';
 import { Plus } from 'lucide-react';
 import { showToast } from './Toast';
 import { ZodSchema } from 'zod';
-import { Select, SelectItem } from '@nextui-org/react';
+import Select from 'react-select'; // Importar react-select
 
 interface Option {
   value: string | number;
@@ -16,28 +16,30 @@ interface FormField {
   type: string;
   disabled?: boolean;
   options?: Option[];
-  value?: string;
+  value?: string | string[];
   onChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
   hasExtraButton?: boolean;
   extraButtonText?: string;
   onExtraButtonClick?: () => void;
   extraContent?: React.ReactNode;
+  multiple?: boolean;
+  helperText?: string;
 }
 
 interface FormProps {
   fields: FormField[];
-  onSubmit: (formData: { [key: string]: string | File }) => void;
+  onSubmit: (formData: { [key: string]: string | File | string[] }) => void;
   isError?: boolean;
   isSuccess?: boolean;
   title: string;
-  initialValues?: { [key: string]: string | File };
+  initialValues?: { [key: string]: string | File | string[] };
   multipart?: boolean;
-  onFieldChange?: (id: string, value: string) => void;
+  onFieldChange?: (id: string, value: string | string[]) => void;
   onExtraButtonClick?: () => void;
   extraButtonTitle?: string;
   children?: React.ReactNode;
   stockMessage?: string;
-  schema?: ZodSchema<any>;  // <-- Aquí agregamos la prop del esquema Zod
+  schema?: ZodSchema<any>;
 }
 
 const Formulario: React.FC<FormProps> = ({
@@ -54,7 +56,7 @@ const Formulario: React.FC<FormProps> = ({
   children,
   schema,
 }) => {
-  const [formData, setFormData] = useState<{ [key: string]: string | File }>(initialValues || {});
+  const [formData, setFormData] = useState<{ [key: string]: string | File | string[] }>(initialValues || {});
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
@@ -79,10 +81,12 @@ const Formulario: React.FC<FormProps> = ({
     }
   }, [isSuccess, isError]);
 
-  const handleChange = (id: string, value: string | File) => {
+  const handleChange = (id: string, value: string | File | string[]) => {
     setFormData((prev) => ({ ...prev, [id]: value }));
-    if (onFieldChange && typeof value === 'string') {
-      onFieldChange(id, value);
+    if (onFieldChange) {
+      if (typeof value === 'string' || Array.isArray(value)) {
+        onFieldChange(id, value);
+      }
     }
   };
 
@@ -110,7 +114,7 @@ const Formulario: React.FC<FormProps> = ({
           variant: 'error',
         });
 
-        return; // No enviar si hay errores
+        return;
       } else {
         setErrors({});
       }
@@ -135,29 +139,54 @@ const Formulario: React.FC<FormProps> = ({
                 {field.label}
               </label>
               <div className="flex items-center gap-2">
-                <select
-                  id={field.id}
-                  className={`w-full p-2 border rounded ${
-                    errors[field.id]
-                      ? 'border-red-500'
-                      : 'border-gray-300'
-                  }`}
-                  onChange={(e) => {
-                    handleChange(field.id, e.target.value);
-                    if (field.onChange) {
-                      field.onChange(e);
-                    } 
-                  }}
-                  value={(formData[field.id] as string) || ''}
-                  disabled={field.disabled}
-                >
-                  <option value="">Seleccione una opción</option>
-                  {field.options?.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+                {field.multiple ? (
+                  <Select
+                    id={field.id}
+                    isMulti
+                    options={field.options}
+                    value={field.options?.filter((option) =>
+                      (formData[field.id] as string[] || []).includes(String(option.value))
+                    )}
+                    onChange={(selectedOptions) => {
+                      const values = selectedOptions.map((option) => String(option.value));
+                      handleChange(field.id, values);
+                    }}
+                    isDisabled={field.disabled}
+                    className={`w-full ${
+                      errors[field.id] ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    styles={{
+                      control: (base) => ({
+                        ...base,
+                        borderRadius: '0.375rem',
+                        borderColor: errors[field.id] ? '#ef4444' : '#d1d5db',
+                        padding: '0.5rem',
+                      }),
+                    }}
+                  />
+                ) : (
+                  <select
+                    id={field.id}
+                    className={`w-full p-2 border rounded ${
+                      errors[field.id] ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    onChange={(e) => {
+                      handleChange(field.id, e.target.value);
+                      if (field.onChange) {
+                        field.onChange(e);
+                      }
+                    }}
+                    value={(formData[field.id] as string) || ''}
+                    disabled={field.disabled}
+                  >
+                    <option value="">Seleccione una opción</option>
+                    {field.options?.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                )}
                 {field.hasExtraButton && (
                   <button
                     type="button"
@@ -169,6 +198,9 @@ const Formulario: React.FC<FormProps> = ({
                   </button>
                 )}
               </div>
+              {field.helperText && (
+                <p className="text-gray-500 text-sm mt-1">{field.helperText}</p>
+              )}
               {errors[field.id] && (
                 <p className="text-red-600 text-sm mt-1">{errors[field.id]}</p>
               )}
@@ -185,9 +217,7 @@ const Formulario: React.FC<FormProps> = ({
                 type="file"
                 id={field.id}
                 className={`w-full p-2 border rounded ${
-                  errors[field.id]
-                    ? 'border-red-500'
-                    : 'border-gray-300'
+                  errors[field.id] ? 'border-red-500' : 'border-gray-300'
                 }`}
                 onChange={(e) => {
                   const file = e.target.files?.[0];
@@ -201,6 +231,9 @@ const Formulario: React.FC<FormProps> = ({
                 accept="image/*"
                 disabled={field.disabled}
               />
+              {field.helperText && (
+                <p className="text-gray-500 text-sm mt-1">{field.helperText}</p>
+              )}
               {errors[field.id] && (
                 <p className="text-red-600 text-sm mt-1">{errors[field.id]}</p>
               )}
@@ -232,6 +265,9 @@ const Formulario: React.FC<FormProps> = ({
               >
                 {field.label}
               </label>
+              {field.helperText && (
+                <p className="text-gray-500 text-sm mt-1">{field.helperText}</p>
+              )}
               {errors[field.id] && (
                 <p className="text-red-600 text-sm mt-1">{errors[field.id]}</p>
               )}

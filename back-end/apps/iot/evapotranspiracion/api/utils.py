@@ -1,4 +1,3 @@
-from math import exp
 from decimal import Decimal
 from django.core.exceptions import ObjectDoesNotExist
 import logging
@@ -8,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 def calcular_eto(mediciones):
     try:
-        # Buscar la medición de temperatura (único dato necesario para Blaney-Criddle)
+        # Buscar la medición de temperatura
         temp = None
         for medicion in mediciones:
             sensor = medicion.fk_id_sensor
@@ -21,6 +20,7 @@ def calcular_eto(mediciones):
             raise ValueError("Falta dato de temperatura")
 
         temperatura = Decimal(str(temp.valor_medicion))
+        logger.info(f"Temperatura usada para cálculo: {temperatura}")
 
         # Validar rango de temperatura
         sensor = temp.fk_id_sensor
@@ -33,12 +33,10 @@ def calcular_eto(mediciones):
         # Hemisferio estático (Norte)
         hemisphere = 'Norte'
 
-        # Mes actual (estático basado en la fecha actual)
-        
+        # Mes actual
         month = date.today().month
 
-        # Tabla mejorada de 'p' (porcentaje de horas diurnas) ajustada para latitud ~1.89° N
-        # Valores basados en tablas estándar de Blaney-Criddle para hemisferio norte
+        # Tabla de 'p' (porcentaje de horas diurnas) ajustada para latitud ~1.89° N
         p_values = {
             0: [0.270, 0.280, 0.270, 0.260, 0.270, 0.280, 0.290, 0.290, 0.280, 0.270, 0.260, 0.260],  # Latitud 0°
             1: [0.275, 0.285, 0.275, 0.265, 0.275, 0.285, 0.295, 0.295, 0.285, 0.275, 0.265, 0.265],  # Latitud 1°
@@ -55,9 +53,11 @@ def calcular_eto(mediciones):
 
         # Obtener el valor de 'p'
         p = Decimal(str(p_values[lat_rounded][month_index]))
+        logger.info(f"Valor de p usado: {p}")
 
         # Calcular ETo: E = p (0.46T + 8.13)
         eto = p * (Decimal('0.46') * temperatura + Decimal('8.13'))
+        logger.info(f"ETo calculado antes de redondeo: {eto}")
 
         return round(eto, 2)
     except Exception as e:

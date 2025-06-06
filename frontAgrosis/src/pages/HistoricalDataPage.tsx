@@ -71,7 +71,6 @@ const HistoricalDataTable = () => {
     setFilteredData(cleaned);
   }, [sensorReadings, selectedSensor, sensor, selectedDate, filterType]);
 
-  // Preparar datos para el PDF
   const columnasPDF = useMemo(() => ["ID", "Fecha", "Valor", "Unidad"], []);
   const datosPDF = useMemo(() => {
     return filteredData.map((row) => [
@@ -143,13 +142,13 @@ const HistoricalDataTable = () => {
             title="Registros del Sensor"
             headers={["ID", "Fecha", "Valor", "Unidad"]}
             data={filteredData}
-            createButtonTitle="Nuevo Registro"
+            showCreateButton={false}
             extraButton={
               <DescargarTablaPDF
                 nombreArchivo={`reporte_sensor_${sensor?.nombre_sensor || "desconocido"}.pdf`}
                 columnas={columnasPDF}
                 datos={datosPDF}
-                titulo={`Reporte de Mediciones: ${sensor?.nombre_sensor || "Sensor Desconocido"}`}
+                titulo={`Reporte de Mediciones: ${sensor?.nombre_sensor || "Sensor Desconocido"} `}
               />
             }
           />

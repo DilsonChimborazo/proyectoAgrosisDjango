@@ -6,6 +6,7 @@ import CrearEras from './CrearEras';
 import EditarEras from './EditarEras';
 import Switch from 'react-switch';
 import { useNavigate } from 'react-router-dom';
+import DescargarTablaPDF from '../../globales/DescargarTablaPDF';
 
 const Eras = () => {
     const { data: eras, isLoading, error, refetch } = useEras();
@@ -123,6 +124,18 @@ const Eras = () => {
     };
 
     const headers = ['ID', 'Nombre', 'Descripcion', 'Lote', 'Estado'];
+    const columnasPDF = ['ID', 'Nombre', 'Descripcion', 'Lote', 'Estado'];
+    const datosPDF = eras && Array.isArray(eras)
+        ? eras
+            .sort((a, b) => (a.estado === b.estado ? 0 : a.estado ? -1 : 1))
+            .map((era) => [
+                era.id.toString(),
+                era.nombre || 'Sin nombre',
+                era.descripcion || '-',
+                era.fk_id_lote?.nombre_lote || 'Sin nombre de lote',
+                era.estado ? 'Activo' : 'Inactivo',
+            ])
+        : [];
 
     if (isLoading) return <div>Cargando eras...</div>;
     if (error instanceof Error) {
@@ -182,6 +195,14 @@ const Eras = () => {
                 onUpdate={handleUpdateClick}
                 onCreate={openCreateModal}
                 createButtonTitle="Crear"
+                extraButton={
+                    <DescargarTablaPDF
+                        nombreArchivo="ErasRegistradas.pdf"
+                        titulo="Reporte de Eras Registradas"
+                        columnas={columnasPDF}
+                        datos={datosPDF}
+                    />
+                }
             />
 
             {isModalOpen && (

@@ -605,7 +605,7 @@ const HomePage = () => {
         <VentanaModal
           isOpen={isModalOpen}
           onClose={closeModal}
-          titulo="Crear Nuevo Sensor"
+          titulo=""
           contenido={<CrearSensor onSuccess={handleSuccess} />}
           size="md"
         />

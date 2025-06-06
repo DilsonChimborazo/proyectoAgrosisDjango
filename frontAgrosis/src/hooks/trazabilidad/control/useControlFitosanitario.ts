@@ -14,7 +14,7 @@ export interface ControlFitosanitario {
     fk_id_insumo: Insumo | null;
     cantidad_insumo: number;
     fk_unidad_medida: UnidadMedida | null;
-    fk_identificacion: Usuario | null;
+    fk_identificacion: Usuario[] | null;
     img: string | null;
 }
 
@@ -31,6 +31,7 @@ export interface Pea {
     descripcion: string;
     tipo_pea: string;
 }
+
 export interface Plantacion {
     id: number;
     fk_id_eras: Eras | null;
@@ -39,6 +40,7 @@ export interface Plantacion {
     fecha_plantacion: string;
     fk_id_semillero: Semillero | null;
 }
+
 export interface Eras {
     id: number;
     descripcion: string;
@@ -51,7 +53,6 @@ export interface Lote {
     dimencion: string;
     nombre_lote: string;
     estado: boolean;
-    
 }
 
 export interface Semillero {
@@ -61,6 +62,7 @@ export interface Semillero {
     fecha_estimada: string;
     cantidad: number;
 }
+
 export interface Cultivo {
     id: number;
     nombre_cultivo: string;
@@ -97,6 +99,7 @@ const fetchControlFitosanitario = async (): Promise<ControlFitosanitario[]> => {
         throw new Error("No se pudo obtener la lista de los Controles Fitosanitarios");
     }
 };
+
 export const useControlFitosanitario = () => {
     return useQuery<ControlFitosanitario[], Error>({
         queryKey: ['controlFitosanitario'],
