@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { Usuario } from '../hooks/usuarios/usuario/usePerfilUsuarios';
 import { Spinner } from "@heroui/react";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 interface AuthContextType {
   usuario: Usuario | null;
@@ -9,6 +9,8 @@ interface AuthContextType {
   loading: boolean;
   logout: () => void;
 }
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export default function LoadingBox() {
   return (
@@ -21,14 +23,15 @@ export default function LoadingBox() {
   );
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+
   const [usuario, setUsuario] = useState<Usuario | null>(() => {
     const stored = localStorage.getItem('user');
     return stored ? JSON.parse(stored) : null;
   });
+
   const [loading, setLoading] = useState(true);
 
   const logout = () => {
@@ -39,7 +42,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     navigate('/');
   };
 
-  // Escuchar cambios desde otras pestañas
+  // Sincronizar usuario entre pestañas
   useEffect(() => {
     const syncStorage = (event: StorageEvent) => {
       if (event.key === 'user') {
@@ -59,7 +62,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => window.removeEventListener('storage', syncStorage);
   }, []);
 
-  // Guardar el usuario en localStorage cuando cambia
+  // Guardar usuario en localStorage si cambia
   useEffect(() => {
     if (usuario) {
       localStorage.setItem('user', JSON.stringify(usuario));
@@ -68,18 +71,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [usuario]);
 
-  // Verificar que el token existe al iniciar
+  // Verificar token al cargar app, solo en rutas privadas
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (!token) {
+    const rutasPublicas = ['/', '/register', '/solicitarRecuperacion'];
+    const esRutaPublica = rutasPublicas.includes(location.pathname);
+
+    if (!token && !esRutaPublica) {
       logout();
     }
-    setLoading(false);
-  }, []);
 
-  if (loading) {
-    return <LoadingBox />;
-  }
+    setLoading(false);
+  }, [location.pathname]);
+
+  if (loading) return <LoadingBox />;
 
   return (
     <AuthContext.Provider value={{ usuario, setUsuario, loading, logout }}>
