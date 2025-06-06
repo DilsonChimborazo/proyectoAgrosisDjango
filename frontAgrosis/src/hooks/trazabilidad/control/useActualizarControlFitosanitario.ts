@@ -13,9 +13,9 @@ export interface ControlFitosanitario {
     fk_id_pea: number;
     fk_id_insumo: number;
     cantidad_insumo: number;
-    fk_unidad_medida: number| null;
-    fk_identificacion: number | null;
-    img: File;
+    fk_unidad_medida: number | null;
+    fk_identificacion: number[];
+    img: File | undefined;
 }
 
 export const useActualizarControlFitosanitario = () => {
@@ -36,24 +36,13 @@ export const useActualizarControlFitosanitario = () => {
             formData.append('fk_id_pea', String(controlActualizado.fk_id_pea));
             formData.append('fk_id_insumo', String(controlActualizado.fk_id_insumo));
             formData.append('cantidad_insumo', String(controlActualizado.cantidad_insumo));
-            formData.append('fk_unidad_medida', String(controlActualizado.fk_unidad_medida));
-            if (controlActualizado.fk_identificacion !== null) {
-                formData.append('fk_identificacion', String(controlActualizado.fk_identificacion));
-            }
-            formData.append('img', controlActualizado.img);
-            console.log("FormData enviado al backend:", {
-                fecha_control: formData.get('fecha_control'),
-                duracion: formData.get('duracion'),
-                descripcion: formData.get('descripcion'),
-                tipo_control: formData.get('tipo_control'),
-                fk_id_plantacion: formData.get('fk_id_plantacion'),
-                fk_id_pea: formData.get('fk_id_pea'),
-                fk_id_insumo: formData.get('fk_id_insumo'),
-                cantidad_insumo: formData.get('cantidad_insumo'),
-                fk_unidad_medida: formData.get('fk_unidad_medida'),
-                fk_identificacion: formData.get('fk_identificacion'),
-                img: formData.get('img'),
+            formData.append('fk_unidad_medida', String(controlActualizado.fk_unidad_medida ?? 0));
+            controlActualizado.fk_identificacion.forEach((id, index) => {
+                formData.append(`fk_identificacion[${index}]`, String(id));
             });
+            if (controlActualizado.img) {
+                formData.append('img', controlActualizado.img);
+            }
 
             try {
                 const { data } = await axios.put(

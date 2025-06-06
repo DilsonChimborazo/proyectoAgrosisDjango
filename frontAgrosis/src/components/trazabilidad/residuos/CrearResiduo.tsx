@@ -6,7 +6,7 @@ import { useState } from 'react';
 import CrearCultivo from '../cultivos/CrearCultivos';
 import TipoResiduos from '../tiporesiduo/TipoResiduo';
 import VentanaModal from '@/components/globales/VentanasModales';
-import { showToast } from '@/components/globales/Toast'; // Importamos el componente Toast
+import { showToast } from '@/components/globales/Toast';
 
 interface CrearResiduoProps {
   onSuccess: () => void;
@@ -55,8 +55,13 @@ const CrearResiduo = ({ onSuccess }: CrearResiduoProps) => {
     },
   ];
 
-  const handleSubmit = (formData: { [key: string]: string }) => {
-    if (!formData.fecha || !formData.fk_id_cultivo || !formData.fk_id_tipo_residuo) {
+  const handleSubmit = (formData: { [key: string]: string | File }) => {
+    // Convertimos los valores a string, ya que este formulario solo tiene campos de texto, fecha o select
+    const formDataAsStrings = Object.fromEntries(
+      Object.entries(formData).map(([key, value]) => [key, typeof value === 'string' ? value : ''])
+    ) as { [key: string]: string };
+
+    if (!formDataAsStrings.fecha || !formDataAsStrings.fk_id_cultivo || !formDataAsStrings.fk_id_tipo_residuo) {
       showToast({
         title: 'Error',
         description: 'Todos los campos son obligatorios',
@@ -66,11 +71,11 @@ const CrearResiduo = ({ onSuccess }: CrearResiduoProps) => {
     }
 
     const nuevoResiduo = {
-      nombre: formData.nombre,
-      fecha: new Date(formData.fecha).toISOString().split('T')[0],
-      descripcion: formData.descripcion,
-      fk_id_cultivo: parseInt(formData.fk_id_cultivo) || 0,
-      fk_id_tipo_residuo: parseInt(formData.fk_id_tipo_residuo) || 0,
+      nombre: formDataAsStrings.nombre,
+      fecha: new Date(formDataAsStrings.fecha).toISOString().split('T')[0],
+      descripcion: formDataAsStrings.descripcion,
+      fk_id_cultivo: parseInt(formDataAsStrings.fk_id_cultivo) || 0,
+      fk_id_tipo_residuo: parseInt(formDataAsStrings.fk_id_tipo_residuo) || 0,
     };
 
     mutation.mutate(nuevoResiduo, {
@@ -87,7 +92,7 @@ const CrearResiduo = ({ onSuccess }: CrearResiduoProps) => {
           title: 'Error',
           description: 'No se pudo crear el residuo',
           variant: 'error',
-        });
+        });error
       },
     });
   };

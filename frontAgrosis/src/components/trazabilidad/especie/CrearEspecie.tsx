@@ -119,7 +119,7 @@ const CrearEspecie = ({ onSuccess }: CrearEspecieProps) => {
           refetchTiposCultivo();
         }}
         contenido={<CrearTipoCultivo onSuccess={() => setIsModalOpen(false)} />}
-        titulo="Crear Tipo de Cultivo"
+        titulo=""
       />
     </div>
   );

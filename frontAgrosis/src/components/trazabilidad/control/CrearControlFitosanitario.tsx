@@ -12,6 +12,7 @@ import CrearInsumo from '../../inventario/insumos/CrearInsumos';
 import CrearUsuario from '../../usuarios/usuario/crearUsuario';
 import { useMedidas } from "@/hooks/inventario/unidadMedida/useMedidad";
 import CrearUnidadMedida from "@/components/inventario/unidadMedida/UnidadMedida";
+import { showToast } from '@/components/globales/Toast';
 
 interface CrearControlFitosanitarioProps {
   onSuccess: () => void;
@@ -67,15 +68,13 @@ const CrearControlFitosanitario = ({ onSuccess }: CrearControlFitosanitarioProps
     label: unidad.nombre_medida,
   }));
 
-  // Find the selected insumo to get its stock
   const selectedInsumo = insumos.find(
     (insumo) => String(insumo.id) === selectedInsumoId
   );
 
-  // Handle field changes to update selected insumo
-  const handleFieldChange = (fieldId: string, value: string) => {
+  const handleFieldChange = (fieldId: string, value: string | string[]) => {
     if (fieldId === 'fk_id_insumo') {
-      setSelectedInsumoId(value);
+      setSelectedInsumoId(value as string);
     }
   };
 
@@ -115,13 +114,13 @@ const CrearControlFitosanitario = ({ onSuccess }: CrearControlFitosanitarioProps
       onExtraButtonClick: () => setMostrarModalInsumo(true),
       extraContent: selectedInsumo ? (
         <div className="text-sm text-green-600 text-center">
-          Stock disponible del insumo seleccionado: {selectedInsumo.cantidad_insumo ?? 0}
+          Stock disponible del insumo seleccionado: {selectedInsumo.cantidad_insumo ?? 0} Gramos
         </div>
       ) : null,
     },
     {
       id: 'cantidad_insumo',
-      label: 'Cantidad de Insumo',
+      label: 'Cantidad de Insumo (gramos)',
       type: 'number',
       required: true,
     },
@@ -140,14 +139,17 @@ const CrearControlFitosanitario = ({ onSuccess }: CrearControlFitosanitarioProps
       label: 'Usuario',
       type: 'select',
       options: usuarioOptions,
+      required: true,
+      multiple: true,
       hasExtraButton: true,
       extraButtonText: 'Crear Usuario',
       onExtraButtonClick: () => setMostrarModalUsuario(true),
+      helperText: '',
     },
     { id: 'img', label: 'Imagen', type: 'file', accept: 'image/*', required: true },
   ];
 
-  const handleControlSubmit = (formData: { [key: string]: string | File }) => {
+  const handleControlSubmit = (formData: { [key: string]: string | File | string[] }) => {
     if (
       !formData.fecha_control ||
       !formData.duracion ||
@@ -158,9 +160,31 @@ const CrearControlFitosanitario = ({ onSuccess }: CrearControlFitosanitarioProps
       !formData.fk_id_insumo ||
       !formData.fk_unidad_medida ||
       !formData.cantidad_insumo ||
-      !formData.img
+      !formData.fk_identificacion ||
+      (formData.fk_identificacion as string[]).length < 1
     ) {
-      console.error("Los campos obligatorios no están completos:", formData);
+      showToast({
+        title: 'Error al crear control fitosanitario',
+        description: 'Por favor, completa todos los campos obligatorios y selecciona al menos 1 usuario.',
+        timeout: 5000,
+        variant: 'error',
+      });
+      return;
+    }
+
+    const cantidadInsumoIngresada = Number(formData.cantidad_insumo);
+    const insumoSeleccionado = insumos.find(
+      (insumo) => String(insumo.id) === formData.fk_id_insumo
+    );
+
+    if (insumoSeleccionado && cantidadInsumoIngresada > (insumoSeleccionado.cantidad_insumo ?? 0)) {
+      showToast({
+        title: 'Error en la cantidad de insumo',
+        description: `La cantidad ingresada (${cantidadInsumoIngresada}) excede el stock disponible (${insumoSeleccionado.cantidad_insumo ?? 0}).`,
+
+        timeout: 5000,
+        variant: 'error',
+      });
       return;
     }
 
@@ -172,19 +196,29 @@ const CrearControlFitosanitario = ({ onSuccess }: CrearControlFitosanitarioProps
       fk_id_plantacion: Number(formData.fk_id_plantacion),
       fk_id_pea: Number(formData.fk_id_pea),
       fk_id_insumo: Number(formData.fk_id_insumo),
-      cantidad_insumo: Number(formData.cantidad_insumo),
+      cantidad_insumo: cantidadInsumoIngresada,
       fk_unidad_medida: Number(formData.fk_unidad_medida),
-      fk_identificacion: formData.fk_identificacion ? Number(formData.fk_identificacion) : null,
+      fk_identificacion: (formData.fk_identificacion as string[]).map(Number),
       img: formData.img as File,
     };
 
     mutation.mutate(nuevoControl, {
       onSuccess: () => {
-        console.log("✅ Control fitosanitario creado exitosamente");
+        showToast({
+          title: 'Control fitosanitario creado exitosamente',
+          description: 'El control fitosanitario ha sido registrado en el sistema.',
+          timeout: 4000,
+          variant: 'success',
+        });
         onSuccess();
       },
       onError: (error) => {
-        console.error("❌ Error al crear control fitosanitario:", error.message);
+        showToast({
+          title: 'Error al crear control fitosanitario',
+          description: error.message || 'No se pudo crear el control fitosanitario. Intenta de nuevo.',
+          timeout: 5000,
+          variant: 'error',
+        });
       },
     });
   };
@@ -210,6 +244,12 @@ const CrearControlFitosanitario = ({ onSuccess }: CrearControlFitosanitarioProps
   }
 
   if (errorUsuarios) {
+    showToast({
+      title: 'Error al cargar usuarios',
+      description: errorUsuarios.message || 'No se pudieron cargar los datos de usuarios.',
+      timeout: 5000,
+      variant: 'error',
+    });
     return <div className="text-red-500">Error al cargar usuarios: {errorUsuarios.message}</div>;
   }
 
