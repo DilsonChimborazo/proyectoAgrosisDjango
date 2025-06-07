@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { usePagosDetallados, useMarcarPago } from '@/hooks/finanzas/nomina/useNomina';
+import { usePagosDetallados, useMarcarPago, useMarcarPagosPorUsuario } from '@/hooks/finanzas/nomina/useNomina';
 import Tabla from '@/components/globales/Tabla';
 import DescargarTablaPDF from '@/components/globales/DescargarTablaPDF';
-import { CheckCircle2, XCircle, Filter, Check, Loader2 } from 'lucide-react';
+import { CheckCircle2, XCircle, Filter, Check, Loader2, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
 import CrearSalario from "@/components/finanzas/salario/CrearSalario";
 import VentanaModal from '@/components/globales/VentanasModales';
@@ -12,6 +12,8 @@ type Filtros = {
   persona: string;
   actividad: string;
   estado: 'todos' | 'pagado' | 'pendiente';
+  fecha_inicio: string;
+  fecha_fin: string;
 };
 
 type FilaPago = {
@@ -45,14 +47,18 @@ type PagoDetallado = {
 
 const TablaPagosDetallados: React.FC = () => {
   const navigate = useNavigate();
-  const { data, isLoading, error, refetch } = usePagosDetallados();
-  const { mutate: marcarPago, isPending } = useMarcarPago();
   const [filtros, setFiltros] = useState<Filtros>({
     persona: '',
     actividad: '',
-    estado: 'todos'
+    estado: 'todos',
+    fecha_inicio: '',
+    fecha_fin: ''
   });
-  const [pagoAMarcar, setPagoAMarcar] = useState<number | null>(null);
+  const { data, isLoading, error, refetch } = usePagosDetallados(filtros);
+  const { mutate: marcarPago, isPending: isPendingSingle } = useMarcarPago();
+  const { mutate: marcarPagosPorUsuario, isPending: isPendingBulk } = useMarcarPagosPorUsuario();
+  const [pagoIndividual, setPagoIndividual] = useState<number | null>(null);
+  const [pagoMasivo, setPagoMasivo] = useState<{ usuario_id: number; nombre: string } | null>(null);
   const [isSalarioModalOpen, setIsSalarioModalOpen] = useState(false);
 
   const cerrarModalConExito = () => {
@@ -60,26 +66,55 @@ const TablaPagosDetallados: React.FC = () => {
     refetch();
   };
 
-  const handleConfirmarPago = () => {
-    if (!pagoAMarcar) return;
+  const handleConfirmarPagoIndividual = () => {
+    if (!pagoIndividual) return;
 
     toast.promise(
       new Promise((resolve, reject) => {
-        marcarPago(pagoAMarcar, {
+        marcarPago(pagoIndividual, {
           onSuccess: () => {
             refetch();
             resolve(null);
           },
-          onError: reject
+          onError: (error) => reject(error)
         });
       }),
       {
         loading: 'Actualizando estado de pago...',
         success: 'Pago marcado como completado',
-        error: 'Error al marcar el pago'
+        error: (error) => error.message || 'Error al marcar el pago'
       }
     );
-    setPagoAMarcar(null);
+    setPagoIndividual(null);
+  };
+
+  const handleConfirmarPagoMasivo = () => {
+    if (!pagoMasivo) return;
+
+    toast.promise(
+      new Promise((resolve, reject) => {
+        marcarPagosPorUsuario(
+          {
+            usuario_id: pagoMasivo.usuario_id,
+            fecha_inicio: filtros.fecha_inicio || undefined,
+            fecha_fin: filtros.fecha_fin || undefined
+          },
+          {
+            onSuccess: (data) => {
+              refetch();
+              resolve(null);
+            },
+            onError: (error) => reject(error)
+          }
+        );
+      }),
+      {
+        loading: 'Marcando pagos como completados...',
+        success: (data: any) => `${data.updated_count} pagos marcados como completados`,
+        error: (error) => error.message || 'Error al marcar los pagos'
+      }
+    );
+    setPagoMasivo(null);
   };
 
   const datosFiltrados = useMemo(() => {
@@ -99,27 +134,33 @@ const TablaPagosDetallados: React.FC = () => {
         (filtros.estado === 'pagado' && pago.pagado) ||
         (filtros.estado === 'pendiente' && !pago.pagado);
 
-      return cumplePersona && cumpleActividad && cumpleEstado;
+      const cumpleFechaInicio = !filtros.fecha_inicio ||
+        (pago.fecha_pago || '9999-12-31') >= filtros.fecha_inicio;
+
+      const cumpleFechaFin = !filtros.fecha_fin ||
+        (pago.fecha_pago || '9999-12-31') <= filtros.fecha_fin;
+
+      return cumplePersona && cumpleActividad && cumpleEstado && cumpleFechaInicio && cumpleFechaFin;
     });
   }, [data, filtros]);
 
   const personasUnicas = useMemo(() => {
-    const personas = new Set<string>();
+    const personas = new Map<number, string>();
     data?.forEach((pago: PagoDetallado) => {
       (pago.usuarios || []).forEach(usuario => {
-        const nombreCompleto = `${usuario.nombre || ''} ${usuario.apellido || ''}`.trim();
-        if (nombreCompleto) personas.add(nombreCompleto);
+        if (usuario.id) {
+          const nombreCompleto = `${usuario.nombre || ''} ${usuario.apellido || ''}`.trim();
+          if (nombreCompleto) personas.set(usuario.id, nombreCompleto);
+        }
       });
     });
-    return Array.from(personas).sort();
+    return Array.from(personas.entries()).map(([id, nombre]) => ({ id, nombre })).sort((a, b) => a.nombre.localeCompare(b.nombre));
   }, [data]);
 
   const actividadesUnicas = useMemo(() => {
     const actividades = new Set<string>();
     data?.forEach((pago: PagoDetallado) => {
-      if (pago.actividad) {
-        actividades.add(pago.actividad);
-      }
+      if (pago.actividad) actividades.add(pago.actividad);
     });
     return Array.from(actividades).sort();
   }, [data]);
@@ -169,9 +210,9 @@ const TablaPagosDetallados: React.FC = () => {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                if (row.id) setPagoAMarcar(row.id);
+                if (row.id) setPagoIndividual(row.id);
               }}
-              disabled={isPending}
+              disabled={isPendingSingle || isPendingBulk}
               className="p-1 text-green-600 hover:bg-green-100 rounded-md transition"
               title="Marcar como pagado"
             >
@@ -189,27 +230,27 @@ const TablaPagosDetallados: React.FC = () => {
 
   return (
     <div className="bg-white p-4 md:p-6 rounded-lg shadow-md">
-      {/* Modal de confirmación */}
+      {/* Modal de confirmación para pago individual */}
       <VentanaModal
-        isOpen={!!pagoAMarcar}
-        onClose={() => setPagoAMarcar(null)}
-        titulo="Confirmar pago"
+        isOpen={!!pagoIndividual}
+        onClose={() => setPagoIndividual(null)}
+        titulo="Confirmar pago individual"
         contenido={
           <div className="space-y-4">
             <p>¿Estás seguro de marcar este pago como completado?</p>
             <div className="flex justify-end gap-2 mt-4">
               <button
-                onClick={() => setPagoAMarcar(null)}
+                onClick={() => setPagoIndividual(null)}
                 className="px-4 py-2 border rounded-md hover:bg-gray-100"
               >
                 Cancelar
               </button>
               <button
-                onClick={handleConfirmarPago}
-                disabled={isPending}
+                onClick={handleConfirmarPagoIndividual}
+                disabled={isPendingSingle}
                 className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-green-300 flex items-center gap-2"
               >
-                {isPending && <Loader2 className="animate-spin" size={16} />}
+                {isPendingSingle && <Loader2 className="animate-spin" size={16} />}
                 Confirmar
               </button>
             </div>
@@ -217,7 +258,40 @@ const TablaPagosDetallados: React.FC = () => {
         }
       />
 
-      {/* Encabezado Responsivo */}
+      {/* Modal de confirmación para pago masivo */}
+      <VentanaModal
+        isOpen={!!pagoMasivo}
+        onClose={() => setPagoMasivo(null)}
+        titulo="Confirmar pago masivo"
+        contenido={
+          <div className="space-y-4">
+            <p>¿Estás seguro de marcar todos los pagos pendientes de {pagoMasivo?.nombre} como completados?</p>
+            {(filtros.fecha_inicio || filtros.fecha_fin) && (
+              <p className="text-sm text-gray-600">
+                Filtros de fecha aplicados: {filtros.fecha_inicio || 'Sin inicio'} a {filtros.fecha_fin || 'Sin fin'}
+              </p>
+            )}
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                onClick={() => setPagoMasivo(null)}
+                className="px-4 py-2 border rounded-md hover:bg-gray-100"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmarPagoMasivo}
+                disabled={isPendingBulk}
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-green-300 flex items-center gap-2"
+              >
+                {isPendingBulk && <Loader2 className="animate-spin" size={16} />}
+                Confirmar
+              </button>
+            </div>
+          </div>
+        }
+      />
+
+      {/* Encabezado */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 md:mb-6 gap-3 md:gap-4">
         <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
           <button
@@ -246,20 +320,37 @@ const TablaPagosDetallados: React.FC = () => {
         />
       </div>
 
-      {/* Filtros Responsivos */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 mb-4 md:mb-6 p-3 md:p-4 bg-gray-50 rounded-lg">
+      {/* Filtros */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4 mb-4 md:mb-6 p-3 md:p-4 bg-gray-50 rounded-lg">
         <div className="w-full">
           <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Filtrar por persona</label>
-          <select
-            value={filtros.persona}
-            onChange={(e) => setFiltros({ ...filtros, persona: e.target.value })}
-            className="w-full p-2 text-xs md:text-sm border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
-          >
-            <option value="">Todas las personas</option>
-            {personasUnicas.map((persona, index) => (
-              <option key={index} value={persona}>{persona}</option>
-            ))}
-          </select>
+          <div className="flex items-center gap-2">
+            <select
+              value={filtros.persona}
+              onChange={(e) => setFiltros({ ...filtros, persona: e.target.value })}
+              className="w-full p-2 text-xs md:text-sm border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+            >
+              <option value="">Todas las personas</option>
+              {personasUnicas.map(({ id, nombre }) => (
+                <option key={id} value={nombre}>{nombre}</option>
+              ))}
+            </select>
+            <button
+              onClick={() => {
+                const selected = personasUnicas.find(p => p.nombre === filtros.persona);
+                if (selected) {
+                  setPagoMasivo({ usuario_id: selected.id, nombre: selected.nombre });
+                } else {
+                  toast.error('Seleccione una persona');
+                }
+              }}
+              disabled={isPendingBulk || !filtros.persona}
+              className="p-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-green-300"
+              title="Pagar todos los pendientes"
+            >
+              <DollarSign size={16} />
+            </button>
+          </div>
         </div>
 
         <div className="w-full">
@@ -277,20 +368,40 @@ const TablaPagosDetallados: React.FC = () => {
         </div>
 
         <div className="w-full">
-          <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Filtrar por estado</label>
+          <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Estado</label>
           <select
             value={filtros.estado}
             onChange={(e) => setFiltros({ ...filtros, estado: e.target.value as 'todos' | 'pagado' | 'pendiente' })}
             className="w-full p-2 text-xs md:text-sm border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
           >
-            <option value="todos">Todos los estados</option>
-            <option value="pagado">Solo pagados</option>
-            <option value="pendiente">Solo pendientes</option>
+            <option value="todos">Todos</option>
+            <option value="pagado">Pagado</option>
+            <option value="pendiente">Pendiente</option>
           </select>
+        </div>
+
+        <div className="w-full">
+          <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Fecha inicio</label>
+          <input
+            type="date"
+            value={filtros.fecha_inicio}
+            onChange={(e) => setFiltros({ ...filtros, fecha_inicio: e.target.value })}
+            className="w-full p-2 text-xs md:text-sm border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+          />
+        </div>
+
+        <div className="w-full">
+          <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Fecha fin</label>
+          <input
+            type="date"
+            value={filtros.fecha_fin}
+            onChange={(e) => setFiltros({ ...filtros, fecha_fin: e.target.value })}
+            className="w-full p-2 text-xs md:text-sm border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+          />
         </div>
       </div>
 
-      {/* Resumen Responsivo */}
+      {/* Resumen */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 mb-4 md:mb-6">
         <div className="bg-green-50 p-3 md:p-4 rounded-lg border border-green-200">
           <h3 className="font-medium text-green-800 text-sm md:text-base">Total pagos</h3>
@@ -312,7 +423,7 @@ const TablaPagosDetallados: React.FC = () => {
         </div>
       </div>
 
-      {/* Tabla Responsiva */}
+      {/* Tabla */}
       <div className="overflow-x-auto">
         <div className="min-w-[600px] md:min-w-0">
           <div className="[&_table]:w-full [&_th]:py-3 md:[&_th]:py-4 
