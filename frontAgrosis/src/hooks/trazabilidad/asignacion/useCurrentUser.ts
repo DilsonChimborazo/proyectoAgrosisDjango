@@ -2,11 +2,32 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAuthContext } from '@/context/AuthContext';
 
+export interface Ficha {
+  id: number;
+  numero_ficha: number;
+  nombre_ficha: string;
+  abreviacion: string;
+  fecha_inicio: string;
+  fecha_salida: string;
+  is_active: boolean;
+}
+// Interfaces
+export interface Rol {
+  id: number;
+  rol: string;
+}
+
 export interface Usuario {
   id: number;
+  identificacion: string;
+  email: string;
   nombre: string;
   apellido: string;
-  fk_id_rol: { rol: string };
+  is_active: boolean;
+  fk_id_rol: Rol | null; 
+  ficha: Ficha | null;
+  img: string | null;
+  img_url: string
 }
 
 const fetchCurrentUser = async (): Promise<Usuario> => {

@@ -2,7 +2,7 @@ from django.db import models
 from django.utils.timezone import now
 
 class Ficha(models.Model):
-    numero_ficha = models.CharField(max_length=20, primary_key=True)
+    numero_ficha = models.BigAutoField(primary_key=True)
     nombre_ficha = models.CharField(max_length=100)
     abreviacion = models.CharField(max_length=10, default='SIN_ABREV')
     fecha_inicio = models.DateTimeField(default=now)

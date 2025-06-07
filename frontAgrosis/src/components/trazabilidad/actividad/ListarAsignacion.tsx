@@ -252,7 +252,7 @@ const ListarAsignacion: React.FC = () => {
       return;
     }
     console.log('Asignación encontrada:', asignacion);
-    console.log('Usuario ID:', user.id, 'fk_identificacion:', asignacion.fk_identificacion);
+    console.log('Usuario ID:', user.id , 'fk_identificacion:', asignacion.fk_identificacion);
     const userAssigned = Array.isArray(asignacion.fk_identificacion)
       ? asignacion.fk_identificacion.some((id) => (typeof id === 'object' ? id.id : id) === user.id)
       : false;
