@@ -196,4 +196,79 @@ class Asignacion_actividadesModelViewSet(ModelViewSet):
         except Exception as e:
             logger.error(f"Error en notificación: {str(e)}")
 
-    # ... (mantén los demás métodos existentes: create, finalizar, reporte_asignaciones)
+    @action(detail=True, methods=['post'], url_path='finalizar')
+    def finalizar(self, request, pk=None):
+            """
+            Acción para que un usuario asignado marque la asignación como Completada.
+            """
+            asignacion = self.get_object()
+            if asignacion.estado == 'Completada':
+                return Response({'error': 'La asignación ya está completada'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            asignacion.estado = 'Completada'
+            asignacion.save()
+
+            # Enviar notificación por WebSocket a todos los usuarios asignados
+            actividad = asignacion.fk_id_realiza.fk_id_actividad if asignacion.fk_id_realiza else None
+            usuarios = asignacion.fk_identificacion.all()
+            channel_layer = get_channel_layer()
+            for usuario in usuarios:
+                async_to_sync(channel_layer.group_send)(
+                    "asignacion_actividades_notifications",
+                    {
+                        "type": "asignacion_notification",
+                        "message": {
+                            "id": asignacion.id,
+                            "usuario": f"{usuario.nombre} {usuario.apellido}",
+                            "actividad": actividad.nombre_actividad if actividad else "No especificado",
+                            "fecha": str(asignacion.fecha_programada),
+                            "estado": asignacion.estado,
+                            "observaciones": f"Asignación completada por {request.user.nombre} {request.user.apellido}",
+                        }
+                    }
+                )
+
+            return Response({
+                'message': 'Asignación marcada como Completada',
+                'asignacion': LeerAsignacion_actividadesSerializer(asignacion).data
+            }, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'], url_path='reporte-asignaciones')
+    def reporte_asignaciones(self, request):
+        """
+        Reporte personalizado que muestra la fecha programada, plantación, usuarios, actividad, estado y observaciones.
+        """
+        reporte = []
+
+        for asignacion in self.get_queryset():
+            plantacion = (
+                asignacion.fk_id_realiza.fk_id_plantacion.fk_id_cultivo.nombre_cultivo
+                if asignacion.fk_id_realiza and asignacion.fk_id_realiza.fk_id_plantacion and asignacion.fk_id_realiza.fk_id_plantacion.fk_id_cultivo
+                else "No especificado"
+            )
+            usuarios = [
+                {"nombre": f"{usuario.nombre} {usuario.apellido}"}
+                for usuario in asignacion.fk_identificacion.all()
+            ] if asignacion.fk_identificacion.exists() else [{"nombre": "No especificado"}]
+            actividad = (
+                asignacion.fk_id_realiza.fk_id_actividad.nombre_actividad
+                if asignacion.fk_id_realiza and asignacion.fk_id_realiza.fk_id_actividad
+                else "No especificado"
+            )
+            fecha_programada = asignacion.fecha_programada.strftime('%Y-%m-%d') if asignacion.fecha_programada else "No especificado"
+            estado = asignacion.estado if asignacion.estado else "No especificado"
+            observaciones = asignacion.observaciones if asignacion.observaciones else "No especificado"
+
+            reporte.append({
+                "fecha_programada": fecha_programada,
+                "plantacion": plantacion,
+                "usuarios": usuarios,
+                "actividad": actividad,
+                "estado": estado,
+                "observaciones": observaciones,
+            })
+
+        return Response({
+            "reporte": reporte,
+            "estructura": "FECHA PROGRAMADA | PLANTACIÓN | USUARIOS | ACTIVIDAD | ESTADO | OBSERVACIONES"
+        })

@@ -98,6 +98,8 @@ class Asignacion_actividades(models.Model):
 
     # Método para asignar recursos temporalmente (herramientas e insumos)
     def asignar_recursos(self, herramientas_ids, insumos_ids):
+        herramientas_ids = [int(hid) for hid in herramientas_ids if isinstance(hid, (int, str)) and str(hid).isdigit()] if herramientas_ids else []
+        insumos_ids = [int(iid) for iid in insumos_ids if isinstance(iid, (int, str)) and str(iid).isdigit()] if insumos_ids else []
         self.recursos_asignados = {
             'herramientas': herramientas_ids,
             'insumos': insumos_ids
