@@ -61,9 +61,20 @@ class Asignacion_actividades(models.Model):
 
         # Incluir recursos asignados en la notificación si existen
         if self.recursos_asignados and (self.recursos_asignados.get('herramientas') or self.recursos_asignados.get('insumos')):
-            herramientas_str = ', '.join(str(id) for id in self.recursos_asignados.get('herramientas', []))
-            insumos_str = ', '.join(str(id) for id in self.recursos_asignados.get('insumos', []))
-            mensaje += f"\nRecursos a reclamar en bodega: Herramientas (IDs: {herramientas_str}), Insumos (IDs: {insumos_str})."
+            herramientas_ids = self.recursos_asignados.get('herramientas', [])
+            if herramientas_ids:
+                herramientas = Herramientas.objects.filter(id__in=herramientas_ids).values_list('nombre_h', flat=True)
+                herramientas_str = ', '.join(str(nombre) for nombre in herramientas)
+            else:
+                herramientas_str = 'Ninguna'
+            # Obtener nombres de insumos basados en los IDs
+            insumos_ids = self.recursos_asignados.get('insumos', [])
+            if insumos_ids:
+                insumos = Insumo.objects.filter(id__in=insumos_ids).values_list('nombre', flat=True)
+                insumos_str = ', '.join(str(nombre) for nombre in insumos)
+            else:
+                insumos_str = 'Ninguno'
+            mensaje += f"\nRecursos a reclamar en bodega: Herramientas ({herramientas_str}), Insumos ({insumos_str})."
 
         logger.info(f"Generando notificaciones para asignación {self.id}: {titulo}")
 
@@ -113,55 +124,3 @@ class Asignacion_actividades(models.Model):
             bodega_devolucion_id_bodget=bodega_devolucion_id
         )
         logger.info(f"Actividad {self.id} completada. Programación registrada con ID {programacion.id}")
-
-@receiver(m2m_changed, sender=Asignacion_actividades.fk_identificacion.through)
-def asignacion_actividades_usuarios_changed(sender, instance, action, pk_set, **kwargs):
-    if action in ['post_add', 'post_remove']:
-        logger.info(f"Cambio en usuarios asignados para la asignación {instance.id}: {action}, usuarios: {pk_set}")
-        usuarios_asignados = instance.fk_identificacion.all()
-
-        if not usuarios_asignados:
-            logger.warning(f"No hay usuarios asignados para la asignación {instance.id} después de {action}")
-            return
-
-        # Obtener información relevante para las notificaciones
-        actividad = instance.fk_id_realiza.fk_id_actividad.nombre_actividad if instance.fk_id_realiza and instance.fk_id_realiza.fk_id_actividad else 'Desconocida'
-        plantacion = instance.fk_id_realiza.fk_id_plantacion if instance.fk_id_realiza else None
-        cultivo = plantacion.fk_id_cultivo.nombre_cultivo if plantacion and plantacion.fk_id_cultivo else 'Desconocido'
-        era = plantacion.fk_id_eras.nombre if plantacion and plantacion.fk_id_eras else 'Desconocida'
-        days_until = (instance.fecha_programada - timezone.now().date()).days
-
-        # Generar título y mensaje para la notificación
-        titulo = f"Asignación: {actividad} en {cultivo}"
-        mensaje = (f"Te han asignado la actividad '{actividad}' "
-                   f"en el cultivo '{cultivo}' (Era: {era}) para el "
-                   f"{instance.fecha_programada.strftime('%Y-%m-%d')} "
-                   f"(en {days_until} día(s)). Estado: {instance.estado}. "
-                   f"Observaciones: {instance.observaciones}")
-
-        # Incluir recursos asignados en la notificación si existen
-        if instance.recursos_asignados and (instance.recursos_asignados.get('herramientas') or instance.recursos_asignados.get('insumos')):
-            herramientas_str = ', '.join(str(id) for id in instance.recursos_asignados.get('herramientas', []))
-            insumos_str = ', '.join(str(id) for id in instance.recursos_asignados.get('insumos', []))
-            mensaje += f"\nRecursos a reclamar en bodega: Herramientas (IDs: {herramientas_str}), Insumos (IDs: {insumos_str})."
-
-        logger.info(f"Generando notificaciones para asignación {instance.id}: {titulo}")
-
-        # Iterar sobre los usuarios afectados por el cambio
-        for usuario_id in pk_set:
-            usuario = Usuarios.objects.get(id=usuario_id)
-            if not Notificacion.objects.filter(
-                usuario=usuario,
-                titulo=titulo,
-                mensaje=mensaje,
-                leida=False
-            ).exists():
-                try:
-                    notificacion = Notificacion.objects.create(
-                        usuario=usuario,
-                        titulo=titulo,
-                        mensaje=mensaje
-                    )
-                    logger.info(f"Notificación creada con ID {notificacion.id} para el usuario {usuario.id}")
-                except Exception as e:
-                    logger.error(f"Error al crear notificación para el usuario {usuario.id}: {str(e)}")
