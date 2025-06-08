@@ -72,7 +72,7 @@ const VentaComponent = ({ showButtons = true }: VentaComponentProps) => {
     };
   });
 
-  const headers = ["Detalles", "ID", "Vendedor", "Fecha", "Total"];
+  const headers = ["ID", "Vendedor", "Fecha", "Total", "Detalles"];
 
   const generarFacturaPDF = (venta: any) => {
     const doc = new jsPDF();
