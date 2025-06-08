@@ -13,6 +13,7 @@ import { showToast } from '@/components/globales/Toast';
 // URL base del servidor donde se almacenan las imágenes
 const BASE_URL = 'http://localhost:8000';
 
+// Interfaz ajustada para incluir elementos (recursos asignados) en campos separados
 interface AsignacionTabla {
   id: number;
   estado: 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada';
@@ -22,17 +23,14 @@ interface AsignacionTabla {
   actividad: string;
   usuarios: string[];
   fecha_realizada: string | null | string;
+  insumos: string; // Campo separado para insumos
+  herramientas: string; // Campo separado para herramientas
   duracion: number | null | string;
   img: string | null | React.ReactNode;
 }
 
 const DetalleAsignacionModal = memo(({ item, realizaList, usuarios }: { item: Asignacion; realizaList: Realiza[]; usuarios: Usuario[] }) => {
   const realiza = realizaList.find((r) => r.id === (typeof item.fk_id_realiza === 'object' ? item.fk_id_realiza?.id : item.fk_id_realiza));
-
-  // Debug fk_identificacion and usuarios
-  console.log('DetalleAsignacionModal - Asignacion:', item);
-  console.log('DetalleAsignacionModal - fk_identificacion:', item.fk_identificacion);
-  console.log('DetalleAsignacionModal - Usuarios:', usuarios);
 
   const usuariosAsignados = Array.isArray(item.fk_identificacion)
     ? item.fk_identificacion
@@ -43,8 +41,6 @@ const DetalleAsignacionModal = memo(({ item, realizaList, usuarios }: { item: As
         })
         .filter((u): u is Usuario => !!u)
     : [];
-
-  console.log('DetalleAsignacionModal - Usuarios Asignados:', usuariosAsignados);
 
   const realizaNombre = realiza
     ? `${realiza.fk_id_actividad?.nombre_actividad || 'Sin actividad'} (${realiza.fk_id_plantacion?.fk_id_semillero?.nombre_semilla || 'Sin cultivo'})`
@@ -71,6 +67,27 @@ const DetalleAsignacionModal = memo(({ item, realizaList, usuarios }: { item: As
             </ul>
           ) : (
             ' Sin usuarios'
+          )}
+        </p>
+        <p>
+          <span className="font-semibold">Recursos Asignados:</span>
+          {item.recursos_asignados.length > 0 ? (
+            <ul className="list-none space-y-2 mt-1">
+              {item.recursos_asignados.map((recurso, index) => (
+                <li key={index} className="text-gray-700 before:content-['-'] before:mr-2">
+                  {typeof recurso === 'string'
+                    ? recurso
+                    : [
+                        recurso.insumos?.map((i) => i.nombre).join(', '),
+                        recurso.herramientas?.map((h) => h.nombre_h).join(', '),
+                      ]
+                        .filter(Boolean)
+                        .join(' | ')}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            ' Sin recursos asignados'
           )}
         </p>
       </div>
@@ -106,11 +123,7 @@ const ListarAsignacion: React.FC = () => {
 
   // Depuración: Mostrar datos recibidos
   useEffect(() => {
-    console.log('Asignaciones:', asignaciones);
-    console.log('Realiza List:', realizaList);
-    console.log('Usuarios:', usuarios);
-    console.log('Programaciones:', programaciones);
-    console.log('Usuario actual:', user);
+    console.log('Datos recibidos de asignaciones:', asignaciones);
   }, [asignaciones, realizaList, usuarios, programaciones, user]);
 
   const filteredAsignaciones = useMemo(() => {
@@ -147,6 +160,8 @@ const ListarAsignacion: React.FC = () => {
         actividad: `Sin actividad (No hay datos en realizaList)`,
         usuarios: ['Sin usuarios'],
         fecha_realizada: 'No asignada',
+        insumos: 'No asignado', 
+        herramientas: 'No asignado', 
         duracion: 'No asignada',
         img: 'No asignada',
       }));
@@ -165,7 +180,7 @@ const ListarAsignacion: React.FC = () => {
             .map((id) => {
               const usuarioId = typeof id === 'object' ? id.id : id;
               const usuario = usuarios.find((u) => u.id === Number(usuarioId) || u.id === usuarioId);
-              return usuario ? `${usuario.nombre} ${usuario.apellido}` : null;
+              return usuario ? `${usuario.nombre} ${usuario.apellido} - ` : null;
             })
             .filter((u): u is string => !!u)
         : [];
@@ -202,6 +217,23 @@ const ListarAsignacion: React.FC = () => {
         }
       }
 
+      // Procesar recursos_asignados para insumos y herramientas por separado
+      let insumosStr = 'No asignado';
+      let herramientasStr = 'No asignado';
+
+      asignacion.recursos_asignados.forEach((recurso) => {
+        if (typeof recurso === 'string') {
+          insumosStr = recurso; // Si es string, asignarlo a insumos por ahora (puedes ajustar según lógica)
+        } else if (recurso && typeof recurso === 'object') {
+          if (recurso.insumos?.length) {
+            insumosStr = ` ${recurso.insumos.map((i) => i.nombre).join(', ')}`;
+          }
+          if (recurso.herramientas?.length) {
+            herramientasStr = `${recurso.herramientas.map((h) => h.nombre_h).join(', ')}`;
+          }
+        }
+      });
+
       return {
         id: asignacion.id,
         estado: asignacion.estado as 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada',
@@ -211,11 +243,15 @@ const ListarAsignacion: React.FC = () => {
         actividad: realiza?.fk_id_actividad?.nombre_actividad ?? `Sin actividad (fk_id_realiza: ${realizaId || 'N/A'})`,
         usuarios: usuariosAsignados.length > 0 ? usuariosAsignados : ['Sin usuarios'],
         fecha_realizada: programacion?.fecha_realizada || 'No asignada',
+        insumos: insumosStr, // Campo separado para insumos
+        herramientas: herramientasStr, // Campo separado para herramientas
         duracion: programacion?.duracion ?? 'No asignada',
         img: imgElement,
       };
     });
   }, [filteredAsignaciones, realizaList, usuarios, programaciones]);
+
+  console.log("los datos filtrados para ver si llegan los elementos", filteredAsignaciones);
 
   // Depuración: Mostrar tablaData después de que se haya inicializado
   useEffect(() => {
@@ -362,6 +398,8 @@ const ListarAsignacion: React.FC = () => {
     'Plantacion',
     'Observaciones',
     'Fecha Realizada',
+    'Insumos', // Nueva columna para insumos
+    'Herramientas', // Nueva columna para herramientas
     'Duracion',
     'Img',
     'Estado',
@@ -384,6 +422,8 @@ const ListarAsignacion: React.FC = () => {
         <td className="p-3">{item.plantacion}</td>
         <td className="p-3">{item.observaciones}</td>
         <td className="p-3">{item.fecha_realizada}</td>
+        <td className="p-3">{item.insumos}</td> {/* Nueva columna para insumos */}
+        <td className="p-3">{item.herramientas}</td> {/* Nueva columna para herramientas */}
         <td className="p-3">{item.duracion}</td>
         <td className="p-3">{item.img}</td>
         <td className="p-3">{item.estado}</td>
