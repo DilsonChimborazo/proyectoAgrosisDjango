@@ -87,10 +87,9 @@ const RegistrarSalidaBodega = ({
       label: "Asignación relacionada",
       type: "select",
       options: [
-        { value: "", label: "Ninguna" },
         ...asignaciones.map((a) => ({
           value: a.id.toString(),
-          label: `Asignación ${new Date(a.fecha_programada).toLocaleDateString()}`,
+          label: `Asignación ${a.fecha_programada} - ${a.fk_identificacion[0]?.nombre || 'Usuario desconocido'}`,
         })),
       ],
     },
@@ -103,6 +102,9 @@ const RegistrarSalidaBodega = ({
     },
   ];
 
+  console.log("asignaciones", asignaciones);
+  console.log("los datos del formulario", formFields);
+
   const handleSubmit = (formData: any) => {
     if (herramientasSeleccionadas.length === 0 && insumosSeleccionados.length === 0) {
       setMensaje({ texto: "Debes seleccionar al menos una herramienta o un insumo.", tipo: 'error' });
@@ -110,6 +112,18 @@ const RegistrarSalidaBodega = ({
     }
 
     const errores: string[] = [];
+
+    // Validar que la fecha de salida no sea menor a la fecha de la asignación
+    if (formData.fk_id_asignacion) {
+      const asignacion = asignaciones.find(a => a.id === parseInt(formData.fk_id_asignacion));
+      if (asignacion) {
+        const fechaSalida = new Date(formData.fecha);
+        const fechaAsignacion = new Date(asignacion.fecha_programada);
+        if (fechaSalida < fechaAsignacion) {
+          errores.push(`La fecha de salida no puede ser anterior a la fecha de asignación (${asignacion.fecha_programada}).`);
+        }
+      }
+    }
 
     for (const h of herramientasSeleccionadas) {
       const herramienta = herramientas.find(her => her.id === h.id);
@@ -356,7 +370,7 @@ const RegistrarSalidaBodega = ({
                 <p className="text-gray-600">
                   Disponibles: {i.cantidad_en_base || 0} {i.fk_unidad_medida?.unidad_base || 'unidades'}
                 </p>
-                {'tipo' in i && <p className="text-sm mt-1">Tipo: {i.tipo}</p>}
+                {'tipo' in i && <p className="text-sm mt-1">Tipo: {i.tipoEnglis}</p>}
                 {insumosSeleccionados.some(sel => sel.id === i.id) && (
                   <div className="mt-2 text-green-600 font-medium">✓ Seleccionado</div>
                 )}

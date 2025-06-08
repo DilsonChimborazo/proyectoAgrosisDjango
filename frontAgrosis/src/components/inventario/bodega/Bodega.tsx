@@ -352,7 +352,7 @@ const ListarBodega = () => {
       id: item.id,
       [tipoSeleccionado === "Herramienta" ? "herramienta" : "insumo"]: nombre,
       asignacion: item.fk_id_asignacion?.fecha_programada
-        ? formatDateWithoutTimezone(item.fk_id_asignacion.fecha_programada)
+        ? (item.fk_id_asignacion.fecha_programada)
         : "No aplica",
       cantidad: <span className={bgCantidad}>{cantidadPrincipal}</span>,
       cantidad_base: cantidadBaseDisplay,

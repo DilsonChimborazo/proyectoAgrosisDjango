@@ -113,6 +113,12 @@ class NotificationInsumoConsumer(AsyncWebsocketConsumer):
             ).select_related('fk_unidad_medida')
         )
 
+        insumos_zero_stock = await sync_to_async(list)(
+            Insumo.objects.filter(
+                cantidad_en_base=0
+            ).select_related('fk_unidad_medida')
+        )
+
         admin_users = await sync_to_async(list)(
             Usuarios.objects.filter(fk_id_rol__rol='Administrador').select_related('fk_id_rol')
         )
@@ -120,6 +126,7 @@ class NotificationInsumoConsumer(AsyncWebsocketConsumer):
         # Procesar notificaciones
         await self.process_notifications(insumos_expiring, admin_users, 'vencimiento')
         await self.process_notifications(insumos_low_stock, admin_users, 'stock')
+        await self.process_notifications(insumos_zero_stock, admin_users, 'zero_stock')
 
     async def process_notifications(self, insumos, admin_users, notification_type):
         for insumo in insumos:
@@ -128,10 +135,14 @@ class NotificationInsumoConsumer(AsyncWebsocketConsumer):
                 titulo = f"Insumo próximo a vencer: {insumo.nombre}"
                 mensaje = (f"El insumo '{insumo.nombre}' vencerá en {days_until_expiry} día(s), "
                          f"el {insumo.fecha_vencimiento.strftime('%Y-%m-%d')}.")
-            else:
+            elif notification_type == 'stock':
                 titulo = f"Stock bajo: {insumo.nombre}"
                 mensaje = (f"El insumo '{insumo.nombre}' tiene bajo stock: "
                           f"{insumo.cantidad_en_base} {insumo.fk_unidad_medida.unidad_base if insumo.fk_unidad_medida else 'unidades'} restantes.")
+            else:  # zero_stock
+                titulo = f"Stock agotado: {insumo.nombre}"
+                mensaje = (f"El insumo '{insumo.nombre}' se ha agotado completamente. "
+                          f"No quedan unidades disponibles.")
 
             for admin in admin_users:
                 # Verificar si la notificación ya existe

@@ -3,6 +3,29 @@ import axios from 'axios';
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
+interface Usuario {
+  id: number;
+  identificacion: string;
+  email: string;
+  nombre: string;
+  apellido: string;
+  is_active: boolean;
+  fk_id_rol: number | null;
+  ficha: number | null;
+  img: string | null;
+  img_url: string;
+}
+
+interface Asignacion {
+  id: number;
+  estado: 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada';
+  fecha_programada: string;
+  observaciones: string;
+  fk_id_realiza:  number;
+  fk_identificacion: Usuario;
+  recursos_asignados: string ;
+}
+
 interface MovimientoHerramienta {
   id: number;
   cantidad: number;
@@ -14,7 +37,7 @@ interface MovimientoInsumo {
 }
 
 interface MovimientoBodegaPayload {
-  fk_id_asignacion: number | null;
+  fk_id_asignacion: number | Asignacion | null ;
   fecha: string;
   movimiento: 'Entrada' | 'Salida';
   herramientas?: MovimientoHerramienta[];
