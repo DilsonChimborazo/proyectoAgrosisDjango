@@ -2,11 +2,62 @@ import { useState, useEffect } from 'react';
 import Select from 'react-select';
 import { useCrearAsignacion } from '@/hooks/trazabilidad/asignacion/useCrearAsignacion';
 import { Realiza, useRealiza } from '@/hooks/trazabilidad/realiza/useRealiza';
-import { Usuario } from '@/hooks/usuarios/usuario/useUsuarios';
 import VentanaModal from '../../globales/VentanasModales';
 import CrearRealiza from '../realiza/CrearRealiza';
 import CrearUsuario from '../../usuarios/usuario/crearUsuario';
 import { showToast } from '@/components/globales/Toast';
+
+interface Rol {
+  id: number;
+  rol: string;
+}
+
+interface Ficha {
+  id: number;
+  numero_ficha: number;
+  nombre_ficha: string;
+  abreviacion: string;
+  fecha_inicio: string;
+  fecha_salida: string;
+  is_active: boolean;
+}
+
+interface Usuario {
+  id: number;
+  nombre: string;
+  apellido: string;
+  email: string;
+  ficha?: Ficha | string;
+  fk_id_rol?: Rol;
+}
+
+interface Cultivo {
+  id: number;
+  nombre_cultivo: string;
+  descripcion: string;
+  fk_id_especie: any; // Simplificado, ajusta según necesidad
+}
+
+interface Plantacion {
+  id: number;
+  descripcion: string;
+  fk_id_cultivo?: Cultivo; // Opcional
+  cantidad_transplante?: number;
+  fk_id_semillero?: any; // Hacer opcional para alinear con useRealiza
+  fecha_plantacion: string;
+}
+
+interface Actividad {
+  id: number;
+  nombre_actividad: string;
+  descripcion: string;
+}
+
+interface Realiza {
+  id: number;
+  fk_id_plantacion: Plantacion;
+  fk_id_actividad: Actividad;
+}
 
 interface CrearAsignacionModalProps {
   onSuccess: () => void;
@@ -20,80 +71,147 @@ interface SelectOption {
   label: string;
 }
 
-const CrearAsignacion = ({ onSuccess, onCancel, usuarios: initialUsuarios, onCreateUsuario }: CrearAsignacionModalProps) => {
+const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios, onCreateUsuario }: CrearAsignacionModalProps) => {
   const { mutate: createAsignacion, isPending } = useCrearAsignacion();
   const { data: realizaList = [], isLoading: isLoadingRealiza, error: errorRealiza, refetch: refetchRealiza } = useRealiza();
   const [formData, setFormData] = useState({
     fk_id_realiza: '',
     fk_identificacion: [] as string[],
-    estado: 'Pendiente',
+    estado: 'Pendiente' as 'Pendiente',
     fecha_programada: '',
     observaciones: '',
   });
   const [selectedRole, setSelectedRole] = useState<string>('');
+  const [selectedFicha, setSelectedFicha] = useState<string>('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState<React.ReactNode>(null);
   const [usuarios, setUsuarios] = useState<Usuario[]>(initialUsuarios);
 
-  // Sincronizar usuarios con initialUsuarios cuando cambie
+  const today = new Date().toISOString().split('T')[0];
+
   useEffect(() => {
+    console.log('Usuarios iniciales:', JSON.stringify(initialUsuarios, null, 2));
     setUsuarios(initialUsuarios);
   }, [initialUsuarios]);
 
-  // Obtener roles únicos de los usuarios
-  const roleOptions: SelectOption[] = Array.from(
-    new Set(usuarios.map((usuario) => usuario.fk_id_rol?.id || ''))
-  )
-    .filter((fk_id_rol) => fk_id_rol)
-    .map((fk_id_rol) => {
-      const usuario = usuarios.find((u) => u.fk_id_rol?.id === fk_id_rol);
-      return {
-        value: String(fk_id_rol),
-        label: usuario?.fk_id_rol?.rol || 'Sin nombre de rol',
-      };
-    });
+  // Depuración de realizaList
+  useEffect(() => {
+    console.log('realizaList:', JSON.stringify(realizaList, null, 2));
+  }, [realizaList]);
 
-  // Mostrar todos los usuarios sin filtrar por rol
-  const usuarioOptions: SelectOption[] = usuarios.map((usuario) => ({
-    value: String(usuario.id),
-    label: `${usuario.nombre} ${usuario.apellido} - Ficha: ${usuario.ficha || 'Sin ficha'} - Rol: ${usuario.fk_id_rol?.rol || 'Sin rol'}`,
+  const roleOptions: SelectOption[] = Array.from(
+    new Set(usuarios.map((usuario) => usuario.fk_id_rol?.id || 0).filter((id) => id !== 0))
+  ).map((fk_id_rol) => {
+    const usuario = usuarios.find((u) => u.fk_id_rol?.id === fk_id_rol);
+    return {
+      value: String(fk_id_rol),
+      label: usuario?.fk_id_rol?.rol || 'Sin nombre de rol',
+    };
+  });
+
+  const fichaOptions: SelectOption[] = Array.from(
+    new Set(
+      usuarios
+        .filter((usuario) => {
+          const userRoleId = usuario.fk_id_rol?.id ? String(usuario.fk_id_rol.id) : '';
+          return !selectedRole || userRoleId === selectedRole;
+        })
+        .map((usuario) => {
+          if (usuario.ficha) {
+            return typeof usuario.ficha === 'object' && 'numero_ficha' in usuario.ficha
+              ? String(usuario.ficha.numero_ficha)
+              : String(usuario.ficha);
+          }
+          return 'Sin ficha';
+        })
+    )
+  ).map((ficha) => ({
+    value: ficha,
+    label: ficha === 'Sin ficha' ? 'Sin ficha' : `Ficha ${ficha}`,
   }));
 
-  // Manejar cambio en los campos del formulario
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-  ) => {
+  const usuarioOptions: SelectOption[] = usuarios
+    .filter((usuario) => {
+      const userRoleId = usuario.fk_id_rol?.id ? String(usuario.fk_id_rol.id) : '';
+      const matchesRole = !selectedRole || userRoleId === selectedRole;
+      const userFicha =
+        usuario.ficha
+          ? typeof usuario.ficha === 'object' && 'numero_ficha' in usuario.ficha
+            ? String(usuario.ficha.numero_ficha)
+            : String(usuario.ficha)
+          : 'Sin ficha';
+      const matchesFicha = !selectedFicha || userFicha === selectedFicha;
+      console.log(
+        `Usuario: ${usuario.nombre} ${usuario.apellido}, ID: ${usuario.id}, Ficha: ${JSON.stringify(
+          usuario.ficha,
+          null,
+          2
+        )}, Rol ID: ${userRoleId}, Selected Role: ${selectedRole}, Selected Ficha: ${selectedFicha}, Matches Role: ${matchesRole}, Matches Ficha: ${matchesFicha}`
+      );
+      return matchesRole && matchesFicha;
+    })
+    .map((usuario) => ({
+      value: String(usuario.id),
+      label: `${usuario.nombre} ${usuario.apellido} - Ficha: ${
+        usuario.ficha && typeof usuario.ficha === 'object' && 'numero_ficha' in usuario.ficha
+          ? usuario.ficha.numero_ficha || 'Sin ficha'
+          : usuario.ficha || 'Sin ficha'
+      } - Rol: ${usuario.fk_id_rol?.rol || 'Sin rol'}`,
+    }));
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Manejar cambio de rol
   const handleRoleChange = (selectedOption: SelectOption | null) => {
     const newRole = selectedOption ? selectedOption.value : '';
     setSelectedRole(newRole);
-    // No limpiar fk_identificacion, ya que ahora todos los usuarios están disponibles
+    setSelectedFicha('');
+    setFormData((prev) => ({
+      ...prev,
+      fk_identificacion: prev.fk_identificacion.filter((id) => {
+        const user = usuarios.find((u) => String(u.id) === id);
+        return newRole ? String(user?.fk_id_rol?.id) === newRole : true;
+      }),
+    }));
   };
 
-  // Manejar cambio de usuarios seleccionados
+  const handleFichaChange = (selectedOption: SelectOption | null) => {
+    const newFicha = selectedOption ? selectedOption.value : '';
+    setSelectedFicha(newFicha);
+    setFormData((prev) => ({
+      ...prev,
+      fk_identificacion: prev.fk_identificacion.filter((id) => {
+        const user = usuarios.find((u) => String(u.id) === id);
+        const userFicha =
+          user?.ficha
+            ? typeof user.ficha === 'object' && 'numero_ficha' in user.ficha
+              ? String(user.ficha.numero_ficha)
+              : String(user.ficha)
+            : 'Sin ficha';
+        return newFicha ? userFicha === newFicha : true;
+      }),
+    }));
+  };
+
   const handleUsuariosChange = (selectedOptions: SelectOption[] | null) => {
     const selectedIds = selectedOptions ? selectedOptions.map((option) => option.value) : [];
     setFormData((prev) => ({ ...prev, fk_identificacion: selectedIds }));
   };
 
-  // Validar formulario
   const validateForm = () => {
     if (!formData.fk_id_realiza) return 'Debe seleccionar una gestión de cultivo';
     if (formData.fk_identificacion.length === 0) return 'Debe seleccionar al menos un usuario';
     if (!formData.fecha_programada) return 'Debe ingresar una fecha programada';
+    if (new Date(formData.fecha_programada) < new Date(today)) {
+      return 'La fecha programada no puede ser anterior a hoy';
+    }
     return null;
   };
 
-  // Manejar envío del formulario
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    console.time('handleSubmitAsignacion');
-
     const validationError = validateForm();
     if (validationError) {
       showToast({
@@ -102,117 +220,56 @@ const CrearAsignacion = ({ onSuccess, onCancel, usuarios: initialUsuarios, onCre
         timeout: 5000,
         variant: 'error',
       });
-      console.timeEnd('handleSubmitAsignacion');
       return;
     }
 
-    try {
-      await createAsignacion(
-        {
-          fk_id_realiza: Number(formData.fk_id_realiza),
-          fk_identificacion: formData.fk_identificacion.map(Number),
-          estado: formData.estado as 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada',
-          fecha_programada: formData.fecha_programada,
-          observaciones: formData.observaciones || '',
+    createAsignacion(
+      {
+        fk_id_realiza: Number(formData.fk_id_realiza),
+        fk_identificacion: formData.fk_identificacion.map(Number),
+        estado: formData.estado,
+        fecha_programada: formData.fecha_programada,
+        observaciones: formData.observaciones,
+      },
+      {
+        onSuccess: () => {
+          setFormData({
+            fk_id_realiza: '',
+            fk_identificacion: [],
+            estado: 'Pendiente',
+            fecha_programada: '',
+            observaciones: '',
+          });
+          setSelectedRole('');
+          setSelectedFicha('');
+          onSuccess();
         },
-        {
-          onSuccess: () => {
-            showToast({
-              title: 'Asignación creada exitosamente',
-              description: 'La asignación ha sido registrada en el sistema',
-              timeout: 2000,
-              variant: 'success',
-            });
-            setFormData({
-              fk_id_realiza: '',
-              fk_identificacion: [],
-              estado: 'Pendiente',
-              fecha_programada: '',
-              observaciones: '',
-            });
-            setSelectedRole('');
-            onSuccess();
-            console.timeEnd('handleSubmitAsignacion');
-          },
-          onError: (err) => {
-            showToast({
-              title: 'Error al crear asignación',
-              description: err.message || 'Ocurrió un error al registrar la asignación',
-              timeout: 5000,
-              variant: 'error',
-            });
-            console.timeEnd('handleSubmitAsignacion');
-          },
-        }
-      );
-    } catch (err: any) {
-      showToast({
-        title: 'Error al crear asignación',
-        description: err.message || 'Error inesperado al crear la asignación',
-        timeout: 5000,
-        variant: 'error',
-      });
-      console.timeEnd('handleSubmitAsignacion');
-    }
+      }
+    );
   };
 
-  // Abrir modal para crear realiza
   const openCreateRealizaModal = () => {
-    console.log('Abriendo modal de CrearRealiza');
     setModalContent(
       <CrearRealiza
         onSuccess={async () => {
-          console.log('Realiza creado, refetching realizaList');
           await refetchRealiza();
           setIsModalOpen(false);
-          showToast({
-            title: 'Gestión de cultivo creada',
-            description: 'La gestión de cultivo ha sido registrada exitosamente.',
-            timeout: 4000,
-            variant: 'success',
-          });
         }}
-        onCancel={() => {
-          console.log('Creación de realiza cancelada');
-          setIsModalOpen(false);
-          showToast({
-            title: 'Creación cancelada',
-            description: 'Se canceló la creación de la gestión de cultivo.',
-            timeout: 4000,
-            variant: 'info',
-          });
-        }}
+        onCancel={() => setIsModalOpen(false)}
       />
     );
     setIsModalOpen(true);
   };
 
-  // Abrir modal para crear usuario
   const openCreateUsuarioModal = () => {
-    console.log('Abriendo modal de CrearUsuario');
     setModalContent(
       <CrearUsuario
         isOpen={true}
-        onClose={() => {
-          console.log('Cerrando modal de CrearUsuario');
-          setIsModalOpen(false);
-          showToast({
-            title: 'Creación de usuario cancelada',
-            description: 'Se canceló la creación del usuario.',
-            timeout: 4000,
-            variant: 'info',
-          });
-        }}
+        onClose={() => setIsModalOpen(false)}
         onSuccess={(newUser: Usuario) => {
-          console.log('Usuario creado:', newUser);
           onCreateUsuario(newUser);
+          setUsuarios((prev) => [...prev, newUser]);
           setIsModalOpen(false);
-          showToast({
-            title: 'Usuario creado',
-            description: 'El usuario ha sido registrado exitosamente.',
-            timeout: 4000,
-            variant: 'success',
-          });
         }}
       />
     );
@@ -234,13 +291,7 @@ const CrearAsignacion = ({ onSuccess, onCancel, usuarios: initialUsuarios, onCre
     return (
       <div className="text-center text-red-500">
         Error al cargar gestiones de cultivo
-        <button
-          onClick={() => {
-            console.log('Reintentando cargar realizaList');
-            refetchRealiza();
-          }}
-          className="ml-4 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
-        >
+        <button onClick={() => refetchRealiza()} className="ml-4 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
           Reintentar
         </button>
       </div>
@@ -268,9 +319,9 @@ const CrearAsignacion = ({ onSuccess, onCancel, usuarios: initialUsuarios, onCre
               <option value="">Selecciona una gestión de cultivo</option>
               {realizaList.map((realiza: Realiza) => (
                 <option key={realiza.id} value={realiza.id}>
-                  {`Plantación: ${realiza.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo || 'Sin cultivo'} - Actividad: ${
-                    realiza.fk_id_actividad?.nombre_actividad || 'Sin actividad'
-                  }`}
+                  {`Plantación: ${
+                    realiza.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo || 'Sin cultivo'
+                  } - Actividad: ${realiza.fk_id_actividad?.nombre_actividad || 'Sin actividad'}`}
                 </option>
               ))}
             </select>
@@ -298,28 +349,21 @@ const CrearAsignacion = ({ onSuccess, onCancel, usuarios: initialUsuarios, onCre
             isClearable
             isDisabled={isPending}
             className="mt-1"
-            classNamePrefix="react-select"
-            styles={{
-              control: (base) => ({
-                ...base,
-                borderColor: '#d1d5db',
-                borderRadius: '0.375rem',
-                padding: '0.25rem',
-                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-                '&:hover': { borderColor: '#9ca3af' },
-              }),
-              menu: (base) => ({
-                ...base,
-                borderRadius: '0.375rem',
-                marginTop: '0.25rem',
-              }),
-              option: (base, { isFocused, isSelected }) => ({
-                ...base,
-                backgroundColor: isSelected ? '#2e7d32' : isFocused ? '#e5e7eb' : 'white',
-                color: isSelected ? 'white' : '#1f2937',
-                '&:active': { backgroundColor: '#1e40af' },
-              }),
-            }}
+          />
+        </div>
+        <div>
+          <label htmlFor="ficha" className="block text-sm font-medium text-gray-700">
+            Ficha (Opcional)
+          </label>
+          <Select
+            id="ficha"
+            options={fichaOptions}
+            value={fichaOptions.find((option) => option.value === selectedFicha) || null}
+            onChange={handleFichaChange}
+            placeholder="Selecciona una ficha..."
+            isClearable
+            isDisabled={isPending}
+            className="mt-1"
           />
         </div>
         <div className="flex items-center space-x-2">
@@ -336,28 +380,6 @@ const CrearAsignacion = ({ onSuccess, onCancel, usuarios: initialUsuarios, onCre
               placeholder="Selecciona usuarios..."
               isDisabled={isPending}
               className="mt-1"
-              classNamePrefix="react-select"
-              styles={{
-                control: (base) => ({
-                  ...base,
-                  borderColor: '#d1d5db',
-                  borderRadius: '0.375rem',
-                  padding: '0.25rem',
-                  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-                  '&:hover': { borderColor: '#9ca3af' },
-                }),
-                menu: (base) => ({
-                  ...base,
-                  borderRadius: '0.375rem',
-                  marginTop: '0.25rem',
-                }),
-                option: (base, { isFocused, isSelected }) => ({
-                  ...base,
-                  backgroundColor: isSelected ? '#2e7d32' : isFocused ? '#e5e7eb' : 'white',
-                  color: isSelected ? 'white' : '#1f2937',
-                  '&:active': { backgroundColor: '#1e40af' },
-                }),
-              }}
             />
           </div>
           <button
@@ -381,12 +403,9 @@ const CrearAsignacion = ({ onSuccess, onCancel, usuarios: initialUsuarios, onCre
             onChange={handleChange}
             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
             required
-            disabled={isPending}
+            disabled
           >
             <option value="Pendiente">Pendiente</option>
-            <option value="Completada">Completada</option>
-            <option value="Cancelada">Cancelada</option>
-            <option value="Reprogramada">Reprogramada</option>
           </select>
         </div>
         <div>
@@ -399,6 +418,7 @@ const CrearAsignacion = ({ onSuccess, onCancel, usuarios: initialUsuarios, onCre
             name="fecha_programada"
             value={formData.fecha_programada}
             onChange={handleChange}
+            min={today}
             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
             required
             disabled={isPending}
@@ -418,7 +438,7 @@ const CrearAsignacion = ({ onSuccess, onCancel, usuarios: initialUsuarios, onCre
             disabled={isPending}
           />
         </div>
-        <div className="flex justify-center space-x-4">
+        <div className="flex justify-center">
           <button
             type="submit"
             className="bg-white text-[#2e7d32] px-4 py-2 rounded-md border border-[#2e7d32] hover:bg-[#2e7d32] hover:text-white disabled:opacity-50"
@@ -438,10 +458,7 @@ const CrearAsignacion = ({ onSuccess, onCancel, usuarios: initialUsuarios, onCre
       {isModalOpen && modalContent && (
         <VentanaModal
           isOpen={isModalOpen}
-          onClose={() => {
-            console.log('Cerrando modal');
-            setIsModalOpen(false);
-          }}
+          onClose={() => setIsModalOpen(false)}
           titulo=""
           contenido={modalContent}
         />

@@ -1,20 +1,34 @@
-// src/hooks/trazabilidad/asignacion/useAsignacion.ts
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
-const apiUrl = import.meta.env.VITE_API_URL;
+const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/';
 
-export interface Rol{
+export interface Rol {
   id: number;
   rol: string;
 }
 
 export interface Usuario {
   id: number;
+  identificacion: string;
+  email: string;
   nombre: string;
   apellido: string;
-  email: string;
-  fk_id_rol: Rol
+  is_active: boolean;
+  fk_id_rol: Rol | null;
+  ficha: Ficha | null;
+  img: string | null;
+  img_url: string;
+}
+
+export interface Ficha {
+  id: number;
+  numero_ficha: number;
+  nombre_ficha: string;
+  abreviacion: string;
+  fecha_inicio: string;
+  fecha_salida: string;
+  is_active: boolean;
 }
 
 export interface Actividad {
@@ -88,53 +102,63 @@ export interface Asignacion {
   fecha_programada: string;
   observaciones: string;
   fk_id_realiza: Realiza | number;
-  fk_identificacion:number[]; // Cambiado a number[] para ManyToManyField
+  fk_identificacion: (number | { id: number })[];
 }
 
-// Configurar el interceptor de Axios para incluir el token de autenticación
 const getAuthToken = () => {
-  return localStorage.getItem('token') || null; // Ajusta según dónde almacenes el token
+  return localStorage.getItem('token') || null;
 };
 
 axios.interceptors.request.use(
   (config) => {
     const token = getAuthToken();
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`; // Incluye el token en todas las solicitudes
+      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// Función para obtener las asignaciones
 const fetchAsignaciones = async (): Promise<Asignacion[]> => {
   try {
     const { data } = await axios.get(`${apiUrl}asignaciones_actividades/`);
+    if (!Array.isArray(data)) {
+      throw new Error('La API no devolvió un array válido.');
+    }
     return data;
   } catch (error: any) {
-    console.error('Error al obtener asignaciones:', error.response?.data || error.message);
-    throw new Error('No se pudo obtener la lista de asignaciones');
+    const errorMessage = error.response?.data?.detail || error.message || 'No se pudo obtener la lista de asignaciones';
+    console.error('Error al obtener asignaciones:', {
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message,
+    });
+    throw new Error(errorMessage);
   }
 };
 
-// Función para finalizar una asignación
 export const finalizarAsignacion = async (id: number): Promise<Asignacion> => {
   try {
     const { data } = await axios.post(`${apiUrl}asignaciones_actividades/${id}/finalizar/`);
-    return data.asignacion; // El backend devuelve la asignación actualizada en 'asignacion'
+    return data.asignacion;
   } catch (error: any) {
-    console.error('Error al finalizar asignación:', error.response?.data || error.message);
-    throw new Error(error.response?.data?.error || 'No se pudo finalizar la asignación');
+    const errorMessage = error.response?.data?.error || error.message || 'No se pudo finalizar la asignación';
+    console.error('Error al finalizar asignación:', {
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message,
+    });
+    throw new Error(errorMessage);
   }
 };
 
-// Hook para obtener las asignaciones
 export const useAsignacion = () => {
   return useQuery<Asignacion[], Error>({
     queryKey: ['Asignaciones'],
     queryFn: fetchAsignaciones,
-    gcTime: 1000 * 60 * 10, // 10 minutos
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    gcTime: 1000 * 60 * 10,
+    staleTime: 1000 * 60 * 5,
+    retry: 2,
   });
 };

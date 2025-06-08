@@ -2,9 +2,37 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { showToast } from '@/components/globales/Toast';
 
-const apiUrl = import.meta.env.VITE_API_URL;
+const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/';
 
-// Definición de interfaces para los datos relacionados
+// Reusing interfaces from the first snippet for consistency
+export interface Rol {
+  id: number;
+  rol: string;
+}
+
+export interface Ficha {
+  id: number;
+  numero_ficha: number;
+  nombre_ficha: string;
+  abreviacion: string;
+  fecha_inicio: string;
+  fecha_salida: string;
+  is_active: boolean;
+}
+
+export interface Usuario {
+  id: number;
+  identificacion: string;
+  email: string;
+  nombre: string;
+  apellido: string;
+  is_active: boolean;
+  fk_id_rol: Rol | null;
+  ficha: Ficha | null;
+  img: string | null;
+  img_url: string;
+}
+
 export interface Actividad {
   id: number;
   nombre_actividad: string;
@@ -46,7 +74,7 @@ export interface Plantacion {
   descripcion: string;
   fk_id_cultivo: Cultivo;
   cantidad_transplante?: number;
-  fk_id_semillero?: Semillero;
+  fk_id_semillero: Semillero;
   fecha_plantacion: string;
 }
 
@@ -56,11 +84,18 @@ export interface Realiza {
   fk_id_actividad: Actividad;
 }
 
-export interface Usuario {
+export interface Lote {
   id: number;
-  nombre: string;
-  apellido: string;
-  email: string;
+  nombre_lote: string;
+  dimencion: string;
+  estado: boolean;
+}
+
+export interface Eras {
+  id: number;
+  descripcion: string;
+  fk_id_lote: Lote;
+  estado: boolean;
 }
 
 export interface Asignacion {
@@ -72,19 +107,17 @@ export interface Asignacion {
   fk_identificacion: number[];
 }
 
-// Interfaz para los datos de entrada (POST)
 export interface CrearAsignacionDTO {
-  estado: 'Pendiente'; // Solo 'Pendiente' al crear
-  fecha_programada: string; // Formato ISO (YYYY-MM-DD)
+  estado: 'Pendiente';
+  fecha_programada: string;
   observaciones: string;
   fk_id_realiza: number;
-  fk_identificacion: number[]; // Array de IDs de usuarios (sin restricción de roles)
+  fk_identificacion: number[];
 }
 
-// Función para crear una asignación con validación y depuración
 const crearAsignacion = async (asignacionData: CrearAsignacionDTO): Promise<Asignacion> => {
   try {
-    // Validación básica en el frontend
+    // Basic frontend validation
     if (!asignacionData.fecha_programada || !/^\d{4}-\d{2}-\d{2}$/.test(asignacionData.fecha_programada)) {
       throw new Error('La fecha programada debe estar en formato YYYY-MM-DD (ejemplo: 2025-06-05)');
     }
@@ -98,34 +131,40 @@ const crearAsignacion = async (asignacionData: CrearAsignacionDTO): Promise<Asig
       throw new Error('Los IDs de usuarios en fk_identificacion deben ser enteros válidos y mayores que cero');
     }
 
-    // Depuración: Mostrar datos enviados con detalle
-    console.log('Datos enviados a crearAsignacion:', JSON.stringify(asignacionData, null, 2));
+    // Log request data for debugging
+    console.log('Enviando datos para crear asignación:', JSON.stringify(asignacionData, null, 2));
 
-    const response = await axios.post(`${apiUrl}asignaciones_actividades/`, asignacionData, {
+    // Make POST request
+    const { data } = await axios.post(`${apiUrl}asignaciones_actividades/`, asignacionData, {
       headers: {
         'Content-Type': 'application/json',
       },
     });
-    console.log('Respuesta del backend:', JSON.stringify(response.data, null, 2));
-    return response.data;
-  } catch (error: any) {
-    // Mejor manejo de errores para capturar detalles específicos
-    const errorDetails = error.response?.data || error.message;
-    let errorMessage = 'No se pudo crear la asignación';
 
-    if (error.response?.data) {
-      if (typeof error.response.data === 'object') {
-        // Si el backend devuelve un objeto con errores por campo
-        const errors = Object.entries(error.response.data)
-          .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
-          .join('; ');
-        errorMessage = errors || errorMessage;
-      } else {
-        errorMessage = error.response.data.detail || error.response.data.message || errorMessage;
-      }
+    // Log raw response for debugging
+    console.log('Respuesta cruda del backend:', JSON.stringify(data, null, 2));
+
+    // Handle both direct Asignacion and wrapped { asignacion: Asignacion } responses
+    const asignacion = data.asignacion || data;
+
+    // Validate the response structure
+    if (!asignacion || typeof asignacion !== 'object' || !asignacion.id) {
+      throw new Error('La API no devolvió una asignación válida.');
     }
 
-    console.error('Error detallado al crear asignación:', errorMessage, errorDetails);
+    return asignacion as Asignacion;
+  } catch (error: any) {
+    const errorMessage =
+      error.response?.data?.detail ||
+      error.response?.data?.error ||
+      error.message ||
+      'No se pudo crear la asignación';
+    console.error('Error al crear asignación:', {
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message,
+      stack: error.stack,
+    });
     throw new Error(errorMessage);
   }
 };
@@ -136,7 +175,6 @@ export const useCrearAsignacion = () => {
   return useMutation<Asignacion, Error, CrearAsignacionDTO>({
     mutationFn: crearAsignacion,
     onSuccess: () => {
-      // Invalidar la consulta de asignaciones para recargar la lista
       queryClient.invalidateQueries({ queryKey: ['Asignaciones'] });
       showToast({
         title: 'Éxito',
@@ -149,7 +187,7 @@ export const useCrearAsignacion = () => {
       showToast({
         title: 'Error',
         description: error.message || 'Ocurrió un error al crear la asignación.',
-        timeout: 5000, // Aumentar el tiempo para errores para que el usuario pueda leerlos
+        timeout: 5000,
         variant: 'error',
       });
     },

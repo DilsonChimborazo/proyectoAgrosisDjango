@@ -4,7 +4,6 @@ import { useTipoCultivo, TipoCultivo } from '@/hooks/trazabilidad/tipoCultivo/us
 import VentanaModal from '../../globales/VentanasModales';
 import CrearTipoCultivo from '../tipocultivo/CrearTipoCultivo';
 import Formulario from '../../globales/Formulario';
-import { showToast } from '@/components/globales/Toast';
 
 interface CrearEspecieProps {
   onSuccess?: () => void;
@@ -27,12 +26,7 @@ const CrearEspecie = ({ onSuccess }: CrearEspecieProps) => {
 
   useEffect(() => {
     if (!isLoadingTiposCultivo && tiposCultivo.length === 0) {
-      showToast({
-        title: 'Error al crear especie',
-        description: 'No hay tipos de cultivo registrados',
-        timeout: 3000,
-        variant: 'error',
-      });
+      // No se muestra toast, solo se puede manejar en la UI si es necesario
     }
   }, [isLoadingTiposCultivo, tiposCultivo.length]);
 
@@ -59,13 +53,7 @@ const CrearEspecie = ({ onSuccess }: CrearEspecieProps) => {
     const fkIdTipoCultivo = formData.fk_id_tipo_cultivo as string;
 
     if (!nombreComun || !nombreCientifico || !fkIdTipoCultivo) {
-      showToast({
-        title: 'Error al crear especie',
-        description: 'Todos los campos son obligatorios',
-        timeout: 3000,
-        variant: 'error',
-      });
-      return;
+      return; // Depende de Formulario para validación
     }
 
     const nuevaEspecie = {
@@ -77,24 +65,12 @@ const CrearEspecie = ({ onSuccess }: CrearEspecieProps) => {
 
     mutation.mutate(nuevaEspecie, {
       onSuccess: () => {
-        showToast({
-          title: 'Especie creada exitosamente',
-          description: 'La especie ha sido registrada en el sistema',
-          timeout: 3000,
-          variant: 'success',
-        });
-        console.log('✅ onSuccess de CrearEspecie ejecutado');
         if (typeof onSuccess === 'function') {
           onSuccess();
         }
       },
-      onError: (error: any) => {
-        showToast({
-          title: 'Error al crear especie',
-          description: error.response?.data?.detail,
-          timeout: 3000,
-          variant: 'error',
-        });
+      onError: () => {
+        // Silenciar error, no propagar toast
       },
     });
   };

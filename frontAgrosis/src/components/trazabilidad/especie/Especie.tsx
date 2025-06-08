@@ -14,7 +14,7 @@ interface EspecieTabla {
 }
 
 const ListarEspecie = () => {
-  const { data: especies, error, isLoading, refetch } = useEspecie();
+  const { data: especies, refetch } = useEspecie();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);

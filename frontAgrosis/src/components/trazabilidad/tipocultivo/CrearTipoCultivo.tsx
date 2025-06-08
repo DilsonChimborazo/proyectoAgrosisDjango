@@ -13,7 +13,7 @@ const CICLO_OPCIONES = [
 ];
 
 const CrearTipoCultivo = ({ onSuccess }: CrearTipoCultivoProps) => {
-  const { mutate: createTipoCultivo, isPending } = useCrearTipoCultivo();
+  const { mutate: createTipoCultivo, isError } = useCrearTipoCultivo();
 
   const formFields = [
     { id: 'nombre', label: 'Nombre', type: 'text', required: true },
@@ -31,7 +31,6 @@ const CrearTipoCultivo = ({ onSuccess }: CrearTipoCultivoProps) => {
     const nombre = formData.nombre as string;
     const descripcion = formData.descripcion as string;
     const cicloDuracion = formData.ciclo_duracion as string;
-
 
     if (!nombre || !descripcion || !cicloDuracion) {
       showToast({
@@ -72,7 +71,7 @@ const CrearTipoCultivo = ({ onSuccess }: CrearTipoCultivoProps) => {
       <Formulario
         fields={formFields}
         onSubmit={handleSubmit}
-        isError={isPending}
+        isError={isError}
         isSuccess={false}
         title="Crear Nuevo Tipo de Cultivo"
       />

@@ -2,8 +2,7 @@ import { useState, useMemo, memo, useEffect } from 'react';
 import { useAsignacion, Asignacion } from '@/hooks/trazabilidad/asignacion/useAsignacion';
 import { useRealiza, Realiza } from '@/hooks/trazabilidad/realiza/useRealiza';
 import { useUsuarios, Usuario } from '@/hooks/usuarios/usuario/useUsuarios';
-import { useProgramacion } from '@/hooks/trazabilidad/programacion/useProgramacion';
-import { useMedidas } from '@/hooks/inventario/unidadMedida/useMedidad';
+import { useProgramacion, Programacion } from '@/hooks/trazabilidad/programacion/useProgramacion';
 import { useCurrentUser } from '@/hooks/trazabilidad/asignacion/useCurrentUser';
 import VentanaModal from '../../globales/VentanasModales';
 import Tabla from '../../globales/Tabla';
@@ -24,16 +23,28 @@ interface AsignacionTabla {
   usuarios: string[];
   fecha_realizada: string | null | string;
   duracion: number | null | string;
-  cantidad_insumo: number | null | string;
   img: string | null | React.ReactNode;
-  unidad_medida: string;
 }
 
 const DetalleAsignacionModal = memo(({ item, realizaList, usuarios }: { item: Asignacion; realizaList: Realiza[]; usuarios: Usuario[] }) => {
   const realiza = realizaList.find((r) => r.id === (typeof item.fk_id_realiza === 'object' ? item.fk_id_realiza?.id : item.fk_id_realiza));
+
+  // Debug fk_identificacion and usuarios
+  console.log('DetalleAsignacionModal - Asignacion:', item);
+  console.log('DetalleAsignacionModal - fk_identificacion:', item.fk_identificacion);
+  console.log('DetalleAsignacionModal - Usuarios:', usuarios);
+
   const usuariosAsignados = Array.isArray(item.fk_identificacion)
-    ? item.fk_identificacion.map((id) => usuarios.find((u) => u.id === id)).filter((u): u is Usuario => !!u)
+    ? item.fk_identificacion
+        .map((id) => {
+          const usuarioId = typeof id === 'object' ? id.id : id;
+          const usuario = usuarios.find((u) => u.id === Number(usuarioId) || u.id === usuarioId);
+          return usuario;
+        })
+        .filter((u): u is Usuario => !!u)
     : [];
+
+  console.log('DetalleAsignacionModal - Usuarios Asignados:', usuariosAsignados);
 
   const realizaNombre = realiza
     ? `${realiza.fk_id_actividad?.nombre_actividad || 'Sin actividad'} (${realiza.fk_id_plantacion?.fk_id_semillero?.nombre_semilla || 'Sin cultivo'})`
@@ -75,12 +86,11 @@ const ListarAsignacion: React.FC = () => {
   const [modalContenido, setModalContenido] = useState<React.ReactNode>(null);
   const [imagenAmpliada, setImagenAmpliada] = useState<string | null>(null);
 
-  const { data: user, isLoading: isLoadingUser, error: errorUser } = useCurrentUser();
+  const { data: user, isLoading: isLoadingUser, error: errorUser } = useCurrentUser() as { data: Usuario | undefined };
   const { data: asignaciones = [], isLoading: isLoadingAsignaciones, error: errorAsignaciones, refetch: refetchAsignaciones } = useAsignacion();
   const { data: realizaList = [], isLoading: isLoadingRealiza, error: errorRealiza } = useRealiza();
   const { data: usuarios = [], isLoading: isLoadingUsuarios, error: errorUsuarios } = useUsuarios();
   const { data: programaciones = [], isLoading: isLoadingProgramaciones, error: errorProgramaciones, refetch: refetchProgramaciones } = useProgramacion();
-  const { data: unidadesMedida = [], isLoading: isLoadingUnidadesMedida, error: errorUnidadesMedida } = useMedidas();
 
   // Mostrar toasts al cargar los datos
   useEffect(() => {
@@ -100,19 +110,35 @@ const ListarAsignacion: React.FC = () => {
     console.log('Realiza List:', realizaList);
     console.log('Usuarios:', usuarios);
     console.log('Programaciones:', programaciones);
-    console.log('Unidades Medida:', unidadesMedida);
-    console.log('Realiza IDs disponibles:', realizaList.map((r) => r.id));
     console.log('Usuario actual:', user);
-  }, [asignaciones, realizaList, usuarios, programaciones, unidadesMedida, user]);
+  }, [asignaciones, realizaList, usuarios, programaciones, user]);
+
+  const filteredAsignaciones = useMemo(() => {
+    if (!user || !user.fk_id_rol) return asignaciones; // Verificación más segura
+
+    const allowedRoles = ['Administrador', 'Instructor', 'Operario'];
+    if (user.fk_id_rol && allowedRoles.includes(user.fk_id_rol.rol)) {
+      return asignaciones; // Administrador, Instructor, Operario ven todas las asignaciones
+    } else {
+      // Otros roles solo ven asignaciones donde están incluidos
+      return asignaciones.filter((asignacion) =>
+        Array.isArray(asignacion.fk_identificacion) &&
+        asignacion.fk_identificacion.some((id) => {
+          const userId = typeof id === 'object' ? id.id : id;
+          return userId === user.id;
+        })
+      );
+    }
+  }, [asignaciones, user]);
 
   const tablaData: AsignacionTabla[] = useMemo(() => {
-    if (!asignaciones.length) {
+    if (!filteredAsignaciones.length) {
       console.log('No hay asignaciones para mapear.');
       return [];
     }
     if (!realizaList.length) {
       console.log('No hay datos en realizaList.');
-      return asignaciones.map((asignacion) => ({
+      return filteredAsignaciones.map((asignacion) => ({
         id: asignacion.id,
         estado: asignacion.estado as 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada',
         fecha_programada: asignacion.fecha_programada || 'Sin fecha',
@@ -122,13 +148,11 @@ const ListarAsignacion: React.FC = () => {
         usuarios: ['Sin usuarios'],
         fecha_realizada: 'No asignada',
         duracion: 'No asignada',
-        cantidad_insumo: 'No asignada',
         img: 'No asignada',
-        unidad_medida: 'No asignada',
       }));
     }
 
-    return asignaciones.map((asignacion) => {
+    return filteredAsignaciones.map((asignacion) => {
       const realizaId = typeof asignacion.fk_id_realiza === 'object' ? asignacion.fk_id_realiza?.id : asignacion.fk_id_realiza;
       console.log(`Mapeando asignación ID: ${asignacion.id}, fk_id_realiza: ${realizaId}`);
       const realiza = realizaList.find((r) => r.id === realizaId);
@@ -140,7 +164,7 @@ const ListarAsignacion: React.FC = () => {
         ? asignacion.fk_identificacion
             .map((id) => {
               const usuarioId = typeof id === 'object' ? id.id : id;
-              const usuario = usuarios.find((u) => u.id === usuarioId);
+              const usuario = usuarios.find((u) => u.id === Number(usuarioId) || u.id === usuarioId);
               return usuario ? `${usuario.nombre} ${usuario.apellido}` : null;
             })
             .filter((u): u is string => !!u)
@@ -152,15 +176,6 @@ const ListarAsignacion: React.FC = () => {
           : p.fk_id_asignacionActividades;
         return programacionId === asignacion.id;
       });
-
-      let unidadMedida = 'No asignada';
-      if (programacion?.fk_unidad_medida != null) {
-        const unidadMedidaId = typeof programacion.fk_unidad_medida === 'object'
-          ? programacion.fk_unidad_medida.id
-          : Number(programacion.fk_unidad_medida);
-        const unidad = unidadesMedida.find((um) => um.id === unidadMedidaId);
-        unidadMedida = unidad ? unidad.nombre_medida : `Unidad no encontrada (ID: ${unidadMedidaId})`;
-      }
 
       let imgElement: React.ReactNode = 'No asignada';
       let imgUrl: string | null = null;
@@ -197,12 +212,10 @@ const ListarAsignacion: React.FC = () => {
         usuarios: usuariosAsignados.length > 0 ? usuariosAsignados : ['Sin usuarios'],
         fecha_realizada: programacion?.fecha_realizada || 'No asignada',
         duracion: programacion?.duracion ?? 'No asignada',
-        cantidad_insumo: programacion?.cantidad_insumo ?? 'No asignada',
         img: imgElement,
-        unidad_medida: unidadMedida,
       };
     });
-  }, [asignaciones, realizaList, usuarios, programaciones, unidadesMedida]);
+  }, [filteredAsignaciones, realizaList, usuarios, programaciones]);
 
   // Depuración: Mostrar tablaData después de que se haya inicializado
   useEffect(() => {
@@ -252,9 +265,12 @@ const ListarAsignacion: React.FC = () => {
       return;
     }
     console.log('Asignación encontrada:', asignacion);
-    console.log('Usuario ID:', user.id , 'fk_identificacion:', asignacion.fk_identificacion);
+    console.log('Usuario ID:', user.id, 'fk_identificacion:', asignacion.fk_identificacion);
     const userAssigned = Array.isArray(asignacion.fk_identificacion)
-      ? asignacion.fk_identificacion.some((id) => (typeof id === 'object' ? id.id : id) === user.id)
+      ? asignacion.fk_identificacion.some((id) => {
+          const userId = typeof id === 'object' ? id.id : id;
+          return userId === user.id;
+        })
       : false;
     if (!userAssigned) {
       showToast({
@@ -265,10 +281,10 @@ const ListarAsignacion: React.FC = () => {
       });
       return;
     }
-    if (!['Aprendiz', 'Operario','Administrador','Instructor',"Pasante"].includes(user.fk_id_rol?.rol)) {
+    if (!user.fk_id_rol || !['Aprendiz', 'Operario', 'Administrador', 'Instructor', 'Pasante'].includes(user.fk_id_rol.rol)) {
       showToast({
         title: 'Acceso Denegado',
-        description: 'No tienes permiso para finalizar esta asignacion.',
+        description: 'No tienes permiso para finalizar esta asignación.',
         timeout: 3000,
         variant: 'error',
       });
@@ -288,7 +304,7 @@ const ListarAsignacion: React.FC = () => {
       });
       return;
     }
-    if (['Aprendiz', 'Operario'].includes(user.fk_id_rol?.rol)) {
+    if (user.fk_id_rol && ['Aprendiz', 'Operario'].includes(user.fk_id_rol.rol)) {
       showToast({
         title: 'Acceso Denegado',
         description: 'No tienes permiso para crear una asignación.',
@@ -309,7 +325,6 @@ const ListarAsignacion: React.FC = () => {
             variant: 'success',
           });
         }}
-        onCancel={closeModal}
         usuarios={usuarios}
         onCreateUsuario={() => refetchAsignaciones()}
       />
@@ -325,8 +340,8 @@ const ListarAsignacion: React.FC = () => {
     setSelectedAsignacion(null);
   };
 
-  const loading = isLoadingAsignaciones || isLoadingRealiza || isLoadingUsuarios || isLoadingProgramaciones || isLoadingUnidadesMedida || isLoadingUser;
-  const error = errorAsignaciones || errorRealiza || errorUsuarios || errorProgramaciones || errorUnidadesMedida || errorUser;
+  const loading = isLoadingAsignaciones || isLoadingRealiza || isLoadingUsuarios || isLoadingProgramaciones || isLoadingUser;
+  const error = errorAsignaciones || errorRealiza || errorUsuarios || errorProgramaciones || errorUser;
 
   if (loading) return <div className="text-center text-gray-500">Cargando asignaciones...</div>;
   if (error) {
@@ -348,8 +363,6 @@ const ListarAsignacion: React.FC = () => {
     'Observaciones',
     'Fecha Realizada',
     'Duracion',
-    'Cantidad Insumo',
-    'Unidad Medida',
     'Img',
     'Estado',
   ];
@@ -372,8 +385,6 @@ const ListarAsignacion: React.FC = () => {
         <td className="p-3">{item.observaciones}</td>
         <td className="p-3">{item.fecha_realizada}</td>
         <td className="p-3">{item.duracion}</td>
-        <td className="p-3">{item.cantidad_insumo}</td>
-        <td className="p-3">{item.unidad_medida}</td>
         <td className="p-3">{item.img}</td>
         <td className="p-3">{item.estado}</td>
         <td className="p-3">
@@ -386,8 +397,12 @@ const ListarAsignacion: React.FC = () => {
             </button>
             {item.estado === 'Pendiente' &&
               user &&
-              asignaciones.find((a) => a.id === item.id)?.fk_identificacion.some((id) => (typeof id === 'object' ? id.id : id) === user.id) &&
-              ['Aprendiz', 'Pasante'].includes(user.fk_id_rol?.rol) && (
+              asignaciones.find((a) => a.id === item.id)?.fk_identificacion.some((id) => {
+                const userId = typeof id === 'object' ? id.id : id;
+                return userId === user.id;
+              }) &&
+              user.fk_id_rol &&
+              ['Aprendiz', 'Pasante'].includes(user.fk_id_rol.rol) && (
                 <button
                   onClick={() => handleUpdateClick(item)}
                   className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600"
@@ -424,7 +439,7 @@ const ListarAsignacion: React.FC = () => {
                     ? p.fk_id_asignacionActividades?.id
                     : p.fk_id_asignacionActividades;
                   return programacionId === selectedAsignacion.id;
-                })}
+                }) as Programacion | undefined} // Aserción de tipo explícita
                 onSuccess={() => {
                   refetchProgramaciones();
                   refetchAsignaciones();

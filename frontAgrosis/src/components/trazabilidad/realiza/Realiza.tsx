@@ -29,7 +29,7 @@ const Realiza = () => {
   // Mapeo de datos para la tabla
   const tablaData = (realiza ?? []).map((item) => ({
     id: item.id,
-    cultivo: item.fk_id_cultivo?.nombre_cultivo || 'Sin cultivo',
+    cultivo: item.fk_id_plantacion?.nombre_cultivo || 'Sin cultivo',
     actividad: item.fk_id_actividad?.nombre_actividad || 'Sin actividad',
   }));
 
