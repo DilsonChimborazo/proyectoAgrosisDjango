@@ -96,31 +96,6 @@ class Asignacion_actividades(models.Model):
         # Actualizar notificaciones para reflejar los recursos asignados
         self.save()  # Esto disparará la lógica de notificación con los nuevos recursos
 
-    # Método para registrar la salida en bodega al reclamar (herramientas e insumos)
-    def reclamar_recursos(self, herramientas_cantidades, insumos_cantidades):
-        from apps.inventario.bodega.models import Bodega  # Importación local
-        for herramienta_id, cantidad in herramientas_cantidades.items():
-            Bodega.objects.create(
-                fk_id_herramientas_id=Herramientas.objects.get(id=herramienta_id),
-                fk_id_insumo=None,
-                fk_id_asignacion=self,
-                cantidad_herramienta=cantidad,
-                movimiento='Salida',
-                fk_unidad_medida=None  # Ajusta si las herramientas tienen unidad de medida
-            )
-        for insumo_id, cantidad in insumos_cantidades.items():
-            insumo = Insumo.objects.get(id=insumo_id)
-            Bodega.objects.create(
-                fk_id_herramientas=None,
-                fk_id_insumo=insumo,
-                fk_id_asignacion=self,
-                cantidad_insumo=cantidad,
-                movimiento='Salida',
-                fk_unidad_medida=insumo.fk_unidad_medida if insumo.fk_unidad_medida else None
-            )
-        self.recursos_asignados = {'herramientas': list(herramientas_cantidades.keys()), 'insumos': list(insumos_cantidades.keys())}  # Actualizar recursos reclamados
-        self.save()
-        logger.info(f"Recursos reclamados y registrados en bodega para asignación {self.id}: {herramientas_cantidades} herramientas, {insumos_cantidades} insumos")
 
     # Método para completar actividad
     def completar_actividad(self, duracion, bodega_devolucion_id=None):
