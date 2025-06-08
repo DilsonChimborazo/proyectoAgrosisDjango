@@ -88,7 +88,7 @@ class Bodega(models.Model):
                 else:
                     raise ValueError("La cantidad a retirar excede la cantidad disponible en herramientas")
             elif self.movimiento == 'Entrada':
-                herramienta.cantidad_herramienta += self.cantidad_herramienta
+                herramienta.cantidad_herramienta + self.cantidad_herramienta
                 herramienta.save()
 
         # Manejo de movimientos de insumos (solo salidas o entradas, sin devolución)
