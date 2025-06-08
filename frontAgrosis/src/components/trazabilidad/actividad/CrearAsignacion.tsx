@@ -6,6 +6,7 @@ import VentanaModal from '../../globales/VentanasModales';
 import CrearRealiza from '../realiza/CrearRealiza';
 import CrearUsuario from '../../usuarios/usuario/crearUsuario';
 import { showToast } from '@/components/globales/Toast';
+import axios from 'axios';
 
 interface Rol {
   id: number;
@@ -59,6 +60,16 @@ interface Realiza {
   fk_id_actividad: Actividad;
 }
 
+interface Herramienta {
+  id: number;
+  nombre_h: string; // Ajusta según tu modelo
+}
+
+interface Insumo {
+  id: number;
+  nombre: string; // Ajusta según tu modelo
+}
+
 interface CrearAsignacionModalProps {
   onSuccess: () => void;
   onCancel: () => void;
@@ -80,12 +91,16 @@ const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios, onCreateUsuario
     estado: 'Pendiente' as 'Pendiente',
     fecha_programada: '',
     observaciones: '',
+    herramientas: [] as SelectOption[],
+    insumos: [] as SelectOption[],
   });
   const [selectedRole, setSelectedRole] = useState<string>('');
   const [selectedFicha, setSelectedFicha] = useState<string>('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState<React.ReactNode>(null);
   const [usuarios, setUsuarios] = useState<Usuario[]>(initialUsuarios);
+  const [herramientas, setHerramientas] = useState<Herramienta[]>([]);
+  const [insumos, setInsumos] = useState<Insumo[]>([]);
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -94,10 +109,44 @@ const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios, onCreateUsuario
     setUsuarios(initialUsuarios);
   }, [initialUsuarios]);
 
-  // Depuración de realizaList
   useEffect(() => {
     console.log('realizaList:', JSON.stringify(realizaList, null, 2));
   }, [realizaList]);
+
+  // Cargar herramientas e insumos con depuración
+  useEffect(() => {
+    const fetchResources = async () => {
+      try {
+        const [herramientasResp, insumosResp] = await Promise.all([
+          axios.get(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/'}herramientas/`),
+          axios.get(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/'}insumo/`),
+        ]);
+        console.log('Respuesta herramientas:', herramientasResp.data);
+        console.log('Respuesta insumos:', insumosResp.data);
+        if (Array.isArray(herramientasResp.data)) {
+          setHerramientas(herramientasResp.data);
+        } else {
+          console.error('Datos de herramientas no es un array:', herramientasResp.data);
+          setHerramientas([]);
+        }
+        if (Array.isArray(insumosResp.data)) {
+          setInsumos(insumosResp.data);
+        } else {
+          console.error('Datos de insumos no es un array:', insumosResp.data);
+          setInsumos([]);
+        }
+      } catch (error: any) {
+        console.error('Error al cargar recursos:', error.response?.data || error.message);
+        showToast({
+          title: 'Error',
+          description: 'No se pudieron cargar los recursos. Revisa la consola para más detalles.',
+          timeout: 5000,
+          variant: 'error',
+        });
+      }
+    };
+    fetchResources();
+  }, []);
 
   const roleOptions: SelectOption[] = Array.from(
     new Set(usuarios.map((usuario) => usuario.fk_id_rol?.id || 0).filter((id) => id !== 0))
@@ -159,6 +208,19 @@ const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios, onCreateUsuario
       } - Rol: ${usuario.fk_id_rol?.rol || 'Sin rol'}`,
     }));
 
+  const opcionesHerramientas: SelectOption[] = herramientas.map((h) => ({
+    value: String(h.id),
+    label: h.nombre_h,
+  }));
+
+  const opcionesInsumos: SelectOption[] = insumos.map((i) => ({
+    value: String(i.id),
+    label: i.nombre,
+  }));
+
+  console.log('Opciones herramientas:', opcionesHerramientas);
+  console.log('Opciones insumos:', opcionesInsumos);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -200,6 +262,14 @@ const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios, onCreateUsuario
     setFormData((prev) => ({ ...prev, fk_identificacion: selectedIds }));
   };
 
+  const handleHerramientasChange = (selectedOptions: SelectOption[] | null) => {
+    setFormData((prev) => ({ ...prev, herramientas: selectedOptions || [] }));
+  };
+
+  const handleInsumosChange = (selectedOptions: SelectOption[] | null) => {
+    setFormData((prev) => ({ ...prev, insumos: selectedOptions || [] }));
+  };
+
   const validateForm = () => {
     if (!formData.fk_id_realiza) return 'Debe seleccionar una gestión de cultivo';
     if (formData.fk_identificacion.length === 0) return 'Debe seleccionar al menos un usuario';
@@ -232,17 +302,69 @@ const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios, onCreateUsuario
         observaciones: formData.observaciones,
       },
       {
-        onSuccess: () => {
+        onSuccess: async (data) => {
+          const asignacionId = data.id;
+
+          // Asignar recursos después de crear la asignación
+          const herramientasIds = formData.herramientas.map((h) => Number(h.value));
+          const insumosIds = formData.insumos.map((i) => Number(i.value));
+
+          if (herramientasIds.length > 0 || insumosIds.length > 0) {
+            try {
+              // Llamada a asignar_recursos
+              await axios.post(
+                `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/'}asignaciones_actividades/${asignacionId}/asignar-recursos/`,
+                {
+                  herramientas_ids: herramientasIds,
+                  insumos_ids: insumosIds,
+                },
+                { headers: { 'Content-Type': 'application/json' } }
+              );
+
+              showToast({
+                title: 'Éxito',
+                description: 'Asignación y recursos registrados correctamente.',
+                timeout: 3000,
+                variant: 'success',
+              });
+            } catch (error: any) {
+              showToast({
+                title: 'Error',
+                description:
+                  error.response?.data?.detail || 'No se pudieron asignar los recursos.',
+                timeout: 5000,
+                variant: 'error',
+              });
+            }
+          } else {
+            showToast({
+              title: 'Éxito',
+              description: 'Asignación registrada correctamente.',
+              timeout: 3000,
+              variant: 'success',
+            });
+          }
+
           setFormData({
             fk_id_realiza: '',
             fk_identificacion: [],
             estado: 'Pendiente',
             fecha_programada: '',
             observaciones: '',
+            herramientas: [],
+            insumos: [],
           });
           setSelectedRole('');
           setSelectedFicha('');
           onSuccess();
+        },
+        onError: (error) => {
+          showToast({
+            title: 'Error',
+            description: error.message || 'Ocurrió un error al crear la asignación.',
+            timeout: 5000,
+            variant: 'error',
+          });
         },
       }
     );
@@ -437,6 +559,40 @@ const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios, onCreateUsuario
             rows={4}
             disabled={isPending}
           />
+        </div>
+        <div>
+          <label htmlFor="herramientas" className="block text-sm font-medium text-gray-700">
+            Herramientas
+          </label>
+          <Select
+            id="herramientas"
+            isMulti
+            options={opcionesHerramientas}
+            value={formData.herramientas}
+            onChange={handleHerramientasChange}
+            placeholder="Selecciona herramientas..."
+            isDisabled={isPending}
+          />
+          {opcionesHerramientas.length === 0 && (
+            <p className="text-red-500 text-sm mt-1">No se cargaron herramientas.</p>
+          )}
+        </div>
+        <div>
+          <label htmlFor="insumos" className="block text-sm font-medium text-gray-700">
+            Insumos
+          </label>
+          <Select
+            id="insumos"
+            isMulti
+            options={opcionesInsumos}
+            value={formData.insumos}
+            onChange={handleInsumosChange}
+            placeholder="Selecciona insumos..."
+            isDisabled={isPending}
+          />
+          {opcionesInsumos.length === 0 && (
+            <p className="text-red-500 text-sm mt-1">No se cargaron insumos.</p>
+          )}
         </div>
         <div className="flex justify-center">
           <button

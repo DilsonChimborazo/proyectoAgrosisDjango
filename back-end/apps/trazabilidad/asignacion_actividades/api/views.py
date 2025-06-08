@@ -5,9 +5,12 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from apps.trazabilidad.asignacion_actividades.models import Asignacion_actividades
+from apps.inventario.herramientas.models import Herramientas
+from apps.inventario.insumo.models import Insumo
 from apps.trazabilidad.asignacion_actividades.api.serializers import (
     LeerAsignacion_actividadesSerializer,
-    EscribirAsignacion_actividadesSerializer
+    EscribirAsignacion_actividadesSerializer,
+    AsignarRecursosSerializer
 )
 from apps.usuarios.usuario.models import Usuarios
 from apps.trazabilidad.actividad.models import Actividad
@@ -15,7 +18,9 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from django.core.mail import send_mail
 from django.conf import settings
-from .permissions import IsUsuarioAsignacion  # Importar el permiso corregido
+import logging
+
+logger = logging.getLogger(__name__)
 
 class Asignacion_actividadesModelViewSet(ModelViewSet):
     queryset = Asignacion_actividades.objects.select_related(
@@ -23,141 +28,172 @@ class Asignacion_actividadesModelViewSet(ModelViewSet):
         'fk_id_realiza__fk_id_actividad',
     ).prefetch_related('fk_identificacion').all()
 
-    permission_classes = [IsAuthenticated, IsUsuarioAsignacion]  # Usar el nuevo permiso
-
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve']:
             return LeerAsignacion_actividadesSerializer
+        elif self.action == 'asignar-recursos':
+            return AsignarRecursosSerializer
         return EscribirAsignacion_actividadesSerializer
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-
-        # Obtener la asignación creada
-        asignacion = Asignacion_actividades.objects.get(id=serializer.data['id'])
-        actividad = asignacion.fk_id_realiza.fk_id_actividad if asignacion.fk_id_realiza else None
-        usuarios = asignacion.fk_identificacion.all()
-
-        # Enviar correo y notificación WebSocket para cada usuario
-        for usuario in usuarios:
-            try:
-                subject = "Nueva Actividad Asignada"
-                message = (
-                    f"Hola {usuario.nombre} {usuario.apellido},\n\n"
-                    f"Se te ha asignado una nueva actividad:\n"
-                    f"- Actividad: {actividad.nombre_actividad if actividad else 'No especificado'}\n"
-                    f"- Fecha: {asignacion.fecha_programada}\n"
-                    f"- Estado: {asignacion.estado}\n"
-                    f"- Observaciones: {asignacion.observaciones or 'Ninguna'}\n\n"
-                    f"Por favor, revisa los detalles en el sistema."
-                )
-                print(f"Enviando correo a: {usuario.email}")
-                send_mail(
-                    subject,
-                    message,
-                    settings.DEFAULT_FROM_EMAIL,
-                    [usuario.email],
-                    fail_silently=False,
-                )
-                print(f"Correo enviado a: {usuario.email}")
-            except Exception as e:
-                print(f"Error al enviar correo a {usuario.email}: {str(e)}")
-
-            # Enviar notificación por WebSocket
-            channel_layer = get_channel_layer()
-            async_to_sync(channel_layer.group_send)(
-                "asignacion_actividades_notifications",
-                {
-                    "type": "asignacion_notification",
-                    "message": {
-                        "id": asignacion.id,
-                        "usuario": f"{usuario.nombre} {usuario.apellido}",
-                        "actividad": actividad.nombre_actividad if actividad else "No especificado",
-                        "fecha": str(asignacion.fecha_programada),
-                        "estado": asignacion.estado,
-                        "observaciones": asignacion.observaciones or "Ninguna",
-                    }
-                }
-            )
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
-    @action(detail=True, methods=['post'], url_path='finalizar')
-    def finalizar(self, request, pk=None):
+    @action(detail=True, methods=['post'], url_path='asignar-recursos')
+    def asignar_recursos(self, request, pk=None):
         """
-        Acción para que un usuario asignado marque la asignación como Completada.
+        Asigna recursos (herramientas e insumos) a una asignación existente
         """
-        asignacion = self.get_object()
-        if asignacion.estado == 'Completada':
-            return Response({'error': 'La asignación ya está completada'}, status=status.HTTP_400_BAD_REQUEST)
+        logger.info(f"Iniciando asignación de recursos para asignación ID: {pk}")
+        logger.debug(f"Datos recibidos: {request.data}")
         
-        asignacion.estado = 'Completada'
-        asignacion.save()
+        # Validación inicial
+        if not pk:
+            logger.error("No se proporcionó ID de asignación")
+            return Response(
+                {"error": "Se requiere el ID de la asignación"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-        # Enviar notificación por WebSocket a todos los usuarios asignados
-        actividad = asignacion.fk_id_realiza.fk_id_actividad if asignacion.fk_id_realiza else None
-        usuarios = asignacion.fk_identificacion.all()
-        channel_layer = get_channel_layer()
-        for usuario in usuarios:
-            async_to_sync(channel_layer.group_send)(
-                "asignacion_actividades_notifications",
+        try:
+            # Obtener la asignación
+            asignacion = self.get_object()
+            logger.info(f"Asignación encontrada: {asignacion.id}")
+        except Asignacion_actividades.DoesNotExist:
+            logger.error(f"Asignación con ID {pk} no encontrada")
+            return Response(
+                {"error": "La asignación especificada no existe"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Validar datos con serializer
+        serializer = AsignarRecursosSerializer(data=request.data)
+        if not serializer.is_valid():
+            logger.error(f"Datos inválidos: {serializer.errors}")
+            return Response(
                 {
-                    "type": "asignacion_notification",
-                    "message": {
-                        "id": asignacion.id,
-                        "usuario": f"{usuario.nombre} {usuario.apellido}",
-                        "actividad": actividad.nombre_actividad if actividad else "No especificado",
-                        "fecha": str(asignacion.fecha_programada),
-                        "estado": asignacion.estado,
-                        "observaciones": f"Asignación completada por {request.user.nombre} {request.user.apellido}",
+                    "error": "Datos de entrada inválidos",
+                    "detalles": serializer.errors
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        herramientas_ids = serializer.validated_data.get('herramientas_ids', [])
+        insumos_ids = serializer.validated_data.get('insumos_ids', [])
+        
+        logger.info(f"IDs de herramientas a asignar: {herramientas_ids}")
+        logger.info(f"IDs de insumos a asignar: {insumos_ids}")
+
+        # Verificar existencia de recursos
+        try:
+            # Validar herramientas
+            herramientas_count = Herramientas.objects.filter(
+                id__in=herramientas_ids
+            ).count()
+            if len(herramientas_ids) != herramientas_count:
+                missing = set(herramientas_ids) - set(
+                    Herramientas.objects.filter(id__in=herramientas_ids).values_list('id', flat=True)
+                )
+                logger.error(f"Herramientas no encontradas: {missing}")
+                return Response(
+                    {
+                        "error": "Algunas herramientas no existen",
+                        "herramientas_faltantes": list(missing)
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Validar insumos
+            insumos_count = Insumo.objects.filter(
+                id__in=insumos_ids
+            ).count()
+            if len(insumos_ids) != insumos_count:
+                missing = set(insumos_ids) - set(
+                    Insumo.objects.filter(id__in=insumos_ids).values_list('id', flat=True)
+                )
+                logger.error(f"Insumos no encontrados: {missing}")
+                return Response(
+                    {
+                        "error": "Algunos insumos no existen",
+                        "insumos_faltantes": list(missing)
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Asignar recursos
+            asignacion.recursos_asignados = {
+                'herramientas': herramientas_ids,
+                'insumos': insumos_ids
+            }
+            asignacion.save()
+
+            logger.info("Recursos asignados correctamente")
+            logger.debug(f"Estado final de asignación: {asignacion.recursos_asignados}")
+
+            # Notificar a los usuarios
+            self._notificar_asignacion_recursos(asignacion)
+
+            return Response({
+                "status": "success",
+                "message": "Recursos asignados correctamente",
+                "asignacion_id": asignacion.id,
+                "herramientas_asignadas": herramientas_ids,
+                "insumos_asignados": insumos_ids,
+            }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            logger.exception("Error crítico al asignar recursos")
+            return Response(
+                {
+                    "error": "Error interno del servidor",
+                    "detalle": str(e)
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    def _notificar_asignacion_recursos(self, asignacion):
+        """Envía notificaciones sobre los recursos asignados"""
+        try:
+            usuarios = asignacion.fk_identificacion.all()
+            actividad = getattr(asignacion.fk_id_realiza, 'fk_id_actividad', None)
+            
+            mensaje = f"Nuevos recursos asignados a la actividad {actividad.nombre_actividad if actividad else 'N/A'}"
+            
+            if asignacion.recursos_asignados:
+                herramientas = Herramientas.objects.filter(
+                    id__in=asignacion.recursos_asignados.get('herramientas', [])
+                )
+                insumos = Insumo.objects.filter(
+                    id__in=asignacion.recursos_asignados.get('insumos', [])
+                )
+                
+                mensaje += "\n\nHerramientas:\n" + "\n".join([h.nombre_h for h in herramientas])
+                mensaje += "\n\nInsumos:\n" + "\n".join([i.nombre for i in insumos])
+
+            # Notificación por WebSocket
+            channel_layer = get_channel_layer()
+            for usuario in usuarios:
+                async_to_sync(channel_layer.group_send)(
+                    f"notificaciones_{usuario.id}",
+                    {
+                        "type": "notificacion.recursos",
+                        "message": {
+                            "asignacion_id": asignacion.id,
+                            "mensaje": mensaje,
+                            "fecha": str(asignacion.updated_at)
+                        }
                     }
-                }
-            )
+                )
+                
+                # Notificación por email (opcional)
+                try:
+                    send_mail(
+                        subject="Recursos asignados",
+                        message=mensaje,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[usuario.email],
+                        fail_silently=True
+                    )
+                except Exception as email_error:
+                    logger.error(f"Error enviando email: {email_error}")
 
-        return Response({
-            'message': 'Asignación marcada como Completada',
-            'asignacion': LeerAsignacion_actividadesSerializer(asignacion).data
-        }, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"Error en notificación: {str(e)}")
 
-    @action(detail=False, methods=['get'], url_path='reporte-asignaciones')
-    def reporte_asignaciones(self, request):
-        """
-        Reporte personalizado que muestra la fecha programada, plantación, usuarios, actividad, estado y observaciones.
-        """
-        reporte = []
-
-        for asignacion in self.get_queryset():
-            plantacion = (
-                asignacion.fk_id_realiza.fk_id_plantacion.fk_id_cultivo.nombre_cultivo
-                if asignacion.fk_id_realiza and asignacion.fk_id_realiza.fk_id_plantacion and asignacion.fk_id_realiza.fk_id_plantacion.fk_id_cultivo
-                else "No especificado"
-            )
-            usuarios = [
-                {"nombre": f"{usuario.nombre} {usuario.apellido}"}
-                for usuario in asignacion.fk_identificacion.all()
-            ] if asignacion.fk_identificacion.exists() else [{"nombre": "No especificado"}]
-            actividad = (
-                asignacion.fk_id_realiza.fk_id_actividad.nombre_actividad
-                if asignacion.fk_id_realiza and asignacion.fk_id_realiza.fk_id_actividad
-                else "No especificado"
-            )
-            fecha_programada = asignacion.fecha_programada.strftime('%Y-%m-%d') if asignacion.fecha_programada else "No especificado"
-            estado = asignacion.estado if asignacion.estado else "No especificado"
-            observaciones = asignacion.observaciones if asignacion.observaciones else "No especificado"
-
-            reporte.append({
-                "fecha_programada": fecha_programada,
-                "plantacion": plantacion,
-                "usuarios": usuarios,
-                "actividad": actividad,
-                "estado": estado,
-                "observaciones": observaciones,
-            })
-
-        return Response({
-            "reporte": reporte,
-            "estructura": "FECHA PROGRAMADA | PLANTACIÓN | USUARIOS | ACTIVIDAD | ESTADO | OBSERVACIONES"
-        })
+    # ... (mantén los demás métodos existentes: create, finalizar, reporte_asignaciones)

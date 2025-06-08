@@ -57,13 +57,13 @@ class Bodega(models.Model):
         return self.cantidad_herramienta if self.fk_id_herramientas else self.cantidad_insumo
 
     def save(self, *args, **kwargs):
-    # Calcular la cantidad en base si hay unidad de medida
+        # Calcular la cantidad en base si hay unidad de medida (solo para insumos)
         if self.fk_id_insumo and self.cantidad_insumo and self.fk_unidad_medida:
             self.cantidad_en_base = self.fk_unidad_medida.convertir_a_base(self.cantidad_insumo)
         else:
             self.cantidad_en_base = None
 
-        # Calcular el costo total del insumo
+        # Calcular el costo total del insumo (solo para entradas o salidas de insumos)
         if self.fk_id_insumo and self.cantidad_insumo:
             if self.movimiento == 'Entrada':
                 precio_unidad = self.fk_id_insumo.precio_unidad
@@ -87,8 +87,11 @@ class Bodega(models.Model):
                     herramienta.save()
                 else:
                     raise ValueError("La cantidad a retirar excede la cantidad disponible en herramientas")
+            elif self.movimiento == 'Entrada':
+                herramienta.cantidad_herramienta += self.cantidad_herramienta
+                herramienta.save()
 
-        # Manejo de movimientos de insumos
+        # Manejo de movimientos de insumos (solo salidas o entradas, sin devolución)
         if self.fk_id_insumo and self.cantidad_insumo:
             insumo = self.fk_id_insumo
             if self.movimiento == 'Salida':

@@ -42,14 +42,42 @@ class UsuarioSerializer(serializers.ModelSerializer):
         model = Usuarios
         fields = ['id', 'nombre', 'apellido']
 
+from rest_framework import serializers
+
+class AsignarRecursosSerializer(serializers.Serializer):
+    herramientas_ids = serializers.ListField(
+        child=serializers.IntegerField(min_value=1),
+        required=False,
+        default=[],
+        help_text="Lista de IDs de herramientas a asignar"
+    )
+    insumos_ids = serializers.ListField(
+        child=serializers.IntegerField(min_value=1),
+        required=False,
+        default=[],
+        help_text="Lista de IDs de insumos a asignar"
+    )
+
+    def validate_herramientas_ids(self, value):
+        if not isinstance(value, list):
+            raise serializers.ValidationError("Debe ser una lista de IDs")
+        return value
+
+    def validate_insumos_ids(self, value):
+        if not isinstance(value, list):
+            raise serializers.ValidationError("Debe ser una lista de IDs")
+        return value
+
 # Serializador para leer asignaciones
 class LeerAsignacion_actividadesSerializer(serializers.ModelSerializer):
     fk_identificacion = serializers.SerializerMethodField()
     fk_id_realiza = RealizaSerializer(read_only=True)
+    recursos_asignados = serializers.JSONField(read_only=True)
 
     class Meta:
         model = Asignacion_actividades
-        fields = ['id', 'fecha_programada', 'fk_id_realiza', 'fk_identificacion', 'estado', 'observaciones']
+        fields = ['id', 'fecha_programada', 'fk_id_realiza', 'fk_identificacion', 
+                 'estado', 'observaciones', 'recursos_asignados']
 
     def get_fk_identificacion(self, obj):
         return [
