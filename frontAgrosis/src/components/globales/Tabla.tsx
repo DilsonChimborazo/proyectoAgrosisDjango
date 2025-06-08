@@ -69,8 +69,12 @@ const Tabla = <T extends Record<string, any>>({
   }, [data, filter]);
 
   const sortedData = useMemo(() => {
-    if (!sortColumn) return filteredData;
+    // Si no hay una columna de ordenamiento seleccionada, invertir el orden para mostrar el último dato primero
+    if (!sortColumn) {
+      return [...filteredData].reverse(); // Invierte el orden del array (último dato primero)
+    }
 
+    // Si hay una columna seleccionada, mantener el ordenamiento existente
     return [...filteredData].sort((a, b) => {
       const valueA = a[sortColumn];
       const valueB = b[sortColumn];
