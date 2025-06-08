@@ -370,7 +370,7 @@ const ListarBodega = () => {
   });
   }, [filteredMovimientos, tipoSeleccionado]);
   return (
-    <div className="p-4 mt-5 rounded-3xl space-y-6">
+    <div className="p-4 rounded-3xl space-y-6">
       <VentanaModal
         isOpen={isModalOpen}
         onClose={closeModal}
