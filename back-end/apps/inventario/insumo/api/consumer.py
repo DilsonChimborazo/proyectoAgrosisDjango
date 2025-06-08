@@ -135,14 +135,92 @@ class NotificationInsumoConsumer(AsyncWebsocketConsumer):
                 titulo = f"Insumo próximo a vencer: {insumo.nombre}"
                 mensaje = (f"El insumo '{insumo.nombre}' vencerá en {days_until_expiry} día(s), "
                          f"el {insumo.fecha_vencimiento.strftime('%Y-%m-%d')}.")
+                html_mensaje = f"""
+                    <html>
+                        <body style="font-family: Arial, sans-serif; color: #333; background-color: #f4f4f4; padding: 20px;">
+                            <div style="max-width: 600px; margin: 0 auto; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                <div style="background-color: #ffcc00; padding: 15px; border-radius: 8px 8px 0 0; text-align: center;">
+                                    <h1 style="margin: 0; color: #fff;">Notificación de Vencimiento</h1>
+                                </div>
+                                <div style="padding: 20px;">
+                                    <h2 style="color: #333;">Insumo: {insumo.nombre}</h2>
+                                    <p style="font-size: 16px; line-height: 1.5;">
+                                        El insumo <strong>{insumo.nombre}</strong> vencerá en <strong>{days_until_expiry} día(s)</strong>,
+                                        el <strong>{insumo.fecha_vencimiento.strftime('%Y-%m-%d')}</strong>.
+                                    </p>
+                                    <p style="font-size: 14px; color: #666;">
+                                        Por favor, tome las medidas necesarias para gestionar este insumo.
+                                    </p>
+                                </div>
+                                <div style="background-color: #f0f0f0; padding: 10px; text-align: center; border-radius: 0 0 8px 8px;">
+                                    <p style="margin: 0; font-size: 12px; color: #666;">
+                                        Este es un mensaje automático del sistema de inventario.
+                                    </p>
+                                </div>
+                            </div>
+                        </body>
+                    </html>
+                """
             elif notification_type == 'stock':
                 titulo = f"Stock bajo: {insumo.nombre}"
                 mensaje = (f"El insumo '{insumo.nombre}' tiene bajo stock: "
                           f"{insumo.cantidad_en_base} {insumo.fk_unidad_medida.unidad_base if insumo.fk_unidad_medida else 'unidades'} restantes.")
+                html_mensaje = f"""
+                    <html>
+                        <body style="font-family: Arial, sans-serif; color: #333; background-color: #f4f4f4; padding: 20px;">
+                            <div style="max-width: 600px; margin: 0 auto; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                <div style="background-color: #ff5733; padding: 15px; border-radius: 8px 8px 0 0; text-align: center;">
+                                    <h1 style="margin: 0; color: #fff;">Alerta de Stock Bajo</h1>
+                                </div>
+                                <div style="padding: 20px;">
+                                    <h2 style="color: #333;">Insumo: {insumo.nombre}</h2>
+                                    <p style="font-size: 16px; line-height: 1.5;">
+                                        El insumo <strong>{insumo.nombre}</strong> tiene bajo stock: 
+                                        <strong>{insumo.cantidad_en_base} {insumo.fk_unidad_medida.unidad_base if insumo.fk_unidad_medida else 'unidades'}</strong> restantes.
+                                    </p>
+                                    <p style="font-size: 14px; color: #666;">
+                                        Por favor, considere reabastecer este insumo.
+                                    </p>
+                                </div>
+                                <div style="background-color: #f0f0f0; padding: 10px; text-align: center; border-radius: 0 0 8px 8px;">
+                                    <p style="margin: 0; font-size: 12px; color: #666;">
+                                        Este es un mensaje automático del sistema de inventario.
+                                    </p>
+                                </div>
+                            </div>
+                        </body>
+                    </html>
+                """
             else:  # zero_stock
                 titulo = f"Stock agotado: {insumo.nombre}"
                 mensaje = (f"El insumo '{insumo.nombre}' se ha agotado completamente. "
                           f"No quedan unidades disponibles.")
+                html_mensaje = f"""
+                    <html>
+                        <body style="font-family: Arial, sans-serif; color: #333; background-color: #f4f4f4; padding: 20px;">
+                            <div style="max-width: 600px; margin: 0 auto; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                <div style="background-color: #d32f2f; padding: 15px; border-radius: 8px 8px 0 0; text-align: center;">
+                                    <h1 style="margin: 0; color: #fff;">Alerta de Stock Agotado</h1>
+                                </div>
+                                <div style="padding: 20px;">
+                                    <h2 style="color: #333;">Insumo: {insumo.nombre}</h2>
+                                    <p style="font-size: 16px; line-height: 1.5;">
+                                        El insumo <strong>{insumo.nombre}</strong> se ha agotado completamente.
+                                        No quedan unidades disponibles.
+                                    </p>
+                                    <p style="font-size: 14px; color: #666;">
+                                        Por favor, reabastezca este insumo lo antes posible.
+                                    </p>
+                                </div>
+                                <div style="background-color: #f0f0f0; padding: 10px; text-align: center; border-radius: 0 0 8px 8px;">
+                                    <p style="margin: 0; font-size: 12px; color: #666;">
+                                        Este es un mensaje automático del sistema de inventario.
+                                    </p>
+                                </div>
+                            </div>
+                        </body>
+                    </html>
+                """
 
             for admin in admin_users:
                 # Verificar si la notificación ya existe
@@ -174,6 +252,7 @@ class NotificationInsumoConsumer(AsyncWebsocketConsumer):
                             from_email=settings.DEFAULT_FROM_EMAIL,
                             recipient_list=[admin.email],
                             fail_silently=True,
+                            html_message=html_mensaje
                         )
                     except Exception as e:
                         print(f"Error enviando email: {str(e)}")
