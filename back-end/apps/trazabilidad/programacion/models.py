@@ -14,7 +14,7 @@ class Programacion(models.Model):
     fecha_realizada = models.DateField() 
     duracion = models.IntegerField(help_text="Duración en minutos")
     fk_id_asignacionActividades = models.ForeignKey(Asignacion_actividades, on_delete=models.SET_NULL, null=True)
-    cantidad_insumo = models.IntegerField()
+    cantidad_insumo = models.IntegerField(null=True, blank=True)
     img = models.ImageField(upload_to='imagenes/')
     fk_unidad_medida = models.ForeignKey(UnidadMedida, on_delete=models.SET_NULL, null=True)
     

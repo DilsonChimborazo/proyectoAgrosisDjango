@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
-import { showToast } from '@/components/globales/Toast'; // Asegúrate de importar showToast
+import { showToast } from '@/components/globales/Toast';
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -9,9 +9,7 @@ export interface Programacion {
   fk_id_asignacionActividades: number;
   fecha_realizada?: string;
   duracion?: number | null;
-  cantidad_insumo?: number;
   img?: string;
-  fk_unidad_medida?: number;
   estado: 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada';
 }
 
@@ -20,9 +18,7 @@ export const useCrearProgramacion = () => {
 
   return useMutation<Programacion, Error, FormData>({
     mutationFn: async (nuevaProgramacion: FormData) => {
-      // Depuración: Mostrar datos enviados
       console.log('🚀 Datos enviados al backend:', nuevaProgramacion);
-      // Para depurar FormData, iteramos y mostramos sus entradas
       const formDataEntries: Record<string, any> = {};
       for (const [key, value] of nuevaProgramacion.entries()) {
         formDataEntries[key] = value instanceof File ? `File: ${value.name}` : value;
@@ -35,13 +31,12 @@ export const useCrearProgramacion = () => {
         },
       });
 
-      console.log('📩 Respuesta del backend:', JSON.stringify(response.data, null, 2));
+      console.log('📩 Respuesta completa del backend:', response);
       return response.data as Programacion;
     },
     onSuccess: (data) => {
       console.log('✅ Programación creada con éxito, datos retornados:', data);
       queryClient.invalidateQueries({ queryKey: ['programaciones'] });
-      // Mostrar un mensaje de éxito (opcional, ya que se maneja en CrearProgramacionModal)
       showToast({
         title: 'Programación Creada',
         description: 'La programación se ha creado correctamente.',
@@ -50,13 +45,28 @@ export const useCrearProgramacion = () => {
       });
     },
     onError: (error: any) => {
-      const errorMessage = error.response?.data?.detail || error.response?.data?.message || error.message;
+      let errorMessage = 'Por favor, intenta de nuevo.';
+      if (error.response?.data) {
+        // Handle Django validation errors (e.g., { "cantidad_insumo": ["This field is required"] })
+        if (typeof error.response.data === 'object' && !Array.isArray(error.response.data)) {
+          errorMessage = Object.values(error.response.data)
+            .flat()
+            .join(', ');
+        } else {
+          errorMessage = error.response.data.detail || error.response.data.message || error.message;
+        }
+      }
       console.error('❌ Error al crear programación:', {
         message: errorMessage,
         response: error.response?.data,
         status: error.response?.status,
       });
-      // El mensaje de error se muestra en CrearProgramacionModal, pero podemos agregar más contexto si es necesario
+      showToast({
+        title: 'Error al crear programación',
+        description: errorMessage,
+        timeout: 5000,
+        variant: 'error',
+      });
     },
   });
 };
