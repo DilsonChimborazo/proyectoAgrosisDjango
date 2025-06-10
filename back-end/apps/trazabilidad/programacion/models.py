@@ -21,9 +21,9 @@ class Programacion(models.Model):
     fecha_realizada = models.DateField() 
     duracion = models.IntegerField(help_text="Duración en minutos")
     fk_id_asignacionActividades = models.ForeignKey(Asignacion_actividades, on_delete=models.SET_NULL, null=True)
-    cantidad_insumo = models.IntegerField()
-    img = models.ImageField(upload_to='imagenes/', null=True, blank=True)
-    fk_unidad_medida = models.ForeignKey(UnidadMedida, on_delete=models.SET_NULL, null=True, blank=True)
+    cantidad_insumo = models.IntegerField(null=True, blank=True)
+    img = models.ImageField(upload_to='imagenes/')
+    fk_unidad_medida = models.ForeignKey(UnidadMedida, on_delete=models.SET_NULL, null=True)
     bodega_devolucion_id_bodget = models.IntegerField(null=True, blank=True, help_text="ID de la bodega donde se realiza la devolución")
     depreciacion_total = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Depreciación total de las herramientas utilizadas en esta programación")
 
@@ -156,3 +156,4 @@ class Programacion(models.Model):
             asignacion.save()
 
         super().save(*args, **kwargs)
+
