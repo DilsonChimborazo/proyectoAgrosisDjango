@@ -1,7 +1,9 @@
+# apps/finanzas/venta/api/serializers.py
 from rest_framework import serializers
 from apps.finanzas.venta.models import Venta, ItemVenta
 from apps.finanzas.produccion.api.serializers import ProduccionSerializer
 from apps.inventario.unidadMedida.api.serilizers import UnidadMedidaSerializer
+from apps.usuarios.usuario.api.serializer import LeerUsuarioSerializer
 
 class ItemVentaFacturaSerializer(serializers.ModelSerializer):
     produccion = ProduccionSerializer()
@@ -17,10 +19,11 @@ class ItemVentaFacturaSerializer(serializers.ModelSerializer):
 
 class VentaFacturaSerializer(serializers.ModelSerializer):
     items = ItemVentaFacturaSerializer(many=True, read_only=True)
+    usuario = LeerUsuarioSerializer(read_only=True)
 
     class Meta:
         model = Venta
-        fields = ['id', 'fecha', 'total', 'items']
+        fields = ['id', 'fecha', 'total', 'items', 'usuario']
         read_only_fields = fields
 
 class ItemVentaSerializer(serializers.ModelSerializer):
@@ -60,10 +63,11 @@ class LeerItemVentaSerializer(serializers.ModelSerializer):
 
 class VentaSerializer(serializers.ModelSerializer):
     items = LeerItemVentaSerializer(many=True, read_only=True)
+    usuario = LeerUsuarioSerializer(read_only=True)
 
     class Meta:
         model = Venta
-        fields = ['id', 'fecha', 'total', 'items']
+        fields = ['id', 'fecha', 'total', 'items', 'usuario']
         read_only_fields = ['fecha', 'total']
 
 class CrearVentaSerializer(serializers.ModelSerializer):
@@ -76,7 +80,10 @@ class CrearVentaSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         items_data = validated_data.pop('items')
-        venta = Venta.objects.create(**validated_data)
+        venta = Venta.objects.create(
+            **validated_data,
+            usuario=self.context['request'].user
+        )
 
         for item_data in items_data:
             ItemVenta.objects.create(venta=venta, **item_data)

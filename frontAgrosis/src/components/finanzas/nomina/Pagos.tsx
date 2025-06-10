@@ -10,13 +10,9 @@ const PagosPage: React.FC = () => {
         tipo: 'usuario' | 'actividad' | null;
     }>({ tipo: null });
 
-    // Los estados y handlers de fecha han sido eliminados
-
     return (
         <div className="container mx-auto px-4 py-8">
-
-            {/* Resúmenes Gráficos (Ahora antes de la tabla) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8"> {/* Añadido mb-8 para espacio debajo */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <div className="bg-white p-6 rounded-lg shadow-md">
                     <div className="flex justify-between items-center mb-4">
                         <h2 className="text-xl font-semibold">Resumen por Usuario</h2>
@@ -48,21 +44,17 @@ const PagosPage: React.FC = () => {
                 </div>
             </div>
 
-            {/* La sección de Filtros de Fecha ha sido eliminada */}
-
-            {/* Tabla de Pagos Detallados (ya no recibe props de fecha) */}
-            <div className="grid grid-cols-1 gap-6"> {/* Eliminado mb-8 si ya no es necesario */}
+            <div className="grid grid-cols-1 gap-6">
                 <TablaPagosDetallados />
             </div>
 
-            {/* Modales (mantienen la configuración de tamaño que tenías) */}
             <VentanaModal
                 isOpen={modalAbierto.tipo === 'usuario'}
                 onClose={() => setModalAbierto({ tipo: null })}
                 titulo="Resumen de Pagos por Usuario"
-                size="lg" // Mantenido de tu último código
+                size="lg"
             >
-                <div className="h-[60vh] w-full p-4 overflow-y-auto"> {/* Mantenido de tu último código */}
+                <div className="h-[60vh] w-full p-4 overflow-y-auto">
                     <ResumenPagosUsuario esModal />
                 </div>
             </VentanaModal>
@@ -71,9 +63,9 @@ const PagosPage: React.FC = () => {
                 isOpen={modalAbierto.tipo === 'actividad'}
                 onClose={() => setModalAbierto({ tipo: null })}
                 titulo="Resumen de Pagos por Actividad"
-                size="lg" // Mantenido de tu último código
+                size="lg"
             >
-                <div className="h-[60vh] w-full p-4 overflow-y-auto"> {/* Mantenido de tu último código */}
+                <div className="h-[60vh] w-full p-4 overflow-y-auto">
                     <ResumenPagosActividad esModal />
                 </div>
             </VentanaModal>
