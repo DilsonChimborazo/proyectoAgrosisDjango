@@ -110,7 +110,7 @@ export const usePagosDetallados = (filtros?: FiltrosPagos) => {
   });
 };
 
-// Marcar pago como pagado
+// Marcar pago individual
 export const useMarcarPago = () => {
   const queryClient = useQueryClient();
 
@@ -138,6 +138,45 @@ export const useMarcarPago = () => {
           Método: error.config?.method,
           Respuesta: error.response?.data
         });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pagos-detallados'] });
+      queryClient.invalidateQueries({ queryKey: ['pagos-usuario'] });
+      queryClient.invalidateQueries({ queryKey: ['pagos-actividad'] });
+    }
+  });
+};
+
+// Marcar pagos por usuario
+export const useMarcarPagosPorUsuario = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: { usuario_id: number; fecha_inicio?: string; fecha_fin?: string }) => {
+      const token = localStorage.getItem('token');
+      const url = `${apiUrl}nomina/marcar-pagado-por-usuario/`;
+
+      console.log('Enviando POST a:', url, 'con datos:', params);
+
+      const response = await axios.post(url, params, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      });
+
+      return response.data;
+    },
+    onError: (error) => {
+      if (axios.isAxiosError(error)) {
+        console.error('Error en POST:', {
+          URL: error.config?.url,
+          Método: error.config?.method,
+          Respuesta: error.response?.data
+        });
+        throw new Error(error.response?.data.error || 'Error al marcar los pagos');
       }
     },
     onSuccess: () => {

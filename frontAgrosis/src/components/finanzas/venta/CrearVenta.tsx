@@ -1,3 +1,4 @@
+// components/finanzas/venta/CrearVenta.tsx
 import { useState, useEffect } from 'react';
 import { useCrearVenta } from '@/hooks/finanzas/venta/useVenta';
 import { useProduccion } from '@/hooks/finanzas/produccion/useProduccion';
@@ -70,26 +71,15 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
       !unidadProduccion ||
       unidadProduccion.factor_conversion === 0
     ) {
-      console.log("DEBUG CALC PRICE: Falta data o factor_conversion es cero", {
-        produccion: produccion?.id,
-        precioSugerido: produccion?.precio_sugerido_venta,
-        unidadVenta: unidadVenta?.id,
-        unidadProduccion: unidadProduccion?.id,
-        factorProd: unidadProduccion?.factor_conversion,
-      });
       return undefined;
     }
 
     const precioPorUnidadBase = produccion.precio_sugerido_venta / unidadProduccion.factor_conversion;
-    console.log("DEBUG CALC PRICE: precioPorUnidadBase", precioPorUnidadBase);
     if (isNaN(precioPorUnidadBase)) {
-      console.error("DEBUG CALC PRICE: precioPorUnidadBase es NaN. Revisar datos de producción.");
       return undefined;
     }
 
-    const precioCalculado = precioPorUnidadBase * unidadVenta.factor_conversion;
-    console.log("DEBUG CALC PRICE: precioCalculado", precioCalculado);
-    return precioCalculado;
+    return precioPorUnidadBase * unidadVenta.factor_conversion;
   };
 
   const precioUnitarioCalculado = calcularPrecioPorUnidadDeVenta(
@@ -105,11 +95,6 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
   const totalVenta = productos.reduce((sum, item) => sum + item.subtotal * (1 - item.descuentoPorcentaje / 100), 0);
 
   useEffect(() => {
-    console.log("DEBUG USEEFFECT: produccionActual:", produccionActual);
-    console.log("DEBUG USEEFFECT: unidadSeleccionadaParaVenta:", unidadSeleccionadaParaVenta);
-    console.log("DEBUG USEEFFECT: unidadProduccionOriginal:", unidadProduccionOriginal);
-    console.log("DEBUG USEEFFECT: precioUnitarioCalculado (después de cálculo):", precioUnitarioCalculado);
-
     setProductoActual((prev) => ({
       ...prev,
       precioUnidad:
@@ -125,8 +110,6 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
 
   const seleccionarProducto = (produccion: ProduccionType) => {
     const unidadProduccion = unidades.find((u) => u.id === produccion.fk_unidad_medida?.id);
-    console.log("DEBUG SELECCIONAR PROD: Producción seleccionada:", produccion);
-    console.log("DEBUG SELECCIONAR PROD: Unidad de producción asociada:", unidadProduccion);
 
     setProductoActual({
       produccionId: produccion.id,
@@ -143,16 +126,9 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
     setError(null);
   };
 
-  const agregarProducto = () => {
-    console.log("DEBUG AGREGAR PROD: Validando...");
-    console.log({
-      produccionId: productoActual.produccionId,
-      cantidad: productoActual.cantidad,
-      unidadSeleccionadaParaVenta: unidadSeleccionadaParaVenta,
-      precioUnitarioCalculado: precioUnitarioCalculado,
-      descuentoPorcentaje: productoActual.descuentoPorcentaje,
-    });
+  // components/finanzas/venta/CrearVenta.tsx (parte modificada)
 
+  const agregarProducto = () => {
     if (
       !productoActual.produccionId ||
       !productoActual.cantidad ||
@@ -190,28 +166,57 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
       return;
     }
 
+    // Buscar si ya existe un producto igual en la venta
+    const productoExistenteIndex = productos.findIndex(
+      (p) =>
+        p.produccionId === productoActual.produccionId &&
+        p.unidadMedidaId === productoActual.unidadMedidaId &&
+        p.descuentoPorcentaje === productoActual.descuentoPorcentaje
+    );
+
+    if (productoExistenteIndex >= 0) {
+      // Si existe, actualizamos la cantidad
+      const productosActualizados = [...productos];
+      const productoExistente = productosActualizados[productoExistenteIndex];
+
+      const nuevaCantidad = productoExistente.cantidad + (productoActual.cantidad || 0);
+      const nuevoSubtotal = nuevaCantidad * productoExistente.precioUnidad;
+
+      productosActualizados[productoExistenteIndex] = {
+        ...productoExistente,
+        cantidad: nuevaCantidad,
+        subtotal: nuevoSubtotal,
+        stockDisponible: productoExistente.stockDisponible - cantidadEnBaseParaStock
+      };
+
+      setProductos(productosActualizados);
+    } else {
+      // Si no existe, agregamos como nuevo producto
+      const nuevoProducto: ProductoSeleccionado = {
+        produccionId: productoActual.produccionId!,
+        cantidad: productoActual.cantidad!,
+        precioUnidad: precioUnitarioCalculado!,
+        precioUnidadConDescuento: precioUnitarioConDescuento!,
+        unidadMedidaId: productoActual.unidadMedidaId!,
+        nombreProduccion: produccion.nombre_produccion,
+        stockDisponible: stockActual - cantidadEnBaseParaStock,
+        unidadBaseProduccion: unidadProduccionOriginal!.unidad_base,
+        nombreUnidadMedidaProduccion: unidadProduccionOriginal!.nombre_medida,
+        nombreUnidadMedidaVenta: unidadSeleccionadaParaVenta.nombre_medida,
+        factorConversionUnidadVenta: unidadSeleccionadaParaVenta.factor_conversion,
+        subtotal: subtotalProductoActual!,
+        descuentoPorcentaje: productoActual.descuentoPorcentaje!,
+      };
+
+      setProductos([...productos, nuevoProducto]);
+    }
+
+    // Actualizar el stock disponible
     setStockAjustado((prev) => ({
       ...prev,
       [produccion.id]: stockActual - cantidadEnBaseParaStock,
     }));
 
-    const nuevoProducto: ProductoSeleccionado = {
-      produccionId: productoActual.produccionId!,
-      cantidad: productoActual.cantidad!,
-      precioUnidad: precioUnitarioCalculado!,
-      precioUnidadConDescuento: precioUnitarioConDescuento!,
-      unidadMedidaId: productoActual.unidadMedidaId!,
-      nombreProduccion: produccion.nombre_produccion,
-      stockDisponible: stockActual - cantidadEnBaseParaStock,
-      unidadBaseProduccion: unidadProduccionOriginal!.unidad_base,
-      nombreUnidadMedidaProduccion: unidadProduccionOriginal!.nombre_medida,
-      nombreUnidadMedidaVenta: unidadSeleccionadaParaVenta.nombre_medida,
-      factorConversionUnidadVenta: unidadSeleccionadaParaVenta.factor_conversion,
-      subtotal: subtotalProductoActual!,
-      descuentoPorcentaje: productoActual.descuentoPorcentaje!,
-    };
-
-    setProductos([...productos, nuevoProducto]);
     setProductoActual({});
     setError(null);
     showToast({ title: 'Producto agregado correctamente', timeout: 3000 });
@@ -244,8 +249,6 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
       precio_unidad: producto.precioUnidad,
       descuento_porcentaje: producto.descuentoPorcentaje,
     }));
-
-    console.log("DEBUG FINALIZAR VENTA: Items a enviar:", itemsParaEnviar);
 
     crearVentaMutation.mutate(
       { items: itemsParaEnviar },
@@ -305,8 +308,8 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
                     const prodUnit = unidades.find((u) => u.id === p.fk_unidad_medida?.id);
                     const displayPrecioSugerido =
                       p.precio_sugerido_venta !== null &&
-                      p.precio_sugerido_venta !== undefined &&
-                      typeof p.precio_sugerido_venta === 'number'
+                        p.precio_sugerido_venta !== undefined &&
+                        typeof p.precio_sugerido_venta === 'number'
                         ? p.precio_sugerido_venta
                         : null;
 
@@ -314,8 +317,8 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
                       <div
                         key={p.id}
                         className={`p-4 border rounded-lg transition-all cursor-pointer ${productoActual.produccionId === p.id
-                            ? 'border-green-500 bg-green-50 shadow-sm'
-                            : 'border-gray-200 hover:border-gray-300 hover:bg-white'
+                          ? 'border-green-500 bg-green-50 shadow-sm'
+                          : 'border-gray-200 hover:border-gray-300 hover:bg-white'
                           }`}
                         onClick={() => seleccionarProducto(p)}
                       >
@@ -336,8 +339,8 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
                           </div>
                           <span
                             className={`px-2 py-1 text-xs rounded-full ${productoActual.produccionId === p.id
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-gray-100 text-gray-800'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-gray-100 text-gray-800'
                               }`}
                           >
                             {prodUnit?.unidad_base}
