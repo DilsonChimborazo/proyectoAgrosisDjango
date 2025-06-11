@@ -55,16 +55,63 @@ const CrearResiduo = ({ onSuccess }: CrearResiduoProps) => {
     },
   ];
 
-  const handleSubmit = (formData: { [key: string]: string | File }) => {
-    // Convertimos los valores a string, ya que este formulario solo tiene campos de texto, fecha o select
-    const formDataAsStrings = Object.fromEntries(
-      Object.entries(formData).map(([key, value]) => [key, typeof value === 'string' ? value : ''])
-    ) as { [key: string]: string };
+  const handleSubmit = (formData: { [key: string]: string | File | string[] }) => {
+    // Función auxiliar para obtener valores como string
+    const getStringValue = (value: string | string[] | File): string => {
+      if (Array.isArray(value)) return value[0] || "";
+      if (value instanceof File) return ""; // No se usa directamente como string, se valida por separado si necesario
+      return value || "";
+    };
 
-    if (!formDataAsStrings.fecha || !formDataAsStrings.fk_id_cultivo || !formDataAsStrings.fk_id_tipo_residuo) {
+    // Convertir formData a un objeto de strings
+    const formDataAsStrings = {
+      nombre: getStringValue(formData.nombre),
+      fecha: getStringValue(formData.fecha),
+      descripcion: getStringValue(formData.descripcion),
+      fk_id_cultivo: getStringValue(formData.fk_id_cultivo),
+      fk_id_tipo_residuo: getStringValue(formData.fk_id_tipo_residuo),
+    };
+
+    // Validaciones
+    if (!formDataAsStrings.fecha) {
       showToast({
         title: 'Error',
         description: 'Todos los campos son obligatorios',
+        variant: 'error',
+      });
+      return;
+    }
+    if (!formDataAsStrings.fk_id_cultivo) {
+      showToast({
+        title: 'Error',
+        description: 'Todos los campos son obligatorios',
+        variant: 'error',
+      });
+      return;
+    }
+    if (!formDataAsStrings.fk_id_tipo_residuo) {
+      showToast({
+        title: 'Error',
+        description: 'Todos los campos son obligatorios',
+        variant: 'error',
+      });
+      return;
+    }
+
+    const idCultivo = parseInt(formDataAsStrings.fk_id_cultivo, 10);
+    const idTipoResiduo = parseInt(formDataAsStrings.fk_id_tipo_residuo, 10);
+    if (isNaN(idCultivo) || formDataAsStrings.fk_id_cultivo === '') {
+      showToast({
+        title: 'Error',
+        description: 'Debes seleccionar un cultivo válido',
+        variant: 'error',
+      });
+      return;
+    }
+    if (isNaN(idTipoResiduo) || formDataAsStrings.fk_id_tipo_residuo === '') {
+      showToast({
+        title: 'Error',
+        description: 'Debes seleccionar un tipo de residuo válido',
         variant: 'error',
       });
       return;
@@ -74,8 +121,8 @@ const CrearResiduo = ({ onSuccess }: CrearResiduoProps) => {
       nombre: formDataAsStrings.nombre,
       fecha: new Date(formDataAsStrings.fecha).toISOString().split('T')[0],
       descripcion: formDataAsStrings.descripcion,
-      fk_id_cultivo: parseInt(formDataAsStrings.fk_id_cultivo) || 0,
-      fk_id_tipo_residuo: parseInt(formDataAsStrings.fk_id_tipo_residuo) || 0,
+      fk_id_cultivo: idCultivo,
+      fk_id_tipo_residuo: idTipoResiduo,
     };
 
     mutation.mutate(nuevoResiduo, {

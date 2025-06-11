@@ -42,16 +42,42 @@ const CrearCultivo = ({ onSuccess }: CrearCultivoProps) => {
     },
   ];
 
-  const handleSubmit = (formData: { [key: string]: string | File }) => {
-    // Convertimos los valores a string, ya que sabemos que este formulario solo tiene campos de texto o select
-    const formDataAsStrings = Object.fromEntries(
-      Object.entries(formData).map(([key, value]) => [key, typeof value === 'string' ? value : ''])
-    ) as { [key: string]: string };
+  const handleSubmit = (formData: { [key: string]: string | File | string[] }) => {
+    // Función auxiliar para obtener valores como string
+    const getStringValue = (value: string | string[] | File): string => {
+      if (Array.isArray(value)) return value[0] || "";
+      if (value instanceof File) return ""; // No se usa directamente como string, se valida por separado si necesario
+      return value || "";
+    };
 
-    if (!formDataAsStrings.nombre_cultivo || !formDataAsStrings.descripcion || !formDataAsStrings.fk_id_especie) {
+    // Convertir formData a un objeto de strings
+    const formDataAsStrings = {
+      nombre_cultivo: getStringValue(formData.nombre_cultivo),
+      descripcion: getStringValue(formData.descripcion),
+      fk_id_especie: getStringValue(formData.fk_id_especie),
+    };
+
+    // Validaciones
+    if (!formDataAsStrings.nombre_cultivo) {
       showToast({
         title: 'Error',
         description: 'Todos los campos son obligatorios',
+        variant: 'error',
+      });
+      return;
+    }
+    if (!formDataAsStrings.descripcion) {
+      showToast({
+        title: 'Error',
+        description: 'Todos los campos son obligatorios',
+        variant: 'error',
+      });
+      return;
+    }
+    if (!formDataAsStrings.fk_id_especie) {
+      showToast({
+        title: 'Error',
+        description: 'Debes seleccionar una especie válida',
         variant: 'error',
       });
       return;

@@ -25,7 +25,7 @@ interface FormField {
   extraButtonText?: string;
   onExtraButtonClick?: () => void;
   extraContent?: React.ReactNode;
-  step?: string; // Para inputs numéricos con valores decimales
+  step?: string;
 }
 
 const CrearPlantacion = ({ onSuccess, onCancel }: CrearPlantacionProps) => {
@@ -59,9 +59,10 @@ const CrearPlantacion = ({ onSuccess, onCancel }: CrearPlantacionProps) => {
     (semillero) => String(semillero.id) === selectedSemilleroId
   );
 
-  const handleFieldChange = (fieldId: string, value: string) => {
+  const handleFieldChange = (fieldId: string, value: string | string[]) => {
     if (fieldId === "fk_id_semillero") {
-      setSelectedSemilleroId(value);
+      const selectedValue = Array.isArray(value) ? value[0] : value;
+      setSelectedSemilleroId(selectedValue);
     }
   };
 
@@ -70,13 +71,13 @@ const CrearPlantacion = ({ onSuccess, onCancel }: CrearPlantacionProps) => {
       id: "latitud",
       label: "Latitud",
       type: "number",
-      step: "0.000001", // Permite valores decimales con hasta 6 decimales
+      step: "0.000001",
     },
     {
       id: "longitud",
       label: "Longitud",
       type: "number",
-      step: "0.000001", // Permite valores decimales con hasta 6 decimales
+      step: "0.000001",
     },
     {
       id: "fk_id_eras",
@@ -119,27 +120,48 @@ const CrearPlantacion = ({ onSuccess, onCancel }: CrearPlantacionProps) => {
       id: "cantidad_transplante",
       label: "Cantidad Transplante",
       type: "number",
-      step: "1", 
-    },  
+      step: "1",
+    },
   ];
 
-  const handleSubmit = (formData: { [key: string]: string }) => {
+  const handleSubmit = (formData: { [key: string]: string | string[] | File }) => {
     const errors: string[] = [];
 
+    // Convertir valores a string donde sea necesario
+    const getStringValue = (value: string | string[] | File): string => {
+      if (Array.isArray(value)) {
+        return value[0] || "";
+      }
+      if (value instanceof File) {
+        errors.push("Archivos no son soportados en este formulario");
+        return "";
+      }
+      return value;
+    };
+
     // Validaciones
-    if (!formData.fk_id_eras) errors.push("Era es obligatoria");
-    if (!formData.fk_id_cultivo) errors.push("Cultivo es obligatorio");
-    if (!formData.cantidad_transplante || parseInt(formData.cantidad_transplante) <= 0) {
+    if (!getStringValue(formData.fk_id_eras)) errors.push("Era es obligatoria");
+    if (!getStringValue(formData.fk_id_cultivo)) errors.push("Cultivo es obligatorio");
+    const cantidadTransplante = parseInt(getStringValue(formData.cantidad_transplante));
+    if (isNaN(cantidadTransplante) || cantidadTransplante <= 0) {
       errors.push("Cantidad Transplante debe ser un número mayor a 0");
     }
-    if (!formData.fecha_plantacion) errors.push("Fecha de Plantación es obligatoria");
-    if (!formData.fk_id_semillero) errors.push("Semillero es obligatorio");
-    // Validar que latitud y longitud sean válidos si se proporcionan
-    if (formData.latitud && isNaN(Number(formData.latitud))) {
+    if (!getStringValue(formData.fecha_plantacion)) errors.push("Fecha de Plantación es obligatoria");
+    if (!getStringValue(formData.fk_id_semillero)) errors.push("Semillero es obligatorio");
+
+    // Validar latitud y longitud
+    const latitud = getStringValue(formData.latitud);
+    if (latitud && isNaN(Number(latitud))) {
       errors.push("Latitud debe ser un número válido");
     }
-    if (formData.longitud && isNaN(Number(formData.longitud))) {
+    const longitud = getStringValue(formData.longitud);
+    if (longitud && isNaN(Number(longitud))) {
       errors.push("Longitud debe ser un número válido");
+    }
+
+    // Validar cantidad de transplante contra semillero
+    if (selectedSemillero && cantidadTransplante > (selectedSemillero.cantidad ?? 0)) {
+      errors.push("La cantidad de transplante excede la cantidad disponible del semillero");
     }
 
     if (errors.length > 0) {
@@ -153,13 +175,13 @@ const CrearPlantacion = ({ onSuccess, onCancel }: CrearPlantacionProps) => {
     }
 
     const nuevaPlantacion: Plantacion = {
-      fk_id_eras: parseInt(formData.fk_id_eras),
-      fk_id_cultivo: parseInt(formData.fk_id_cultivo),
-      cantidad_transplante: parseInt(formData.cantidad_transplante),
-      fecha_plantacion: new Date(formData.fecha_plantacion).toISOString().split("T")[0],
-      fk_id_semillero: parseInt(formData.fk_id_semillero),
-      latitud: formData.latitud ? Number(formData.latitud) : null,
-      longitud: formData.longitud ? Number(formData.longitud) : null,
+      fk_id_eras: parseInt(getStringValue(formData.fk_id_eras)),
+      fk_id_cultivo: parseInt(getStringValue(formData.fk_id_cultivo)),
+      cantidad_transplante: cantidadTransplante,
+      fecha_plantacion: new Date(getStringValue(formData.fecha_plantacion)).toISOString().split("T")[0],
+      fk_id_semillero: parseInt(getStringValue(formData.fk_id_semillero)),
+      latitud: latitud ? Number(latitud) : null,
+      longitud: longitud ? Number(longitud) : null,
     };
 
     mutation.mutate(nuevaPlantacion, {
@@ -203,9 +225,15 @@ const CrearPlantacion = ({ onSuccess, onCancel }: CrearPlantacionProps) => {
         isError={mutation.isError}
         isSuccess={mutation.isSuccess}
         title="Registrar Nueva Plantación"
-        onCancel={onCancel}
       />
-
+      {onCancel && (
+        <button
+          className="mt-4 px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+          onClick={onCancel}
+        >
+          Cancelar
+        </button>
+      )}
       <VentanaModal
         isOpen={mostrarModalEra}
         onClose={cerrarYActualizar}

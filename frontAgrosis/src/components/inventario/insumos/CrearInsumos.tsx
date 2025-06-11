@@ -144,7 +144,7 @@ const CrearInsumos = ({ onSuccess }: CrearInsumosProps) => {
         isOpen={modalAbierto}
         onClose={cerrarModalMedida}
         contenido={<CrearUnidadMedida onSuccess={cerrarModalMedida} />}
-        titulo="Crear Unidad de Medida"
+        titulo=""
       />
     </div>
   );

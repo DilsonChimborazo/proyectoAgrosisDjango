@@ -36,9 +36,6 @@ const ReporteResiduos = () => {
           cultivo: residuo.cultivo || 'Sin cultivo',
           residuo: residuo.residuo || 'Sin residuo'
         }))}
-        onClickAction={(row) => console.log('Detalle:', row)}
-        onUpdate={(row) => console.log('Actualizar:', row)}
-        onCreate={() => console.log('Crear nuevo')}
         hiddenColumnsByDefault={[]}
         extraButton={
           <DescargarTablaPDF
