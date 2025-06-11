@@ -7,9 +7,10 @@ author: Lucy fernanda ordoñez
 
 ## HISTORIAL DE REVISIÓN
 
-| VERSIÓN | FECHA | RESPONSABLE | FECHA REVISIÓN | RESPONSABLE REVISIÓN |
-|---------|-------|-------------|----------------|-----------------------|
-| 1.0     | 2024/10/09 | Lucy fernanda ordoñez| 2024/10/09 | Carlos Sterling |
+| VERSIÓN | FECHA      | RESPONSABLE          | FECHA REVISIÓN | RESPONSABLE REVISIÓN |
+|---------|------------|----------------------|----------------|-----------------------|
+| 1.0     | 2024/10/09 | Lucy fernanda ordoñez| 2024/10/09     | Carlos Sterling |
+| 2.0     | 2025/06/10 | Lucy fernanda ordoñez| 2024/10/09     | Carlos Sterling |
 
 ---
 
@@ -18,6 +19,7 @@ author: Lucy fernanda ordoñez
 | VERSIÓN | MODIFICACIÓN RESPECTO VERSIÓN ANTERIOR |
 |---------|-----------------------------------------|
 |    1    | Modificacion en todo el archivo por escritura |
+|    2    | Modificacion en todo el archivo por cambios a la bd y conceptos|
 
 ---
 
@@ -39,8 +41,9 @@ author: Lucy fernanda ordoñez
 
 ## 1. Introducción
 
-El sistema **AgroSoft** tiene como objetivo implementar un sistema de seguimiento y trazabilidad para actividades agrícolas (control fitosanitario, riego, fertilización, insumos y monitoreo) en la **C.G.D.S.S.**  
-Este documento describe la configuración de la base de datos que soportará los módulos de **IoT**, **Trazabilidad**, **Inventario** y **Finanzas**.
+El sistema **AgroSoft** tiene como objetivo implementar un sistema de seguimiento y trazabilidad para actividades agrícolas (control fitosanitario, riego, fertilización, insumos y monitoreo) en la *C.G.D.S.S.*. Este documento describe la configuración de la base de datos que soporta los módulos de *IoT*, **Trazabilidad**, **Inventario** y **Finanzas**.
+
+El propósito es proporcionar una guía clara para el receptor del proyecto, ya sea un desarrollador, administrador de sistemas o responsable de mantenimiento, asegurando que pueda entender, implementar y mantener la base de datos. La base de datos está implementada en **MySQL 8.0+**, seleccionada por su compatibilidad con **Laravel 12** y el entorno de desarrollo **Laragon**.
 
 ---
 
@@ -471,336 +474,170 @@ La base de datos **agrosoft** almacenará toda la información generada por el s
 
 ## 8. Justificación del Motor Seleccionado
 
-Se seleccionó **MySQL** por su rendimiento, facilidad de uso y compatibilidad con **PHP** y **Laragon**, lo que lo hace ideal para la gestión de datos en el Sistema de Seguimiento y Trazabilidad Agrícola.
+Se seleccionó *MySQL 8.0+* como motor de base de datos por las siguientes razones, evaluadas en comparación con alternativas como *PostgreSQL* y *SQLite*:
 
-### Razones principales:
+- *Rendimiento y escalabilidad*: MySQL ofrece un rendimiento sólido para aplicaciones web como *AgroSoft*, con tiempos de respuesta rápidos para consultas en tablas de tamaño mediano. Aunque *PostgreSQL* es superior para consultas complejas o datos geoespaciales, las necesidades de *AgroSoft* no requieren estas características.
+- *Compatibilidad con Laravel*: MySQL es totalmente compatible con *Laravel 12* y su ORM *Eloquent*, reduciendo errores de configuración en comparación con *SQLite*.
+- *Código abierto y gratuito*: MySQL no tiene costos de licencia, ideal para un proyecto con restricciones presupuestarias, a diferencia de motores como *Microsoft SQL Server*.
+- *Facilidad de uso*: MySQL, combinado con *phpMyAdmin* (incluido en *Laragon*), permite una gestión visual sencilla, adecuada para equipos con experiencia técnica moderada.
+- *Seguridad*: MySQL ofrece control de acceso y cifrado robustos para proteger datos agrícolas sensibles.
+- *Soporte y comunidad*: La amplia documentación y comunidad de MySQL facilitan la resolución de problemas.
 
-- Código abierto y gratuito, sin costos de licencia.  
-- Eficiente y rápido, ideal para manejar grandes volúmenes de datos.  
-- Fácil de instalar y administrar con **phpMyAdmin**.  
-- Compatible con múltiples herramientas y lenguajes.  
-- Seguridad y control de acceso para proteger la información.  
-- Amplio soporte y documentación, facilitando el mantenimiento.  
+=== Comparativa con alternativas
 
-Gracias a estas ventajas, **MySQL** garantiza una gestión **estable**, **segura** y **óptima** de la información agrícola.
+- *PostgreSQL*: Más avanzado para datos geoespaciales o JSON, pero su configuración es más compleja y menos integrada con *Laragon*.
+- *SQLite*: Adecuado para prototipos, pero no escalable para múltiples usuarios o grandes volúmenes de datos IoT.
+- *MariaDB*: Similar a MySQL, pero MySQL fue elegido por ser el estándar en *Laragon* y por su soporte en la comunidad de *Laravel*.
+
+En resumen, *MySQL* ofrece un equilibrio óptimo entre rendimiento, facilidad de uso, compatibilidad y costos para *AgroSoft*.
+
 
 ---
 
 ## 9. Requisitos de Configuración
 
-### Herramientas Necesarias
+=== Herramientas necesarias
 
-- **Motor de Base de Datos**: MySQL 8.0+ (incluido en Laragon)  
-- **Cliente de Base de Datos**: phpMyAdmin (incluido en Laragon)  
-- **Servidor Local**: [Laragon](https://laragon.org/)  
-- **Editor de Código**: Visual Studio Code  
+- *Motor de Base de Datos*: MySQL 8.0+ (incluido en *Laragon*).
+- *Cliente de Base de Datos*: phpMyAdmin (incluido en *Laragon*) o CLI de MySQL.
+- *Servidor Local*: Laragon (https://laragon.org/) para desarrollo en Windows. En producción, un servidor Linux con Apache/Nginx y MySQL.
+- *Editor de Código*: Visual Studio Code o cualquier editor compatible con PHP.
+- *PHP*: Versión 8.2+ (requerida por *Laravel 12*, incluida en *Laragon*).
+- *Composer*: Gestor de dependencias de PHP (incluido en *Laragon*).
 
----
+=== Requisitos del sistema
 
-### Requisitos del Sistema
+- *Sistema Operativo*: Windows 10+ (para *Laragon*) o Linux (producción).
+- *RAM*: Mínimo 4 GB, recomendado 8 GB.
+- *Espacio en Disco*: Mínimo 2 GB.
+- *Puertos*: Puerto 3306 para MySQL (debe estar libre).
 
-- **Sistema Operativo**: Windows 10 o superior  
-- **RAM**: 4GB mínimo (8GB recomendado)  
+=== Configuración recomendada
 
----
+- *Usuario de MySQL*: `root` (por defecto en *Laragon*).
+- *Contraseña*: Vacía por defecto en *Laragon*, pero se recomienda una contraseña segura en producción.
+- *Codificación*: UTF-8 (`utf8mb4_unicode_ci`).
+- *Zona Horaria*: Configurar MySQL con la zona horaria local (por ejemplo, `America/Bogota`).
 
-### Configuración Recomendada
-
-- **Puerto MySQL**: 3306  
-- **Usuario**: `root`  
-- **Contraseña**: *(vacía por defecto en Laragon)*      
 
 ## 10. Script de Creación de Base de Datos
 
-```sql
-CREATE DATABASE IF NOT EXISTS agrosof;
-USE agrosof;
+== 10. Scripts
 
-CREATE TABLE Rol (
-    id_rol INT AUTO_INCREMENT PRIMARY KEY,
-    nombre_rol ENUM('aprendiz', 'pasante', 'instructor') NOT NULL,
-    fecha_creacion DATE
-);
+=== Uso de Migraciones en Laravel
 
-CREATE TABLE usuarios (
-    identificacion BIGINT PRIMARY KEY,
-    nombre VARCHAR(50),
-    contrasena VARCHAR(50),
-    email VARCHAR(50),
-    fk_id_rol INT,
-    FOREIGN KEY (fk_id_rol) REFERENCES Rol(id_rol)
-);
+*Laravel* utiliza migraciones para automatizar y versionar la creación de la base de datos. Sigue estos pasos para usar migraciones en lugar de scripts SQL:
 
-CREATE TABLE herramientas (
-    id_herramienta INT AUTO_INCREMENT PRIMARY KEY,
-    nombre_h VARCHAR(50),
-    fecha_prestamo DATE,
-    estado VARCHAR(50)
-);
+==== 10.2.1. Configuración del Archivo `.env`
+Edita el archivo `.env` en la raíz del proyecto *Laravel* con los siguientes valores: 
 
-CREATE TABLE insumos (
-    id_insumo INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(50),
-    tipo VARCHAR(50),
-    precio_unidad INT,
-    cantidad INT,
-    unidad_medida VARCHAR(50)
-);
+**DB_CONNECTION=mysql**
 
-CREATE TABLE actividad (
-    id_actividad INT AUTO_INCREMENT PRIMARY KEY,
-    nombre_actividad VARCHAR(50),
-    descripcion TEXT
-);
+**DB_HOST=127.0.0.1**
 
-CREATE TABLE calendario_lunar (
-    id_calendario_lunar INT AUTO_INCREMENT PRIMARY KEY,
-    fecha DATE,
-    descripcion_evento TEXT,
-    evento VARCHAR(50)
-);
+**DB_PORT=3306**
 
-CREATE TABLE asignacion_actividad (
-    id_asignacion_actividad INT AUTO_INCREMENT PRIMARY KEY,
-    fecha DATE,
-    fk_id_actividad INT,
-    fk_identificacion BIGINT,
-    FOREIGN KEY (fk_id_actividad) REFERENCES actividad(id_actividad),
-    FOREIGN KEY (fk_identificacion) REFERENCES usuarios(identificacion)
-);
+**DB_DATABASE=agrosoft**
 
-CREATE TABLE programacion (
-    id_programacion INT AUTO_INCREMENT PRIMARY KEY,
-    estado VARCHAR(50),
-    fecha_programada DATE,
-    duracion INT,
-    fk_id_asignacion_actividad INT,
-    fk_id_calendario_lunar INT,
-    FOREIGN KEY (fk_id_asignacion_actividad) REFERENCES asignacion_actividad(id_asignacion_actividad),
-    FOREIGN KEY (fk_id_calendario_lunar) REFERENCES calendario_lunar(id_calendario_lunar)
-);
+**DB_USERNAME=root**
 
-CREATE TABLE notificacion (
-    id_notificacion INT AUTO_INCREMENT PRIMARY KEY,
-    titulo VARCHAR(50),
-    mensaje VARCHAR(50),
-    fk_id_programacion INT,
-    FOREIGN KEY (fk_id_programacion) REFERENCES programacion(id_programacion)
-);
+**DB_PASSWORD=**
 
-CREATE TABLE requiere (
-    id_requiere INT AUTO_INCREMENT PRIMARY KEY,
-    fk_id_herramienta INT,
-    FOREIGN KEY (fk_id_herramienta) REFERENCES herramientas(id_herramienta),
-    fk_id_asignacion_actividad INT,
-    FOREIGN KEY (fk_id_asignacion_actividad) REFERENCES asignacion_actividad(id_asignacion_actividad)
-);
 
-CREATE TABLE utiliza (
-    id_utiliza INT AUTO_INCREMENT PRIMARY KEY,
-    fk_id_insumo INT,
-    FOREIGN KEY (fk_id_insumo) REFERENCES insumos(id_insumo),
-    fk_id_asignacion_actividad INT,
-    FOREIGN KEY (fk_id_asignacion_actividad) REFERENCES asignacion_actividad(id_asignacion_actividad)
-);
+NOTE: Asegúrate de que *MySQL* esté activo en *Laragon* y que el puerto 3306 esté disponible. En producción, configura una contraseña segura para `root`.
 
-CREATE TABLE PEA (
-    id_pea INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(50),
-    descripcion TEXT
-);
+==== 10.2.2. Crear una Migración
+Genera un archivo de migración para la tabla *sensor_data*: **php artisan make:migration create_sensor_data_table**
 
-CREATE TABLE ubicacion (
-    id_ubicacion INT AUTO_INCREMENT PRIMARY KEY,
-    latitud DECIMAL(9,6),
-    longitud DECIMAL(9,6)
-);
 
-CREATE TABLE lote (
-    id_lote INT AUTO_INCREMENT PRIMARY KEY,
-    dimension INT,
-    nombre_lote VARCHAR(50),
-    fk_id_ubicacion INT,
-    CONSTRAINT ubicacion_lote FOREIGN KEY (fk_id_ubicacion) REFERENCES ubicacion(id_ubicacion),
-    estado VARCHAR(50)
-);
+==== 10.2.3. Editar la Migración
+Abre el archivo generado en `database/migrations/` y agrega la siguiente estructura:
 
-CREATE TABLE eras (
-    id_eras INT AUTO_INCREMENT PRIMARY KEY,
-    descripcion VARCHAR(50),
-    fk_id_lote INT,
-    CONSTRAINT lote_era FOREIGN KEY (fk_id_lote) REFERENCES lote(id_lote)
-);
+**use Illuminate\Database\Migrations\Migration;**
 
-CREATE TABLE tipo_cultivo (
-    id_tipo_cultivo INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(50),
-    descripcion TEXT
-);
+**use Illuminate\Database\Schema\Blueprint;**
 
-CREATE TABLE especie (
-    id_especie INT AUTO_INCREMENT PRIMARY KEY,
-    nombre_comun VARCHAR(50),
-    nombre_cientifico VARCHAR(50),
-    descripcion TEXT,
-    fk_id_tipo_cultivo INT,
-    CONSTRAINT tipo_especie FOREIGN KEY (fk_id_tipo_cultivo) REFERENCES tipo_cultivo(id_tipo_cultivo)
-);
+**use Illuminate\Support\Facades\Schema;**
 
-CREATE TABLE semilleros (
-    id_semillero INT AUTO_INCREMENT PRIMARY KEY,
-    nombre_semilla VARCHAR(50),
-    fecha_siembra DATE,
-    fecha_estimada DATE,
-    cantidad INT
-);
+class CreateSensorDataTable extends Migration
 
-CREATE TABLE cultivo (
-    id_cultivo INT AUTO_INCREMENT PRIMARY KEY,
-    fecha_plantacion DATE NOT NULL,
-    nombre_cultivo VARCHAR(50),
-    descripcion TEXT,
-    fk_id_especie INT,
-    CONSTRAINT especie_cultivo FOREIGN KEY (fk_id_especie) REFERENCES especie(id_especie),
-    fk_id_semillero INT,
-    CONSTRAINT semillero_cultivo FOREIGN KEY (fk_id_semillero) REFERENCES semilleros(id_semillero)
-);
+{
 
-CREATE TABLE realiza (
-    id_realiza INT AUTO_INCREMENT PRIMARY KEY,
-    fk_id_cultivo INT,
-    FOREIGN KEY (fk_id_cultivo) REFERENCES cultivo(id_cultivo),
-    fk_id_actividad INT,
-    CONSTRAINT actividad_realiza FOREIGN KEY (fk_id_actividad) REFERENCES actividad(id_actividad)
-);
+    public function up()
 
-CREATE TABLE plantacion (
-    id_plantacion INT AUTO_INCREMENT PRIMARY KEY,
-    fk_id_cultivo INT,
-    FOREIGN KEY (fk_id_cultivo) REFERENCES cultivo(id_cultivo),
-    fk_id_era INT,
-    CONSTRAINT era_plantacion FOREIGN KEY (fk_id_era) REFERENCES eras(id_eras)
-);
+    {
 
-CREATE TABLE desarrollan (
-    id_desarrollan INT AUTO_INCREMENT PRIMARY KEY,
-    fk_id_cultivo INT,
-    FOREIGN KEY (fk_id_cultivo) REFERENCES cultivo(id_cultivo),
-    fk_id_pea INT,
-    CONSTRAINT pea_desarrollan FOREIGN KEY (fk_id_pea) REFERENCES PEA(id_pea)
-);
+        Schema::create('sensor_data', function (Blueprint $table) {
 
-CREATE TABLE produccion (
-    id_produccion INT AUTO_INCREMENT PRIMARY KEY,
-    fk_id_cultivo INT,
-    CONSTRAINT fk_cultivo_prod FOREIGN KEY (fk_id_cultivo) REFERENCES cultivo(id_cultivo),
-    cantidad_producida INT NOT NULL,
-    fecha_produccion DATE NOT NULL,
-    fk_id_lote INT,
-    CONSTRAINT fk_lote_prod FOREIGN KEY (fk_id_lote) REFERENCES lote(id_lote),
-    descripcion_produccion TEXT,
-    estado ENUM('En proceso', 'Finalizado', 'Cancelado'),
-    fecha_cosecha DATE
-);
+            $table->id();
 
-CREATE TABLE venta (
-    id_venta INT AUTO_INCREMENT PRIMARY KEY,
-    fk_id_produccion INT,
-    CONSTRAINT fk_produccion_venta FOREIGN KEY (fk_id_produccion) REFERENCES produccion(id_produccion),
-    cantidad INT NOT NULL,
-    precio_unitario INT NOT NULL,
-    total_venta INT,
-    fecha_venta DATE NOT NULL
-);
+            $table->string('sensor_type', 50);
 
-CREATE TABLE genera (
-    id_genera INT AUTO_INCREMENT PRIMARY KEY,
-    fk_id_cultivo INT,
-    fk_id_produccion INT,
-    CONSTRAINT cultivo_gen FOREIGN KEY (fk_id_cultivo) REFERENCES cultivo(id_cultivo),
-    CONSTRAINT produ_gen FOREIGN KEY (fk_id_produccion) REFERENCES produccion(id_produccion)
-);
+            $table->decimal('value', 10, 2);
 
-CREATE TABLE sensores (
-    id_sensor INT AUTO_INCREMENT PRIMARY KEY,
-    nombre_sensor VARCHAR(50),
-    tipo_sensor VARCHAR(50),
-    unidad_medida VARCHAR(50),
-    descripcion TEXT,
-    medida_minima FLOAT,
-    medida_maxima FLOAT
-);
+            $table->dateTime('timestamp');
 
-CREATE TABLE mide (
-    id_mide INT AUTO_INCREMENT PRIMARY KEY,
-    fk_id_sensor INT,
-    FOREIGN KEY (fk_id_sensor) REFERENCES sensores(id_sensor),
-    fk_id_era INT,
-    CONSTRAINT era_mide FOREIGN KEY (fk_id_era) REFERENCES eras(id_eras)
-);
+            $table->timestamps();
 
-CREATE TABLE tipo_residuos (
-    id_tipo_residuo INT AUTO_INCREMENT PRIMARY KEY,
-    nombre_residuo VARCHAR(50),
-    descripcion TEXT
-);
+        });
 
-CREATE TABLE residuos (
-    id_residuo INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(50),
-    fecha DATE,
-    descripcion TEXT,
-    fk_id_tipo_residuo INT,
-    CONSTRAINT tipo_residuo_residuo FOREIGN KEY (fk_id_tipo_residuo) REFERENCES tipo_residuos(id_tipo_residuo),
-    fk_id_cultivo INT,
-    CONSTRAINT cultivo_residuo FOREIGN KEY (fk_id_cultivo) REFERENCES cultivo(id_cultivo)
-);
+    }
 
-CREATE TABLE control_fitosanitario (
-    id_control_fitosanitario INT AUTO_INCREMENT PRIMARY KEY,
-    fecha_control DATE,
-    descripcion TEXT,
-    fk_id_desarrollan INT,
-    CONSTRAINT desarrollan_control_fitosanitario FOREIGN KEY (fk_id_desarrollan) REFERENCES desarrollan(id_desarrollan)
-);
+    public function down()
+    {
+        Schema::dropIfExists('sensor_data');
+    }
+}
+----
 
-CREATE TABLE control_usa_insumo (
-    id_control_usa_insumo INT AUTO_INCREMENT PRIMARY KEY,
-    fk_id_insumo INT,
-    FOREIGN KEY (fk_id_insumo) REFERENCES insumos(id_insumo),
-    fk_id_control_fitosanitario INT,
-    CONSTRAINT control_fitosanitario_usa_insumo FOREIGN KEY (fk_id_control_fitosanitario) REFERENCES control_fitosanitario(id_control_fitosanitario),
-    cantidad INT
-);
+==== 10.2.4. Ejecutar las Migraciones
+Ejecuta el comando siguiente en la terminal del proyecto: **php artisan migrate**
 
-```
+
+Verifica en *phpMyAdmin* que la tabla *sensor_data* se haya creado correctamente.
+
+==== 10.2.5. Resolución de Problemas
+Si las migraciones "no te funcionan", revisa lo siguiente:
+- **Error de conexión**: Asegúrate de que *MySQL* esté activo y las credenciales en `.env` sean correctas.
+- **Puerto ocupado**: Si el puerto 3306 está en uso, cambia `DB_PORT` a otro valor (por ejemplo, 3307) y ajusta la configuración de *MySQL* en *Laragon*.
+- **Permisos**: Verifica que el usuario `root` tenga permisos para crear bases de datos.
+- **Sintaxis**: Asegúrate de que no haya errores tipográficos en el archivo de migración.
+
+Si persisten los problemas, consulta la documentación oficial de Laravel (https://laravel.com/docs/12.x/migrations) o comparte el mensaje de error para obtener ayuda específica.
+
 
 ## 11. Configuración y Ejecución de la Base de Datos
 
-### 1. Instalación y Configuración
+Esta sección detalla el proceso para configurar y ejecutar la base de datos *agrosoft* usando *Laragon* y *phpMyAdmin*. Se incluyen instrucciones para scripts SQL y migraciones de *Laravel*, junto con pasos para verificar la configuración.
 
-Para este sistema, se utiliza **MySQL** como motor de base de datos, gestionado a través de **Laragon**.
 
-#### Pasos para la configuración:
+=== Ejecución con Migraciones
 
-1. Instalar **Laragon** (si no está instalado) desde [https://laragon.org/](https://laragon.org/).
-2. Iniciar Laragon y asegurarse de que el servicio de **MySQL** esté activo.
-3. Abrir **phpMyAdmin** desde [http://localhost/phpmyadmin/](http://localhost/phpmyadmin/).
-4. Crear una nueva base de datos desde phpMyAdmin o ejecutar el script SQL de creación.
+Para usar migraciones de *Laravel* como alternativa a los scripts SQL:
 
-> 💡 **Nota:**  
-> Si se requiere una instalación manual de **MySQL** o **phpMyAdmin**, se recomienda consultar los manuales externos incluidos en los anexos del proyecto.
+1. Configura el archivo `.env` según la sección 10.
+2. Abre una terminal en el directorio del proyecto *Laravel*.
+3. Ejecuta el comando: **php artisan migrate**
 
----
+4. Verifica en *phpMyAdmin* que la tabla *sensor_data* se haya creado correctamente ejecutando `SHOW TABLES;`.
 
-### 2. Ejecución del Script de Creación
+NOTE: Asegúrate de que *MySQL* esté activo y las credenciales en `.env` coincidan con tu configuración.
 
-Para crear la base de datos, sigue los siguientes pasos:
+=== Resolución de Problemas
 
-1. Abrir **phpMyAdmin** en [http://localhost/phpmyadmin/](http://localhost/phpmyadmin/).
-2. Seleccionar la pestaña **"SQL"** en la parte superior.
-3. Copiar y pegar el **script de creación de la base de datos**.
-4. Ejecutar el script presionando el botón **"Continuar"**.
+Si encuentras problemas durante la configuración o ejecución, revisa los siguientes casos:
 
-> ✅ **Resultado esperado:**  
-> Al finalizar la ejecución, se debe verificar la creación correcta de todas las **tablas** y sus respectivas **relaciones** en la base de datos `agrosof`.
+- **MySQL no se inicia en Laragon**:
+  - Solución: Reinicia *Laragon* o verifica que el puerto 3306 no esté en uso por otro servicio. Cambia el puerto en *Laragon* si es necesario.
+- **Error al conectar a phpMyAdmin**:
+  - Solución: Confirma que *MySQL* está activo y que usas las credenciales correctas (`root` sin contraseña por defecto).
+- **Script SQL falla**:
+  - Solución: Revisa la sintaxis en la sección 10. Si la tabla ya existe, usa `DROP TABLE sensor_data;` antes de ejecutar el script.
+- **Migraciones no funcionan**:
+  - **Error de conexión**: Verifica que las credenciales en `.env` sean correctas y que *MySQL* esté activo.
+  - **Puerto ocupado**: Si el puerto 3306 está en uso, ajusta `DB_PORT` en `.env` (por ejemplo, a 3307) y reconfigura *MySQL* en *Laragon*.
+  - **Permisos insuficientes**: Asegúrate de que el usuario `root` tenga permisos para crear bases de datos y tablas.
+  - **Sintaxis en migración**: Revisa el archivo de migración en `database/migrations/` por errores tipográficos.
+  - Solución: Ejecuta `php artisan migrate:rollback` para deshacer cambios y corrige el problema. Consulta la documentación de Laravel (https://laravel.com/docs/12.x/migrations) si persiste.
+
+TIP: Si el problema continúa, anota el mensaje de error exacto (por ejemplo, el texto que aparece en la terminal) y consulta con el equipo de desarrollo o la documentación.
