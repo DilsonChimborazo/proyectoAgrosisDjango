@@ -248,13 +248,13 @@ export default function Principal({ children }: LayoutProps) {
           {/* Avatar solo visible en desktop */}
           <div className="hidden sm:flex items-center space-x-2">
             <img
-              src={usuario?.img_url || 'http://localhost:8000/media/imagenes/defecto.png'}
+              src={usuario?.img_url || 'http://localhost:8000/media/imagenes/defecto.jpg'}
               alt="Foto de perfil"
               className="w-8 h-8 rounded-full object-cover"
               onError={(e) => {
                 const target = e.currentTarget;
                 if (!target.src.includes('defecto.png')) {
-                  target.src = 'http://localhost:8000/media/imagenes/defecto.png';
+                  target.src = 'http://localhost:8000/media/imagenes/defecto.jpg';
                 }
               }}
             />
