@@ -31,7 +31,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 class CustomPagination(PageNumberPagination):
-    permissions_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     page_size = 1000
     page_size_query_param = 'page_size'
     max_page_size = 1000
@@ -47,7 +47,7 @@ class CustomPagination(PageNumberPagination):
         })
 
 class HistorialViewSet(ModelViewSet):
-    permissions_clases = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     queryset = SnapshotTrazabilidad.objects.all()
     serializer_class = SnapshotSerializer
     pagination_class = CustomPagination
@@ -61,14 +61,15 @@ class HistorialViewSet(ModelViewSet):
         return super().get_queryset()
 
 class ResumenActualViewSet(ModelViewSet):
-    permissions_clases = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     queryset = ResumenTrazabilidad.objects.all()
     serializer_class = ResumenTrazabilidadSerializer
     lookup_field = 'plantacion_id'
     lookup_url_kwarg = 'plantacion_id'
 
 class TrazabilidadPlantacionAPIView(APIView):
-    permissions_clases = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
+
     def _get_detalle_actividades(self, programaciones, controles):
         detalle = []
         for programacion in programaciones:
@@ -173,11 +174,34 @@ class TrazabilidadPlantacionAPIView(APIView):
                 'produccion_asociada': item.produccion.nombre_produccion if item.produccion else None
             })
         return detalle
+    
+    def _get_detalle_herramientas(self, programaciones):
+        detalle = []
+        for programacion in programaciones:
+            asignacion = programacion.fk_id_asignacionActividades
+            actividad = (
+                asignacion.fk_id_realiza.fk_id_actividad.nombre_actividad
+                if asignacion and asignacion.fk_id_realiza and asignacion.fk_id_realiza.fk_id_actividad
+                else "Sin actividad"
+            )
+            
+            resultado_depreciacion = programacion.calcular_depreciacion()
+            detalles_depreciacion = resultado_depreciacion.get("detalles", [])
+            
+            for detalle_depreciacion in detalles_depreciacion:
+                detalle.append({
+                    "herramienta": detalle_depreciacion["herramienta"],
+                    "cantidad": detalle_depreciacion["cantidad"],
+                    "depreciacion": detalle_depreciacion["depreciacion"],
+                    "fecha": programacion.fecha_realizada,
+                    "actividad_asociada": actividad,
+                })
+    
+        return detalle
 
     def _calcular_costo_mano_obra(self, programaciones_queryset, controles_queryset):
         costo_total = Decimal('0')
 
-        # Manejo de programaciones
         for prog in programaciones_queryset:
             usuarios = prog.fk_id_asignacionActividades.fk_identificacion.all()
             if not usuarios:
@@ -205,7 +229,6 @@ class TrazabilidadPlantacionAPIView(APIView):
                 else:
                     logger.warning(f"No se encontró salario activo para el rol {usuario.fk_id_rol.rol} en la fecha {prog.fecha_realizada}")
 
-        # Manejo de controles fitosanitarios
         for control in controles_queryset:
             usuarios = control.fk_identificacion.all()
             if not usuarios:
@@ -291,6 +314,10 @@ class TrazabilidadPlantacionAPIView(APIView):
             egresos_controles_acumulado = controles_all.aggregate(total=Sum('costo_insumo'))['total'] or 0
             egresos_insumos_acumulado = egresos_bodega_acumulado + egresos_controles_acumulado
             
+            depreciacion_herramientas_acumulada = programaciones_all.aggregate(
+                total=Sum('depreciacion_total', filter=Q(depreciacion_total__isnull=False))
+            )['total'] or Decimal('0')
+            
             total_cantidad_producida_base_acumulado = producciones_all.aggregate(
                 total=Sum('cantidad_en_base')
             )['total'] or Decimal('0')
@@ -305,13 +332,22 @@ class TrazabilidadPlantacionAPIView(APIView):
                 total=Sum(F('precio_unidad_con_descuento') * F('cantidad'))
             )['total'] or 0
             
-            costo_total_acumulado = costo_mano_obra_acumulado + egresos_insumos_acumulado
-            beneficio_costo_acumulado = round((ingresos_ventas_acumulado / costo_total_acumulado), 2) if costo_total_acumulado > 0 else 0
+            costo_total_acumulado = (
+                costo_mano_obra_acumulado + 
+                egresos_insumos_acumulado + 
+                depreciacion_herramientas_acumulada
+            )
+            beneficio_costo_acumulado = (
+                round((ingresos_ventas_acumulado / costo_total_acumulado), 2) 
+                if costo_total_acumulado > 0 else 0
+            )
             balance_acumulado = ingresos_ventas_acumulado - costo_total_acumulado
             
             precio_minimo_venta_por_unidad_acumulado = Decimal('0')
             if total_cantidad_producida_base_acumulado > 0:
-                precio_minimo_venta_por_unidad_acumulado = round(costo_total_acumulado / total_cantidad_producida_base_acumulado, 4)
+                precio_minimo_venta_por_unidad_acumulado = round(
+                    costo_total_acumulado / total_cantidad_producida_base_acumulado, 4
+                )
             
             # --- CÁLCULOS PARA EL COSTO INCREMENTAL / ÚLTIMA COSECHA ---
             
@@ -355,25 +391,36 @@ class TrazabilidadPlantacionAPIView(APIView):
                 egresos_controles_incremental = controles_incremental.aggregate(total=Sum('costo_insumo'))['total'] or 0
                 egresos_insumos_incremental = egresos_bodega_incremental + egresos_controles_incremental
                 
-                costo_incremental_ultima_cosecha = costo_mano_obra_incremental + egresos_insumos_incremental
+                depreciacion_incremental_ultima_cosecha = programaciones_incremental.aggregate(
+                    total=Sum('depreciacion_total', filter=Q(depreciacion_total__isnull=False))
+                )['total'] or Decimal('0')
+                
+                costo_incremental_ultima_cosecha = (
+                    costo_mano_obra_incremental + 
+                    egresos_insumos_incremental + 
+                    depreciacion_incremental_ultima_cosecha
+                )
                 
                 cantidad_incremental_ultima_cosecha = ultima_produccion.cantidad_en_base or Decimal('0')
 
                 if cantidad_incremental_ultima_cosecha > 0:
-                    precio_minimo_incremental_ultima_cosecha = round(costo_incremental_ultima_cosecha / cantidad_incremental_ultima_cosecha, 4)
+                    precio_minimo_incremental_ultima_cosecha = round(
+                        costo_incremental_ultima_cosecha / cantidad_incremental_ultima_cosecha, 4
+                    )
             
-            # --- NUEVO CÁLCULO: PRECIO MÍNIMO PARA RECUPERAR INVERSIÓN ---
-            costo_a_cubrir_neto = max(Decimal('0'), costo_total_acumulado - ingresos_ventas_acumulado) 
+            # --- CÁLCULO: PRECIO MÍNIMO PARA RECUPERAR INVERSIÓN ---
+            costo_a_cubrir_neto = max(Decimal('0'), costo_total_acumulado - ingresos_ventas_acumulado)
             stock_disponible_total = producciones_all.aggregate(total=Sum('stock_disponible'))['total'] or Decimal('0')
 
             precio_minimo_recuperar_inversion = Decimal('0')
             if stock_disponible_total > 0:
                 precio_minimo_recuperar_inversion = round(costo_a_cubrir_neto / stock_disponible_total, 4)
-            # --- FIN DE CÁLCULO DE RECUPERACIÓN ---
 
+            # --- OBTENER DETALLES ---
             detalle_actividades = self._get_detalle_actividades(programaciones_all, controles_all)
             detalle_insumos = self._get_detalle_insumos(asignaciones_all, controles_all)
             detalle_ventas = self._get_detalle_ventas(ventas_all)
+            detalle_herramientas = self._get_detalle_herramientas(programaciones_all)
             
             return {
                 "plantacion_id": plantacion.id,
@@ -389,6 +436,7 @@ class TrazabilidadPlantacionAPIView(APIView):
                 "jornales": jornales_acumulado,
                 "costo_mano_obra_acumulado": float(costo_mano_obra_acumulado),
                 "egresos_insumos_acumulado": float(egresos_insumos_acumulado),
+                "depreciacion_herramientas_acumulada": float(depreciacion_herramientas_acumulada),
                 "ingresos_ventas_acumulado": float(ingresos_ventas_acumulado),
                 "beneficio_costo_acumulado": float(beneficio_costo_acumulado),
                 "total_cantidad_producida_base_acumulado": float(total_cantidad_producida_base_acumulado),
@@ -399,19 +447,21 @@ class TrazabilidadPlantacionAPIView(APIView):
                 "cantidad_incremental_ultima_cosecha": float(cantidad_incremental_ultima_cosecha),
                 "precio_minimo_incremental_ultima_cosecha": float(precio_minimo_incremental_ultima_cosecha),
 
-                # Nuevo: Precio Mínimo para Recuperar Inversión
+                # Precio Mínimo para Recuperar Inversión
                 "precio_minimo_recuperar_inversion": float(precio_minimo_recuperar_inversion),
                 "stock_disponible_total": float(stock_disponible_total),
                 
                 "detalle_actividades": detalle_actividades,
                 "detalle_insumos": detalle_insumos,
                 "detalle_ventas": detalle_ventas,
+                "detalle_herramientas": detalle_herramientas,
                 
                 "resumen": {
                     "total_actividades": len(detalle_actividades),
                     "total_controles": controles_all.count(),
                     "total_ventas": ventas_all.count(),
                     "total_insumos": len(detalle_insumos),
+                    "total_herramientas": len(detalle_herramientas),
                     "costo_total_acumulado": float(costo_total_acumulado),
                     "balance_acumulado": float(balance_acumulado)
                 }
@@ -439,7 +489,7 @@ class TrazabilidadPlantacionAPIView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class HistoricoTrazabilidadAPIView(ListAPIView):
-    permissions_clases = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     serializer_class = SnapshotSerializer
     pagination_class = CustomPagination
 
@@ -450,7 +500,7 @@ class HistoricoTrazabilidadAPIView(ListAPIView):
         ).order_by('-fecha_registro')
 
 class ResumenActualTrazabilidadAPIView(APIView):
-    permissions_clases = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     def get(self, request, plantacion_id):
         try:
             resumen = ResumenTrazabilidad.objects.get(plantacion_id=plantacion_id)

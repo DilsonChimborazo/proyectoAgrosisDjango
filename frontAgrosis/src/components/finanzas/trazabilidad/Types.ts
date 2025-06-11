@@ -16,12 +16,12 @@ export type { DetalleActividad };
 interface UnidadMedida {
     id: number;
     nombre_medida: string;
-    unidad_base: 'g' | 'ml' | 'u';
-    factor_conversion: number;
+    unidad_base: string;
+    factor?: number;
 }
 
 interface DetalleInsumo {
-    tipo: 'Actividad' | 'Control Fitosanitario';
+    tipo: string;
     nombre: string;
     tipo_insumo: string;
     cantidad: number;
@@ -47,13 +47,24 @@ interface DetalleVenta {
 
 export type { DetalleVenta };
 
+interface DetalleHerramienta {
+    herramienta: string;
+    cantidad: number;
+    depreciacion: number;
+    fecha: string;
+    actividad_asociada: string;
+}
+
+export type { DetalleHerramienta };
+
 interface Resumen {
     total_actividades: number;
     total_controles: number;
     total_ventas: number;
     total_insumos: number;
-    costo_total_acumulado: number; 
-    balance_acumulado: number;     
+    total_herramientas: number;
+    costo_total_acumulado: number;
+    balance_acumulado: number;
 }
 
 export type { Resumen };
@@ -71,27 +82,27 @@ interface TrazabilidadCultivoReporte {
     total_horas: number;
     jornales: number;
     costo_mano_obra_acumulado: number;
-    egresos_insumos_acumulado: number;   
-    ingresos_ventas_acumulado: number;   
-    beneficio_costo_acumulado: number;   
-    total_cantidad_producida_base_acumulado: number; 
-    precio_minimo_venta_por_unidad_acumulado: number; 
-
-    detalle_actividades: DetalleActividad[];
-    detalle_insumos: DetalleInsumo[];
-    detalle_ventas: DetalleVenta[];
-    resumen: Resumen;
-
+    egresos_insumos_acumulado: number;
+    depreciacion_herramientas_acumulada: number;
+    ingresos_ventas_acumulado: number;
+    beneficio_costo_acumulado: number;
+    total_cantidad_producida_base_acumulado: number;
+    precio_minimo_venta_por_unidad_acumulado: number;
+    
     // Campos incrementales
     costo_incremental_ultima_cosecha: number;
     cantidad_incremental_ultima_cosecha: number;
     precio_minimo_incremental_ultima_cosecha: number;
-
-    // Nuevo campo: Precio Mínimo para Recuperar Inversión
+    
+    // Precio mínimo para recuperar inversión
     precio_minimo_recuperar_inversion: number;
-    stock_disponible_total: number; // Para mostrar el stock disponible total que debe cubrir la pérdida
-
-    [key: string]: any; 
+    stock_disponible_total: number;
+    
+    detalle_actividades: DetalleActividad[];
+    detalle_insumos: DetalleInsumo[];
+    detalle_ventas: DetalleVenta[];
+    detalle_herramientas: DetalleHerramienta[];
+    resumen: Resumen;
 }
 
 export type { TrazabilidadCultivoReporte };
@@ -109,7 +120,7 @@ export type { SnapshotTrazabilidad };
 interface ResumenTrazabilidad {
     ultima_actualizacion: string;
     datos_actuales: TrazabilidadCultivoReporte;
-    precio_minimo_venta_por_unidad: number; 
+    precio_minimo_venta_por_unidad: number;
 }
 
 export type { ResumenTrazabilidad };
