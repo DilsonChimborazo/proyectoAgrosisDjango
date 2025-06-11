@@ -45,6 +45,18 @@ integrations: [
 
 			},
 			{
+				label: 'ficha',
+				items: [
+					{ label: 'Creacion de Ficha', slug: 'tecnica/ficha/crearficha' },
+					{ label: 'Obtener Fichas', slug: 'tecnica/ficha/obtenerficha'},
+					{ label: 'Actuallizar Ficha', slug: 'tecnica/ficha/actualizarficha'},
+					{ label: 'Obtener Ficha por id', slug: 'tecnica/ficha/obtenerfichabyid'},
+					{ label: 'Actualizar Ficha por campo especifico', slug: 'tecnica/ficha/patchficha'},
+					{ label: 'Eliminar Ficha', slug: 'tecnica/ficha/deleteficha'},
+				],
+
+			},
+			{
 				label: 'cultivo',
 				items: [
 					{ label: 'Creacion de Cultivo', slug: 'tecnica/cultivo/crearcultivo' },
@@ -165,7 +177,39 @@ integrations: [
 					{ label: 'Eliminar venta', slug: 'tecnica/venta/deleteventa'},
 				],
 			},
-
+			{
+				label: 'nomina',
+				items: [
+					{ label: 'Creacion de nomina', slug: 'tecnica/nomina/crearnomina' },
+					{ label: 'Obtener nomina', slug: 'tecnica/nomina/obtenernomina'},
+					{ label: 'Actuallizar nomina', slug: 'tecnica/nomina/actualizarnomina'},
+					{ label: 'Obtener nomina por id', slug: 'tecnica/nomina/obtenernominabyid'},
+					{ label: 'Actualizar nomina por campo especifico', slug: 'tecnica/nomina/patchnomina'},
+					{ label: 'Eliminar nomina', slug: 'tecnica/nomina/deletenomina'},
+				],
+			},
+			{
+				label: 'salario',
+				items: [
+					{ label: 'Creacion de salario', slug: 'tecnica/salario/crearsalario' },
+					{ label: 'Obtener salario', slug: 'tecnica/salario/obtenersalario'},
+					{ label: 'Actuallizar salario', slug: 'tecnica/salario/actualizarsalario'},
+					{ label: 'Obtener salario por id', slug: 'tecnica/salario/obtenersalariobyid'},
+					{ label: 'Actualizar salario por campo especifico', slug: 'tecnica/salario/patchsalario'},
+					{ label: 'Eliminar salario', slug: 'tecnica/salario/deletesalario'},
+				],
+			},
+			{
+				label: 'stock',
+				items: [
+					{ label: 'Creacion de stock', slug: 'tecnica/stock/crearstock' },
+					{ label: 'Obtener stock', slug: 'tecnica/stock/obtenerstock'},
+					{ label: 'Actuallizar stock', slug: 'tecnica/stock/actualizarstock'},
+					{ label: 'Obtener stock por id', slug: 'tecnica/stock/obtenerstockbyid'},
+					{ label: 'Actualizar stock por campo especifico', slug: 'tecnica/stock/patchstock'},
+					{ label: 'Eliminar stock', slug: 'tecnica/stock/deletestock'},
+				],
+			},
 			{
 				label: 'herramientas',
 				items: [
