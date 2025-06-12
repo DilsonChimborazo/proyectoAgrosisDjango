@@ -10,7 +10,6 @@ interface ActualizarPlantacionProps {
   onSuccess: () => void;
 }
 
-
 const ActualizarPlantacion = ({ id, onSuccess }: ActualizarPlantacionProps) => {
   const { data: plantacion, isLoading, error } = usePlantacionPorId(String(id));
   const { data: todas = [] } = usePlantacion();
@@ -78,22 +77,30 @@ const ActualizarPlantacion = ({ id, onSuccess }: ActualizarPlantacionProps) => {
     label: s.nombre_semilla,
   }));
 
-
-
-  const handleSubmit = (data: Record<string, string>) => {
+  const handleSubmit = (formData: { [key: string]: string | string[] | File }) => {
     const errors: string[] = [];
 
-    if (!data.fk_id_eras) errors.push("Era es obligatoria");
-    if (!data.fk_id_cultivo) errors.push("Cultivo es obligatorio");
-    if (!data.cantidad_transplante || parseInt(data.cantidad_transplante) <= 0) {
+    // Convertir valores a string, tomando el primer elemento si es un arreglo
+    const fk_id_eras = Array.isArray(formData.fk_id_eras) ? formData.fk_id_eras[0] : formData.fk_id_eras;
+    const fk_id_cultivo = Array.isArray(formData.fk_id_cultivo) ? formData.fk_id_cultivo[0] : formData.fk_id_cultivo;
+    const fk_id_semillero = Array.isArray(formData.fk_id_semillero) ? formData.fk_id_semillero[0] : formData.fk_id_semillero;
+    const cantidad_transplante = Array.isArray(formData.cantidad_transplante) ? formData.cantidad_transplante[0] : formData.cantidad_transplante;
+    const fecha_plantacion = Array.isArray(formData.fecha_plantacion) ? formData.fecha_plantacion[0] : formData.fecha_plantacion;
+    const latitud = Array.isArray(formData.latitud) ? formData.latitud[0] : formData.latitud;
+    const longitud = Array.isArray(formData.longitud) ? formData.longitud[0] : formData.longitud;
+
+    // Validaciones
+    if (!fk_id_eras || typeof fk_id_eras !== "string") errors.push("Era es obligatoria");
+    if (!fk_id_cultivo || typeof fk_id_cultivo !== "string") errors.push("Cultivo es obligatorio");
+    if (!cantidad_transplante || typeof cantidad_transplante !== "string" || parseInt(cantidad_transplante) <= 0) {
       errors.push("Cantidad Transplante debe ser un número mayor a 0");
     }
-    if (!data.fecha_plantacion) errors.push("Fecha de Plantación es obligatoria");
-    if (!data.fk_id_semillero) errors.push("Semillero es obligatorio");
-    if (data.latitud && isNaN(Number(data.latitud))) {
+    if (!fecha_plantacion || typeof fecha_plantacion !== "string") errors.push("Fecha de Plantación es obligatoria");
+    if (!fk_id_semillero || typeof fk_id_semillero !== "string") errors.push("Semillero es obligatorio");
+    if (latitud && typeof latitud === "string" && isNaN(Number(latitud))) {
       errors.push("Latitud debe ser un número válido");
     }
-    if (data.longitud && isNaN(Number(data.longitud))) {
+    if (longitud && typeof longitud === "string" && isNaN(Number(longitud))) {
       errors.push("Longitud debe ser un número válido");
     }
 
@@ -107,19 +114,16 @@ const ActualizarPlantacion = ({ id, onSuccess }: ActualizarPlantacionProps) => {
       return;
     }
 
-
     actualizarPlantacion.mutate(
       {
         id: +id,
-        fk_id_eras: parseInt(data.fk_id_eras),
-        fk_id_cultivo: parseInt(data.fk_id_cultivo),
-        cantidad_transplante: parseInt(data.cantidad_transplante),
-        fecha_plantacion: data.fecha_plantacion,
-        fk_id_semillero: parseInt(data.fk_id_semillero),
-        latitud: data.latitud ? Number(data.latitud) : null,
-        longitud: data.longitud ? Number(data.longitud) : null,
-
-
+        fk_id_eras: parseInt(fk_id_eras as string),
+        fk_id_cultivo: parseInt(fk_id_cultivo as string),
+        cantidad_transplante: parseInt(cantidad_transplante as string),
+        fecha_plantacion: fecha_plantacion as string,
+        fk_id_semillero: parseInt(fk_id_semillero as string),
+        latitud: latitud && typeof latitud === "string" ? Number(latitud) : null,
+        longitud: longitud && typeof longitud === "string" ? Number(longitud) : null,
       },
       {
         onSuccess: () => {
@@ -159,13 +163,11 @@ const ActualizarPlantacion = ({ id, onSuccess }: ActualizarPlantacionProps) => {
             id: "latitud",
             label: "Latitud",
             type: "number",
-            
           },
           {
             id: "longitud",
             label: "Longitud",
             type: "number",
-            
           },
           {
             id: "fk_id_eras",

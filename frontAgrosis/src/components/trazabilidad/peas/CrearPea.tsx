@@ -12,74 +12,86 @@ const CrearPea = ({ onSuccess }: CrearPea) => {
   const formFields = [
     { id: 'nombre_pea', label: 'Nombre del PEA', type: 'text' },
     { id: 'descripcion', label: 'Descripción', type: 'text' },
-    { 
-      id: 'tipo_pea', 
-      label: 'Tipo de PEA', 
-      type: 'select', 
+    {
+      id: 'tipo_pea',
+      label: 'Tipo de PEA',
+      type: 'select',
       options: [
         { value: 'Plaga', label: 'Plaga' },
         { value: 'Enfermedad', label: 'Enfermedad' },
-        { value: 'Arvense', label: 'Arvense' }
-      ] 
+        { value: 'Arvense', label: 'Arvense' },
+      ],
     },
   ];
 
- const handleSubmit = (formData: { [key: string]: string | File }) => {
-  const errors: string[] = [];
+  const handleSubmit = (formData: { [key: string]: string | string[] | File }) => {
+    const errors: string[] = [];
 
-  const nombre_pea = formData.nombre_pea as string;
-  const descripcion = formData.descripcion as string;
-  const tipo_pea = formData.tipo_pea as string;
+    // Convertir valores a string donde sea necesario
+    const getStringValue = (value: string | string[] | File): string => {
+      if (Array.isArray(value)) {
+        return value[0] || "";
+      }
+      if (value instanceof File) {
+        errors.push("Archivos no son soportados en este formulario");
+        return "";
+      }
+      return value;
+    };
 
-  if (!nombre_pea?.trim()) errors.push("El nombre del PEA es obligatorio");
-  if (!tipo_pea) errors.push("El tipo de PEA es obligatorio");
+    const nombre_pea = getStringValue(formData.nombre_pea);
+    const descripcion = getStringValue(formData.descripcion);
+    const tipo_pea = getStringValue(formData.tipo_pea);
 
-  if (errors.length > 0) {
-    showToast({
-      title: 'Error al crear PEA',
-      description: errors.join(", "),
-      timeout: 5000,
-      variant: 'error',
-    });
-    return;
-  }
+    // Validaciones
+    if (!nombre_pea?.trim()) errors.push("El nombre del PEA es obligatorio");
+    if (!tipo_pea) errors.push("El tipo de PEA es obligatorio");
 
-  const nuevoPea: Pea = {
-    nombre_pea,
-    descripcion,
-    tipo_pea,
-  };
-
-  mutation.mutate(nuevoPea, {
-    onSuccess: () => {
+    if (errors.length > 0) {
       showToast({
-        title: 'PEA creado exitosamente',
-        description: 'El PEA ha sido registrado en el sistema.',
-        timeout: 4000,
-        variant: 'success',
-      });
-      onSuccess(); 
-    },
-    onError: (error) => {
-      showToast({
-        title: 'Error al crear PEA',
-        description: 'Los datos enviados son inválidos o incompletos. Por favor, revisa el formulario.',
+        title: "Error al crear PEA",
+        description: errors.join(", "),
         timeout: 5000,
-        variant: 'error',
-      });error
+        variant: "error",
+      });
+      return;
     }
-  });
-};
 
+    const nuevoPea: Pea = {
+      nombre_pea,
+      descripcion,
+      tipo_pea,
+    };
+
+    mutation.mutate(nuevoPea, {
+      onSuccess: () => {
+        showToast({
+          title: "PEA creado exitosamente",
+          description: "El PEA ha sido registrado en el sistema.",
+          timeout: 4000,
+          variant: "success",
+        });
+        onSuccess();
+      },
+      onError: () => {
+        showToast({
+          title: "Error al crear PEA",
+          description: "Los datos enviados son inválidos o incompletos. Por favor, revisa el formulario.",
+          timeout: 5000,
+          variant: "error",
+        });
+      },
+    });
+  };
 
   return (
     <div className="max-w-4xl mx-auto p-4">
-      <Formulario 
-        fields={formFields} 
-        onSubmit={handleSubmit} 
-        isError={mutation.isError} 
+      <Formulario
+        fields={formFields}
+        onSubmit={handleSubmit}
+        isError={mutation.isError}
         isSuccess={mutation.isSuccess}
-        title="Registrar Nuevo PEA"  
+        title="Registrar Nuevo PEA"
       />
     </div>
   );

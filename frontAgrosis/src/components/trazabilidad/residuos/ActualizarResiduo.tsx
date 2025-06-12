@@ -55,12 +55,24 @@ const ActualizarResiduo = ({ id, onSuccess }: ActualizarResiduo) => {
     label: t.nombre,
   }));
 
-  const handleSubmit = (formData: { [key: string]: string | File }) => {
-    // Convertimos los valores a string, ya que este formulario solo tiene campos de texto, fecha o select
-    const formDataAsStrings = Object.fromEntries(
-      Object.entries(formData).map(([key, value]) => [key, typeof value === 'string' ? value : ''])
-    ) as { [key: string]: string };
+  const handleSubmit = (formData: { [key: string]: string | File | string[] }) => {
+    // Función auxiliar para obtener valores como string
+    const getStringValue = (value: string | string[] | File): string => {
+      if (Array.isArray(value)) return value[0] || "";
+      if (value instanceof File) return ""; // No se usa directamente como string
+      return value || "";
+    };
 
+    // Convertir formData a un objeto de strings
+    const formDataAsStrings = {
+      nombre: getStringValue(formData.nombre),
+      fecha: getStringValue(formData.fecha),
+      descripcion: getStringValue(formData.descripcion),
+      fk_id_cultivo: getStringValue(formData.fk_id_cultivo),
+      fk_id_tipo_residuo: getStringValue(formData.fk_id_tipo_residuo),
+    };
+
+    // Validaciones
     if (!formDataAsStrings.fecha || !formDataAsStrings.fk_id_cultivo || !formDataAsStrings.fk_id_tipo_residuo) {
       showToast({
         title: 'Error',

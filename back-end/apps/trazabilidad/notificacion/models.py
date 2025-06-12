@@ -1,4 +1,3 @@
-# notificaciones/models.py
 from django.db import models
 from apps.usuarios.usuario.models import Usuarios
 
@@ -14,3 +13,4 @@ class Notificacion(models.Model):
 
     class Meta:
         ordering = ['-fecha_notificacion']
+        unique_together = ['usuario', 'titulo', 'mensaje']

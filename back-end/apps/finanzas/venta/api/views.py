@@ -1,3 +1,4 @@
+# apps/finanzas/venta/api/views.py
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
@@ -19,6 +20,11 @@ class VentaViewSet(ModelViewSet):
             return VentaSerializer
         return CrearVentaSerializer
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+
     @action(detail=True, methods=['get'], url_path='factura-pdf')
     def generar_factura_pdf(self, request, pk=None):
         venta = self.get_object()
@@ -38,6 +44,8 @@ class VentaViewSet(ModelViewSet):
             ['ID', str(data['id'])],
             ['Fecha', data['fecha']],
             ['Total', f"${data['total']:.2f}"],
+            ['Vendedor', f"{data['usuario']['nombre']} {data['usuario']['apellido']}"],
+            ['Email', data['usuario']['email']],
         ]
         table_venta = Table(venta_data)
         table_venta.setStyle(TableStyle([

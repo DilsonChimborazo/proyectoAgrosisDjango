@@ -1,7 +1,9 @@
+# apps/finanzas/venta/models.py
 from django.db import models
 from apps.finanzas.produccion.models import Produccion
 from apps.inventario.unidadMedida.models import UnidadMedida
 from django.core.validators import MinValueValidator, MaxValueValidator
+from apps.usuarios.usuario.models import Usuarios
 
 class Venta(models.Model):
     fecha = models.DateField(auto_now_add=True)
@@ -10,6 +12,13 @@ class Venta(models.Model):
         decimal_places=2, 
         default=0,
         validators=[MinValueValidator(0)]
+    )
+    usuario = models.ForeignKey(
+        Usuarios,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='ventas'
     )
 
     def __str__(self):
@@ -100,9 +109,6 @@ class ItemVenta(models.Model):
                 self.precio_unidad = precio_por_base_desde_produccion * self.unidad_medida.factor_conversion
             else:
                 self.precio_unidad = 0 
-        else:
-            self.precio_unidad = 0
-        # Calcular precio_unidad_con_descuento
         if self.descuento_porcentaje > 0:
             self.precio_unidad_con_descuento = self.precio_unidad * (1 - self.descuento_porcentaje / 100)
         else:

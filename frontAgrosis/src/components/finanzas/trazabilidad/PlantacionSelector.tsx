@@ -1,6 +1,6 @@
 import Button from '@/components/globales/Button';
 import { BarChart2, History, GitCompare, Download } from 'lucide-react';
-import { Plantacion } from '@/hooks/trazabilidad/plantacion/usePlantacion'; // Asumiendo que esta interfaz ya existe
+import { Plantacion } from '@/hooks/trazabilidad/plantacion/usePlantacion';
 
 interface PlantacionSelectorProps {
     plantaciones: Plantacion[] | undefined;
@@ -13,6 +13,12 @@ interface PlantacionSelectorProps {
     onExportarReporte: () => void;
     historialDisponible: boolean;
 }
+
+const formatDate = (dateStr: string | null | undefined): string => {
+    if (!dateStr) return 'Sin fecha';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' });
+};
 
 const PlantacionSelector = ({
     plantaciones,
@@ -46,7 +52,7 @@ const PlantacionSelector = ({
                             <option value="">Seleccione una plantación</option>
                             {plantaciones?.map((plantacion) => (
                                 <option key={plantacion.id} value={plantacion.id}>
-                                    {plantacion.fecha_plantacion} - {plantacion.fk_id_cultivo.nombre_cultivo}
+                                    {formatDate(plantacion.fecha_plantacion)} - {plantacion.fk_id_cultivo.nombre_cultivo}
                                 </option>
                             ))}
                         </select>
@@ -77,6 +83,13 @@ const PlantacionSelector = ({
                             icon={GitCompare}
                             disabled={!historialDisponible}
                         />
+                        {/*<Button 
+                            text="Exportar Reporte" 
+                            variant="outline" 
+                            onClick={onExportarReporte}
+                            className="w-full flex justify-center items-center gap-2"
+                            icon={Download}
+                        />*/}
                     </div>
                 )}
             </div>

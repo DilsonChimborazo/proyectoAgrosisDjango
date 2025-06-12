@@ -35,6 +35,12 @@ export interface PagoDetallado {
     jornal?: number | null;
     horas_por_jornal?: number | null;
   } | null;
+  cultivo?: string | null; // Nuevo campo para el nombre del cultivo
+  plantacion?: string | null; // Nuevo campo para detalles de la plantación
+  detalles_adicionales?: {
+    duracion?: number | null; // Duración de la actividad
+    tipo_control?: string | null; // Tipo de control si aplica
+  } | null;
 }
 
 export interface FiltrosPagos {
@@ -60,9 +66,7 @@ export const usePagosPorUsuario = (filtros?: FiltrosPagos) => {
       }
 
       const { data } = await axios.get(`${apiUrl}nomina/reporte-por-persona?${params.toString()}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+        headers: { Authorization: `Bearer ${token}` }
       });
       return data;
     },
@@ -77,9 +81,7 @@ export const usePagosPorActividad = () => {
     queryFn: async () => {
       const token = localStorage.getItem('token');
       const { data } = await axios.get(`${apiUrl}nomina/reporte-por-actividad/`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+        headers: { Authorization: `Bearer ${token}` }
       });
       return data;
     }
@@ -101,16 +103,22 @@ export const usePagosDetallados = (filtros?: FiltrosPagos) => {
       }
 
       const { data } = await axios.get(`${apiUrl}nomina/reporte-detallado?${params.toString()}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+        headers: { Authorization: `Bearer ${token}` }
       });
-      return data;
+      return data.map((item: any) => ({
+        ...item,
+        cultivo: item.cultivo || (item.fk_id_programacion?.fk_id_asignacionActividades?.fk_id_realiza?.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo || null),
+        plantacion: item.plantacion || (item.fk_id_programacion?.fk_id_asignacionActividades?.fk_id_realiza?.fk_id_plantacion?.lote || null),
+        detalles_adicionales: {
+          duracion: item.fk_id_programacion?.duracion || item.fk_id_control_fitosanitario?.duracion || null,
+          tipo_control: item.fk_id_control_fitosanitario?.tipo_control || null,
+        }
+      }));
     }
   });
 };
 
-// Marcar pago como pagado
+// Marcar pago individual
 export const useMarcarPago = () => {
   const queryClient = useQueryClient();
 
@@ -118,28 +126,34 @@ export const useMarcarPago = () => {
     mutationFn: async (id: number) => {
       const token = localStorage.getItem('token');
       const url = `${apiUrl}nomina/${id}/marcar-pagado/`;
-
-      console.log('Enviando PATCH a:', url);
-
       const response = await axios.patch(url, {}, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest'
-        }
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
       });
-
       return response.data;
     },
-    onError: (error) => {
-      if (axios.isAxiosError(error)) {
-        console.error('Error en PATCH:', {
-          URL: error.config?.url,
-          Método: error.config?.method,
-          Respuesta: error.response?.data
-        });
-      }
+    onError: (error) => { if (axios.isAxiosError(error)) console.error('Error en PATCH:', error); },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pagos-detallados'] });
+      queryClient.invalidateQueries({ queryKey: ['pagos-usuario'] });
+      queryClient.invalidateQueries({ queryKey: ['pagos-actividad'] });
+    }
+  });
+};
+
+// Marcar pagos por usuario
+export const useMarcarPagosPorUsuario = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: { usuario_id: number; fecha_inicio?: string; fecha_fin?: string }) => {
+      const token = localStorage.getItem('token');
+      const url = `${apiUrl}nomina/marcar-pagado-por-usuario/`;
+      const response = await axios.post(url, params, {
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+      });
+      return response.data;
     },
+    onError: (error) => { if (axios.isAxiosError(error)) console.error('Error en POST:', error); },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pagos-detallados'] });
       queryClient.invalidateQueries({ queryKey: ['pagos-usuario'] });
