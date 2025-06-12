@@ -14,6 +14,8 @@ import csv
 import io
 import pandas as pd
 import traceback
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 class UsuarioViewSet(ModelViewSet):
     # No defines parser_classes aquí globalmente, lo haremos dinámicamente
@@ -140,10 +142,16 @@ class UsuarioViewSet(ModelViewSet):
     @action(detail=True, methods=['post'], permission_classes=[IsAdminUser])
     def desactivar(self, request, pk=None):
         usuario = self.get_object()
+    
         if not usuario.is_active:
             return Response({"message": "El usuario ya está inactivo."}, status=status.HTTP_400_BAD_REQUEST)
+    
         usuario.is_active = False
         usuario.save()
+    
+        # 🚨 Enviar notificación por WebSocket al usuario desactivado
+        notificar_usuario_desactivado(usuario.id)
+    
         return Response({"message": "Usuario desactivado"}, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get', 'put'], permission_classes=[IsAuthenticated])
@@ -170,3 +178,13 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
+
+def notificar_usuario_desactivado(usuario_id):
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        f"user_{usuario_id}",
+        {
+            "type": "desactivar_usuario",
+            "message": "Tu cuenta ha sido desactivada por un administrador.",
+        }
+    )

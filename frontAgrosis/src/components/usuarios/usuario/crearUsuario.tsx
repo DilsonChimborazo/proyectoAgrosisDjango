@@ -57,7 +57,7 @@ const CrearUsuario: React.FC<CrearUsuarioProps> = ({ isOpen, onClose }) => {
       label: "Ficha",
       type: "select",
       options: Array.isArray(fichas)
-        ? fichas.map((f) => ({ value: String(f.id), label: f.numero_ficha }))
+        ? fichas.map((f) => ({ value: String(f.numero_ficha), label: `${f.numero_ficha} - ${f.nombre_ficha ?? ""}`, }))
         : [],
       hasExtraButton: true,
       extraButtonText: "+",
@@ -81,7 +81,7 @@ const CrearUsuario: React.FC<CrearUsuarioProps> = ({ isOpen, onClose }) => {
     // Aquí confiamos que formData ya está validado por Zod en Formulario
     const identificacion = parseInt(formData.identificacion, 10);
     const fk_id_rol = parseInt(formData.fk_id_rol, 10);
-    const ficha = parseInt(formData.ficha || "", 10);
+    const ficha = parseInt(formData.ficha, 10);
 
     const newUsuario: Usuario = {
       identificacion,

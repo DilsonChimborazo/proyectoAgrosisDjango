@@ -1,4 +1,5 @@
 import { Routes, Route } from "react-router-dom";
+import useWebSocketUsuario from "@/hooks/usuarios/usuario/useWebSocketUsuario";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import AuthChecker from "./components/inteceptor/Verificacion";
 import './styles/globals.css';
@@ -64,6 +65,8 @@ import InsumoNotifications from '@/components/inventario/insumos/InsumosNotifica
 const queryClient = new QueryClient();
 
 function App() {
+  useWebSocketUsuario();
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthChecker>

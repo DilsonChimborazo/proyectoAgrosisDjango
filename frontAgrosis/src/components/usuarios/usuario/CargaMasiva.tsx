@@ -13,7 +13,7 @@ interface CargaMasivaUsuariosProps {
 const CargaMasivaUsuarios: React.FC<CargaMasivaUsuariosProps> = ({ onClose }) => {
   const [archivo, setArchivo] = useState<File | null>(null);
   const mutation = useCargaMasivaUsuarios();
-  const navigate= useNavigate();
+  const navigate = useNavigate();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -43,9 +43,8 @@ const CargaMasivaUsuarios: React.FC<CargaMasivaUsuariosProps> = ({ onClose }) =>
           description: `Usuarios cargados: ${data?.creados?.length || 0}`,
           variant: 'success',
         });
-        
-        navigate('/usuarios');
 
+        navigate('/usuarios');
       },
       onError: () => {
         showToast({
@@ -60,10 +59,20 @@ const CargaMasivaUsuarios: React.FC<CargaMasivaUsuariosProps> = ({ onClose }) =>
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <Input type="file" accept=".csv,.xlsx,.xls" onChange={handleFileChange} />
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap">
         <Button type="submit" className="bg-green-600 text-white hover:bg-green-700" disabled={mutation.isPending}>
           {mutation.isPending ? 'Cargando...' : 'Subir Archivo'}
         </Button>
+
+        {/* Botón para descargar el formato Excel */}
+        <a
+          href="/plantillas/plantilla_usuarios.xlsx"
+          download
+          className="inline-flex items-center px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition duration-200"
+        >
+          Descargar Formato Excel
+        </a>
+
         <Button type="button" variant="secondary" onClick={onClose}>
           Cancelar
         </Button>

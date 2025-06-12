@@ -84,6 +84,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setLoading(false);
   }, [location.pathname]);
 
+  
+
   if (loading) return <LoadingBox />;
 
   return (
