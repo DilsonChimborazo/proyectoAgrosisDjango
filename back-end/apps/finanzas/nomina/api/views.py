@@ -121,7 +121,9 @@ class NominaViewSet(ModelViewSet):
 
         nominas = Nomina.objects.filter(query).select_related(
             'fk_id_programacion__fk_id_asignacionActividades__fk_id_realiza__fk_id_actividad',
+            'fk_id_programacion__fk_id_asignacionActividades__fk_id_realiza__fk_id_plantacion__fk_id_cultivo',
             'fk_id_control_fitosanitario',
+            'fk_id_control_fitosanitario__fk_id_plantacion__fk_id_cultivo',
             'fk_id_salario',
             'fk_id_usuario__fk_id_rol',
             'fk_id_usuario__ficha'
@@ -130,35 +132,53 @@ class NominaViewSet(ModelViewSet):
         data = []
         for nomina in nominas:
             usuario = nomina.fk_id_usuario
-            if usuario:
-                usuarios_data = [
-                    {'id': usuario.id, 'nombre': usuario.nombre, 'apellido': usuario.apellido}
-                ]
-            else:
-                usuarios_data = [{'id': None, 'nombre': 'Usuario', 'apellido': 'Desconocido'}]
+            usuarios_data = [
+                {
+                    'id': usuario.id if usuario else None,
+                    'nombre': usuario.nombre if usuario else 'Desconocido',
+                    'apellido': usuario.apellido if usuario else 'Desconocido'
+                }
+            ] if usuario else [
+                {
+                    'id': None,
+                    'nombre': 'Desconocido',
+                    'apellido': 'Desconocido'
+                }
+            ]
 
             if nomina.fk_id_programacion:
                 actividad = nomina.fk_id_programacion.fk_id_asignacionActividades.fk_id_realiza.fk_id_actividad.nombre_actividad
                 tipo = 'Programación'
+                duracion = nomina.fk_id_programacion.duracion
+                cultivo = nomina.fk_id_programacion.fk_id_asignacionActividades.fk_id_realiza.fk_id_plantacion.fk_id_cultivo.nombre_cultivo if nomina.fk_id_programacion.fk_id_asignacionActividades.fk_id_realiza.fk_id_plantacion else 'Desconocido'
             elif nomina.fk_id_control_fitosanitario:
                 actividad = nomina.fk_id_control_fitosanitario.tipo_control
                 tipo = 'Control Fitosanitario'
+                duracion = nomina.fk_id_control_fitosanitario.duracion
+                cultivo = nomina.fk_id_control_fitosanitario.fk_id_plantacion.fk_id_cultivo.nombre_cultivo if nomina.fk_id_control_fitosanitario.fk_id_plantacion else 'Desconocido'
             else:
                 actividad = "Desconocida"
                 tipo = "Otro"
+                duracion = 0
+                cultivo = 'Desconocido'
+
+            salario = nomina.fk_id_salario
+            salario_data = {
+                'jornal': float(salario.precio_jornal) if salario and salario.precio_jornal else None,
+                'horas_por_jornal': salario.horas_por_jornal if salario else None
+            } if salario else None
 
             data.append({
                 'id': nomina.id,
-                'fecha_pago': nomina.fecha_pago,
+                'fecha_pago': nomina.fecha_pago.isoformat() if nomina.fecha_pago else None,
                 'pagado': nomina.pagado,
                 'pago_total': float(nomina.pago_total) if nomina.pago_total else 0,
                 'actividad': actividad,
                 'tipo_actividad': tipo,
+                'duracion': duracion,  # Tiempo trabajado en minutos
+                'cultivo': cultivo,    # Nombre del cultivo
                 'usuarios': usuarios_data,
-                'salario': {
-                    'jornal': float(nomina.fk_id_salario.precio_jornal) if nomina.fk_id_salario and nomina.fk_id_salario.precio_jornal else None,
-                    'horas_por_jornal': nomina.fk_id_salario.horas_por_jornal if nomina.fk_id_salario else None
-                }
+                'salario': salario_data
             })
         return Response(data)
 
