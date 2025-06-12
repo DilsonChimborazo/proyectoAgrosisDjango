@@ -6,19 +6,22 @@ import DescargarTablaPDF from '../../globales/DescargarTablaPDF';
 const ReporteControlFitosanitario = () => {
   const { data: controles, isLoading, isError } = useReporteControles();
 
-  // Preparar datos para la tabla y el PDF
+  // Asegurar que controles sea un arreglo
   const controlesList = useMemo(() => {
     return Array.isArray(controles) ? controles : [];
   }, [controles]);
 
-  const columnasPDF = ['Fecha Control', 'PlantaciOn', 'PEA', 'Tipo de Control', 'DescripciOn'];
+  const columnasPDF = ['Fecha Control', 'Plantacion', 'PEA', 'Tipo de Control', 'Descripcion'];
+
   const datosPDF = useMemo(() => {
-    return controlesList.map(control => [
-      control.fecha_control || 'Sin fecha',
-      control.plantacion || 'Sin plantación',
-      control.pea || 'Sin PEA',
-      control.tipo_control || 'Sin tipo',
-      control.descripcion || 'Sin descripción'
+    return controlesList.map((control) => [
+      control?.fecha_control
+        ? new Date(control.fecha_control).toLocaleDateString()
+        : 'Sin fecha',
+      control?.plantacion ?? 'Sin plantación',
+      control?.pea ?? 'Sin PEA',
+      control?.tipo_control ?? 'Sin tipo',
+      control?.descripcion ?? 'Sin descripción',
     ]);
   }, [controlesList]);
 
@@ -28,19 +31,18 @@ const ReporteControlFitosanitario = () => {
   return (
     <div className="p-4">
       <Tabla
-        title=" Reporte de Controles Fitosanitarios"
+        title="Reporte de Controles Fitosanitarios"
         headers={columnasPDF}
         data={controlesList.map((control, index) => ({
           id: index,
-          fecha_control: control.fecha_control || 'Sin fecha',
-          plantacion: control.plantacion || 'Sin plantación',
-          pea: control.pea || 'Sin PEA',
-          tipo_de_control: control.tipo_control || 'Sin tipo',
-          descripcion: control.descripcion || 'Sin descripción'
+          fecha_control: control?.fecha_control
+            ? new Date(control.fecha_control).toLocaleDateString()
+            : 'Sin fecha',
+          plantacion: control?.plantacion ?? 'Sin plantación',
+          pea: control?.pea ?? 'Sin PEA',
+          tipo_de_control: control?.tipo_control ?? 'Sin tipo',
+          descripcion: control?.descripcion ?? 'Sin descripción',
         }))}
-        onClickAction={(row) => console.log('Detalle:', row)}
-        onUpdate={(row) => console.log('Actualizar:', row)}
-        onCreate={() => console.log('Crear nuevo')}
         hiddenColumnsByDefault={[]}
         extraButton={
           <DescargarTablaPDF

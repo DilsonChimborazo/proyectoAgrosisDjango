@@ -4,9 +4,12 @@ import axios from 'axios'
 const apiUrl = import.meta.env.VITE_API_URL
 
 interface ReporteControl {
+  fecha_control: Date
+  plantacion: string
   cultivo: string
   pea: string
   tipo_control: string
+  descripcion:string
 }
 
 const fetchReporteControles = async (): Promise<ReporteControl[]> => {

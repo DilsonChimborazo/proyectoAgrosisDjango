@@ -47,7 +47,7 @@ const VentanaModalNotificaciones: React.FC<VentanaModalNotificacionesProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="absolute top-12 right-4 z-50 w-[28rem] bg-white rounded-xl shadow-2xl border border-gray-100 transition-all duration-300 ease-in-out transform translate-y-0 opacity-100">
+    <div className="absolute top-12 right-4 z-50 lg:w-[38rem] bg-white rounded-xl shadow-2xl border border-gray-100 transition-all duration-300 ease-in-out transform translate-y-0 opacity-100">
       <div ref={modalRef} className="p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold text-gray-900">Notificaciones</h2>

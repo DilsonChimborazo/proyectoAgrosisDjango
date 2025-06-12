@@ -1,5 +1,5 @@
 from rest_framework import viewsets, status
-from rest_framework.response import Response  # Agrega esta importación
+from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from ..models import Notificacion
 from .serializers import NotificacionSerializer
@@ -34,18 +34,34 @@ class NotificacionModelViewSet(viewsets.ModelViewSet):
             logger.error(f"Error en get_object: {str(e)}", exc_info=True)
             raise
 
-    def perform_create(self):
+    def perform_create(self, serializer):
         try:
-            instance = self.request.data
+            # Obtener datos de la solicitud
+            titulo = self.request.data.get('titulo')
+            mensaje = self.request.data.get('mensaje')
+
+            # Verificar si ya existe una notificación con el mismo título y mensaje
+            if Notificacion.objects.filter(
+                usuario=self.request.user,
+                titulo=titulo,
+                mensaje=mensaje
+            ).exists():
+                logger.info(f"Notificación duplicada evitada para usuario {self.request.user.email}: {titulo}")
+                return Response({"detail": "Notificación duplicada no creada"}, status=status.HTTP_200_OK)
+
+            # Crear la notificación usando el serializador
+            notification = serializer.save(usuario=self.request.user)
+            logger.info(f"Notificación creada para usuario {self.request.user.email}: {titulo}")
+
+            # Enviar la notificación a través de Channels
             send_notification(
                 user=self.request.user,
-                titulo=instance.get('titulo'),
-                mensaje=instance.get('mensaje')
+                notification=notification
             )
-            logger.info(f"Notificación creada para usuario {self.request.user.email}")
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         except Exception as e:
             logger.error(f"Error en perform_create: {str(e)}", exc_info=True)
-            raise
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     def perform_update(self, serializer):
         try:
