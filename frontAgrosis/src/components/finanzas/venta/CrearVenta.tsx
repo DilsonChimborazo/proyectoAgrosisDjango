@@ -1,4 +1,3 @@
-// components/finanzas/venta/CrearVenta.tsx
 import { useState, useEffect } from 'react';
 import { useCrearVenta } from '@/hooks/finanzas/venta/useVenta';
 import { useProduccion } from '@/hooks/finanzas/produccion/useProduccion';
@@ -50,13 +49,17 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
   const unidadSeleccionadaParaVenta = unidades.find((u) => u.id === productoActual.unidadMedidaId);
   const unidadProduccionOriginal = unidades.find((u) => u.id === produccionActual?.fk_unidad_medida?.id);
 
+  // Inicializar stockAjustado solo si está vacío
   useEffect(() => {
-    const initialStock: { [key: number]: number } = {};
-    producciones.forEach((prod) => {
-      initialStock[prod.id] = prod.stock_disponible;
-    });
-    setStockAjustado(initialStock);
-  }, [producciones]);
+    if (Object.keys(stockAjustado).length === 0) {
+      const initialStock: { [key: number]: number } = {};
+      producciones.forEach((prod) => {
+        initialStock[prod.id] = prod.stock_disponible;
+      });
+      setStockAjustado(initialStock);
+      console.log('Inicializando stockAjustado:', initialStock);
+    }
+  }, [producciones, stockAjustado]);
 
   const calcularPrecioPorUnidadDeVenta = (
     produccion: ProduccionType | undefined,
@@ -106,7 +109,7 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
           ? precioUnitarioConDescuento
           : undefined,
     }));
-  }, [produccionActual, unidadSeleccionadaParaVenta, precioUnitarioCalculado, productoActual.descuentoPorcentaje]);
+  }, [produccionActual, unidadSeleccionadaParaVenta, productoActual.descuentoPorcentaje]);
 
   const seleccionarProducto = (produccion: ProduccionType) => {
     const unidadProduccion = unidades.find((u) => u.id === produccion.fk_unidad_medida?.id);
@@ -114,7 +117,7 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
     setProductoActual({
       produccionId: produccion.id,
       nombreProduccion: produccion.nombre_produccion,
-      stockDisponible: stockAjustado[produccion.id] || produccion.stock_disponible,
+      stockDisponible: stockAjustado[produccion.id] ?? produccion.stock_disponible,
       unidadBaseProduccion: unidadProduccion?.unidad_base || '',
       nombreUnidadMedidaProduccion: unidadProduccion?.nombre_medida || '',
       cantidad: undefined,
@@ -124,9 +127,8 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
       descuentoPorcentaje: 0,
     });
     setError(null);
+    console.log('Producto seleccionado:', produccion.id, 'Stock ajustado:', stockAjustado[produccion.id]);
   };
-
-  // components/finanzas/venta/CrearVenta.tsx (parte modificada)
 
   const agregarProducto = () => {
     if (
@@ -154,7 +156,7 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
     }
 
     const cantidadEnBaseParaStock = productoActual.cantidad * unidadSeleccionadaParaVenta.factor_conversion;
-    const stockActual = stockAjustado[produccion.id] || produccion.stock_disponible;
+    const stockActual = stockAjustado[produccion.id] ?? produccion.stock_disponible;
     if (cantidadEnBaseParaStock > stockActual) {
       setError(
         `La cantidad (${productoActual.cantidad} ${unidadSeleccionadaParaVenta.nombre_medida}) supera el stock disponible (${stockActual.toFixed(0)} ${unidadProduccionOriginal?.unidad_base})`,
@@ -174,6 +176,9 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
         p.descuentoPorcentaje === productoActual.descuentoPorcentaje
     );
 
+    const nuevoStock = Math.max(0, stockActual - cantidadEnBaseParaStock);
+    console.log(`Agregando producto: ${produccion.nombre_produccion}, Cantidad en base: ${cantidadEnBaseParaStock}, Stock actual: ${stockActual}, Nuevo stock: ${nuevoStock}`);
+
     if (productoExistenteIndex >= 0) {
       // Si existe, actualizamos la cantidad
       const productosActualizados = [...productos];
@@ -186,7 +191,7 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
         ...productoExistente,
         cantidad: nuevaCantidad,
         subtotal: nuevoSubtotal,
-        stockDisponible: productoExistente.stockDisponible - cantidadEnBaseParaStock
+        stockDisponible: nuevoStock,
       };
 
       setProductos(productosActualizados);
@@ -199,7 +204,7 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
         precioUnidadConDescuento: precioUnitarioConDescuento!,
         unidadMedidaId: productoActual.unidadMedidaId!,
         nombreProduccion: produccion.nombre_produccion,
-        stockDisponible: stockActual - cantidadEnBaseParaStock,
+        stockDisponible: nuevoStock,
         unidadBaseProduccion: unidadProduccionOriginal!.unidad_base,
         nombreUnidadMedidaProduccion: unidadProduccionOriginal!.nombre_medida,
         nombreUnidadMedidaVenta: unidadSeleccionadaParaVenta.nombre_medida,
@@ -211,10 +216,10 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
       setProductos([...productos, nuevoProducto]);
     }
 
-    // Actualizar el stock disponible
+    // Actualizar el stock ajustado
     setStockAjustado((prev) => ({
       ...prev,
-      [produccion.id]: stockActual - cantidadEnBaseParaStock,
+      [produccion.id]: nuevoStock,
     }));
 
     setProductoActual({});
@@ -226,10 +231,14 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
     const productoEliminado = productos[index];
     const cantidadEnBase = productoEliminado.cantidad * productoEliminado.factorConversionUnidadVenta;
 
-    setStockAjustado((prev) => ({
-      ...prev,
-      [productoEliminado.produccionId]: (prev[productoEliminado.produccionId] || 0) + cantidadEnBase,
-    }));
+    setStockAjustado((prev) => {
+      const nuevoStock = (prev[productoEliminado.produccionId] || 0) + cantidadEnBase;
+      console.log(`Eliminando producto: ${productoEliminado.nombreProduccion}, Cantidad en base: ${cantidadEnBase}, Nuevo stock: ${nuevoStock}`);
+      return {
+        ...prev,
+        [productoEliminado.produccionId]: nuevoStock,
+      };
+    });
 
     setProductos(productos.filter((_, i) => i !== index));
     showToast({ title: 'Producto eliminado', timeout: 3000 });
@@ -256,7 +265,7 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
         onSuccess: () => {
           showToast({ title: 'Venta creada exitosamente', timeout: 3000 });
           setProductos([]);
-          setStockAjustado({});
+          setStockAjustado({}); // Reiniciar stockAjustado después de la venta
           onSuccess();
           onClose();
         },
@@ -303,13 +312,13 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5 overflow-y-auto max-h-80 pr-2">
                 {producciones
-                  .filter((p) => (stockAjustado[p.id] || p.stock_disponible) > 0)
+                  .filter((p) => (stockAjustado[p.id] ?? p.stock_disponible) > 0)
                   .map((p) => {
                     const prodUnit = unidades.find((u) => u.id === p.fk_unidad_medida?.id);
                     const displayPrecioSugerido =
                       p.precio_sugerido_venta !== null &&
-                        p.precio_sugerido_venta !== undefined &&
-                        typeof p.precio_sugerido_venta === 'number'
+                      p.precio_sugerido_venta !== undefined &&
+                      typeof p.precio_sugerido_venta === 'number'
                         ? p.precio_sugerido_venta
                         : null;
 
@@ -319,7 +328,7 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
                         className={`p-4 border rounded-lg transition-all cursor-pointer ${productoActual.produccionId === p.id
                           ? 'border-green-500 bg-green-50 shadow-sm'
                           : 'border-gray-200 hover:border-gray-300 hover:bg-white'
-                          }`}
+                        }`}
                         onClick={() => seleccionarProducto(p)}
                       >
                         <div className="flex justify-between items-start">
@@ -328,7 +337,7 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
                             <p className="text-xs text-gray-500 mt-1">
                               Stock:{' '}
                               <span className="font-medium">
-                                {(stockAjustado[p.id] || p.stock_disponible).toFixed(0)} {prodUnit?.unidad_base}
+                                {(stockAjustado[p.id] ?? p.stock_disponible).toFixed(0)} {prodUnit?.unidad_base}
                               </span>
                             </p>
                             {displayPrecioSugerido !== null && (
@@ -341,7 +350,7 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
                             className={`px-2 py-1 text-xs rounded-full ${productoActual.produccionId === p.id
                               ? 'bg-green-100 text-green-800'
                               : 'bg-gray-100 text-gray-800'
-                              }`}
+                            }`}
                           >
                             {prodUnit?.unidad_base}
                           </span>
@@ -351,7 +360,7 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
                   })}
               </div>
 
-              {producciones.filter((p) => (stockAjustado[p.id] || p.stock_disponible) > 0).length === 0 && (
+              {producciones.filter((p) => (stockAjustado[p.id] ?? p.stock_disponible) > 0).length === 0 && (
                 <div className="text-center py-6 bg-white border border-dashed border-gray-300 rounded-lg">
                   <p className="text-gray-500">No hay productos disponibles con stock</p>
                 </div>
@@ -385,10 +394,10 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
                 >
                   <option value="">Seleccionar una producción</option>
                   {producciones
-                    .filter((p) => (stockAjustado[p.id] || p.stock_disponible) > 0)
+                    .filter((p) => (stockAjustado[p.id] ?? p.stock_disponible) > 0)
                     .map((p) => (
                       <option key={p.id} value={p.id}>
-                        {p.nombre_produccion} (Stock: {(stockAjustado[p.id] || p.stock_disponible).toFixed(0)}{' '}
+                        {p.nombre_produccion} (Stock: {(stockAjustado[p.id] ?? p.stock_disponible).toFixed(0)}{' '}
                         {p.fk_unidad_medida?.unidad_base})
                       </option>
                     ))}
