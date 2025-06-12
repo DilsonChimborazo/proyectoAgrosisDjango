@@ -1,8 +1,15 @@
 export const generarAnalisisDiferencias = (datosViejo: any, datosNuevo: any) => {
     const diffBC = datosNuevo.beneficio_costo_acumulado - datosViejo.beneficio_costo_acumulado;
     const diffIngresos = datosNuevo.ingresos_ventas_acumulado - datosViejo.ingresos_ventas_acumulado;
-    const diffEgresos = (datosNuevo.costo_mano_obra_acumulado + datosNuevo.egresos_insumos_acumulado) - 
-                        (datosViejo.costo_mano_obra_acumulado + datosViejo.egresos_insumos_acumulado);
+    const diffEgresos = (
+        datosNuevo.costo_mano_obra_acumulado + 
+        datosNuevo.egresos_insumos_acumulado + 
+        datosNuevo.depreciacion_herramientas_acumulada
+    ) - (
+        datosViejo.costo_mano_obra_acumulado + 
+        datosViejo.egresos_insumos_acumulado + 
+        datosViejo.depreciacion_herramientas_acumulada
+    );
     
     let analisis = [];
     

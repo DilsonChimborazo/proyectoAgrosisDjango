@@ -1,6 +1,6 @@
 import Tabla from '@/components/globales/Tabla';
 import Button from '@/components/globales/Button';
-import { ChevronDown, ChevronUp, BarChart2, DollarSign, Clock, Package, Activity, History, Tag, TrendingUp, RefreshCcw } from 'lucide-react'; 
+import { ChevronDown, ChevronUp, BarChart2, DollarSign, Clock, Package, Activity, History, TrendingUp, RefreshCcw, Wrench } from 'lucide-react'; 
 import { SnapshotTrazabilidad, TrazabilidadCultivoReporte } from './Types';
 
 interface ResumenTrazabilidadProps {
@@ -20,7 +20,6 @@ const formatNumber = (value: any, decimals: number = 2): string => {
     return (isNaN(num) ? 0 : num).toFixed(decimals);
 };
 
-// Función utilitaria para formatear números de manera segura con localización es-CO
 const safeNumberFormat = (
     value: any,
     options: { 
@@ -32,15 +31,16 @@ const safeNumberFormat = (
     const num = typeof value === 'number' ? value : parseFloat(value);
     const formatted = isNaN(num) ? 0 : num;
     
-    const locale = 'es-CO'; // Forzar formato colombiano (punto para miles, coma para decimales)
+    const locale = 'es-CO';
     
     if (isCurrency) {
-        return `$${formatted.toLocaleString(locale, {
+        return formatted.toLocaleString(locale, {
+            style: 'currency',
+            currency: 'COP',
             minimumFractionDigits: decimals,
             maximumFractionDigits: decimals,
-            useGrouping: true,
             ...formatOptions
-        })}`;
+        });
     }
     
     return formatted.toLocaleString(locale, {
@@ -64,13 +64,15 @@ const ResumenTrazabilidad = ({
 }: ResumenTrazabilidadProps) => {
     const datosParaTabla = ordenarSnapshots.map((s) => {
         const ingresos = s.datos.ingresos_ventas_acumulado || 0; 
-        const costos = (s.datos.costo_mano_obra_acumulado || 0) + (s.datos.egresos_insumos_acumulado || 0); 
+        const costos = (s.datos.costo_mano_obra_acumulado || 0) + 
+                       (s.datos.egresos_insumos_acumulado || 0) + 
+                       (s.datos.depreciacion_herramientas_acumulada || 0); 
 
         return {
             versión: `v${s.version}`,
-            fecha: new Date(s.fecha_registro).toLocaleDateString(),
+            fecha: new Date(s.fecha_registro).toLocaleDateString('es-CO'),
             'b/c': formatNumber(s.datos.beneficio_costo_acumulado), 
-            balance: safeNumberFormat(ingresos - costos, { isCurrency: true }), // Usar safeNumberFormat
+            balance: safeNumberFormat(ingresos - costos, { isCurrency: true }),
             acciones: (
                 <div className="flex gap-2">
                     <Button
@@ -136,7 +138,7 @@ const ResumenTrazabilidad = ({
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                                     <div
                                         className={`p-4 rounded-lg border ${(parseFloat(formatNumber(trazabilidadData.beneficio_costo_acumulado))) >= 1 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'} cursor-pointer hover:shadow-md transition`}
                                         onClick={() => handleCardClick('beneficio')}
@@ -162,8 +164,8 @@ const ResumenTrazabilidad = ({
                                         <div className="flex justify-between items-start">
                                             <div>
                                                 <p className="text-sm font-medium text-gray-500">Balance</p>
-                                                <p className={`text-2xl font-bold mt-1 ${((trazabilidadData.ingresos_ventas_acumulado || 0) - ((trazabilidadData.costo_mano_obra_acumulado || 0) + (trazabilidadData.egresos_insumos_acumulado || 0))) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                                    {safeNumberFormat(((trazabilidadData.ingresos_ventas_acumulado || 0) - ((trazabilidadData.costo_mano_obra_acumulado || 0) + (trazabilidadData.egresos_insumos_acumulado || 0))), { isCurrency: true })}
+                                                <p className={`text-2xl font-bold mt-1 ${((trazabilidadData.ingresos_ventas_acumulado || 0) - ((trazabilidadData.costo_mano_obra_acumulado || 0) + (trazabilidadData.egresos_insumos_acumulado || 0) + (trazabilidadData.depreciacion_herramientas_acumulada || 0))) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                                    {safeNumberFormat(((trazabilidadData.ingresos_ventas_acumulado || 0) - ((trazabilidadData.costo_mano_obra_acumulado || 0) + (trazabilidadData.egresos_insumos_acumulado || 0) + (trazabilidadData.depreciacion_herramientas_acumulada || 0))), { isCurrency: true })}
                                                 </p>
                                             </div>
                                             <DollarSign className="h-6 w-6 text-blue-600" />
@@ -181,35 +183,53 @@ const ResumenTrazabilidad = ({
                                             <div>
                                                 <p className="text-sm font-medium text-gray-500">Tiempo invertido</p>
                                                 <p className="text-2xl font-bold mt-1 text-purple-600">
-                                                    {trazabilidadData.total_horas || '0'} hrs
+                                                    {safeNumberFormat(trazabilidadData.total_horas || 0)} hrs
                                                 </p>
                                             </div>
                                             <Clock className="h-6 w-6 text-purple-600" />
                                         </div>
                                         <p className="text-xs mt-2">
-                                            {trazabilidadData.jornales || '0'} jornales
+                                            {safeNumberFormat(trazabilidadData.jornales || 0)} jornales
+                                        </p>
+                                    </div>
+
+                                    <div
+                                        className="p-4 rounded-lg border border-orange-200 bg-orange-50 cursor-pointer hover:shadow-md transition"
+                                        onClick={() => handleCardClick('depreciacion')}
+                                    >
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <p className="text-sm font-medium text-gray-500">Depreciación Herramientas</p>
+                                                <p className="text-2xl font-bold mt-1 text-orange-600">
+                                                    {safeNumberFormat(trazabilidadData.depreciacion_herramientas_acumulada || 0, { isCurrency: true })}
+                                                </p>
+                                            </div>
+                                            <Wrench className="h-6 w-6 text-orange-600" />
+                                        </div>
+                                        <p className="text-xs mt-2">
+                                            Total herramientas: {safeNumberFormat(trazabilidadData.resumen.total_herramientas || 0)}
                                         </p>
                                     </div>
 
                                     {trazabilidadData.precio_minimo_incremental_ultima_cosecha !== undefined && (
                                         <div
-                                            className="p-4 rounded-lg border border-orange-200 bg-orange-50 cursor-pointer hover:shadow-md transition"
+                                            className="p-4 rounded-lg border border-yellow-200 bg-yellow-50 cursor-pointer hover:shadow-md transition"
                                             onClick={() => handleCardClick('precioMinimoIncremental')}
                                         >
                                             <div className="flex justify-between items-start">
                                                 <div>
-                                                    <p className="text-sm font-medium text-gray-500">Precio Mínimo Venta/Unidad (Última Cosecha)</p>
-                                                    <p className="text-2xl font-bold mt-1 text-orange-600">
-                                                        {safeNumberFormat((trazabilidadData.precio_minimo_incremental_ultima_cosecha || 0), { decimals: 4, isCurrency: true })}
+                                                    <p className="text-sm font-medium text-gray-500">Precio Mínimo Última Cosecha</p>
+                                                    <p className="text-2xl font-bold mt-1 text-yellow-600">
+                                                        {safeNumberFormat(trazabilidadData.precio_minimo_incremental_ultima_cosecha || 0, { decimals: 4, isCurrency: true })}
                                                     </p>
                                                 </div>
-                                                <TrendingUp className="h-6 w-6 text-orange-600" />
+                                                <TrendingUp className="h-6 w-6 text-yellow-600" />
                                             </div>
                                             <p className="text-xs mt-2">
-                                                Costo Incremental: {safeNumberFormat((trazabilidadData.costo_incremental_ultima_cosecha || 0), { isCurrency: true })}
+                                                Costo Incremental: {safeNumberFormat(trazabilidadData.costo_incremental_ultima_cosecha || 0, { isCurrency: true })}
                                             </p>
                                             <p className="text-xs mt-1">
-                                                Cantidad Última Cosecha: {safeNumberFormat((trazabilidadData.cantidad_incremental_ultima_cosecha || 0))}
+                                                Cantidad: {safeNumberFormat(trazabilidadData.cantidad_incremental_ultima_cosecha || 0)}
                                             </p>
                                         </div>
                                     )}
@@ -221,15 +241,15 @@ const ResumenTrazabilidad = ({
                                         >
                                             <div className="flex justify-between items-start">
                                                 <div>
-                                                    <p className="text-sm font-medium text-gray-500">Precio Mínimo Venta/Unidad (Recuperar Inversión)</p>
+                                                    <p className="text-sm font-medium text-gray-500">Precio Mínimo Recuperación</p>
                                                     <p className={`text-2xl font-bold mt-1 ${trazabilidadData.precio_minimo_recuperar_inversion > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                                                        {safeNumberFormat((trazabilidadData.precio_minimo_recuperar_inversion || 0), { decimals: 4, isCurrency: true })}
+                                                        {safeNumberFormat(trazabilidadData.precio_minimo_recuperar_inversion || 0, { decimals: 4, isCurrency: true })}
                                                     </p>
                                                 </div>
                                                 <RefreshCcw className={`h-6 w-6 ${trazabilidadData.precio_minimo_recuperar_inversion > 0 ? 'text-red-600' : 'text-green-600'}`} />
                                             </div>
                                             <p className="text-xs mt-2">
-                                                Stock disponible para cubrir: {safeNumberFormat((trazabilidadData.stock_disponible_total || 0))}
+                                                Stock disponible: {safeNumberFormat(trazabilidadData.stock_disponible_total || 0)}
                                             </p>
                                         </div>
                                     )}
@@ -262,11 +282,11 @@ const ResumenTrazabilidad = ({
                                     <SeccionDesplegable
                                         titulo="Actividades realizadas"
                                         icono={<Activity className="h-5 w-5 text-green-600" />}
-                                        cantidad={trazabilidadData.detalle_actividades?.length || 0}
+                                        cantidad={trazabilidadData?.detalle_actividades?.length || 0}
                                         abierta={seccionAbierta === 'actividades'}
                                         onToggle={() => onToggleSeccion('actividades')}
                                     >
-                                        {trazabilidadData.detalle_actividades?.length > 0 ? (
+                                        {trazabilidadData?.detalle_actividades?.length > 0 ? (
                                             <Tabla
                                                 title=""
                                                 headers={['Actividad', 'Fecha', 'Responsable', 'Duración', 'Estado']}
@@ -274,7 +294,7 @@ const ResumenTrazabilidad = ({
                                                     actividad: a.actividad || 'Sin nombre',
                                                     fecha: a.fecha_realizada || a.fecha_programada || 'Sin fecha',
                                                     responsable: a.responsable || 'No asignado',
-                                                    duración: `${a.duracion_minutos ? Math.round(a.duracion_minutos) : '0'} min`,
+                                                    duración: `${safeNumberFormat(a.duracion_minutos || 0)} min`,
                                                     estado: a.estado || 'Sin estado'
                                                 }))}
                                                 rowsPerPageOptions={[5, 10]}
@@ -287,19 +307,19 @@ const ResumenTrazabilidad = ({
                                     <SeccionDesplegable
                                         titulo="Insumos utilizados"
                                         icono={<Package className="h-5 w-5 text-blue-600" />}
-                                        cantidad={trazabilidadData.detalle_insumos?.length || 0}
+                                        cantidad={trazabilidadData?.detalle_insumos?.length || 0}
                                         abierta={seccionAbierta === 'insumos'}
                                         onToggle={() => onToggleSeccion('insumos')}
                                     >
-                                        {trazabilidadData.detalle_insumos?.length > 0 ? (
+                                        {trazabilidadData?.detalle_insumos?.length > 0 ? (
                                             <Tabla
                                                 title=""
                                                 headers={['Insumo', 'Tipo', 'Cantidad', 'Costo']}
                                                 data={trazabilidadData.detalle_insumos.map((i) => ({
                                                     insumo: i.nombre || 'Sin nombre',
                                                     tipo: i.tipo_insumo || 'Sin tipo',
-                                                    cantidad: `${i.cantidad || '0'} ${i.unidad_medida || ''}`,
-                                                    costo: safeNumberFormat((i.costo_total || 0), { isCurrency: true })
+                                                    cantidad: `${safeNumberFormat(i.cantidad || 0)} ${i.unidad_medida || ''}`,
+                                                    costo: safeNumberFormat(i.costo_total || 0, { isCurrency: true })
                                                 }))}
                                                 rowsPerPageOptions={[5, 10]}
                                             />
@@ -311,24 +331,49 @@ const ResumenTrazabilidad = ({
                                     <SeccionDesplegable
                                         titulo="Ventas realizadas"
                                         icono={<DollarSign className="h-5 w-5 text-green-600" />}
-                                        cantidad={trazabilidadData.detalle_ventas?.length || 0}
+                                        cantidad={trazabilidadData?.detalle_ventas?.length || 0}
                                         abierta={seccionAbierta === 'ventas'}
                                         onToggle={() => onToggleSeccion('ventas')}
                                     >
-                                        {trazabilidadData.detalle_ventas?.length > 0 ? (
+                                        {trazabilidadData?.detalle_ventas?.length > 0 ? (
                                             <Tabla
                                                 title=""
                                                 headers={['Fecha', 'Cantidad', 'Precio Unitario', 'Total']}
                                                 data={trazabilidadData.detalle_ventas.map((v) => ({
                                                     fecha: v.fecha || 'Sin fecha',
-                                                    cantidad: `${v.cantidad || '0'} ${v.unidad_medida || ''}`,
-                                                    'precio_unitario': safeNumberFormat((v.precio_unidad_con_descuento || 0), { isCurrency: true }),
-                                                    total: safeNumberFormat((v.total || 0), { isCurrency: true })
+                                                    cantidad: `${safeNumberFormat(v.cantidad || 0)} ${v.unidad_medida || ''}`,
+                                                    'precio_unitario': safeNumberFormat(v.precio_unidad_con_descuento || 0, { isCurrency: true }),
+                                                    total: safeNumberFormat(v.total || 0, { isCurrency: true })
                                                 }))}
                                                 rowsPerPageOptions={[5, 10]}
                                             />
                                         ) : (
                                             <p className="text-gray-500 text-center py-4">No hay ventas registradas</p>
+                                        )}
+                                    </SeccionDesplegable>
+
+                                    <SeccionDesplegable
+                                        titulo="Herramientas utilizadas"
+                                        icono={<Wrench className="h-5 w-5 text-orange-600" />}
+                                        cantidad={trazabilidadData?.detalle_herramientas?.length || 0}
+                                        abierta={seccionAbierta === 'herramientas'}
+                                        onToggle={() => onToggleSeccion('herramientas')}
+                                    >
+                                        {trazabilidadData?.detalle_herramientas?.length > 0 ? (
+                                            <Tabla
+                                                title=""
+                                                headers={['Herramienta', 'Cantidad', 'Depreciación', 'Fecha', 'Actividad']}
+                                                data={trazabilidadData.detalle_herramientas.map((h) => ({
+                                                    herramienta: h.herramienta || 'Sin nombre',
+                                                    cantidad: safeNumberFormat(h.cantidad || 0),
+                                                    depreciación: safeNumberFormat(h.depreciacion || 0, { isCurrency: true }),
+                                                    fecha: h.fecha || 'Sin fecha',
+                                                    actividad: h.actividad_asociada || 'Sin actividad'
+                                                }))}
+                                                rowsPerPageOptions={[5, 10]}
+                                            />
+                                        ) : (
+                                            <p className="text-gray-500 text-center py-4">No hay herramientas registradas</p>
                                         )}
                                     </SeccionDesplegable>
                                 </div>
@@ -373,9 +418,9 @@ const SeccionDesplegable = ({
                 <div className="flex items-center gap-3">
                     {icono}
                     <h3 className="font-medium">{titulo}</h3>
-                    <span className="text-sm text-gray-500 ml-2">({cantidad})</span>
+                    <span className="text-sm text-gray-500">({cantidad})</span>
                 </div>
-                {abierta ? <ChevronUp /> : <ChevronDown />}
+                {abierta ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
             </button>
 
             {abierta && (
