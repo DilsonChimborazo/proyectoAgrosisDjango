@@ -66,7 +66,7 @@ const CargaMasivaUsuarios: React.FC<CargaMasivaUsuariosProps> = ({ onClose }) =>
 
         {/* Botón para descargar el formato Excel */}
         <a
-          href="/plantillas/plantilla_usuarios.xlsx"
+          href="/plantillas/plantillaUsuarios.xlsx"
           download
           className="inline-flex items-center px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition duration-200"
         >
