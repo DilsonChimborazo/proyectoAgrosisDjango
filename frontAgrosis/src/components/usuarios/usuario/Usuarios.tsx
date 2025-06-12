@@ -36,12 +36,21 @@ const Usuarios = () => {
     }
   }, [error]);
 
-  const openModalHandler = useCallback((usuario: Record<string, any>) => {
-    setSelectedUser(usuario);
+  const openModalHandler = useCallback(async (usuario: Record<string, any>) => {
+  const token = localStorage.getItem("token");
+  try {
+    const res = await fetch(`http://localhost:8000/api/usuario/${usuario.id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    setSelectedUser(data);
     setModalType("details");
     setModalContenido(null);
     setIsModalOpen(true);
-  }, []);
+  } catch (error) {
+    console.error("Error al obtener usuario:", error);
+  }
+}, []);
 
   const handleUpdate = (usuario: Record<string, any>) => {
     if (!esAdministrador) {
@@ -150,13 +159,13 @@ const Usuarios = () => {
             id: usuario.id,
             imagen: (
               <img
-                src={usuario.img_url || "http://localhost:8000/media/imagenes/defecto.png"}
+                src={usuario.img_url || "http://localhost:8000/media/imagenes/defecto.jpg"}
                 alt="foto"
                 className="w-10 h-7 md:w-10 md:h-7 rounded-full object-cover"
                 onError={(e) => {
                   const target = e.currentTarget;
                   if (!target.src.includes("defecto.png")) {
-                    target.src = "http://localhost:8000/media/imagenes/defecto.png";
+                    target.src = "http://localhost:8000/media/imagenes/defecto.jpg";
                   }
                 }}
               />
@@ -207,7 +216,6 @@ const Usuarios = () => {
           titulo="Detalles del Usuario"
           contenido={
             <div className="grid grid-cols-2 gap-4">
-              <p><strong>ID:</strong> {selectedUser.id}</p>
               <p><strong>Identificación:</strong> {selectedUser.identificacion}</p>
               <p><strong>Nombre:</strong> {selectedUser.nombre || "Sin nombre"}</p>
               <p><strong>Apellido:</strong> {selectedUser.apellido || "Sin apellido"}</p>
@@ -217,13 +225,13 @@ const Usuarios = () => {
               <p><strong>Estado:</strong> {selectedUser.is_active ? "Activo" : "Inactivo"}</p>
               <p><strong>Imagen:</strong>
                 <img
-                  src={selectedUser.img_url || "http://localhost:8000/media/imagenes/defecto.png"}
+                  src={selectedUser.img_url || "http://localhost:8000/media/imagenes/defecto.jpg"}
                   alt="foto"
                   className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full object-cover"
                   onError={(e) => {
                     const target = e.currentTarget;
                     if (!target.src.includes("defecto.png")) {
-                      target.src = "http://localhost:8000/media/imagenes/defecto.png";
+                      target.src = "http://localhost:8000/media/imagenes/defecto.jpg";
                     }
                   }}
                 />

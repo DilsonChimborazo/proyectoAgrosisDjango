@@ -16,7 +16,7 @@ export interface Usuario {
   apellido?: string;
   password?: string;
   fk_id_rol?: Rol;
-  ficha?: number | null; // ✅ incluir ficha como id o null
+  ficha?: number | null; 
 }
 
 export const useActualizarUsuario = () => {

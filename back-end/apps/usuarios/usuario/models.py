@@ -37,7 +37,7 @@ class Usuarios(AbstractUser):
     fk_id_rol = models.ForeignKey(Rol, on_delete=models.SET_NULL, null=True, blank=True)
     ficha = models.ForeignKey(Ficha, on_delete=models.SET_NULL, null=True, blank=True)
     is_active = models.BooleanField(default=True)
-    img = models.ImageField(upload_to='imagenes', default='imagenes/defecto.png', blank=True, null=True)
+    img = models.ImageField(upload_to='imagenes', default='imagenes/defecto.jpg', blank=True, null=True)
 
     USERNAME_FIELD = 'identificacion'  
     REQUIRED_FIELDS = ['email', 'nombre', 'apellido']  

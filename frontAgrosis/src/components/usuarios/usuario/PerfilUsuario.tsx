@@ -97,7 +97,7 @@ const PerfilUsuario: React.FC = () => {
 
   const imageUrl = useMemo(() => {
     if (preview) return preview;
-    return perfil?.img_url || 'http://localhost:8000/media/imagenes/defecto.png';
+    return perfil?.img_url || 'http://localhost:8000/media/imagenes/defecto.jpg';
   }, [preview, perfil?.img_url]);
 
   if (isLoading) return <div className="text-center text-gray-500">Cargando...</div>;
@@ -119,7 +119,7 @@ const PerfilUsuario: React.FC = () => {
             onError={(e) => {
               const target = e.currentTarget;
               if (!target.src.includes('defecto.png')) {
-                target.src = 'http://localhost:8000/media/imagenes/defecto.png';
+                target.src = 'http://localhost:8000/media/imagenes/defecto.jpg';
               }
             }}
           />

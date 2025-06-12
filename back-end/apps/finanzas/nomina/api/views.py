@@ -125,8 +125,10 @@ class NominaViewSet(ModelViewSet):
             'fk_id_control_fitosanitario',
             'fk_id_control_fitosanitario__fk_id_plantacion__fk_id_cultivo',
             'fk_id_salario',
-            'fk_id_usuario__fk_id_rol',
-            'fk_id_usuario__ficha'
+            'fk_id_usuario__fk_id_rol',  # Incluimos el rol del usuario para eficiencia    
+
+           
+
         ).all()
 
         data = []
