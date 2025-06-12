@@ -242,13 +242,19 @@ integrations: [
         },
         //  Documentación de Usuario
         {
-          label: 'Documentacion de Usuario',
-		  collapsed: true, 
-          items: [
+        label: 'Documentacion de Usuario',
+		collapsed: true, 
+        items: [
 			{
 				label: 'Planteamiento del problema',
 				items: [
 					{ label: 'Planteamiento del Problema', slug: 'usuario/problematica/planteamiento'},
+				],
+			},
+			{
+				label: 'Manual de usuarios',
+				items: [
+					{ label: 'Manual de usuarios', slug: 'usuario/problematica/manualusuarios'},
 				],
 			},
 			{

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Eye, EyeOff, Facebook, MessageCircle } from "lucide-react";
+import { Eye, EyeOff, Facebook } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useCustomForm } from "@/hooks/validaciones/useCustomForm";
 import { loginSchema, LoginData } from "@/hooks/validaciones/useSchemas"; 
@@ -140,20 +140,20 @@ export default function Login() {
           <img src={logoAgrosis} alt="AgroSIS" className="w-48 mb-4" />
           <div className="flex space-x-4 mt-4">
             <a
-              href="https://facebook.com"
+              href="https://www.facebook.com/SENAHuila?__tn__=%2Cd"
               target="_blank"
+              title="Facebook"
               rel="noopener noreferrer"
               className="bg-blue-600 p-3 rounded-full text-white shadow-md hover:bg-blue-700 transition-colors"
             >
               <Facebook size={24} />
             </a>
+            
             <a
-              href="https://wa.me/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-green-600 p-3 rounded-full text-white shadow-md hover:bg-green-700 transition-colors"
+              href="https://r.search.yahoo.com/_ylt=AwrE_3o4SEpoCgIApGWrcgx.;_ylu=Y29sbwNiZjEEcG9zAzEEdnRpZAMEc2VjA3Ny/RV=2/RE=1750908217/RO=10/RU=https%3a%2f%2foferta.senasofiaplus.edu.co%2fsofia-oferta%2f/RK=2/RS=TmHDuEeQUtEAKLd3xLFqMDjcRvI-"
+              title="Sofia plus"
             >
-              <MessageCircle size={24} />
+              <img src="../../../../public/logoSena.png" alt="" className="w-10 h-10" />
             </a>
           </div>
         </div>
