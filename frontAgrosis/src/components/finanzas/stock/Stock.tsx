@@ -152,7 +152,7 @@ const StockDashboard = () => {
 
   const renderValorDetails = () => {
     const productosConStock = producciones?.filter(p => p.stock_disponible >= 1) || [];
-    if (productosConStock.length === 0) return (
+    if (productosConStock.length === 1) return (
       <p className="text-center text-gray-500 py-4">No hay productos con stock disponible.</p>
     );
 
@@ -172,7 +172,7 @@ const StockDashboard = () => {
             {productosConStock.map((p) => {
               const precioSugerido = p.precio_sugerido_venta;
               const precioSugeridoNumero = typeof precioSugerido === 'string' ? parseFloat(precioSugerido) : precioSugerido;
-              const valorTotal = precioSugeridoNumero != null && !isNaN(precioSugeridoNumero) ? precioSugeridoNumero * p.stock_disponible : 0;
+              const valorTotal = precioSugeridoNumero != null && !isNaN(precioSugeridoNumero) ? precioSugeridoNumero * p.cantidad_producida : 0;
 
               return (
                 <tr key={p.id} className="border-b border-gray-100 hover:bg-green-50">
@@ -187,12 +187,6 @@ const StockDashboard = () => {
     );
   };
 
-  if (isProduccionesLoading || isAllStockLoading || isVentasLoading) return (
-    <div className="text-center py-8 text-gray-500 flex justify-center items-center">
-      <Loader2 className="animate-spin mr-2" size={24} />
-      Cargando datos...
-    </div>
-  );
 
   if (produccionesError) return (
     <div className="text-center py-8 text-red-500">
@@ -389,7 +383,7 @@ const StockDashboard = () => {
       <VentanaModal
         isOpen={isValorModalOpen}
         onClose={closeValorModal}
-        titulo="Valor Estimado por Producto"
+        titulo=""
         contenido={renderValorDetails()}
         size="md"
         className="bg-white rounded-lg shadow-md max-w-lg mx-auto"
