@@ -61,6 +61,15 @@ const StockDashboard = () => {
   const [isProduccionModalOpen, setIsProduccionModalOpen] = useState(false);
   const [seccionAbierta, setSeccionAbierta] = useState<string | null>(null);
 
+  // Depuración: Inspeccionar datos de producciones
+  console.log('Datos de producciones:', producciones?.map(p => ({
+    id: p.id,
+    nombre: p.nombre_produccion,
+    cantidad_producida: p.cantidad_producida,
+    stock_disponible: p.stock_disponible,
+    precio_sugerido: p.precio_sugerido_venta,
+  })));
+
   console.log('Producciones:', producciones);
   console.log('Movimientos:', allStock);
   console.log('Ventas:', ventas);
@@ -178,7 +187,7 @@ const StockDashboard = () => {
           <tbody>
             {productosConStock.map((p) => {
               const precioSugerido = parsePrecioSugerido(p.precio_sugerido_venta);
-              const valorTotal = precioSugerido * p.stock_disponible;
+              const valorTotal = precioSugerido * p.cantidad_producida;
 
               return (
                 <tr key={p.id} className="border-b border-gray-100 hover:bg-green-50">
@@ -211,11 +220,13 @@ const StockDashboard = () => {
     </div>
   );
 
-  const totalProductos = producciones?.filter(p => p.stock_disponible >= 1).length || 0;
-  const valorEstimado = producciones?.reduce((sum, p) => {
-    if (p.stock_disponible < 1) return sum;
+  const productosConStock = producciones?.filter(p => p.stock_disponible >= 1) || [];
+  const totalProductos = productosConStock.length;
+  const valorEstimado = productosConStock.reduce((sum, p) => {
     const precio = parsePrecioSugerido(p.precio_sugerido_venta);
-    return sum + (precio * p.stock_disponible);
+    const valor = precio * p.cantidad_producida;
+    console.log(`Producto: ${p.nombre_produccion}, Precio: ${precio}, Cantidad Producida: ${p.cantidad_producida}, Stock Disponible: ${p.stock_disponible}, Valor: ${valor}`);
+    return sum + valor;
   }, 0) || 0;
 
   const mappedProducciones = (producciones || []).map((produccion) => {
