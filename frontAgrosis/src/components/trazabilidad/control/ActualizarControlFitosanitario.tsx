@@ -20,13 +20,12 @@ interface ExtendedFormField {
   accept?: string;
 }
 
-// Extender la interfaz FormProps para incluir 'errorMessage'
+// Extender la interfaz FormProps (sin errorMessage)
 interface ExtendedFormProps {
   fields: ExtendedFormField[];
   onSubmit: (data: { [key: string]: string | string[] | File | null }) => void;
   onFieldChange?: (fieldId: string, value: string | string[]) => void;
   isError: boolean;
-  errorMessage?: string | undefined;
   isSuccess: boolean;
   title: string;
   initialValues?: { [key: string]: string | string[] | File };
@@ -52,7 +51,7 @@ const ActualizarControlFitosanitario = ({ id, onSuccess }: { id: string | number
     fk_id_plantacion: "",
     fk_id_pea: "",
     fk_id_insumo: "",
-    cantidad_insumo: "",
+    cantidad_en_base: "",
     fk_unidad_medida: "",
     fk_identificacion: [],
     img: new File([], ""),
@@ -70,7 +69,7 @@ const ActualizarControlFitosanitario = ({ id, onSuccess }: { id: string | number
         fk_id_plantacion: control.fk_id_plantacion?.id ? String(control.fk_id_plantacion.id) : "",
         fk_id_pea: control.fk_id_pea?.id ? String(control.fk_id_pea.id) : "",
         fk_id_insumo: control.fk_id_insumo?.id ? String(control.fk_id_insumo.id) : "",
-        cantidad_insumo: control.cantidad_insumo ? String(control.cantidad_insumo) : "",
+        cantidad_en_base: control.cantidad_insumo ? String(control.cantidad_insumo) : "",
         fk_unidad_medida: control.fk_unidad_medida?.id ? String(control.fk_unidad_medida.id) : "",
         fk_identificacion: control.fk_identificacion?.map((user: any) => String(user.id)) || [],
         img: new File([], ""),
@@ -140,17 +139,17 @@ const ActualizarControlFitosanitario = ({ id, onSuccess }: { id: string | number
     if (!data.fk_id_plantacion) errors.push("La plantación es obligatoria");
     if (!data.fk_id_pea) errors.push("El PEA es obligatorio");
     if (!data.fk_id_insumo) errors.push("El insumo es obligatorio");
-    if (!data.cantidad_insumo || parseInt(data.cantidad_insumo as string) <= 0) errors.push("La cantidad de insumo debe ser un número mayor a 0");
+    if (!data.cantidad_en_base || parseInt(data.cantidad_en_base as string) <= 0) errors.push("La cantidad de insumo debe ser un número mayor a 0");
     if (!data.fk_unidad_medida) errors.push("La unidad de medida es obligatoria");
     if (!data.fk_identificacion || (data.fk_identificacion as string[]).length === 0) errors.push("Debe seleccionar al menos un usuario");
 
-    const cantidadInsumoIngresada = parseInt(data.cantidad_insumo as string) || 0;
+    const cantidadInsumoIngresada = parseInt(data.cantidad_en_base as string) || 0;
     const insumoSeleccionado = insumos.find(
       (insumo) => String(insumo.id) === data.fk_id_insumo
     );
 
-    if (insumoSeleccionado && cantidadInsumoIngresada > (insumoSeleccionado.cantidad_insumo ?? 0)) {
-      errors.push(`La cantidad ingresada (${cantidadInsumoIngresada}) excede el stock disponible (${insumoSeleccionado.cantidad_insumo ?? 0}).`);
+    if (insumoSeleccionado && cantidadInsumoIngresada > (Number(insumoSeleccionado.cantidad_en_base) ?? 0)) {
+      errors.push(`La cantidad ingresada (${cantidadInsumoIngresada}) excede el stock disponible (${Number(insumoSeleccionado.cantidad_en_base) ?? 0} Gramos).`);
     }
 
     if (errors.length > 0) {
@@ -172,7 +171,7 @@ const ActualizarControlFitosanitario = ({ id, onSuccess }: { id: string | number
       fk_id_plantacion: parseInt(data.fk_id_plantacion as string) || 0,
       fk_id_pea: parseInt(data.fk_id_pea as string) || 0,
       fk_id_insumo: parseInt(data.fk_id_insumo as string) || 0,
-      cantidad_insumo: parseInt(data.cantidad_insumo as string) || 0,
+      cantidad_insumo: parseInt(data.cantidad_en_base as string) || 0,
       fk_unidad_medida: parseInt(data.fk_unidad_medida as string) || 0,
       fk_identificacion: (data.fk_identificacion as string[]).map(Number),
       img: data.img instanceof File ? data.img : undefined,
@@ -243,11 +242,11 @@ const ActualizarControlFitosanitario = ({ id, onSuccess }: { id: string | number
             options: insumoOptions,
             extraContent: selectedInsumo ? (
               <div className="text-sm text-green-600 text-center">
-                Stock disponible del insumo seleccionado: {selectedInsumo.cantidad_insumo ?? 0}
+                Stock disponible del insumo seleccionado: {selectedInsumo.cantidad_en_base ?? 0} Gramos
               </div>
             ) : null,
           },
-          { id: 'cantidad_insumo', label: 'Cantidad Insumo', type: 'number'},
+          { id: 'cantidad_en_base', label: 'Cantidad de Insumo (gramos)', type: 'number' },
           { id: 'fk_unidad_medida', label: 'Unidad de Medida', type: 'select', options: medidaOptions},
           { 
             id: 'fk_identificacion', 
@@ -261,7 +260,6 @@ const ActualizarControlFitosanitario = ({ id, onSuccess }: { id: string | number
         onSubmit={handleSubmit}  
         onFieldChange={handleFieldChange}
         isError={actualizarControl.isError} 
-        errorMessage={actualizarControl.error?.message}
         isSuccess={actualizarControl.isSuccess}
         title="Actualizar Control Fitosanitario"
         initialValues={formData}  

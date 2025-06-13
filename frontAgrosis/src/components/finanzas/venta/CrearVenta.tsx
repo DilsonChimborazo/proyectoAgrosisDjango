@@ -148,6 +148,12 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
       return;
     }
 
+    if (precioUnitarioConDescuento !== undefined && precioUnitarioConDescuento < 0) {
+      setError('El descuento aplicado resulta en un precio negativo. Por favor, ajuste el porcentaje de descuento.');
+      showToast({ title: 'El descuento no puede resultar en un precio negativo', timeout: 3000 });
+      return;
+    }
+
     const produccion = producciones.find((p) => p.id === productoActual.produccionId);
     if (!produccion) {
       setError('Producción no encontrada. Seleccione una producción válida.');
@@ -519,12 +525,21 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
                 step="0.01"
                 className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
                 value={productoActual.descuentoPorcentaje !== undefined ? productoActual.descuentoPorcentaje : ''}
-                onChange={(e) =>
-                  setProductoActual({
-                    ...productoActual,
-                    descuentoPorcentaje: parseFloat(e.target.value) || 0,
-                  })
-                }
+                onChange={(e) => {
+                  const descuento = parseFloat(e.target.value) || 0;
+                  if (descuento > 100) {
+                    setProductoActual({
+                      ...productoActual,
+                      descuentoPorcentaje: 100,
+                    });
+                    showToast({ title: 'El descuento no puede exceder el 100%', timeout: 3000, variant:"error"});
+                  } else {
+                    setProductoActual({
+                      ...productoActual,
+                      descuentoPorcentaje: descuento,
+                    });
+                  }
+                }}
                 placeholder="Ej: 10"
                 disabled={!productoActual.produccionId}
               />
@@ -587,7 +602,8 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
                 precioUnitarioCalculado <= 0 ||
                 productoActual.descuentoPorcentaje === undefined ||
                 productoActual.descuentoPorcentaje < 0 ||
-                productoActual.descuentoPorcentaje > 100
+                productoActual.descuentoPorcentaje > 100 ||
+                (precioUnitarioConDescuento !== undefined && precioUnitarioConDescuento < 0)
               }
             />
           </div>

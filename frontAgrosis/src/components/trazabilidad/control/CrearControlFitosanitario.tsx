@@ -129,7 +129,7 @@ const CrearControlFitosanitario = ({ onSuccess }: CrearControlFitosanitarioProps
       label: 'Unidad Medida',
       type: 'select',
       options: unidadOptions,
-      required: true,
+      required: false,
       hasExtraButton: true,
       extraButtonText: 'Crear Unidad',
       onExtraButtonClick: () => setMostrarModalUnidad(true),
@@ -158,14 +158,13 @@ const CrearControlFitosanitario = ({ onSuccess }: CrearControlFitosanitarioProps
       !formData.fk_id_plantacion ||
       !formData.fk_id_pea ||
       !formData.fk_id_insumo ||
-      !formData.fk_unidad_medida ||
       !formData.cantidad_en_base ||
       !formData.fk_identificacion ||
       (formData.fk_identificacion as string[]).length < 1
     ) {
       showToast({
         title: 'Error al crear control fitosanitario',
-        description: 'Por favor, completa todos los campos obligatorios y selecciona al menos 1 usuario.',
+        description: 'Por favor, completa todos los campos obligatorios .',
         timeout: 5000,
         variant: 'error',
       });
@@ -187,6 +186,34 @@ const CrearControlFitosanitario = ({ onSuccess }: CrearControlFitosanitarioProps
       return;
     }
 
+    // Asignar unidad de medida por defecto si no se selecciona ninguna
+    const unidadMedida = formData.fk_unidad_medida
+      ? Number(formData.fk_unidad_medida)
+      : unidades.length > 0
+        ? Number(unidades[0].id)
+        : 0;
+
+    if (unidadMedida === 0) {
+      showToast({
+        title: 'Error en unidad de medida',
+        description: 'No hay unidades de medida disponibles. Crea una unidad primero.',
+        timeout: 5000,
+        variant: 'error',
+      });
+      return;
+    }
+
+    // Verificar si se seleccionó un archivo de imagen
+    if (!formData.img || (formData.img instanceof File && (formData.img as File).size === 0)) {
+      showToast({
+        title: 'Error en la imagen',
+        description: 'Por favor, selecciona un archivo de imagen válido.',
+        timeout: 5000,
+        variant: 'error',
+      });
+      return;
+    }
+
     const nuevoControl = {
       fecha_control: new Date(formData.fecha_control as string).toISOString().split('T')[0],
       duracion: Number(formData.duracion),
@@ -196,7 +223,7 @@ const CrearControlFitosanitario = ({ onSuccess }: CrearControlFitosanitarioProps
       fk_id_pea: Number(formData.fk_id_pea),
       fk_id_insumo: Number(formData.fk_id_insumo),
       cantidad_insumo: cantidadInsumoIngresada,
-      fk_unidad_medida: Number(formData.fk_unidad_medida),
+      fk_unidad_medida: unidadMedida,
       fk_identificacion: (formData.fk_identificacion as string[]).map(Number),
       img: formData.img as File,
     };
@@ -211,10 +238,16 @@ const CrearControlFitosanitario = ({ onSuccess }: CrearControlFitosanitarioProps
         });
         onSuccess();
       },
-      onError: (error) => {
+      onError: (error: any) => {
+        let errorMessage = 'No se pudo crear el control fitosanitario. Intenta de nuevo.';
+        if (error.message && error.message.includes('not a file')) {
+          errorMessage = 'Error en la imagen: Los datos enviados no son un archivo válido. Verifica el tipo de codificación del formulario.';
+        } else if (error.response?.data?.detail) {
+          errorMessage = `Error: ${error.response.data.detail}`;
+        }
         showToast({
           title: 'Error al crear control fitosanitario',
-          description: error.message || 'No se pudo crear el control fitosanitario. Intenta de nuevo.',
+          description: errorMessage,
           timeout: 5000,
           variant: 'error',
         });
