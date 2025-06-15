@@ -81,6 +81,7 @@ interface Plantacion {
   descripcion: string;
   fk_id_cultivo: Cultivo;
   cantidad_transplante?: number;
+  fk_id_era: Eras;
   fk_id_semillero: Semillero;
   fecha_plantacion: string;
 }
@@ -119,7 +120,7 @@ export interface Asignacion {
   fecha_programada: string;
   observaciones: string;
   fk_id_realiza: Realiza | number;
-  fk_identificacion: (number | { id: number })[];
+  fk_identificacion: Usuario[];
   recursos_asignados: (string | RecursosAsignados)[];
 }
 

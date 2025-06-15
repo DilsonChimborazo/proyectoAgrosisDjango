@@ -9,7 +9,6 @@
         cantidad_herramienta: number;
         estado: 'Disponible' | 'Prestado' | 'En reparacion';
         precio: number;
-
     }
     // Función para obtener los usuarios con manejo de errores
     const fetch = async (): Promise<Herramientas[]> => {
