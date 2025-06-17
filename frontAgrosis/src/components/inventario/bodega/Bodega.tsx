@@ -305,16 +305,17 @@ const ListarBodega = () => {
   }, [movimientos, tipoSeleccionado]);
 
  // Datos que se van a mostrar en las tablas
-
   const mappedMovimientos = useMemo(() => {
   const formatDateWithoutTimezone = (dateInput: string | Date): string => {
     try {
-      const date = new Date(dateInput);
-      if (isNaN(date.getTime())) return "Fecha inválida";
-      const day = String(date.getDate()).padStart(2, "0");
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const year = date.getFullYear();
-      return `${day}/${month}/${year}`;
+      const dateString = typeof dateInput === "string" ? dateInput : dateInput.toISOString();
+      const datePart = dateString.split("T")[0];
+      const [year, month, day] = datePart.split("-").map(Number);
+      if (!year || !month || !day || isNaN(year) || isNaN(month) || isNaN(day)) {
+        return "Fecha inválida";
+      }
+      const formattedDay = String(day).padStart(2, "0");
+      return `${formattedDay}/${month}/${year}`;
     } catch {
       return "Fecha inválida";
     }
@@ -338,8 +339,6 @@ const ListarBodega = () => {
       ? item.fk_id_insumo.cantidad_en_base
       : "No Aplica";
 
-    console.log("esta es la cantidad base",cantidadBaseDisplay)
-
     const bgCantidad =
       movimiento === "Entrada" ? "bg-green-500 text-white font-bold rounded px-2" : "bg-red-500 text-white font-bold rounded px-2";
 
@@ -347,6 +346,8 @@ const ListarBodega = () => {
       tipoSeleccionado === "Insumo" && item.fk_id_insumo
         ? item.fk_id_insumo.fk_unidad_medida?.nombre_medida || "No Aplica"
         : "No Aplica";
+
+    
 
     return {
       id: item.id,
@@ -363,7 +364,7 @@ const ListarBodega = () => {
           : item.costo_insumo
             ? `$${parseFloat(item.costo_insumo.toString()).toFixed(2)}`
             : "—",
-      fecha: formatDateWithoutTimezone(item.fecha),
+      fecha_salida: formatDateWithoutTimezone(item.fecha),
       movimiento: <span className={colorMovimiento}>{movimiento}</span>,
       rawData: item,
     };
@@ -465,7 +466,7 @@ const ListarBodega = () => {
       const esHerramienta = isHerramienta(item);
       const cantidad = esHerramienta
         ? Number(item.cantidad_herramienta) || 0
-        : Number(item.cantidad_en_base) || 0; // Changed to use cantidad_en_base for insumos
+        : Number(item.cantidad_en_base) || 0; 
       const fechaVencimiento = isInsumo(item) ? item.fecha_vencimiento : null;
 
       let cantidadClass = "font-bold rounded-full px-3 py-1 text-center flex items-center gap-1";
@@ -599,7 +600,7 @@ const ListarBodega = () => {
               "Unidad Medida",
               "cantidad base",
               "Costo",
-              "Fecha",
+              "Fecha salida",
               "Movimiento",
             ]}
             data={mappedMovimientos}

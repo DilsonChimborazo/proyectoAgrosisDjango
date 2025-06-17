@@ -16,6 +16,16 @@ interface Usuario {
   img_url: string;
 }
 
+interface ItemSeleccionado {
+  id: number;
+  cantidad: number;
+}
+
+interface RecursosAsignados {
+  herramientas?: ItemSeleccionado[];
+  insumos?: ItemSeleccionado[];
+}
+
 interface Asignacion {
   id: number;
   estado: 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada';
@@ -23,7 +33,36 @@ interface Asignacion {
   observaciones: string;
   fk_id_realiza:  number;
   fk_identificacion: Usuario;
-  recursos_asignados: string ;
+  recursos_asignados: (string | RecursosAsignados)[];
+}
+export interface UnidadMedida {
+    id: number;
+    nombre_medida: string;
+    unidad_base: 'g' | 'ml' | 'u';  
+    factor_conversion: number;
+}
+
+export interface Insumo{
+    id: number
+    nombre: string
+    tipo: string
+    precio_unidad: number
+    cantidad_insumo: number | 0;
+    cantidad_en_base: string | null;
+    fecha_vencimiento: string
+    img: string | null | undefined ;
+    fk_unidad_medida: UnidadMedida
+    es_compuesto: boolean;
+    precio_por_base: number;
+    tipoEnglis: string
+}
+
+export interface Herramientas{
+    id: number;
+    nombre_h: string;
+    cantidad_herramienta: number;
+    estado: 'Disponible' | 'Prestado' | 'En reparacion';
+    precio: number;
 }
 
 interface MovimientoHerramienta {

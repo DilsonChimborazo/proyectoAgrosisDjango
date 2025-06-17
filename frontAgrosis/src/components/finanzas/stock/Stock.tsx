@@ -50,9 +50,9 @@ const SeccionDesplegable = ({
 };
 
 const StockDashboard = () => {
-  const { data: producciones, isLoading: isProduccionesLoading, error: produccionesError, refetch } = useProducciones();
-  const { data: allStock, isLoading: isAllStockLoading, error: allStockError } = useAllStock();
-  const { data: ventas, isLoading: isVentasLoading, error: ventasError } = useVentas();
+  const { data: producciones, isLoading: isProduccionesLoading, error: produccionesError, refetch: refetchProducciones } = useProducciones();
+  const { data: allStock, isLoading: isAllStockLoading, error: allStockError, refetch: refetchAllStock } = useAllStock();
+  const { data: ventas, isLoading: isVentasLoading, error: ventasError, refetch: refetchVentas } = useVentas();
   const [selectedProduccionId, setSelectedProduccionId] = useState<number | null>(null);
   const [isMovimientosModalOpen, setIsMovimientosModalOpen] = useState(false);
   const [isProductosModalOpen, setIsProductosModalOpen] = useState(false);
@@ -60,6 +60,15 @@ const StockDashboard = () => {
   const [isVentaModalOpen, setIsVentaModalOpen] = useState(false);
   const [isProduccionModalOpen, setIsProduccionModalOpen] = useState(false);
   const [seccionAbierta, setSeccionAbierta] = useState<string | null>(null);
+
+  // Depuración: Inspeccionar datos de producciones
+  console.log('Datos de producciones:', producciones?.map(p => ({
+    id: p.id,
+    nombre: p.nombre_produccion,
+    cantidad_producida: p.cantidad_producida,
+    stock_disponible: p.stock_disponible,
+    precio_sugerido: p.precio_sugerido_venta,
+  })));
 
   console.log('Producciones:', producciones);
   console.log('Movimientos:', allStock);
@@ -90,7 +99,15 @@ const StockDashboard = () => {
   const cerrarModalConExito = () => {
     setIsVentaModalOpen(false);
     setIsProduccionModalOpen(false);
-    refetch();
+    refetchProducciones();
+    refetchAllStock();
+    refetchVentas();
+  };
+
+  const parsePrecioSugerido = (precio: string | number | null | undefined): number => {
+    if (precio == null) return 0;
+    const numero = typeof precio === 'string' ? parseFloat(precio) : precio;
+    return isNaN(numero) ? 0 : numero;
   };
 
   const renderMovimientosDetails = () => {
@@ -101,8 +118,7 @@ const StockDashboard = () => {
     const produccion = producciones.find(p => p.id === selectedProduccionId);
     if (!produccion) return <p className="text-center text-gray-500 py-4">Producción no encontrada.</p>;
 
-    const precioSugerido = produccion.precio_sugerido_venta;
-    const precioSugeridoNumero = typeof precioSugerido === 'string' ? parseFloat(precioSugerido) : precioSugerido;
+    const precioSugerido = parsePrecioSugerido(produccion.precio_sugerido_venta);
 
     return (
       <div className="p-4 bg-white rounded-lg shadow-sm">
@@ -113,7 +129,7 @@ const StockDashboard = () => {
           <p><span className="font-semibold">Nombre:</span> {produccion.nombre_produccion}</p>
           <p><span className="font-semibold">Stock Disponible:</span> {produccion.stock_disponible} {produccion.fk_unidad_medida?.unidad_base || 'N/A'}</p>
           <p><span className="font-semibold">Unidad de Medida:</span> {produccion.fk_unidad_medida?.nombre_medida || 'N/A'}</p>
-          <p><span className="font-semibold">Precio Sugerido:</span> {precioSugeridoNumero != null && !isNaN(precioSugeridoNumero) ? `$${precioSugeridoNumero.toFixed(2)}` : 'N/A'}</p>
+          <p><span className="font-semibold">Precio Sugerido:</span> {precioSugerido > 0 ? `$${precioSugerido.toFixed(2)}` : 'N/A'}</p>
         </div>
       </div>
     );
@@ -170,9 +186,8 @@ const StockDashboard = () => {
           </thead>
           <tbody>
             {productosConStock.map((p) => {
-              const precioSugerido = p.precio_sugerido_venta;
-              const precioSugeridoNumero = typeof precioSugerido === 'string' ? parseFloat(precioSugerido) : precioSugerido;
-              const valorTotal = precioSugeridoNumero != null && !isNaN(precioSugeridoNumero) ? precioSugeridoNumero * p.stock_disponible : 0;
+              const precioSugerido = parsePrecioSugerido(p.precio_sugerido_venta);
+              const valorTotal = precioSugerido * p.cantidad_producida;
 
               return (
                 <tr key={p.id} className="border-b border-gray-100 hover:bg-green-50">
@@ -186,13 +201,6 @@ const StockDashboard = () => {
       </div>
     );
   };
-
-  if (isProduccionesLoading || isAllStockLoading || isVentasLoading) return (
-    <div className="text-center py-8 text-gray-500 flex justify-center items-center">
-      <Loader2 className="animate-spin mr-2" size={24} />
-      Cargando datos...
-    </div>
-  );
 
   if (produccionesError) return (
     <div className="text-center py-8 text-red-500">
@@ -212,16 +220,17 @@ const StockDashboard = () => {
     </div>
   );
 
-  const totalProductos = producciones?.filter(p => p.stock_disponible >= 1).length || 0;
-  const valorEstimado = producciones?.reduce((sum, p) => {
-    if (p.stock_disponible < 1) return sum;
-    const precio = typeof p.precio_sugerido_venta === 'string' ? parseFloat(p.precio_sugerido_venta) : p.precio_sugerido_venta;
-    return sum + ((precio != null && !isNaN(precio) ? precio : 0) * p.stock_disponible);
+  const productosConStock = producciones?.filter(p => p.stock_disponible >= 1) || [];
+  const totalProductos = productosConStock.length;
+  const valorEstimado = productosConStock.reduce((sum, p) => {
+    const precio = parsePrecioSugerido(p.precio_sugerido_venta);
+    const valor = precio * p.cantidad_producida;
+    console.log(`Producto: ${p.nombre_produccion}, Precio: ${precio}, Cantidad Producida: ${p.cantidad_producida}, Stock Disponible: ${p.stock_disponible}, Valor: ${valor}`);
+    return sum + valor;
   }, 0) || 0;
 
   const mappedProducciones = (producciones || []).map((produccion) => {
-    const precioSugerido = produccion.precio_sugerido_venta;
-    const precioSugeridoNumero = typeof precioSugerido === 'string' ? parseFloat(precioSugerido) : precioSugerido;
+    const precioSugerido = parsePrecioSugerido(produccion.precio_sugerido_venta);
 
     return {
       id: produccion.id,
@@ -232,7 +241,7 @@ const StockDashboard = () => {
         </span>
       ),
       unidad_medida: produccion.fk_unidad_medida?.nombre_medida || 'N/A',
-      precio_sugerido: precioSugeridoNumero != null && !isNaN(precioSugeridoNumero) ? `$${precioSugeridoNumero.toFixed(2)}` : 'N/A',
+      precio_sugerido: precioSugerido > 0 ? `$${precioSugerido.toFixed(2)}` : 'N/A',
     };
   });
 
@@ -257,8 +266,7 @@ const StockDashboard = () => {
   const movimientosHeaders = ["ID", "Producto", "Tipo", "Cantidad", "Fecha"];
 
   return (
-    <div className="mx-auto p-6 space-y-6 bg-transparent"> {/* Fondo transparente y espacio entre contenedores */}
-      {/* Contenedor 1: Título y Botones */}
+    <div className="mx-auto p-6 space-y-6 bg-transparent">
       <div className="bg-white p-4 rounded-lg shadow-md">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <h1 className="text-xl font-semibold text-gray-800 text-center flex items-center gap-2">
@@ -286,7 +294,6 @@ const StockDashboard = () => {
         </div>
       </div>
 
-      {/* Contenedor 2: Tarjetas y Secciones Desplegables */}
       <div className="bg-white p-4 rounded-lg shadow-md space-y-6">
         <div className="flex flex-col sm:flex-row gap-4">
           <button

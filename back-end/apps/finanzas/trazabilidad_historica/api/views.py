@@ -24,6 +24,7 @@ from apps.finanzas.produccion.models import Produccion
 from apps.finanzas.salario.models import Salario
 from apps.finanzas.trazabilidad_historica.models import SnapshotTrazabilidad, ResumenTrazabilidad
 from apps.finanzas.trazabilidad_historica.api.serializers import SnapshotSerializer, ResumenTrazabilidadSerializer
+# Asegúrate de que esta importación sea correcta según la estructura de tu proyecto
 from apps.finanzas.trazabilidad_historica.services import TrazabilidadService
 
 import logging
@@ -60,12 +61,16 @@ class HistorialViewSet(ModelViewSet):
             ).order_by('-fecha_registro')
         return super().get_queryset()
 
-class ResumenActualViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticated]
-    queryset = ResumenTrazabilidad.objects.all()
-    serializer_class = ResumenTrazabilidadSerializer
-    lookup_field = 'plantacion_id'
-    lookup_url_kwarg = 'plantacion_id'
+# --- VISTA COMENTADA ---
+# Esta es la vista que causaba el error 404. La comentamos porque será reemplazada
+# por ResumenActualTrazabilidadAPIView, que es más robusta.
+# class ResumenActualViewSet(ModelViewSet):
+#     permission_classes = [IsAuthenticated]
+#     queryset = ResumenTrazabilidad.objects.all()
+#     serializer_class = ResumenTrazabilidadSerializer
+#     lookup_field = 'plantacion_id'
+#     lookup_url_kwarg = 'plantacion_id'
+
 
 class TrazabilidadPlantacionAPIView(APIView):
     permission_classes = [IsAuthenticated]
@@ -380,12 +385,14 @@ class TrazabilidadPlantacionAPIView(APIView):
                     programaciones_incremental, controles_incremental
                 )
                 
+                asignaciones_incremental = Asignacion_actividades.objects.filter(
+                    programacion__in=programaciones_incremental
+                )
+
                 egresos_bodega_incremental = Bodega.objects.filter(
-                    fk_id_asignacion__in=programaciones_incremental.values_list('fk_id_asignacionActividades', flat=True),
+                    fk_id_asignacion__in=asignaciones_incremental,
                     movimiento='Salida',
-                    fk_id_insumo__isnull=False,
-                    fecha__gte=fecha_inicio_periodo_incremental,
-                    fecha__lte=fecha_ultima_produccion
+                    fk_id_insumo__isnull=False
                 ).aggregate(total=Sum('costo_insumo'))['total'] or 0
                 
                 egresos_controles_incremental = controles_incremental.aggregate(total=Sum('costo_insumo'))['total'] or 0
@@ -499,16 +506,47 @@ class HistoricoTrazabilidadAPIView(ListAPIView):
             plantacion_id=plantacion_id
         ).order_by('-fecha_registro')
 
+# --- VISTA ROBUSTA QUE SOLUCIONA EL ERROR 404 ---
 class ResumenActualTrazabilidadAPIView(APIView):
     permission_classes = [IsAuthenticated]
+    
     def get(self, request, plantacion_id):
         try:
+            # 1. Intenta obtener el resumen pre-calculado que debería existir
             resumen = ResumenTrazabilidad.objects.get(plantacion_id=plantacion_id)
             serializer = ResumenTrazabilidadSerializer(resumen)
             return Response(serializer.data)
             
         except ResumenTrazabilidad.DoesNotExist:
-            return Response({"error": "No hay datos de trazabilidad para esta plantación"}, 
-                            status=status.HTTP_404_NOT_FOUND)
+            # 2. Si no existe, en lugar de dar un error 404, lo calculamos al momento
+            logger.info(f"No se encontró ResumenTrazabilidad para plantacion_id={plantacion_id}. Calculando al vuelo.")
+            
+            # Reutilizamos la lógica de la otra vista para hacer el cálculo completo
+            calculador = TrazabilidadPlantacionAPIView()
+            datos_calculados = calculador.calcular_trazabilidad(plantacion_id)
+
+            # Si la plantación en sí no existe, devolvemos un 404
+            if not datos_calculados:
+                return Response(
+                    {"error": f"Plantación con id={plantacion_id} no encontrada."}, 
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+            # 3. (Opcional pero recomendado) Guardamos el resultado para que la próxima petición sea instantánea
+            TrazabilidadService.crear_snapshot(
+                plantacion_id=plantacion_id,
+                datos=datos_calculados,
+                trigger='resumen_generado_al_vuelo'
+            )
+            
+            # 4. Devolvemos los datos recién calculados al frontend, adaptados al formato del serializador
+            respuesta_adaptada = {
+                'ultima_actualizacion': datetime.now(),
+                'datos_actuales': datos_calculados,
+                'precio_minimo_venta_por_unidad': datos_calculados.get('precio_minimo_venta_por_unidad_acumulado', 0)
+            }
+            return Response(respuesta_adaptada, status=status.HTTP_200_OK)
+
         except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            logger.error(f"Error inesperado al obtener resumen para plantacion_id={plantacion_id}: {e}", exc_info=True)
+            return Response({"error": "Ocurrió un error interno en el servidor."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -15,13 +15,14 @@ export interface Insumo{
     nombre: string
     tipo: string
     precio_unidad: number
-    cantidad_insumo: number;
+    cantidad_insumo: number | 0 ;
     cantidad_en_base: string | null;
     fecha_vencimiento: string
     img: string | null | undefined ;
     fk_unidad_medida: UnidadMedida
     es_compuesto: boolean;
     precio_por_base: number;
+    tipoEnglis: string
 }
 
 const fetch = async (): Promise<Insumo[]> => {

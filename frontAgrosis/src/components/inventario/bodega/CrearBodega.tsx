@@ -1,6 +1,7 @@
-import { useCrearBodega, Herramientas, Insumo, Asignacion } from "@/hooks/inventario/bodega/useCrearBodega";
+import { useCrearBodega, Herramientas, Insumo } from "@/hooks/inventario/bodega/useCrearBodega";
+import { Asignacion } from "@/hooks/trazabilidad/asignacion/useAsignacion";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Formulario from "@/components/globales/Formulario";
 import VentanaModal from "@/components/globales/VentanasModales";
 
@@ -29,56 +30,126 @@ const RegistrarSalidaBodega = ({
   const { mutate: crearMovimientoBodega } = useCrearBodega();
   const navigate = useNavigate();
 
-  const [mensaje, setMensaje] = useState<{ texto: string, tipo: 'exito' | 'error' | 'info' } | null>(null);
+  const [mensaje, setMensaje] = useState<{ texto: string; tipo: 'exito' | 'error' | 'info' } | null>(null);
   const [insumos] = useState<Insumo[]>(insumosIniciales);
   const [herramientasSeleccionadas, setHerramientasSeleccionadas] = useState<ItemSeleccionado[]>([]);
   const [insumosSeleccionados, setInsumosSeleccionados] = useState<ItemSeleccionado[]>([]);
   const [mostrarModalHerramienta, setMostrarModalHerramienta] = useState(false);
   const [mostrarModalInsumo, setMostrarModalInsumo] = useState(false);
+  const [asignacionSeleccionada, setAsignacionSeleccionada] = useState<number | null>(null);
+  const [herramientasDisponibles, setHerramientasDisponibles] = useState<Herramientas[]>([]);
+  const [insumosDisponibles, setInsumosDisponibles] = useState<Insumo[]>([]);
+
+  // Filtrar asignaciones pendientes
+  const asignacionesPendientes = asignaciones.filter((a) => a.estado === 'Pendiente');
+
+  // Depuración: Verificar asignaciones
+  console.log('Asignaciones recibidas:', asignaciones);
+  console.log('Asignaciones pendientes:', asignacionesPendientes);
+
+  // Actualizar herramientas e insumos disponibles según la asignación seleccionada
+  useEffect(() => {
+    console.log('Asignación seleccionada:', asignacionSeleccionada);
+    if (asignacionSeleccionada) {
+      const asignacion = asignaciones.find((a) => a.id === asignacionSeleccionada);
+      console.log('Asignación encontrada:', asignacion);
+      if (asignacion) {
+        // Obtener IDs de herramientas e insumos asignados desde todos los elementos de recursos_asignados
+        const herramientasAsignadasIds = new Set<number>();
+        const insumosAsignadosIds = new Set<number>();
+
+        // Iterar sobre todos los elementos de recursos_asignados
+        (asignacion.recursos_asignados || []).forEach((recursos) => {
+          // Verificar si recursos es un objeto RecursosAsignados
+          if (typeof recursos !== 'string') {
+            recursos.herramientas?.forEach((h) => herramientasAsignadasIds.add(h.id));
+            recursos.insumos?.forEach((i) => insumosAsignadosIds.add(i.id));
+          }
+        });
+
+        console.log('Herramientas asignadas IDs:', Array.from(herramientasAsignadasIds));
+        console.log('Insumos asignados IDs:', Array.from(insumosAsignadosIds));
+        console.log('Herramientas totales:', herramientas);
+        console.log('Insumos totales:', insumos);
+
+        // Filtrar herramientas e insumos disponibles
+        const herramientasFiltradas = herramientas.filter((h) =>
+          herramientasAsignadasIds.has(h.id)
+        );
+        const insumosFiltrados = insumos.filter((i) =>
+          insumosAsignadosIds.has(i.id)
+        );
+
+        setHerramientasDisponibles(herramientasFiltradas);
+        setInsumosDisponibles(insumosFiltrados);
+
+        console.log('Herramientas disponibles:', herramientasFiltradas);
+        console.log('Insumos disponibles:', insumosFiltrados);
+
+        // Resetear selecciones para que solo incluyan ítems de la nueva asignación
+        setHerramientasSeleccionadas((prev) =>
+          prev.filter((h) => herramientasAsignadasIds.has(h.id))
+        );
+        setInsumosSeleccionados((prev) =>
+          prev.filter((i) => insumosAsignadosIds.has(i.id))
+        );
+      } else {
+        console.log('Asignación inválida o no encontrada');
+        setHerramientasDisponibles([]);
+        setInsumosDisponibles([]);
+        setHerramientasSeleccionadas([]);
+        setInsumosSeleccionados([]);
+      }
+    } else {
+      console.log('No hay asignación seleccionada');
+      setHerramientasDisponibles([]);
+      setInsumosDisponibles([]);
+      setHerramientasSeleccionadas([]);
+      setInsumosSeleccionados([]);
+    }
+  }, [asignacionSeleccionada, asignaciones, herramientas, insumos]);
 
   const agregarHerramienta = (herramienta: Herramientas) => {
-    if (!herramientasSeleccionadas.some(h => h.id === herramienta.id)) {
-      setHerramientasSeleccionadas(prev => [
+    console.log('Agregando herramienta:', herramienta);
+    if (!herramientasSeleccionadas.some((h) => h.id === herramienta.id)) {
+      setHerramientasSeleccionadas((prev) => [
         ...prev,
-        { id: herramienta.id, cantidad: 1 }
+        { id: herramienta.id, cantidad: 1 },
       ]);
       setMensaje(null);
     }
   };
 
   const agregarInsumo = (insumo: Insumo) => {
-    if (!insumosSeleccionados.some(i => i.id === insumo.id)) {
-      setInsumosSeleccionados(prev => [
+    console.log('Agregando insumo:', insumo);
+    if (!insumosSeleccionados.some((i) => i.id === insumo.id)) {
+      setInsumosSeleccionados((prev) => [
         ...prev,
-        { id: insumo.id, cantidad: 1 }
+        { id: insumo.id, cantidad: 1 },
       ]);
       setMensaje(null);
     }
   };
 
   const eliminarItem = <T extends ItemSeleccionado>(
-    items: T[],
+    _items: T[],
     setItems: React.Dispatch<React.SetStateAction<T[]>>,
     id: number
   ) => {
-    setItems(prev => prev.filter(item => item.id !== id));
+    setItems((prev) => prev.filter((item) => item.id !== id));
   };
 
   const actualizarCantidad = <T extends ItemSeleccionado>(
-    items: T[],
+    _items: T[],
     setItems: React.Dispatch<React.SetStateAction<T[]>>,
     id: number,
     cantidad: number,
     maxDisponible?: number
   ) => {
-    const cantidadFinal = Math.min(
-      Math.max(1, cantidad),
-      maxDisponible || Infinity
+    const cantidadFinal = Math.min(Math.max(1, cantidad), maxDisponible || Infinity);
+    setItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, cantidad: cantidadFinal } : item))
     );
-
-    setItems(prev => prev.map(item =>
-      item.id === id ? { ...item, cantidad: cantidadFinal } : item
-    ));
   };
 
   const formFields = [
@@ -87,92 +158,104 @@ const RegistrarSalidaBodega = ({
       label: "Asignación relacionada",
       type: "select",
       options: [
-        ...asignaciones.map((a) => ({
+        ...asignacionesPendientes.map((a) => ({
           value: a.id.toString(),
           label: `Asignación ${a.fecha_programada} - ${a.fk_identificacion[0]?.nombre || 'Usuario desconocido'}`,
         })),
       ],
-    },
-    {
-      id: "fecha",
-      label: "Fecha de salida",
-      type: "date",
-      required: true,
-      defaultValue: new Date().toISOString().split('T')[0]
+      onChange: (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
+        const value = e.target.value;
+        console.log('Cambiando asignación seleccionada:', value);
+        setAsignacionSeleccionada(value ? parseInt(value) : null);
+      },
     },
   ];
 
-  console.log("asignaciones", asignaciones);
-  console.log("los datos del formulario", formFields);
-
   const handleSubmit = (formData: any) => {
     if (herramientasSeleccionadas.length === 0 && insumosSeleccionados.length === 0) {
-      setMensaje({ texto: "Debes seleccionar al menos una herramienta o un insumo.", tipo: 'error' });
+      setMensaje({
+        texto: "Debes seleccionar al menos una herramienta o un insumo.",
+        tipo: "error",
+      });
       return;
     }
 
     const errores: string[] = [];
 
-    // Validar que la fecha de salida no sea menor a la fecha de la asignación
+    // Validar que la fecha de salida no sea anterior a la fecha de asignación
     if (formData.fk_id_asignacion) {
-      const asignacion = asignaciones.find(a => a.id === parseInt(formData.fk_id_asignacion));
+      const asignacion = asignaciones.find((a) => a.id === parseInt(formData.fk_id_asignacion));
       if (asignacion) {
         const fechaSalida = new Date(formData.fecha);
         const fechaAsignacion = new Date(asignacion.fecha_programada);
         if (fechaSalida < fechaAsignacion) {
-          errores.push(`La fecha de salida no puede ser anterior a la fecha de asignación (${asignacion.fecha_programada}).`);
+          errores.push(
+            `La fecha de salida no puede ser anterior a la fecha de asignación (${asignacion.fecha_programada}).`
+          );
         }
       }
     }
 
+    // Validar cantidades de herramientas
     for (const h of herramientasSeleccionadas) {
-      const herramienta = herramientas.find(her => her.id === h.id);
+      const herramienta = herramientasDisponibles.find((her) => her.id === h.id);
       if (herramienta && h.cantidad > herramienta.cantidad_herramienta) {
-        errores.push(`La cantidad de ${herramienta.nombre_h} excede el stock disponible (${herramienta.cantidad_herramienta})`);
+        errores.push(
+          `La cantidad de ${herramienta.nombre_h} excede el stock disponible (${herramienta.cantidad_herramienta})`
+        );
       }
     }
 
+    // Validar cantidades de insumos
     for (const i of insumosSeleccionados) {
-      const insumo = insumos.find(ins => ins.id === i.id);
+      const insumo = insumosDisponibles.find((ins) => ins.id === i.id);
       if (insumo && isInsumo(insumo)) {
         const stockDisponible = insumo.cantidad_en_base || 0;
-        if (i.cantidad > stockDisponible) {
-          errores.push(`La cantidad de ${insumo.nombre} excede el stock disponible (${stockDisponible} ${insumo.fk_unidad_medida?.unidad_base || 'unidades'})`);
+        if (String(i.cantidad) > stockDisponible) {
+          errores.push(
+            `La cantidad de ${insumo.nombre} excede el stock disponible (${stockDisponible} ${insumo.fk_unidad_medida?.unidad_base || 'unidades'})`
+          );
         }
       }
     }
 
     if (errores.length > 0) {
-      setMensaje({ texto: errores.join('\n'), tipo: 'error' });
+      setMensaje({ texto: errores.join("\n"), tipo: "error" });
       return;
     }
 
     const payload = {
       fk_id_asignacion: formData.fk_id_asignacion ? parseInt(formData.fk_id_asignacion) : null,
-      fecha: formData.fecha || new Date().toISOString().split('T')[0],
+      fecha: formData.fecha || new Date().toISOString().split("T")[0],
       movimiento: "Salida" as const,
-      herramientas: herramientasSeleccionadas.map(h => ({
+      herramientas: herramientasSeleccionadas.map((h) => ({
         id: h.id,
-        cantidad: h.cantidad
+        cantidad: h.cantidad,
       })),
-      insumos: insumosSeleccionados.map(i => ({
+      insumos: insumosSeleccionados.map((i) => ({
         id: i.id,
-        cantidad: i.cantidad
+        cantidad: i.cantidad,
       })),
     };
 
+    console.log('Payload enviado:', payload);
+
     crearMovimientoBodega(payload, {
       onSuccess: () => {
-        setMensaje({ texto: "Salida registrada exitosamente.", tipo: 'exito' });
+        setMensaje({ texto: "Salida registrada exitosamente.", tipo: "exito" });
         onSuccess?.();
         setTimeout(() => navigate("/bodega"), 1500);
       },
       onError: (error: any) => {
-        const errorMessage = error.response?.data?.detail ||
-                            error.response?.data?.non_field_errors?.join('\n') ||
-                            error.message ||
-                            "Error desconocido al registrar la salida";
-        setMensaje({ texto: `Error al registrar salida: ${errorMessage}`, tipo: 'error' });
+        const errorMessage =
+          error.response?.data?.detail ||
+          error.response?.data?.non_field_errors?.join("\n") ||
+          error.message ||
+          "Error desconocido al registrar la salida";
+        setMensaje({
+          texto: `Error al registrar salida: ${errorMessage}`,
+          tipo: "error",
+        });
       },
     });
   };
@@ -182,15 +265,15 @@ const RegistrarSalidaBodega = ({
     allItems: Array<Herramientas | Insumo>,
     onUpdateCantidad: (id: number, cantidad: number, maxDisponible?: number) => void,
     onRemove: (id: number) => void,
-    tipo: 'herramienta' | 'insumo'
+    tipo: "herramienta" | "insumo"
   ) => (
     <div className="mb-6">
       <h3 className="font-semibold mb-2">
-        {tipo === 'herramienta' ? 'Herramientas' : 'Insumos'} seleccionados:
+        {tipo === "herramienta" ? "Herramientas" : "Insumos"} seleccionados:
       </h3>
       <div className="space-y-2">
         {items.map((item) => {
-          const originalItem = allItems.find(i => i.id === item.id);
+          const originalItem = allItems.find((i) => i.id === item.id);
           if (!originalItem) return null;
 
           const isHerramienta = !isInsumo(originalItem);
@@ -199,8 +282,8 @@ const RegistrarSalidaBodega = ({
             : originalItem.cantidad_en_base || 0;
 
           const unidadMedida = isInsumo(originalItem)
-            ? originalItem.fk_unidad_medida?.unidad_base || 'unidades'
-            : 'unidades';
+            ? originalItem.fk_unidad_medida?.unidad_base || "unidades"
+            : "unidades";
 
           return (
             <div
@@ -222,7 +305,7 @@ const RegistrarSalidaBodega = ({
                   max={stockDisponible}
                   value={item.cantidad}
                   onChange={(e) =>
-                    onUpdateCantidad(item.id, parseInt(e.target.value) || 1, stockDisponible)
+                    onUpdateCantidad(item.id, parseInt(e.target.value) || 1, Number(stockDisponible))
                   }
                   className="w-24 sm:w-20 p-1.5 sm:p-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   aria-label={`Cantidad de ${isHerramienta ? originalItem.nombre_h : originalItem.nombre}`}
@@ -247,11 +330,15 @@ const RegistrarSalidaBodega = ({
       <h2 className="text-2xl text-center font-bold mb-6">Registrar Salida de Bodega</h2>
 
       {mensaje && (
-        <div className={`mb-4 p-3 rounded-md ${
-          mensaje.tipo === 'error' ? 'bg-red-100 text-red-800' :
-          mensaje.tipo === 'exito' ? 'bg-green-100 text-green-800' :
-          'bg-blue-100 text-blue-800'
-        }`}>
+        <div
+          className={`mb-4 p-3 rounded-md ${
+            mensaje.tipo === "error"
+              ? "bg-red-100 text-red-800"
+              : mensaje.tipo === "exito"
+              ? "bg-green-100 text-green-800"
+              : "bg-blue-100 text-blue-800"
+          }`}
+        >
           {mensaje.texto}
         </div>
       )}
@@ -260,6 +347,7 @@ const RegistrarSalidaBodega = ({
         <button
           className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
           onClick={() => setMostrarModalHerramienta(true)}
+          disabled={!asignacionSeleccionada}
         >
           + Agregar Herramientas
         </button>
@@ -267,38 +355,43 @@ const RegistrarSalidaBodega = ({
         <button
           className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors"
           onClick={() => setMostrarModalInsumo(true)}
+          disabled={!asignacionSeleccionada}
         >
           + Agregar Insumos
         </button>
       </div>
 
-      {herramientasSeleccionadas.length > 0 && renderListaItems(
-        herramientasSeleccionadas,
-        herramientas,
-        (id, cantidad, max) => actualizarCantidad(
+      {herramientasSeleccionadas.length > 0 &&
+        renderListaItems(
           herramientasSeleccionadas,
-          setHerramientasSeleccionadas,
-          id,
-          cantidad,
-          max
-        ),
-        (id) => eliminarItem(herramientasSeleccionadas, setHerramientasSeleccionadas, id),
-        'herramienta'
-      )}
+          herramientasDisponibles,
+          (id, cantidad, maxDisponible) =>
+            actualizarCantidad(
+              herramientasSeleccionadas,
+              setHerramientasSeleccionadas,
+              id,
+              cantidad,
+              maxDisponible
+            ),
+          (id) => eliminarItem(herramientasSeleccionadas, setHerramientasSeleccionadas, id),
+          "herramienta"
+        )}
 
-      {insumosSeleccionados.length > 0 && renderListaItems(
-        insumosSeleccionados,
-        insumos,
-        (id, cantidad_en_base, max) => actualizarCantidad(
+      {insumosSeleccionados.length > 0 &&
+        renderListaItems(
           insumosSeleccionados,
-          setInsumosSeleccionados,
-          id,
-          cantidad_en_base,
-          max
-        ),
-        (id) => eliminarItem(insumosSeleccionados, setInsumosSeleccionados, id),
-        'insumo'
-      )}
+          insumosDisponibles,
+          (id, cantidad, maxDisponible) =>
+            actualizarCantidad(
+              insumosSeleccionados,
+              setInsumosSeleccionados,
+              id,
+              cantidad,
+              maxDisponible
+            ),
+          (id) => eliminarItem(insumosSeleccionados, setInsumosSeleccionados, id),
+          "insumo"
+        )}
 
       <Formulario
         fields={formFields}
@@ -313,14 +406,18 @@ const RegistrarSalidaBodega = ({
         titulo="Seleccionar Herramientas"
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 max-h-[60vh] overflow-y-auto p-2">
-          {herramientas.length === 0 ? (
-            <p className="text-gray-500">No hay herramientas disponibles.</p>
+          {herramientasDisponibles.length === 0 ? (
+            <p className="text-gray-500">
+              {asignacionSeleccionada
+                ? "No hay herramientas asignadas disponibles."
+                : "Seleccione una asignación primero."}
+            </p>
           ) : (
-            herramientas.map((h) => (
+            herramientasDisponibles.map((h) => (
               <div
                 key={h.id}
                 className={`border p-4 rounded-lg shadow-sm cursor-pointer transition-colors ${
-                  herramientasSeleccionadas.some(sel => sel.id === h.id)
+                  herramientasSeleccionadas.some((sel) => sel.id === h.id)
                     ? "bg-blue-100 border-blue-300"
                     : "hover:bg-blue-50"
                 }`}
@@ -329,7 +426,7 @@ const RegistrarSalidaBodega = ({
                 <h4 className="font-semibold text-lg">{h.nombre_h}</h4>
                 <p className="text-gray-600">Disponibles: {h.cantidad_herramienta}</p>
                 <p className="text-sm mt-1">Estado: {h.estado}</p>
-                {herramientasSeleccionadas.some(sel => sel.id === h.id) && (
+                {herramientasSeleccionadas.some((sel) => sel.id === h.id) && (
                   <div className="mt-2 text-green-600 font-medium">✓ Seleccionada</div>
                 )}
               </div>
@@ -353,14 +450,18 @@ const RegistrarSalidaBodega = ({
         onClose={() => setMostrarModalInsumo(false)}
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 max-h-[50vh] overflow-y-auto p-2">
-          {insumos.length === 0 ? (
-            <p className="text-gray-500">No hay insumos disponibles.</p>
+          {insumosDisponibles.length === 0 ? (
+            <p className="text-gray-500">
+              {asignacionSeleccionada
+                ? "No hay insumos asignados disponibles."
+                : "Seleccione una asignación primero."}
+            </p>
           ) : (
-            insumos.map((i) => (
+            insumosDisponibles.map((i) => (
               <div
                 key={i.id}
                 className={`border p-4 rounded-lg shadow-sm cursor-pointer transition-colors ${
-                  insumosSeleccionados.some(sel => sel.id === i.id)
+                  insumosSeleccionados.some((sel) => sel.id === i.id)
                     ? "bg-green-100 border-green-300"
                     : "hover:bg-green-50"
                 }`}
@@ -368,10 +469,10 @@ const RegistrarSalidaBodega = ({
               >
                 <h4 className="font-semibold text-lg">{i.nombre}</h4>
                 <p className="text-gray-600">
-                  Disponibles: {i.cantidad_en_base || 0} {i.fk_unidad_medida?.unidad_base || 'unidades'}
+                  Disponibles: {i.cantidad_en_base || 0} {i.fk_unidad_medida?.unidad_base || "unidades"}
                 </p>
-                {'tipo' in i && <p className="text-sm mt-1">Tipo: {i.tipoEnglis}</p>}
-                {insumosSeleccionados.some(sel => sel.id === i.id) && (
+                {"tipo" in i && <p className="text-sm mt-1">Tipo: {i.tipoEnglis}</p>}
+                {insumosSeleccionados.some((sel) => sel.id === i.id) && (
                   <div className="mt-2 text-green-600 font-medium">✓ Seleccionado</div>
                 )}
               </div>
