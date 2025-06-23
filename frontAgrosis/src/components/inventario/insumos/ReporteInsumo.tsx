@@ -25,7 +25,6 @@ const ReporteInsumosBajoStock = ({ data, loading, error }: Props) => {
       ]) || []
     );
   }, [data]);
-  console.log(data)
 
   if (loading) return <div className="p-4">Cargando reporte...</div>;
   if (error)
@@ -43,9 +42,6 @@ const ReporteInsumosBajoStock = ({ data, loading, error }: Props) => {
         title=""
         headers={columnasPDF}
         data={data || []}
-        onClickAction={(row) => console.log("Detalle:", row)}
-        onUpdate={(row) => console.log("Actualizar:", row)}
-        onCreate={() => console.log("Crear nuevo")}
         hiddenColumnsByDefault={[]}
         extraButton={
           <DescargarTablaPDF

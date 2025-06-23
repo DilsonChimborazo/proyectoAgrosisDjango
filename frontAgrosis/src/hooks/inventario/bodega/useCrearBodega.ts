@@ -105,8 +105,6 @@ export const useCrearBodega = () => {
         throw new Error("Debe incluir al menos una herramienta o un insumo");
       }
 
-      console.log("Payload final a enviar:", payload);
-
       const response = await axios.post(`${apiUrl}bodega/`, payload, {
         headers: {
           Authorization: `Bearer ${token}`,

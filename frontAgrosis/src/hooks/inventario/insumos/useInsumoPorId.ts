@@ -12,7 +12,6 @@ export const useInsumoPorId = (id: string | undefined) => {
                 throw new Error("ID no proporcionado");
             }
             const { data } = await axios.get(`${apiUrl}insumo/${id}`);
-            console.log("📋 Datos de la Pea obtenidos:", data);
             return data;
         },
         enabled: !!id,

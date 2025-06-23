@@ -69,7 +69,6 @@ const ActualizarHerramienta: React.FC<Props> = ({ id, onSuccess }) => {
 
         actualizarHerramienta.mutate(herramientaActualizada, {
             onSuccess: () => {
-                console.log("✅ Herramienta actualizada correctamente");
                 onSuccess();
             },
             onError: (error) => {

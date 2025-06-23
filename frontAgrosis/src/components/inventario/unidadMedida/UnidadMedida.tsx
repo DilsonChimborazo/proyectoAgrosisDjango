@@ -38,7 +38,6 @@ const UnidadMedida = ({ onSuccess }: UnidadMedidaProps) => {
 
         mutation.mutate(nuevaUnidad, {
             onSuccess: () => {
-                console.log("Unidad de medida creada exitosamente:", nuevaUnidad);
                 if (onSuccess) onSuccess();
             },
             onError: () => {

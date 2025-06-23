@@ -28,7 +28,6 @@ export const useActualizarHerramientas = () => {
                 throw new Error("⚠️ Datos inválidos. Verifica los campos de la herramienta.");
             }
 
-            console.log("📝 Enviando datos para actualizar:", datos);
 
             // Obtener token de localStorage
             const token = localStorage.getItem("token");
@@ -50,8 +49,7 @@ export const useActualizarHerramientas = () => {
                 throw error;
             }
         },
-        onSuccess: (data) => {
-            console.log("🔁 Respuesta de la API:", data);
+        onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["herramientas"] });
         },
         onError: (error) => {

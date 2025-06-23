@@ -87,7 +87,6 @@ export const useActualizarInsumos = () => {
             }
         },
         onSuccess: (variables) => {
-            console.log("✅ Insumo actualizado con éxito");
             queryClient.invalidateQueries({ queryKey: ["insumo"] });
             
             // Crear entrada en bodega solo si se agregó cantidad

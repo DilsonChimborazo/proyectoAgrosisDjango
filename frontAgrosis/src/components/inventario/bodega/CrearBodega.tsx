@@ -43,16 +43,11 @@ const RegistrarSalidaBodega = ({
   // Filtrar asignaciones pendientes
   const asignacionesPendientes = asignaciones.filter((a) => a.estado === 'Pendiente');
 
-  // Depuración: Verificar asignaciones
-  console.log('Asignaciones recibidas:', asignaciones);
-  console.log('Asignaciones pendientes:', asignacionesPendientes);
 
   // Actualizar herramientas e insumos disponibles según la asignación seleccionada
   useEffect(() => {
-    console.log('Asignación seleccionada:', asignacionSeleccionada);
     if (asignacionSeleccionada) {
       const asignacion = asignaciones.find((a) => a.id === asignacionSeleccionada);
-      console.log('Asignación encontrada:', asignacion);
       if (asignacion) {
         // Obtener IDs de herramientas e insumos asignados desde todos los elementos de recursos_asignados
         const herramientasAsignadasIds = new Set<number>();
@@ -67,11 +62,6 @@ const RegistrarSalidaBodega = ({
           }
         });
 
-        console.log('Herramientas asignadas IDs:', Array.from(herramientasAsignadasIds));
-        console.log('Insumos asignados IDs:', Array.from(insumosAsignadosIds));
-        console.log('Herramientas totales:', herramientas);
-        console.log('Insumos totales:', insumos);
-
         // Filtrar herramientas e insumos disponibles
         const herramientasFiltradas = herramientas.filter((h) =>
           herramientasAsignadasIds.has(h.id)
@@ -83,9 +73,6 @@ const RegistrarSalidaBodega = ({
         setHerramientasDisponibles(herramientasFiltradas);
         setInsumosDisponibles(insumosFiltrados);
 
-        console.log('Herramientas disponibles:', herramientasFiltradas);
-        console.log('Insumos disponibles:', insumosFiltrados);
-
         // Resetear selecciones para que solo incluyan ítems de la nueva asignación
         setHerramientasSeleccionadas((prev) =>
           prev.filter((h) => herramientasAsignadasIds.has(h.id))
@@ -94,14 +81,12 @@ const RegistrarSalidaBodega = ({
           prev.filter((i) => insumosAsignadosIds.has(i.id))
         );
       } else {
-        console.log('Asignación inválida o no encontrada');
         setHerramientasDisponibles([]);
         setInsumosDisponibles([]);
         setHerramientasSeleccionadas([]);
         setInsumosSeleccionados([]);
       }
     } else {
-      console.log('No hay asignación seleccionada');
       setHerramientasDisponibles([]);
       setInsumosDisponibles([]);
       setHerramientasSeleccionadas([]);
@@ -110,7 +95,6 @@ const RegistrarSalidaBodega = ({
   }, [asignacionSeleccionada, asignaciones, herramientas, insumos]);
 
   const agregarHerramienta = (herramienta: Herramientas) => {
-    console.log('Agregando herramienta:', herramienta);
     if (!herramientasSeleccionadas.some((h) => h.id === herramienta.id)) {
       setHerramientasSeleccionadas((prev) => [
         ...prev,
@@ -121,7 +105,6 @@ const RegistrarSalidaBodega = ({
   };
 
   const agregarInsumo = (insumo: Insumo) => {
-    console.log('Agregando insumo:', insumo);
     if (!insumosSeleccionados.some((i) => i.id === insumo.id)) {
       setInsumosSeleccionados((prev) => [
         ...prev,
@@ -165,7 +148,6 @@ const RegistrarSalidaBodega = ({
       ],
       onChange: (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
         const value = e.target.value;
-        console.log('Cambiando asignación seleccionada:', value);
         setAsignacionSeleccionada(value ? parseInt(value) : null);
       },
     },
@@ -237,8 +219,6 @@ const RegistrarSalidaBodega = ({
         cantidad: i.cantidad,
       })),
     };
-
-    console.log('Payload enviado:', payload);
 
     crearMovimientoBodega(payload, {
       onSuccess: () => {

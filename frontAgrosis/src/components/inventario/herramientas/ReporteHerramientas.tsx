@@ -62,9 +62,6 @@ const ReporteHerramientas = ({ data, loading, error }: Props) => {
         title=""
         headers={columnasPDF}
         data={reporte}
-        onClickAction={(row) => console.log('Detalle:', row)}
-        onUpdate={(row) => console.log('Actualizar:', row)}
-        onCreate={() => console.log('Crear nuevo')}
         hiddenColumnsByDefault={[]}
         extraButton={
           <DescargarTablaPDF

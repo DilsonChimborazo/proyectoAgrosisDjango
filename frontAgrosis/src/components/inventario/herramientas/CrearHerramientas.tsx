@@ -36,8 +36,6 @@ const CrearHerramientas = ({ onSuccess }: { onSuccess?: () => void }) => {
 
     mutation.mutate(nuevaHerramienta, {
       onSuccess: (data) => {
-        console.log("Herramienta creada exitosamente:", nuevaHerramienta);
-
         const movimientoEntrada = {
           fk_id_asignacion: null,
           fecha: new Date().toISOString().split("T")[0], 

@@ -29,12 +29,10 @@ const InsumoNotifications = () => {
   const setupWebSocket = () => {
     const wsUrl = getWebSocketUrl();
     if (!wsUrl) return;
-
-    console.log("🔄 Conectando a WebSocket:", wsUrl);
     socketRef.current = new WebSocket(wsUrl);
 
     socketRef.current.onopen = () => {
-      console.log("✅ Conexión WebSocket establecida");
+
       reconnectAttempts.current = 0;
     };
 
@@ -61,7 +59,6 @@ const InsumoNotifications = () => {
     socketRef.current.onclose = (event) => {
       if (!event.wasClean && reconnectAttempts.current < maxReconnectAttempts) {
         const delay = Math.min(10000, 1000 * Math.pow(2, reconnectAttempts.current));
-        console.log(`♻️ Reconectando en ${delay}ms... (Intento ${reconnectAttempts.current + 1}/${maxReconnectAttempts})`);
         reconnectAttempts.current += 1;
         setTimeout(setupWebSocket, delay);
       } else if (!event.wasClean) {

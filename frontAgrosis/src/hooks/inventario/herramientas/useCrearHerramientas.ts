@@ -16,8 +16,6 @@ export const useCrearHerramientas = () => {
     return useMutation({
         mutationFn: async (nuevoHerramienta: Herramientas) => {
             const token = localStorage.getItem("token");
-            console.log(token);
-            console.log(nuevoHerramienta)
             if (!token) {
                 throw new Error("No se ha encontrado un token de autenticación");
             }

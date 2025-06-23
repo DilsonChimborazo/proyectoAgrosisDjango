@@ -28,7 +28,6 @@ export interface Insumo{
 const fetch = async (): Promise<Insumo[]> => {
     try {
         const { data } = await axios.get(`${apiUrl}insumo/`);
-        console.log("respuesta de insumos", data)
         return data;
     } catch (error) {
         console.error("Error al obtener el insumo:", error);

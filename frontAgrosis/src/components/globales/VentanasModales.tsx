@@ -31,7 +31,6 @@ const VentanaModal: React.FC<VentanaModalProps> = ({
   columns = [],
   variant = 'content',
   size = 'lg',
-  onSuccess,
   modalClassName = '',
 }) => {
   if (!isOpen) return null;
@@ -75,15 +74,6 @@ const VentanaModal: React.FC<VentanaModalProps> = ({
                 title={titulo}
                 headers={columns.map(c => c.name)}
                 data={data}
-                onClickAction={(row) => console.log('Detalle:', row)}
-                onUpdate={(row) => {
-                  console.log('Actualizar:', row);
-                  if (onSuccess) onSuccess(row);
-                }}
-                onCreate={() => {
-                  console.log('Crear nuevo');
-                  if (onSuccess) onSuccess({});
-                }}
               />
             ) : (
               <p className="text-gray-500 text-xs sm:text-sm text-center">
