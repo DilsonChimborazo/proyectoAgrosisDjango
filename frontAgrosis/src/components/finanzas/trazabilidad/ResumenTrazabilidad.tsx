@@ -98,6 +98,12 @@ const ResumenTrazabilidad = ({
         onAbrirModal(tipo, trazabilidadData); 
     };
 
+    // Obtener la unidad base para mostrar en las tarjetas (pluralizada para cantidades)
+    const unidadBase = trazabilidadData?.unidad_base || 'Sin unidad';
+    const unidadBasePlural = unidadBase === 'Gramo' ? 'gramos' :
+                            unidadBase === 'Mililitro' ? 'mililitros' :
+                            unidadBase === 'Unidad' ? 'unidades' : unidadBase;
+
     return (
         <div className="w-full lg:w-3/4 space-y-6">
             {plantacionSeleccionada ? (
@@ -195,7 +201,7 @@ const ResumenTrazabilidad = ({
 
                                     <div
                                         className="p-4 rounded-lg border border-orange-200 bg-orange-50 cursor-pointer hover:shadow-md transition"
-                                        onClick={() => handleCardClick('depreciacion')}
+                                        onClick={() => handleCardClick('depreciacionHerramientas')}
                                     >
                                         <div className="flex justify-between items-start">
                                             <div>
@@ -218,7 +224,7 @@ const ResumenTrazabilidad = ({
                                         >
                                             <div className="flex justify-between items-start">
                                                 <div>
-                                                    <p className="text-sm font-medium text-gray-500">Precio Mínimo Última Cosecha</p>
+                                                    <p className="text-sm font-medium text-gray-500">Precio Mínimo Última Cosecha (por {unidadBase.toLowerCase()})</p>
                                                     <p className="text-2xl font-bold mt-1 text-yellow-600">
                                                         {safeNumberFormat(trazabilidadData.precio_minimo_incremental_ultima_cosecha || 0, { decimals: 4, isCurrency: true })}
                                                     </p>
@@ -229,7 +235,7 @@ const ResumenTrazabilidad = ({
                                                 Costo Incremental: {safeNumberFormat(trazabilidadData.costo_incremental_ultima_cosecha || 0, { isCurrency: true })}
                                             </p>
                                             <p className="text-xs mt-1">
-                                                Cantidad: {safeNumberFormat(trazabilidadData.cantidad_incremental_ultima_cosecha || 0)}
+                                                Cantidad: {safeNumberFormat(trazabilidadData.cantidad_incremental_ultima_cosecha || 0)} {unidadBasePlural.toLowerCase()}
                                             </p>
                                         </div>
                                     )}
@@ -241,7 +247,7 @@ const ResumenTrazabilidad = ({
                                         >
                                             <div className="flex justify-between items-start">
                                                 <div>
-                                                    <p className="text-sm font-medium text-gray-500">Precio Mínimo Recuperación</p>
+                                                    <p className="text-sm font-medium text-gray-500">Precio Mínimo Recuperación (por {unidadBase.toLowerCase()})</p>
                                                     <p className={`text-2xl font-bold mt-1 ${trazabilidadData.precio_minimo_recuperar_inversion > 0 ? 'text-red-600' : 'text-green-600'}`}>
                                                         {safeNumberFormat(trazabilidadData.precio_minimo_recuperar_inversion || 0, { decimals: 4, isCurrency: true })}
                                                     </p>
@@ -249,7 +255,7 @@ const ResumenTrazabilidad = ({
                                                 <RefreshCcw className={`h-6 w-6 ${trazabilidadData.precio_minimo_recuperar_inversion > 0 ? 'text-red-600' : 'text-green-600'}`} />
                                             </div>
                                             <p className="text-xs mt-2">
-                                                Stock disponible: {safeNumberFormat(trazabilidadData.stock_disponible_total || 0)}
+                                                Stock disponible: {safeNumberFormat(trazabilidadData.stock_disponible_total || 0)} {unidadBasePlural.toLowerCase()}
                                             </p>
                                         </div>
                                     )}

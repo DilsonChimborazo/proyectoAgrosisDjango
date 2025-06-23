@@ -88,6 +88,7 @@ interface TrazabilidadCultivoReporte {
     beneficio_costo_acumulado: number;
     total_cantidad_producida_base_acumulado: number;
     precio_minimo_venta_por_unidad_acumulado: number;
+    balance_acumulado: number;
     
     // Campos incrementales
     costo_incremental_ultima_cosecha: number;
@@ -97,6 +98,8 @@ interface TrazabilidadCultivoReporte {
     // Precio mínimo para recuperar inversión
     precio_minimo_recuperar_inversion: number;
     stock_disponible_total: number;
+
+    unidad_base?: string;
     
     detalle_actividades: DetalleActividad[];
     detalle_insumos: DetalleInsumo[];
