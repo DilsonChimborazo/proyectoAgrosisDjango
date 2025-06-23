@@ -98,7 +98,8 @@ export const useActualizarInsumos = () => {
                         id: variables.id,
                         cantidad: variables.cantidad_a_sumar
                     }],
-                    herramientas: []
+                    herramientas: [],
+                    fk_id_asignacion: null
                 });
             }
         },

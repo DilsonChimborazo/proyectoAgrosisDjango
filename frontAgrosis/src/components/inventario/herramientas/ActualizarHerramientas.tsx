@@ -30,15 +30,27 @@ const ActualizarHerramienta: React.FC<Props> = ({ id, onSuccess }) => {
                 estado: herramienta.estado || "",
                 cantidad_herramienta: "",
                 movimiento: "entrada",
-                precio: herramienta.precio ? herramienta.precio.toString() : "", // Convert to string for form input
+                precio: herramienta.precio ? herramienta.precio.toString() : "",
             });
         }
     }, [herramienta]);
 
-    const handleSubmit = (data: { [key: string]: string | File }) => {
-        const nuevaCantidad = parseInt(data.cantidad_herramienta as string);
-        const movimiento = (data.movimiento as string).trim();
-        const precio = parseFloat(data.precio as string);
+    const handleSubmit = (data: { [key: string]: string | string[] | File }) => {
+        // Procesar los datos para convertir string[] a string
+        const processedData: { [key: string]: string | File } = {};
+        for (const key in data) {
+            if (Array.isArray(data[key])) {
+                processedData[key] = (data[key] as string[]).join(","); // Convierte string[] a string
+            } else {
+                processedData[key] = data[key] as string | File;
+            }
+        }
+
+        const nuevaCantidad = parseInt(processedData.cantidad_herramienta as string);
+        const movimiento = (processedData.movimiento as string).trim();
+        const precio = parseFloat(processedData.precio as string);
+        const nombre_h = (processedData.nombre_h as string).trim();
+        const estado = (processedData.estado as string).trim() as "Disponible" | "Prestado" | "En reparacion";
 
         // Validar los datos
         if (isNaN(nuevaCantidad) || nuevaCantidad < 0) {
@@ -49,7 +61,7 @@ const ActualizarHerramienta: React.FC<Props> = ({ id, onSuccess }) => {
             console.error("⚠️ Tipo de movimiento no válido.");
             return;
         }
-        if (!(data.nombre_h as string).trim() || !(data.estado as string).trim()) {
+        if (!nombre_h || !estado) {
             console.error("⚠️ Datos inválidos. No se enviará la actualización.");
             return;
         }
@@ -60,11 +72,11 @@ const ActualizarHerramienta: React.FC<Props> = ({ id, onSuccess }) => {
 
         const herramientaActualizada = {
             id,
-            nombre_h: (data.nombre_h as string).trim(),
-            estado: (data.estado as string).trim() as "Disponible" | "Prestado" | "En reparacion",
+            nombre_h,
+            estado,
             cantidad_herramienta: nuevaCantidad,
             movimiento,
-            precio, // Include validated precio in the payload
+            precio,
         };
 
         actualizarHerramienta.mutate(herramientaActualizada, {

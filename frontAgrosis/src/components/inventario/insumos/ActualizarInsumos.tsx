@@ -38,22 +38,32 @@ const ActualizarInsumos = ({ id, onSuccess }: ActualizarInsumosProps) => {
         }
     }, [insumo]);
 
-    const handleSubmit = (data: { [key: string]: string | File }) => {
+    const handleSubmit = (data: { [key: string]: string | File | string[] }) => {
         if (!id || !insumo) return;
 
-        const cantidadASumar = parseFloat(data.cantidad_a_sumar as string) || 0;
-        const nuevaCantidad = insumo.cantidad_insumo += cantidadASumar;
+        // Procesar los datos para convertir string[] a string
+        const processedData: { [key: string]: string | File } = {};
+        for (const key in data) {
+            if (Array.isArray(data[key])) {
+                processedData[key] = (data[key] as string[]).join(","); // Convierte string[] a string
+            } else {
+                processedData[key] = data[key] as string | File;
+            }
+        }
+
+        const cantidadASumar = parseFloat(processedData.cantidad_a_sumar as string) || 0;
+        const nuevaCantidad = insumo.cantidad_insumo + cantidadASumar;
 
         const insumoActualizado = {
             id: Number(id),
-            nombre: (data.nombre as string).trim(),
-            tipo: (data.tipo as string).trim(),
-            precio_unidad: parseFloat(data.precio_unidad as string),
+            nombre: (processedData.nombre as string).trim(),
+            tipo: (processedData.tipo as string).trim(),
+            precio_unidad: parseFloat(processedData.precio_unidad as string),
             cantidad_insumo: nuevaCantidad,
             cantidad_a_sumar: cantidadASumar,
             fk_unidad_medida: insumo.fk_unidad_medida,
-            fecha_vencimiento: data.fecha_vencimiento as string,
-            img: data.img instanceof File ? data.img : null,
+            fecha_vencimiento: processedData.fecha_vencimiento as string,
+            img: processedData.img instanceof File ? processedData.img : null,
         };
 
         actualizarInsumo.mutate(insumoActualizado, {
@@ -64,10 +74,11 @@ const ActualizarInsumos = ({ id, onSuccess }: ActualizarInsumosProps) => {
         });
     };
 
-    const handleFieldChange = (id: string, value: string | File) => {
+    const handleFieldChange = (id: string, value: string | string[]) => {
+        const processedValue = Array.isArray(value) ? value.join(",") : value;
         setFormData((prev) => ({
             ...prev,
-            [id]: value,
+            [id]: processedValue,
         }));
     };
 
@@ -77,10 +88,11 @@ const ActualizarInsumos = ({ id, onSuccess }: ActualizarInsumosProps) => {
     return (
         <div className="p-6">
             <h2 className="text-xl font-semibold mb-2 text-gray-700">Actualizar Insumo</h2>
-            
+
             {unidadMedida && (
                 <div className="ms-6 text-sm text-gray-600">
-                    Debe ingresar la cantidad en la unidad de medida principal <span className="font-bold text-large text-red-600">{unidadMedida}</span>
+                    Debe ingresar la cantidad en la unidad de medida principal{" "}
+                    <span className="font-bold text-large text-red-600">{unidadMedida}</span>
                 </div>
             )}
 
