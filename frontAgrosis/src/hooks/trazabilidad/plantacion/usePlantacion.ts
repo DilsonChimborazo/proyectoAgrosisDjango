@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
+
 const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface Lote {
@@ -25,11 +26,16 @@ export interface Semillero {
     fecha_estimada: string;
     cantidad: number;
 }
-
+export interface Especie{
+    id:number,
+    nombre_comun:string,
+    nombre_cientifico:string,
+}
 export interface Cultivo {
     id: number;
     nombre_cultivo: string;
     descripcion: string;
+    fk_id_especie: Especie
 }
 
 export interface Plantacion {

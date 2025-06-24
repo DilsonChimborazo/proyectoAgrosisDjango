@@ -103,7 +103,8 @@ const ListarAsignacion: React.FC = () => {
   const [modalContenido, setModalContenido] = useState<React.ReactNode>(null);
   const [imagenAmpliada, setImagenAmpliada] = useState<string | null>(null);
 
-  const { data: user, isLoading: isLoadingUser, error: errorUser } = useCurrentUser() as { data: Usuario | undefined };
+  // Corrección: Eliminar la aserción de tipo incorrecta
+  const { data: user, isLoading: isLoadingUser, error: errorUser } = useCurrentUser();
   const { data: asignaciones = [], isLoading: isLoadingAsignaciones, error: errorAsignaciones, refetch: refetchAsignaciones } = useAsignacion();
   const { data: realizaList = [], isLoading: isLoadingRealiza, error: errorRealiza } = useRealiza();
   const { data: usuarios = [], isLoading: isLoadingUsuarios, error: errorUsuarios } = useUsuarios();
@@ -160,8 +161,8 @@ const ListarAsignacion: React.FC = () => {
         actividad: `Sin actividad (No hay datos en realizaList)`,
         usuarios: ['Sin usuarios'],
         fecha_realizada: 'No asignada',
-        insumos: 'No asignado', 
-        herramientas: 'No asignado', 
+        insumos: 'No asignado',
+        herramientas: 'No asignado',
         duracion: 'No asignada',
         img: 'No asignada',
       }));
@@ -363,6 +364,7 @@ const ListarAsignacion: React.FC = () => {
         }}
         usuarios={usuarios}
         onCreateUsuario={() => refetchAsignaciones()}
+        onCancel={closeModal} // Agregar la prop onCancel
       />
     );
     setIsModalOpen(true);

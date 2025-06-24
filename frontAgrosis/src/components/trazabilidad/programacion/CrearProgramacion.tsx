@@ -20,8 +20,9 @@ interface CrearProgramacionModalProps {
 }
 
 const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess }: CrearProgramacionModalProps) => {
-  const { mutate: createProgramacion, isLoading: isLoadingProgramacion } = useCrearProgramacion();
-  const { mutate: actualizarAsignacion, isLoading: isLoadingAsignacion } = useActualizarAsignacion();
+  const { mutate: createProgramacion, isLoading: isLoadingProgramacion } = useCrearProgramacion() as any;
+  const { mutate: actualizarAsignacion, isLoading: isLoadingAsignacion } = useActualizarAsignacion() as any;
+
   const [formData, setFormData] = useState<Programacion>({
     estado: 'Completada' as 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada',
     fecha_realizada: '',
@@ -76,7 +77,7 @@ const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess 
       !formData.fecha_realizada ||
       !formData.duracion ||
       Number(formData.duracion) <= 0 ||
-      !formData.img  // Agregar validación para img
+      !formData.img
     ) {
       return 'Todos los campos son obligatorios';
     }
@@ -119,8 +120,9 @@ const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess 
 
     const formDataToSend = new FormData();
     formDataToSend.append('estado', formData.estado);
-    formDataToSend.append('fecha_realizada', formData.fecha_realizada);
-    formDataToSend.append('duracion', formData.duracion);
+    // Asegurar que los valores sean strings
+    formDataToSend.append('fecha_realizada', formData.fecha_realizada || '');
+    formDataToSend.append('duracion', formData.duracion || '');
     formDataToSend.append('fk_id_asignacionActividades', asignacionId.toString());
     if (formData.img instanceof File) {
       formDataToSend.append('img', formData.img);

@@ -5,7 +5,7 @@ const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface Semillero {
     id: number; // ID único del semillero
-    nombre_semillero: string;
+    nombre_semilla: string;
     fecha_siembra: string;
     fecha_estimada: string;
     cantidad: number;

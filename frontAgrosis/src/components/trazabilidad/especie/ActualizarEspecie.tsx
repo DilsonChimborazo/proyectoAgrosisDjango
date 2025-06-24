@@ -2,24 +2,27 @@ import { useState, useEffect } from 'react';
 import { useActualizarEspecie } from '@/hooks/trazabilidad/especie/useActualizarEspecie';
 import { useEspeciePorId } from '@/hooks/trazabilidad/especie/useEspeciePorId';
 import { useTipoCultivo } from '@/hooks/trazabilidad/tipoCultivo/useTipoCultivo';
-import VentanaModal from '../../globales/VentanasModales';
-import CrearTipoCultivo from '../tipocultivo/CrearTipoCultivo';
 import Formulario from '../../globales/Formulario';
 import { showToast } from '@/components/globales/Toast';
 
 interface ActualizarEspecieProps {
   id: number;
+  initialValues: {
+    nombre_comun: string;
+    nombre_cientifico: string;
+    descripcion: string;
+    fk_id_tipo_cultivo: string;
+  };
   onSuccess: () => void;
   onCancel: () => void;
 }
 
-const ActualizarEspecie = ({ id, onSuccess, onCancel }: ActualizarEspecieProps) => {
+const ActualizarEspecie = ({ id, initialValues, onSuccess }: ActualizarEspecieProps) => {
   const { data: especie, isLoading, error } = useEspeciePorId(id);
-  const { mutate: actualizarEspecie, isPending } = useActualizarEspecie();
-  const { data: tiposCultivo = [], refetch: refetchTiposCultivo, isLoading: isLoadingTiposCultivo } = useTipoCultivo();
+  const { mutate: actualizarEspecie, isError } = useActualizarEspecie();
+  const { data: tiposCultivo = [], isLoading: isLoadingTiposCultivo } = useTipoCultivo();
 
   const tipoCultivoOptions = [
-    { value: '', label: 'Seleccione un tipo de cultivo' },
     ...tiposCultivo.map((tipo) => ({
       value: tipo.id.toString(),
       label: tipo.nombre || 'Sin nombre',
@@ -36,51 +39,95 @@ const ActualizarEspecie = ({ id, onSuccess, onCancel }: ActualizarEspecieProps) 
       type: 'select',
       options: tipoCultivoOptions,
       required: true,
-      hasExtraButton: true,
-      extraButtonText: '+',
-      onExtraButtonClick: () => setIsModalOpen(true),
     },
   ];
 
-  const [initialValues, setInitialValues] = useState({
-    nombre_comun: '',
-    nombre_cientifico: '',
-    descripcion: '',
-    fk_id_tipo_cultivo: '',
-  });
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formValues, setFormValues] = useState(initialValues);
 
   useEffect(() => {
-    if (especie) {
-      setInitialValues({
+    if (especie && tiposCultivo.length > 0) {
+      const fkIdTipoCultivo = especie.fk_id_tipo_cultivo?.toString() || '';
+      const tipoCultivoExists = tiposCultivo.some((tipo) => tipo.id.toString() === fkIdTipoCultivo);
+      setFormValues({
         nombre_comun: especie.nombre_comun || '',
         nombre_cientifico: especie.nombre_cientifico || '',
         descripcion: especie.descripcion || '',
-        fk_id_tipo_cultivo: especie.fk_id_tipo_cultivo?.toString() || '',
+        fk_id_tipo_cultivo: tipoCultivoExists ? fkIdTipoCultivo : '',
       });
     }
-  }, [especie]);
+  }, [especie, tiposCultivo]);
 
-  const handleSubmit = (formData: { [key: string]: string | File }) => {
-    const nombreComun = formData.nombre_comun as string;
-    const nombreCientifico = formData.nombre_cientifico as string;
-    const descripcion = formData.descripcion as string;
-    const fkIdTipoCultivo = formData.fk_id_tipo_cultivo as string;
+  const handleSubmit = (formData: { [key: string]: string | File | string[] }) => {
+    // Convertimos los valores a string, manejando string[] si es necesario
+    const nombreComun = Array.isArray(formData.nombre_comun)
+      ? formData.nombre_comun[0]
+      : typeof formData.nombre_comun === 'string'
+      ? formData.nombre_comun
+      : '';
+    const nombreCientifico = Array.isArray(formData.nombre_cientifico)
+      ? formData.nombre_cientifico[0]
+      : typeof formData.nombre_cientifico === 'string'
+      ? formData.nombre_cientifico
+      : '';
+    const descripcion = Array.isArray(formData.descripcion)
+      ? formData.descripcion[0]
+      : typeof formData.descripcion === 'string'
+      ? formData.descripcion
+      : '';
+    const fkIdTipoCultivo = Array.isArray(formData.fk_id_tipo_cultivo)
+      ? formData.fk_id_tipo_cultivo[0]
+      : typeof formData.fk_id_tipo_cultivo === 'string'
+      ? formData.fk_id_tipo_cultivo
+      : '';
 
-    if (!nombreComun || !nombreCientifico || !fkIdTipoCultivo) {
+    // Verificamos que no se hayan recibido Files
+    if (
+      formData.nombre_comun instanceof File ||
+      formData.nombre_cientifico instanceof File ||
+      formData.descripcion instanceof File ||
+      formData.fk_id_tipo_cultivo instanceof File
+    ) {
       showToast({
-        title: 'Error al actualizar especie',
-        description: 'Todos los campos son obligatorios',
+        title: 'Error',
+        description: 'Los campos no pueden contener archivos',
         timeout: 5000,
         variant: 'error',
       });
       return;
     }
 
-    const tipoCultivoExists = tiposCultivo.some((tipo) => tipo.id === Number(fkIdTipoCultivo));
+    // Validamos que los valores no sean arrays
+    if (
+      Array.isArray(formData.nombre_comun) ||
+      Array.isArray(formData.nombre_cientifico) ||
+      Array.isArray(formData.descripcion) ||
+      Array.isArray(formData.fk_id_tipo_cultivo)
+    ) {
+      showToast({
+        title: 'Error',
+        description: 'Todos los campos deben ser valores de texto',
+        timeout: 5000,
+        variant: 'error',
+      });
+      return;
+    }
+
+    // Validamos campos obligatorios
+    if (!nombreComun || !nombreCientifico || !fkIdTipoCultivo) {
+      showToast({
+        title: 'Error',
+        description: 'Todos los campos obligatorios deben estar completos',
+        timeout: 5000,
+        variant: 'error',
+      });
+      return;
+    }
+
+    // Validamos que el tipo de cultivo exista
+    const tipoCultivoExists = tiposCultivo.some((tipo) => tipo.id.toString() === fkIdTipoCultivo);
     if (!tipoCultivoExists) {
       showToast({
-        title: 'Error al actualizar especie',
+        title: 'Error',
         description: 'El tipo de cultivo seleccionado no es válido',
         timeout: 5000,
         variant: 'error',
@@ -89,7 +136,7 @@ const ActualizarEspecie = ({ id, onSuccess, onCancel }: ActualizarEspecieProps) 
     }
 
     const especieActualizada = {
-      id,
+      id: id, // Ya es number
       nombre_comun: nombreComun.trim(),
       nombre_cientifico: nombreCientifico.trim(),
       descripcion: descripcion.trim() || '',
@@ -99,16 +146,17 @@ const ActualizarEspecie = ({ id, onSuccess, onCancel }: ActualizarEspecieProps) 
     actualizarEspecie(especieActualizada, {
       onSuccess: () => {
         showToast({
-          title: 'Especie actualizada exitosamente',
-          description: 'La especie ha sido actualizada en el sistema',
+          title: 'Éxito',
+          description: 'La especie ha sido actualizada exitosamente',
           timeout: 4000,
           variant: 'success',
         });
         onSuccess();
       },
       onError: (error: any) => {
+        console.error('Error al actualizar especie:', error);
         showToast({
-          title: 'Error al actualizar especie',
+          title: 'Error',
           description: error.response?.data?.detail || 'Ocurrió un error al actualizar la especie',
           timeout: 5000,
           variant: 'error',
@@ -123,7 +171,7 @@ const ActualizarEspecie = ({ id, onSuccess, onCancel }: ActualizarEspecieProps) 
 
   if (error) {
     showToast({
-      title: 'Error al cargar especie',
+      title: 'Error',
       description: error.message || 'No se pudo cargar los datos de la especie',
       timeout: 5000,
       variant: 'error',
@@ -135,21 +183,11 @@ const ActualizarEspecie = ({ id, onSuccess, onCancel }: ActualizarEspecieProps) 
     <div className="max-w-4xl mx-auto p-4">
       <Formulario
         fields={formFields}
-        initialValues={initialValues}
+        initialValues={formValues}
         onSubmit={handleSubmit}
-        onCancel={onCancel}
-        isError={isPending}
+        isError={isError}
         isSuccess={false}
         title="Actualizar Especie"
-      />
-      <VentanaModal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          refetchTiposCultivo();
-        }}
-        contenido={<CrearTipoCultivo onSuccess={() => setIsModalOpen(false)} />}
-        titulo="Crear Tipo de Cultivo"
       />
     </div>
   );

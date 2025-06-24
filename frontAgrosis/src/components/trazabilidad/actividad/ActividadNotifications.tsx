@@ -10,7 +10,7 @@ interface Notification {
 }
 
 const ActividadNotifications: React.FC = () => {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [,setNotifications] = useState<Notification[]>([]);
   const socketRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {

@@ -9,7 +9,7 @@ interface CrearActividadProps {
   onCancel?: () => void;
 }
 
-const CrearActividad = ({ onSuccess, onCancel }: CrearActividadProps) => {
+const CrearActividad = ({ onSuccess }: CrearActividadProps) => {
   const [nombreActividad, setNombreActividad] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -41,7 +41,7 @@ const CrearActividad = ({ onSuccess, onCancel }: CrearActividadProps) => {
         variant: 'success',
       });
       onSuccess();
-    } catch (err) {
+    } catch (err: any) { // Tipificación explícita de err como any
       showToast({
         title: 'Error al crear actividad',
         description: err.response?.data?.detail || 'Error al crear la actividad. Inténtalo nuevamente.',

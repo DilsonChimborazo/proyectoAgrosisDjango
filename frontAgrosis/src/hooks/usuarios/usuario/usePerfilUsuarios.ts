@@ -29,7 +29,7 @@ export interface Usuario {
   is_active: boolean;
   fk_id_rol: Rol | null;
   ficha: Ficha | null;
-  password: string;
+  password?: string;
   img: string | null;
   img_url: string;
 }

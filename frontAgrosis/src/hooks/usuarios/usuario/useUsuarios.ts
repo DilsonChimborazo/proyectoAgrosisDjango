@@ -25,7 +25,7 @@ export interface Usuario {
   nombre: string;
   apellido: string;
   is_active: boolean;
-  fk_id_rol: Rol | null; 
+  fk_id_rol: Rol | undefined ; 
   ficha: Ficha | null;
   img: string | null;
   img_url: string

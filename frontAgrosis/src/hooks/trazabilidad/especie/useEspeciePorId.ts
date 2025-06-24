@@ -3,7 +3,7 @@ import axios from "axios";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
-export const useEspeciePorId = (id: string | undefined) => {
+export const useEspeciePorId = (id: number | undefined) => {
     return useQuery({
         queryKey: ["Especie", id], // Clave específica para identificar esta consulta
         queryFn: async () => {

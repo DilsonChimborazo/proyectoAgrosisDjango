@@ -5,6 +5,21 @@ import { showToast } from '@/components/globales/Toast';
 const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/';
 
 // Reusing interfaces from the first snippet for consistency
+export interface Insumo {
+  id: number;
+  nombre: string; // Puedes agregar más propiedades si la API las incluye
+}
+
+export interface Herramienta {
+  id: number;
+  nombre_h: string; // Puedes agregar más propiedades si la API las incluye
+}
+
+export interface RecursosAsignados {
+  insumos?: Insumo[];
+  herramientas?: Herramienta[];
+}
+
 export interface Rol {
   id: number;
   rol: string;

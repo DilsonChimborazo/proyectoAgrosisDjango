@@ -28,7 +28,7 @@ interface FormField {
   step?: string;
 }
 
-const CrearPlantacion = ({ onSuccess, onCancel }: CrearPlantacionProps) => {
+const CrearPlantacion = ({ onSuccess}: CrearPlantacionProps) => {
   const mutation = useCrearPlantacion();
   const { refetch } = usePlantacion();
   const { data: eras = [], isLoading: isLoadingEras } = useEras();
@@ -226,14 +226,6 @@ const CrearPlantacion = ({ onSuccess, onCancel }: CrearPlantacionProps) => {
         isSuccess={mutation.isSuccess}
         title="Registrar Nueva Plantación"
       />
-      {onCancel && (
-        <button
-          className="mt-4 px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-          onClick={onCancel}
-        >
-          Cancelar
-        </button>
-      )}
       <VentanaModal
         isOpen={mostrarModalEra}
         onClose={cerrarYActualizar}

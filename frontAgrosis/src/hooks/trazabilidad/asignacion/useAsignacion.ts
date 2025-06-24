@@ -5,27 +5,27 @@ import axios from 'axios';
 const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/';
 
 // Definición de interfaces
-interface Insumo {
+export interface Insumo {
   id: number;
   nombre: string; // Puedes agregar más propiedades si la API las incluye
 }
 
-interface Herramienta {
+export interface Herramienta {
   id: number;
   nombre_h: string; // Puedes agregar más propiedades si la API las incluye
 }
 
-interface RecursosAsignados {
+export interface RecursosAsignados {
   insumos?: Insumo[];
   herramientas?: Herramienta[];
 }
 
-interface Rol {
+export interface Rol {
   id: number;
   rol: string;
 }
 
-interface Ficha {
+export interface Ficha {
   id: number;
   numero_ficha: number;
   nombre_ficha: string;
@@ -35,7 +35,7 @@ interface Ficha {
   is_active: boolean;
 }
 
-interface Usuario {
+export interface Usuario {
   id: number;
   identificacion: string;
   email: string;
@@ -48,20 +48,20 @@ interface Usuario {
   img_url: string;
 }
 
-interface Actividad {
+export interface Actividad {
   id: number;
   nombre_actividad: string;
   descripcion: string;
 }
 
-interface TipoCultivo {
+export interface TipoCultivo {
   id: number;
   nombre: string;
   descripcion: string;
   ciclo_duracion?: string;
 }
 
-interface Especie {
+export interface Especie {
   id: number;
   nombre_comun: string;
   nombre_cientifico: string;
@@ -69,14 +69,22 @@ interface Especie {
   fk_id_tipo_cultivo: TipoCultivo;
 }
 
-interface Cultivo {
+export interface Cultivo {
   id: number;
   nombre_cultivo: string;
   descripcion: string;
   fk_id_especie: Especie;
 }
 
-interface Plantacion {
+export interface Semillero {
+  id: number;
+  nombre_semilla: string;
+  fecha_siembra: Date;
+  fecha_estimada: Date;
+  cantidad: number;
+}
+
+export interface Plantacion {
   id: number;
   descripcion: string;
   fk_id_cultivo: Cultivo;
@@ -85,32 +93,24 @@ interface Plantacion {
   fecha_plantacion: string;
 }
 
-interface Semillero {
+export interface Realiza {
   id: number;
-  nombre_semilla: string;
-  fecha_siembra: Date;
-  fecha_estimada: Date;
-  cantidad: number;
+  fk_id_plantacion: Plantacion;
+  fk_id_actividad: Actividad;
 }
 
-interface Lote {
+export interface Lote {
   id: number;
   nombre_lote: string;
   dimencion: string;
   estado: boolean;
 }
 
-interface Eras {
+export interface Eras {
   id: number;
   descripcion: string;
   fk_id_lote: Lote;
   estado: boolean;
-}
-
-interface Realiza {
-  id: number;
-  fk_id_plantacion: Plantacion;
-  fk_id_actividad: Actividad;
 }
 
 export interface Asignacion {
@@ -119,7 +119,7 @@ export interface Asignacion {
   fecha_programada: string;
   observaciones: string;
   fk_id_realiza: Realiza | number;
-  fk_identificacion: (number | { id: number })[];
+  fk_identificacion: (Usuario|number | { id: number })[];
   recursos_asignados: (string | RecursosAsignados)[];
 }
 

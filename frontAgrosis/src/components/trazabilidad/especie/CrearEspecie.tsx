@@ -4,6 +4,7 @@ import { useTipoCultivo, TipoCultivo } from '@/hooks/trazabilidad/tipoCultivo/us
 import VentanaModal from '../../globales/VentanasModales';
 import CrearTipoCultivo from '../tipocultivo/CrearTipoCultivo';
 import Formulario from '../../globales/Formulario';
+import { showToast } from '@/components/globales/Toast';
 
 interface CrearEspecieProps {
   onSuccess?: () => void;
@@ -46,14 +47,82 @@ const CrearEspecie = ({ onSuccess }: CrearEspecieProps) => {
     },
   ];
 
-  const handleSubmit = (formData: { [key: string]: string | File }) => {
-    const nombreComun = formData.nombre_comun as string;
-    const nombreCientifico = formData.nombre_cientifico as string;
-    const descripcion = formData.descripcion as string;
-    const fkIdTipoCultivo = formData.fk_id_tipo_cultivo as string;
+  const handleSubmit = (formData: { [key: string]: string | File | string[] }) => {
+    // Convertimos los valores a string, manejando string[] si es necesario
+    const nombreComun = Array.isArray(formData.nombre_comun)
+      ? formData.nombre_comun[0]
+      : typeof formData.nombre_comun === 'string'
+      ? formData.nombre_comun
+      : '';
+    const nombreCientifico = Array.isArray(formData.nombre_cientifico)
+      ? formData.nombre_cientifico[0]
+      : typeof formData.nombre_cientifico === 'string'
+      ? formData.nombre_cientifico
+      : '';
+    const descripcion = Array.isArray(formData.descripcion)
+      ? formData.descripcion[0]
+      : typeof formData.descripcion === 'string'
+      ? formData.descripcion
+      : '';
+    const fkIdTipoCultivo = Array.isArray(formData.fk_id_tipo_cultivo)
+      ? formData.fk_id_tipo_cultivo[0]
+      : typeof formData.fk_id_tipo_cultivo === 'string'
+      ? formData.fk_id_tipo_cultivo
+      : '';
 
+    // Verificamos que no se hayan recibido Files
+    if (
+      formData.nombre_comun instanceof File ||
+      formData.nombre_cientifico instanceof File ||
+      formData.descripcion instanceof File ||
+      formData.fk_id_tipo_cultivo instanceof File
+    ) {
+      showToast({
+        title: 'Error al crear especie',
+        description: 'Los campos no pueden contener archivos',
+        timeout: 5000,
+        variant: 'error',
+      });
+      return;
+    }
+
+    // Validamos que los valores no sean arrays
+    if (
+      Array.isArray(formData.nombre_comun) ||
+      Array.isArray(formData.nombre_cientifico) ||
+      Array.isArray(formData.descripcion) ||
+      Array.isArray(formData.fk_id_tipo_cultivo)
+    ) {
+      showToast({
+        title: 'Error al crear especie',
+        description: 'Todos los campos deben ser valores de texto',
+        timeout: 5000,
+        variant: 'error',
+      });
+      return;
+    }
+
+    // Validamos campos obligatorios
     if (!nombreComun || !nombreCientifico || !fkIdTipoCultivo) {
-      return; // Depende de Formulario para validación
+      showToast({
+        title: 'Error al crear especie',
+        description: 'Todos los campos son obligatorios',
+        timeout: 5000,
+        variant: 'error',
+      });
+      return;
+    }
+
+    // Validamos que el tipo de cultivo exista
+    const tipoCultivoExists = tiposCultivo.some((tipo) => tipo.id === Number(fkIdTipoCultivo));
+    if (!tipoCultivoExists) {
+      showToast({
+        title: 'Error al crear especie',
+        description: 'El tipo de cultivo seleccionado no es válido',
+        timeout: 5000,
+        variant: 'error',
+      });
+      return;
     }
 
     const nuevaEspecie = {
@@ -65,12 +134,23 @@ const CrearEspecie = ({ onSuccess }: CrearEspecieProps) => {
 
     mutation.mutate(nuevaEspecie, {
       onSuccess: () => {
+        showToast({
+          title: 'Especie creada exitosamente',
+          description: 'La especie ha sido registrada en el nuty sistema',
+          timeout: 4000,
+          variant: 'success',
+        });
         if (typeof onSuccess === 'function') {
           onSuccess();
         }
       },
-      onError: () => {
-        // Silenciar error, no propagar toast
+      onError: (error: any) => {
+        showToast({
+          title: 'Error al crear especie',
+          description: error.response?.data?.detail || 'Ocurrió un error al registrar la especie',
+          timeout: 5000,
+          variant: 'error',
+        });
       },
     });
   };

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Select from 'react-select';
 import { useCrearAsignacion } from '@/hooks/trazabilidad/asignacion/useCrearAsignacion';
-import { Realiza, useRealiza } from '@/hooks/trazabilidad/realiza/useRealiza';
+import { useRealiza } from '@/hooks/trazabilidad/realiza/useRealiza';
 import VentanaModal from '../../globales/VentanasModales';
 import CrearRealiza from '../realiza/CrearRealiza';
 import CrearUsuario from '../../usuarios/usuario/crearUsuario';
@@ -28,7 +28,7 @@ interface Usuario {
   nombre: string;
   apellido: string;
   email: string;
-  ficha?: Ficha | string;
+  ficha?: Ficha | string | null;
   fk_id_rol?: Rol;
 }
 
@@ -36,15 +36,15 @@ interface Cultivo {
   id: number;
   nombre_cultivo: string;
   descripcion: string;
-  fk_id_especie: any; // Simplificado, ajusta según necesidad
+  fk_id_especie: any;
 }
 
 interface Plantacion {
   id: number;
   descripcion: string;
-  fk_id_cultivo?: Cultivo; // Opcional
+  fk_id_cultivo?: Cultivo;
   cantidad_transplante?: number;
-  fk_id_semillero?: any; // Hacer opcional para alinear con useRealiza
+  fk_id_semillero?: any;
   fecha_plantacion: string;
 }
 
@@ -62,12 +62,12 @@ interface Realiza {
 
 interface Herramienta {
   id: number;
-  nombre_h: string; // Ajusta según tu modelo
+  nombre_h: string;
 }
 
 interface Insumo {
   id: number;
-  nombre: string; // Ajusta según tu modelo
+  nombre: string;
 }
 
 interface CrearAsignacionModalProps {
@@ -113,7 +113,6 @@ const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios, onCreateUsuario
     console.log('realizaList:', JSON.stringify(realizaList, null, 2));
   }, [realizaList]);
 
-  // Cargar herramientas e insumos con depuración
   useEffect(() => {
     const fetchResources = async () => {
       try {
@@ -179,34 +178,45 @@ const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios, onCreateUsuario
     label: ficha === 'Sin ficha' ? 'Sin ficha' : `Ficha ${ficha}`,
   }));
 
-  const usuarioOptions: SelectOption[] = usuarios
-    .filter((usuario) => {
-      const userRoleId = usuario.fk_id_rol?.id ? String(usuario.fk_id_rol.id) : '';
-      const matchesRole = !selectedRole || userRoleId === selectedRole;
-      const userFicha =
-        usuario.ficha
-          ? typeof usuario.ficha === 'object' && 'numero_ficha' in usuario.ficha
-            ? String(usuario.ficha.numero_ficha)
-            : String(usuario.ficha)
-          : 'Sin ficha';
-      const matchesFicha = !selectedFicha || userFicha === selectedFicha;
-      console.log(
-        `Usuario: ${usuario.nombre} ${usuario.apellido}, ID: ${usuario.id}, Ficha: ${JSON.stringify(
-          usuario.ficha,
-          null,
-          2
-        )}, Rol ID: ${userRoleId}, Selected Role: ${selectedRole}, Selected Ficha: ${selectedFicha}, Matches Role: ${matchesRole}, Matches Ficha: ${matchesFicha}`
-      );
-      return matchesRole && matchesFicha;
-    })
-    .map((usuario) => ({
-      value: String(usuario.id),
-      label: `${usuario.nombre} ${usuario.apellido} - Ficha: ${
-        usuario.ficha && typeof usuario.ficha === 'object' && 'numero_ficha' in usuario.ficha
-          ? usuario.ficha.numero_ficha || 'Sin ficha'
-          : usuario.ficha || 'Sin ficha'
-      } - Rol: ${usuario.fk_id_rol?.rol || 'Sin rol'}`,
-    }));
+  const usuarioOptions: SelectOption[] = [
+    // Usuarios seleccionados
+    ...formData.fk_identificacion
+      .map((id) => {
+        const usuario = usuarios.find((u) => String(u.id) === id);
+        if (!usuario) return null;
+        return {
+          value: String(usuario.id),
+          label: `${usuario.nombre} ${usuario.apellido} - Ficha: ${
+            usuario.ficha && typeof usuario.ficha === 'object' && 'numero_ficha' in usuario.ficha
+              ? usuario.ficha.numero_ficha || 'Sin ficha'
+              : usuario.ficha || 'Sin ficha'
+          } - Rol: ${usuario.fk_id_rol?.rol || 'Sin rol'}`,
+        };
+      })
+      .filter((option): option is SelectOption => option !== null),
+    // Usuarios que coinciden con los filtros (excluyendo los ya seleccionados)
+    ...usuarios
+      .filter((usuario) => {
+        const userRoleId = usuario.fk_id_rol?.id ? String(usuario.fk_id_rol.id) : '';
+        const matchesRole = !selectedRole || userRoleId === selectedRole;
+        const userFicha =
+          usuario.ficha
+            ? typeof usuario.ficha === 'object' && 'numero_ficha' in usuario.ficha
+              ? String(usuario.ficha.numero_ficha)
+              : String(usuario.ficha)
+            : 'Sin ficha';
+        const matchesFicha = !selectedFicha || userFicha === selectedFicha;
+        return matchesRole && matchesFicha && !formData.fk_identificacion.includes(String(usuario.id));
+      })
+      .map((usuario) => ({
+        value: String(usuario.id),
+        label: `${usuario.nombre} ${usuario.apellido} - Ficha: ${
+          usuario.ficha && typeof usuario.ficha === 'object' && 'numero_ficha' in usuario.ficha
+            ? usuario.ficha.numero_ficha || 'Sin ficha'
+            : usuario.ficha || 'Sin ficha'
+        } - Rol: ${usuario.fk_id_rol?.rol || 'Sin rol'}`,
+      })),
+  ];
 
   const opcionesHerramientas: SelectOption[] = herramientas.map((h) => ({
     value: String(h.id),
@@ -230,31 +240,11 @@ const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios, onCreateUsuario
     const newRole = selectedOption ? selectedOption.value : '';
     setSelectedRole(newRole);
     setSelectedFicha('');
-    setFormData((prev) => ({
-      ...prev,
-      fk_identificacion: prev.fk_identificacion.filter((id) => {
-        const user = usuarios.find((u) => String(u.id) === id);
-        return newRole ? String(user?.fk_id_rol?.id) === newRole : true;
-      }),
-    }));
   };
 
   const handleFichaChange = (selectedOption: SelectOption | null) => {
     const newFicha = selectedOption ? selectedOption.value : '';
     setSelectedFicha(newFicha);
-    setFormData((prev) => ({
-      ...prev,
-      fk_identificacion: prev.fk_identificacion.filter((id) => {
-        const user = usuarios.find((u) => String(u.id) === id);
-        const userFicha =
-          user?.ficha
-            ? typeof user.ficha === 'object' && 'numero_ficha' in user.ficha
-              ? String(user.ficha.numero_ficha)
-              : String(user.ficha)
-            : 'Sin ficha';
-        return newFicha ? userFicha === newFicha : true;
-      }),
-    }));
   };
 
   const handleUsuariosChange = (selectedOptions: SelectOption[] | null) => {
@@ -305,13 +295,11 @@ const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios, onCreateUsuario
         onSuccess: async (data) => {
           const asignacionId = data.id;
 
-          // Asignar recursos después de crear la asignación
           const herramientasIds = formData.herramientas.map((h) => Number(h.value));
           const insumosIds = formData.insumos.map((i) => Number(i.value));
 
           if (herramientasIds.length > 0 || insumosIds.length > 0) {
             try {
-              // Llamada a asignar_recursos
               await axios.post(
                 `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/'}asignaciones_actividades/${asignacionId}/asignar-recursos/`,
                 {
@@ -503,6 +491,22 @@ const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios, onCreateUsuario
               isDisabled={isPending}
               className="mt-1"
             />
+            {formData.fk_identificacion.some((id) => {
+              const user = usuarios.find((u) => String(u.id) === id);
+              const userRoleId = user?.fk_id_rol?.id ? String(user.fk_id_rol.id) : '';
+              const userFicha =
+                user?.ficha
+                  ? typeof user.ficha === 'object' && 'numero_ficha' in user.ficha
+                    ? String(user.ficha.numero_ficha)
+                    : String(user.ficha)
+                  : 'Sin ficha';
+              return (
+                (selectedRole && userRoleId !== selectedRole) ||
+                (selectedFicha && userFicha !== selectedFicha)
+              );
+            }) && (
+              <p></p>
+            )}
           </div>
           <button
             type="button"

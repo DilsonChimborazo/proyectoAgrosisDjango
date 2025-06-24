@@ -14,6 +14,7 @@ import { usuarioSchema } from "@/hooks/validaciones/useSchemas";
 
 interface CrearUsuarioProps {
   isOpen: boolean;
+  onSuccess: () => void;
   onClose: () => void;
 }
 
@@ -99,6 +100,7 @@ const CrearUsuario: React.FC<CrearUsuarioProps> = ({ isOpen, onClose }) => {
     mutation.mutate(newUsuario, {
       onSuccess: () => {
         onClose();
+        
       },
     });
   };
