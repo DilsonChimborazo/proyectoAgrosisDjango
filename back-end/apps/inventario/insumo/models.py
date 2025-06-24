@@ -8,7 +8,7 @@ class Insumo (models.Model):
     nombre =  models.CharField(max_length=500)
     tipo = models.CharField(max_length=200)
     precio_unidad = models.DecimalField (max_digits=10, decimal_places=2)
-    cantidad_insumo = models.IntegerField ()
+    cantidad_insumo = models.DecimalField (max_digits=10, decimal_places=2)
     
     cantidad_en_base = models.DecimalField(
         max_digits=20,

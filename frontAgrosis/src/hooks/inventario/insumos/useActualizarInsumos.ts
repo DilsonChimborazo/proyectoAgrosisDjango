@@ -51,8 +51,8 @@ export const useActualizarInsumos = () => {
                 },
             });
 
-            const cantidadActual = insumoActual.data.cantidad_insumo || 0;
-            const nuevaCantidad = cantidadActual + cantidad_a_sumar;
+            const cantidadActual = Number(insumoActual.data.cantidad_insumo) || 0; // Convertir a número
+            const nuevaCantidad = Number((cantidadActual + Number(cantidad_a_sumar)).toFixed(2)); // Asegurar conversión
 
             // Crear FormData
             const formData = new FormData();

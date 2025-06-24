@@ -95,16 +95,16 @@ class Bodega(models.Model):
         if self.fk_id_insumo and self.cantidad_insumo:
             insumo = self.fk_id_insumo
             if self.movimiento == 'Salida':
-                cantidad_en_base = self.fk_unidad_medida.convertir_a_base(self.cantidad_insumo) if self.fk_unidad_medida else Decimal(self.cantidad_insumo)
+                cantidad_en_base = Decimal(self.cantidad_insumo)  # Usar directamente como gramos (unidad base)
                 if insumo.cantidad_en_base is None:
                     insumo.cantidad_en_base = Decimal('0')
                 if insumo.cantidad_en_base >= cantidad_en_base:
                     insumo.cantidad_en_base -= cantidad_en_base
                     if insumo.fk_unidad_medida and insumo.fk_unidad_medida.factor_conversion:
-                        insumo.cantidad_insumo = int(insumo.cantidad_en_base / insumo.fk_unidad_medida.factor_conversion)
+                        insumo.cantidad_insumo = Decimal(insumo.cantidad_en_base) / Decimal(insumo.fk_unidad_medida.factor_conversion)
                     else:
-                        insumo.cantidad_insumo -= self.cantidad_insumo
-                    insumo.save()
+                        insumo.cantidad_insumo -= self.cantidad_insumo  # Fallback si no hay factor
+                    insumo.save(update_fields=['cantidad_en_base', 'cantidad_insumo'])  # Solo actualizar campos específicos
                 else:
                     raise ValueError(f"La cantidad a retirar ({cantidad_en_base} {self.fk_unidad_medida.unidad_base if self.fk_unidad_medida else 'unidades'}) excede la cantidad disponible ({insumo.cantidad_en_base} {insumo.fk_unidad_medida.unidad_base if insumo.fk_unidad_medida else 'unidades'})")
             elif self.movimiento == 'Entrada':
