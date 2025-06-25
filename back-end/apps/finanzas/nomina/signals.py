@@ -67,10 +67,6 @@ def crear_o_actualizar_nomina_programacion(sender, instance, **kwargs):
                     nomina.pago_total = pago_total
                     nomina.save()
 
-
-# --- CORRECCIÓN APLICADA AQUÍ ---
-# La señal anterior que usaba post_save ha sido eliminada y reemplazada por esta que usa m2m_changed.
-
 @receiver(m2m_changed, sender=Control_fitosanitario.fk_identificacion.through)
 def crear_nomina_para_control_fitosanitario(sender, instance, action, pk_set, **kwargs):
     """
@@ -78,7 +74,6 @@ def crear_nomina_para_control_fitosanitario(sender, instance, action, pk_set, **
     Esta señal se dispara después de que la relación ManyToMany se ha guardado,
     lo que soluciona el problema de que los usuarios no se encontraban.
     """
-    # La acción 'post_add' se ejecuta después de que los registros se han añadido a la relación.
     if action == "post_add":
         if not pk_set:
             return  # No hay IDs de usuario en el conjunto, no hay nada que hacer.
@@ -115,6 +110,4 @@ def crear_nomina_para_control_fitosanitario(sender, instance, action, pk_set, **
                         nomina.save()
 
             except Usuarios.DoesNotExist:
-                # Es una buena práctica manejar el caso de que un ID no corresponda a un usuario.
-                print(f"Advertencia: Usuario con ID {usuario_id} no fue encontrado durante la creación de la nómina.")
-                continue
+                continue  # Ignoramos usuarios no encontrados

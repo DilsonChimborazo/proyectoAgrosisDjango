@@ -1,4 +1,3 @@
-// components/finanzas/venta/VentaComponent.tsx
 import { useState } from 'react';
 import { useVentas } from '@/hooks/finanzas/venta/useVenta';
 import Tabla from '@/components/globales/Tabla';
@@ -36,10 +35,6 @@ const VentaComponent = ({ showButtons = true }: VentaComponentProps) => {
 
   const handleCreate = () => {
     navigate('/Registrar-Venta');
-  };
-
-  const handleUpdate = (venta: any) => {
-    navigate(`/actualizarventa/${venta.id}`);
   };
 
   if (isLoading) return <div className="text-center text-gray-500">Cargando ventas...</div>;
@@ -118,7 +113,7 @@ const VentaComponent = ({ showButtons = true }: VentaComponentProps) => {
     yPosition += 10;
 
     const items = venta.items || [];
-    items.forEach((item: any, index: number) => {
+    items.forEach((item: any) => {
       const precio = parseFloat(item.precio_unidad) || 0;
       const precioConDescuento = parseFloat(item.precio_unidad_con_descuento) || precio;
       const cantidad = parseFloat(item.cantidad) || 0;
@@ -199,7 +194,7 @@ const VentaComponent = ({ showButtons = true }: VentaComponentProps) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {items.map((item: any, index: number) => {
+                  {items.map((item: any, _: number) => {
                     const precio = typeof item.precio_unidad === 'string' ? parseFloat(item.precio_unidad) : item.precio_unidad || 0;
                     const precioConDescuento = typeof item.precio_unidad_con_descuento === 'string' ? parseFloat(item.precio_unidad_con_descuento) : item.precio_unidad_con_descuento || precio;
                     const cantidad = typeof item.cantidad === 'string' ? parseFloat(item.cantidad) : item.cantidad || 0;
@@ -207,7 +202,7 @@ const VentaComponent = ({ showButtons = true }: VentaComponentProps) => {
                     const subtotalConDescuento = precioConDescuento * cantidad;
 
                     return (
-                      <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <tr key={item.id || JSON.stringify(item)} className={_ % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                         <td className="border px-4 py-2">{item.produccion?.nombre_produccion || 'Producto'}</td>
                         <td className="border px-4 py-2 text-center">{cantidad} {item.unidad_medida?.nombre_medida || 'u'}</td>
                         <td className="border px-4 py-2 text-right">${precio.toFixed(2)}</td>
@@ -264,7 +259,7 @@ const VentaComponent = ({ showButtons = true }: VentaComponentProps) => {
           data={mappedVentas}
           onClickAction={handleRowClick}
           showCreateButton={false}
-          className="[&_table]:w-full [&_th]:py-2 [&_th]:bg-green-700 [&_th]:text-white [&_th]:font-bold [&_th]:text-sm [&_th:first-child]:rounded-tl-lg [&_th:last-child]:rounded-tr-lg [&_td]:px-3 [&_td]:py-2 [&_td]:text-sm"
+          rowClassName={() => "[&_table]:w-full [&_th]:py-2 [&_th]:bg-green-700 [&_th]:text-white [&_th]:font-bold [&_th]:text-sm [&_th:first-child]:rounded-tl-lg [&_th:last-child]:rounded-tr-lg [&_td]:px-3 [&_td]:py-2 [&_td]:text-sm"}
         />
       )}
       {selectedVenta && (

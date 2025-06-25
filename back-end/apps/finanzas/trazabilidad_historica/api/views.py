@@ -8,10 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from apps.finanzas.trazabilidad_historica.models import SnapshotTrazabilidad, ResumenTrazabilidad
 from apps.finanzas.trazabilidad_historica.api.serializers import SnapshotSerializer, ResumenTrazabilidadSerializer
 from apps.finanzas.trazabilidad_historica.services import TrazabilidadService
-import logging
 from datetime import datetime
-
-logger = logging.getLogger(__name__)
 
 class CustomPagination(PageNumberPagination):
     permission_classes = [IsAuthenticated]
@@ -52,9 +49,8 @@ class TrazabilidadPlantacionAPIView(APIView):
             if not datos:
                 return Response({"error": "Plantación no encontrada"}, status=status.HTTP_404_NOT_FOUND)
             return Response(datos)
-        except Exception as e:
-            logger.error(f"Error en TrazabilidadPlantacionAPIView para plantacion_id={plantacion_id}: {str(e)}", exc_info=True)
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except Exception:
+            return Response({"error": "Ocurrió un error interno en el servidor."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class HistoricoTrazabilidadAPIView(ListAPIView):
     permission_classes = [IsAuthenticated]
@@ -76,7 +72,6 @@ class ResumenActualTrazabilidadAPIView(APIView):
             serializer = ResumenTrazabilidadSerializer(resumen)
             return Response(serializer.data)
         except ResumenTrazabilidad.DoesNotExist:
-            logger.info(f"No se encontró ResumenTrazabilidad para plantacion_id={plantacion_id}. Calculando al vuelo.")
             datos_calculados = TrazabilidadService.generar_datos_trazabilidad(plantacion_id)
             if not datos_calculados:
                 return Response(
@@ -89,6 +84,5 @@ class ResumenActualTrazabilidadAPIView(APIView):
                 'precio_minimo_venta_por_unidad': datos_calculados.get('precio_minimo_venta_por_unidad_acumulado', 0)
             }
             return Response(respuesta_adaptada, status=status.HTTP_200_OK)
-        except Exception as e:
-            logger.error(f"Error inesperado al obtener resumen para plantacion_id={plantacion_id}: {str(e)}", exc_info=True)
+        except Exception:
             return Response({"error": "Ocurrió un error interno en el servidor."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

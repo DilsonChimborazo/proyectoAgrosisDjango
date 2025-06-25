@@ -80,7 +80,6 @@ const ProduccionComponent = ({ showButtons = true }: ProduccionComponentProps) =
           onUpdate={handleUpdate}
           showCreateButton={false}
           rowClassName={() => "hover:bg-green-50 transition-colors duration-150"}
-          className="[&_table]:w-full [&_th]:py-2 [&_th]:bg-green-700 [&_th]:text-white [&_th]:font-bold [&_th]:text-sm [&_th:first-child]:rounded-tl-lg [&_th:last-child]:rounded-tr-lg [&_td]:px-3 [&_td]:py-2 [&_td]:text-sm"
         />
       )}
       {selectedProduccion && (
@@ -100,7 +99,7 @@ const ProduccionComponent = ({ showButtons = true }: ProduccionComponentProps) =
             </div>
           }
           size="md"
-          className="bg-white rounded-lg shadow-md max-w-lg mx-auto"
+          modalClassName="bg-white rounded-lg shadow-md max-w-lg mx-auto" 
         />
       )}
     </div>

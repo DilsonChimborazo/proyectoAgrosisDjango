@@ -125,10 +125,7 @@ class NominaViewSet(ModelViewSet):
             'fk_id_control_fitosanitario',
             'fk_id_control_fitosanitario__fk_id_plantacion__fk_id_cultivo',
             'fk_id_salario',
-            'fk_id_usuario__fk_id_rol',  # Incluimos el rol del usuario para eficiencia    
-
-           
-
+            'fk_id_usuario__fk_id_rol',
         ).all()
 
         data = []
@@ -177,8 +174,8 @@ class NominaViewSet(ModelViewSet):
                 'pago_total': float(nomina.pago_total) if nomina.pago_total else 0,
                 'actividad': actividad,
                 'tipo_actividad': tipo,
-                'duracion': duracion,  # Tiempo trabajado en minutos
-                'cultivo': cultivo,    # Nombre del cultivo
+                'duracion': duracion,
+                'cultivo': cultivo,
                 'usuarios': usuarios_data,
                 'salario': salario_data
             })
@@ -246,10 +243,8 @@ class NominaViewSet(ModelViewSet):
             )
 
         try:
-            # Filtrar nóminas pendientes del usuario
             query = Q(fk_id_usuario__id=usuario_id, pagado=False)
 
-            # Aplicar filtros de fecha si se proporcionan
             if fecha_inicio:
                 try:
                     fecha_inicio = datetime.strptime(fecha_inicio, '%Y-%m-%d').date()
@@ -270,7 +265,6 @@ class NominaViewSet(ModelViewSet):
                         status=status.HTTP_400_BAD_REQUEST
                     )
 
-            # Actualizar nóminas
             nominas = Nomina.objects.filter(query)
             updated_count = nominas.update(
                 pagado=True,

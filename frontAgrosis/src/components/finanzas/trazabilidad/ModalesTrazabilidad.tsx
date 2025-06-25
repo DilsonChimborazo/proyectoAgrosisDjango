@@ -1,7 +1,7 @@
 import VentanaModal from "@/components/globales/VentanasModales";
 import GraficosTrazabilidad from './GraficosTrazabilidad';
 import { generarAnalisisDiferencias } from './utils';
-import { SnapshotTrazabilidad, DetalleActividad, DetalleInsumo, DetalleVenta, TrazabilidadCultivoReporte, DetalleHerramienta } from './Types';
+import { SnapshotTrazabilidad, DetalleActividad, DetalleInsumo, DetalleVenta, TrazabilidadCultivoReporte } from './Types';
 
 interface ModalesTrazabilidadProps {
     modalAbierto: { tipo: string, data: any } | null;

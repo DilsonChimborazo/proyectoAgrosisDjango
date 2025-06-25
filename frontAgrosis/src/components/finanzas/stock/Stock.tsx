@@ -9,8 +9,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import CrearVenta from '../venta/CrearVenta';
 import CrearProduccion from '../produccion/CrearProduccion';
-import { PlusCircle, Package, Loader2, MoreVertical, ChevronDown, ChevronUp, Activity, DollarSign } from 'lucide-react';
-import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
+import { PlusCircle, Package, ChevronDown, ChevronUp, Activity, DollarSign } from 'lucide-react';
 
 const SeccionDesplegable = ({
   titulo,
@@ -50,9 +49,9 @@ const SeccionDesplegable = ({
 };
 
 const StockDashboard = () => {
-  const { data: producciones, isLoading: isProduccionesLoading, error: produccionesError, refetch: refetchProducciones } = useProducciones();
-  const { data: allStock, isLoading: isAllStockLoading, error: allStockError, refetch: refetchAllStock } = useAllStock();
-  const { data: ventas, isLoading: isVentasLoading, error: ventasError, refetch: refetchVentas } = useVentas();
+  const { data: producciones, error: produccionesError, refetch: refetchProducciones } = useProducciones();
+  const { data: allStock, error: allStockError, refetch: refetchAllStock } = useAllStock();
+  const { data: ventas,  error: ventasError, refetch: refetchVentas } = useVentas();
   const [selectedProduccionId, setSelectedProduccionId] = useState<number | null>(null);
   const [isMovimientosModalOpen, setIsMovimientosModalOpen] = useState(false);
   const [isProductosModalOpen, setIsProductosModalOpen] = useState(false);
@@ -60,19 +59,6 @@ const StockDashboard = () => {
   const [isVentaModalOpen, setIsVentaModalOpen] = useState(false);
   const [isProduccionModalOpen, setIsProduccionModalOpen] = useState(false);
   const [seccionAbierta, setSeccionAbierta] = useState<string | null>(null);
-
-  // Depuración: Inspeccionar datos de producciones
-  console.log('Datos de producciones:', producciones?.map(p => ({
-    id: p.id,
-    nombre: p.nombre_produccion,
-    cantidad_producida: p.cantidad_producida,
-    stock_disponible: p.stock_disponible,
-    precio_sugerido: p.precio_sugerido_venta,
-  })));
-
-  console.log('Producciones:', producciones);
-  console.log('Movimientos:', allStock);
-  console.log('Ventas:', ventas);
 
   const toggleSeccion = (seccion: string) => {
     setSeccionAbierta(seccionAbierta === seccion ? null : seccion);
@@ -225,7 +211,6 @@ const StockDashboard = () => {
   const valorEstimado = productosConStock.reduce((sum, p) => {
     const precio = parsePrecioSugerido(p.precio_sugerido_venta);
     const valor = precio * p.cantidad_producida;
-    console.log(`Producto: ${p.nombre_produccion}, Precio: ${precio}, Cantidad Producida: ${p.cantidad_producida}, Stock Disponible: ${p.stock_disponible}, Valor: ${valor}`);
     return sum + valor;
   }, 0) || 0;
 
@@ -327,7 +312,7 @@ const StockDashboard = () => {
               headers={produccionesHeaders}
               data={mappedProducciones}
               rowClassName={() => "hover:bg-green-50 transition-colors duration-150"}
-              className="[&_table]:w-full [&_th]:py-2 [&_th]:bg-green-700 [&_th]:text-white [&_th]:font-bold [&_th]:text-sm [&_th:first-child]:rounded-tl-lg [&_th:last-child]:rounded-tr-lg [&_td]:px-3 [&_td]:py-2 [&_td]:text-sm"
+              onRowClick={(row) => openMovimientosModal(row.id)} // Agregado para usar openMovimientosModal
             />
           )}
         </SeccionDesplegable>
@@ -346,8 +331,7 @@ const StockDashboard = () => {
               title=""
               headers={movimientosHeaders}
               data={mappedMovimientos}
-              rowClassName={() => "hover:bg-gray-50 transition-colors duration-150"}
-              className="[&_table]:w-full [&_th]:py-2 [&_th]:bg-gray-700 [&_th]:text-white [&_th]:font-bold [&_th]:text-sm [&_th:first-child]:rounded-tl-lg [&_th:last-child]:rounded-tr-lg [&_td]:px-3 [&_td]:py-2 [&_td]:text-sm"
+              rowClassName={() => "hover:bg-green-50 transition-colors duration-150"}
             />
           )}
         </SeccionDesplegable>
@@ -380,7 +364,7 @@ const StockDashboard = () => {
           titulo="Detalles de Producción"
           contenido={renderMovimientosDetails()}
           size="md"
-          className="bg-white rounded-lg shadow-md max-w-lg mx-auto"
+          modalClassName="bg-white rounded-lg shadow-md max-w-lg mx-auto"
         />
       )}
 
@@ -390,7 +374,7 @@ const StockDashboard = () => {
         titulo="Productos con Stock"
         contenido={renderProductosDetails()}
         size="md"
-        className="bg-white rounded-lg shadow-md max-w-lg mx-auto"
+        modalClassName="bg-white rounded-lg shadow-md max-w-lg mx-auto"
       />
 
       <VentanaModal
@@ -399,7 +383,7 @@ const StockDashboard = () => {
         titulo="Valor Estimado por Producto"
         contenido={renderValorDetails()}
         size="md"
-        className="bg-white rounded-lg shadow-md max-w-lg mx-auto"
+        modalClassName="bg-white rounded-lg shadow-md max-w-lg mx-auto"
       />
 
       {isVentaModalOpen && (
@@ -409,7 +393,7 @@ const StockDashboard = () => {
           titulo="Registrar Venta"
           size="1.5xl"
           contenido={<CrearVenta onClose={cerrarModalConExito} onSuccess={cerrarModalConExito} />}
-          className="bg-white rounded-lg shadow-md"
+          modalClassName="bg-white rounded-lg shadow-md"
         />
       )}
 
@@ -419,7 +403,7 @@ const StockDashboard = () => {
           onClose={cerrarModalConExito}
           titulo="Registrar Producción"
           contenido={<CrearProduccion onClose={cerrarModalConExito} onSuccess={cerrarModalConExito} />}
-          className="bg-white rounded-lg shadow-md"
+          modalClassName="bg-white rounded-lg shadow-md"
         />
       )}
     </div>

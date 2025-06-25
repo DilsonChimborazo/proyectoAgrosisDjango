@@ -12,9 +12,6 @@ from apps.finanzas.produccion.models import Produccion
 from apps.finanzas.salario.models import Salario
 from django.db.models import Sum, F, Q
 from decimal import Decimal
-import logging
-
-logger = logging.getLogger(__name__)
 
 class TrazabilidadService:
     
@@ -35,10 +32,8 @@ class TrazabilidadService:
                         'precio_minimo_venta_por_unidad': datos.get('precio_minimo_venta_por_unidad_acumulado', 0.0)
                     }
                 )
-                logger.info(f"Snapshot creado: plantacion_id={plantacion_id}, version={snapshot.version}, trigger={trigger}")
                 return snapshot
-        except Exception as e:
-            logger.error(f"Error al crear snapshot para plantacion_id={plantacion_id}: {str(e)}", exc_info=True)
+        except Exception:
             raise
 
     @classmethod
@@ -54,14 +49,12 @@ class TrazabilidadService:
         for prog in programaciones_queryset:
             usuarios = prog.fk_id_asignacionActividades.fk_identificacion.all()
             if not usuarios:
-                logger.warning(f"Programación {prog.id} sin usuarios asignados")
                 continue
             horas = Decimal(prog.duracion) / Decimal('60')
             numero_usuarios = len(usuarios)
             horas_por_usuario = horas / numero_usuarios if numero_usuarios > 0 else horas
             for usuario in usuarios:
                 if not usuario.fk_id_rol:
-                    logger.error(f"Usuario {usuario.id} no tiene rol asignado")
                     continue
                 salario = Salario.objects.filter(
                     fk_id_rol=usuario.fk_id_rol,
@@ -71,19 +64,15 @@ class TrazabilidadService:
                 if salario and salario.horas_por_jornal > 0:
                     jornales = horas_por_usuario / Decimal(salario.horas_por_jornal)
                     costo_total += jornales * salario.precio_jornal
-                else:
-                    logger.warning(f"No se encontró salario activo para el rol {usuario.fk_id_rol.rol} en la fecha {prog.fecha_realizada}")
         for control in controles_queryset:
             usuarios = control.fk_identificacion.all()
             if not usuarios:
-                logger.warning(f"Control fitosanitario {control.id} sin usuarios asignados")
                 continue
             horas = Decimal(control.duracion) / Decimal('60')
             numero_usuarios = len(usuarios)
             horas_por_usuario = horas / numero_usuarios if numero_usuarios > 0 else horas
             for usuario in usuarios:
                 if not usuario.fk_id_rol:
-                    logger.error(f"Usuario {usuario.id} no tiene rol asignado")
                     continue
                 salario = Salario.objects.filter(
                     fk_id_rol=usuario.fk_id_rol,
@@ -93,8 +82,6 @@ class TrazabilidadService:
                 if salario and salario.horas_por_jornal > 0:
                     jornales = horas_por_usuario / Decimal(salario.horas_por_jornal)
                     costo_total += jornales * salario.precio_jornal
-                else:
-                    logger.warning(f"No se encontró salario activo para el rol {usuario.fk_id_rol.rol} en la fecha {control.fecha_control}")
         return round(costo_total, 2)
 
     @classmethod
@@ -251,13 +238,11 @@ class TrazabilidadService:
             )
             producciones_all = Produccion.objects.filter(fk_id_plantacion=plantacion).order_by('fecha')
 
-            # Obtener el nombre completo de la unidad base de la última producción
             unidad_base = None
             ultima_produccion = producciones_all.last()
             if ultima_produccion and ultima_produccion.fk_unidad_medida:
                 unidad_base = ultima_produccion.fk_unidad_medida.get_unidad_base_display()
 
-            # Cálculo de datos acumulados
             total_minutos_acumulado = programaciones_all.aggregate(total=Sum('duracion'))['total'] or 0
             tiempo_controles_acumulado = controles_all.aggregate(total=Sum('duracion'))['total'] or 0
             total_minutos_acumulado += tiempo_controles_acumulado
@@ -303,7 +288,6 @@ class TrazabilidadService:
                     costo_total_acumulado / total_cantidad_producida_base_acumulado, 4
                 )
 
-            # Cálculos para el costo incremental / última cosecha
             costo_incremental_ultima_cosecha = Decimal('0')
             cantidad_incremental_ultima_cosecha = Decimal('0')
             precio_minimo_incremental_ultima_cosecha = Decimal('0')
@@ -350,14 +334,12 @@ class TrazabilidadService:
                         costo_incremental_ultima_cosecha / cantidad_incremental_ultima_cosecha, 4
                     )
 
-            # Cálculo: Precio mínimo para recuperar inversión
             costo_a_cubrir_neto = max(Decimal('0'), costo_total_acumulado - ingresos_ventas_acumulado)
             stock_disponible_total = producciones_all.aggregate(total=Sum('stock_disponible'))['total'] or Decimal('0')
             precio_minimo_recuperar_inversion = Decimal('0')
             if stock_disponible_total > 0:
                 precio_minimo_recuperar_inversion = round(costo_a_cubrir_neto / stock_disponible_total, 4)
 
-            # Obtener detalles
             detalle_actividades = cls._get_detalle_actividades(programaciones_all, controles_all)
             detalle_insumos = cls._get_detalle_insumos(asignaciones_all, controles_all)
             detalle_ventas = cls._get_detalle_ventas(ventas_all)
@@ -385,7 +367,7 @@ class TrazabilidadService:
                 "precio_minimo_incremental_ultima_cosecha": float(precio_minimo_incremental_ultima_cosecha),
                 "precio_minimo_recuperar_inversion": float(precio_minimo_recuperar_inversion),
                 "stock_disponible_total": float(stock_disponible_total),
-                "unidad_base": unidad_base,  # Ahora contiene 'Gramo', 'Mililitro' o 'Unidad'
+                "unidad_base": unidad_base,
                 "detalle_actividades": detalle_actividades,
                 "detalle_insumos": detalle_insumos,
                 "detalle_ventas": detalle_ventas,
@@ -401,8 +383,6 @@ class TrazabilidadService:
                 }
             }
         except Plantacion.DoesNotExist:
-            logger.warning(f"Plantación con ID {plantacion_id} no encontrada.")
             return {}
-        except Exception as e:
-            logger.error(f"Error en generar_datos_trazabilidad para plantación {plantacion_id}: {str(e)}", exc_info=True)
+        except Exception:
             return {}
