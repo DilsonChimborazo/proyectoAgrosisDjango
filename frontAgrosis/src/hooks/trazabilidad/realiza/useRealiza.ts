@@ -1,6 +1,7 @@
 // @/hooks/trazabilidad/realiza/useRealiza.ts
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import axios from 'axios';
+import { Cultivo } from '../asignacion/useAsignacion';
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -37,6 +38,7 @@ export interface Plantacion {
   id: number;
   nombre_cultivo: string;
   descripcion: string;
+  fk_id_cultivo:  Cultivo
   fk_id_especie: Especie;
   cantidad_transplante?: number;
   fk_id_semillero?: Semillero;

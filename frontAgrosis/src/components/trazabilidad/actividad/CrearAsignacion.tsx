@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import Select from 'react-select';
+import Select, { MultiValue, ActionMeta } from 'react-select'; // Importar MultiValue y ActionMeta
 import { useCrearAsignacion } from '@/hooks/trazabilidad/asignacion/useCrearAsignacion';
 import { useRealiza } from '@/hooks/trazabilidad/realiza/useRealiza';
 import VentanaModal from '../../globales/VentanasModales';
@@ -82,7 +82,7 @@ interface SelectOption {
   label: string;
 }
 
-const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios, onCreateUsuario }: CrearAsignacionModalProps) => {
+const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios }: CrearAsignacionModalProps) => {
   const { mutate: createAsignacion, isPending } = useCrearAsignacion();
   const { data: realizaList = [], isLoading: isLoadingRealiza, error: errorRealiza, refetch: refetchRealiza } = useRealiza();
   const [formData, setFormData] = useState({
@@ -179,7 +179,6 @@ const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios, onCreateUsuario
   }));
 
   const usuarioOptions: SelectOption[] = [
-    // Usuarios seleccionados
     ...formData.fk_identificacion
       .map((id) => {
         const usuario = usuarios.find((u) => String(u.id) === id);
@@ -194,7 +193,6 @@ const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios, onCreateUsuario
         };
       })
       .filter((option): option is SelectOption => option !== null),
-    // Usuarios que coinciden con los filtros (excluyendo los ya seleccionados)
     ...usuarios
       .filter((usuario) => {
         const userRoleId = usuario.fk_id_rol?.id ? String(usuario.fk_id_rol.id) : '';
@@ -247,18 +245,18 @@ const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios, onCreateUsuario
     setSelectedFicha(newFicha);
   };
 
-  const handleUsuariosChange = (selectedOptions: SelectOption[] | null) => {
-    const selectedIds = selectedOptions ? selectedOptions.map((option) => option.value) : [];
-    setFormData((prev) => ({ ...prev, fk_identificacion: selectedIds }));
-  };
+const handleUsuariosChange = (newValue: MultiValue<SelectOption>, _actionMeta: ActionMeta<SelectOption>) => {
+  const selectedIds = newValue ? newValue.map((option) => option.value) : [];
+  setFormData((prev) => ({ ...prev, fk_identificacion: selectedIds }));
+};
 
-  const handleHerramientasChange = (selectedOptions: SelectOption[] | null) => {
-    setFormData((prev) => ({ ...prev, herramientas: selectedOptions || [] }));
-  };
+const handleHerramientasChange = (newValue: MultiValue<SelectOption>, _actionMeta: ActionMeta<SelectOption>) => {
+  setFormData((prev) => ({ ...prev, herramientas: newValue as SelectOption[] }));
+};
 
-  const handleInsumosChange = (selectedOptions: SelectOption[] | null) => {
-    setFormData((prev) => ({ ...prev, insumos: selectedOptions || [] }));
-  };
+const handleInsumosChange = (newValue: MultiValue<SelectOption>, _actionMeta: ActionMeta<SelectOption>) => {
+  setFormData((prev) => ({ ...prev, insumos: newValue as SelectOption[] }));
+};
 
   const validateForm = () => {
     if (!formData.fk_id_realiza) return 'Debe seleccionar una gestión de cultivo';
@@ -376,9 +374,8 @@ const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios, onCreateUsuario
       <CrearUsuario
         isOpen={true}
         onClose={() => setIsModalOpen(false)}
-        onSuccess={(newUser: Usuario) => {
-          onCreateUsuario(newUser);
-          setUsuarios((prev) => [...prev, newUser]);
+        onSuccess={() => {
+          onSuccess();
           setIsModalOpen(false);
         }}
       />
@@ -489,7 +486,6 @@ const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios, onCreateUsuario
               onChange={handleUsuariosChange}
               placeholder="Selecciona usuarios..."
               isDisabled={isPending}
-              className="mt-1"
             />
             {formData.fk_identificacion.some((id) => {
               const user = usuarios.find((u) => String(u.id) === id);

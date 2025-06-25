@@ -89,13 +89,13 @@ export interface Plantacion {
   descripcion: string;
   fk_id_cultivo: Cultivo;
   cantidad_transplante?: number;
-  fk_id_semillero: Semillero;
+  fk_id_semillero: Semillero|undefined;
   fecha_plantacion: string;
 }
 
 export interface Realiza {
   id: number;
-  fk_id_plantacion: Plantacion;
+  fk_id_plantacion: Plantacion| undefined;
   fk_id_actividad: Actividad;
 }
 

@@ -14,8 +14,8 @@ import { usuarioSchema } from "@/hooks/validaciones/useSchemas";
 
 interface CrearUsuarioProps {
   isOpen: boolean;
-  onSuccess: () => void;
   onClose: () => void;
+  onSuccess: () => void;
 }
 
 const CrearUsuario: React.FC<CrearUsuarioProps> = ({ isOpen, onClose }) => {

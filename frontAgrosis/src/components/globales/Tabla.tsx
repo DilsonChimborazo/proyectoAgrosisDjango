@@ -21,6 +21,7 @@ interface TablaProps<T extends Record<string, any>> {
   extraButton?: React.ReactNode;
   hiddenColumnsByDefault?: string[];
   renderCell?: (row: T, columnKey: string) => React.ReactNode;
+  renderRow?: (row: T, index: number) => React.ReactNode;
   onRowClick?: (row: T) => void;
   rowClassName?: (row: T) => string;
   showCreateButton?: boolean; // Nueva prop para controlar el botón de Crear

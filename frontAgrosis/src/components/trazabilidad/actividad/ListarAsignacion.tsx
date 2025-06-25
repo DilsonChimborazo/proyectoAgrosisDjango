@@ -1,8 +1,9 @@
-import { useState, useMemo, memo, useEffect } from 'react';
+// src/components/trazabilidad/asignacion/ListarAsignacion.tsx
+import { useState, useMemo, useEffect, memo } from 'react';
 import { useAsignacion, Asignacion } from '@/hooks/trazabilidad/asignacion/useAsignacion';
-import { useRealiza, Realiza } from '@/hooks/trazabilidad/realiza/useRealiza';
-import { useUsuarios, Usuario } from '@/hooks/usuarios/usuario/useUsuarios';
-import { useProgramacion, Programacion } from '@/hooks/trazabilidad/programacion/useProgramacion';
+import { useRealiza } from '@/hooks/trazabilidad/realiza/useRealiza';
+import { useUsuarios } from '@/hooks/usuarios/usuario/useUsuarios';
+import { useProgramacion} from '@/hooks/trazabilidad/programacion/useProgramacion';
 import { useCurrentUser } from '@/hooks/trazabilidad/asignacion/useCurrentUser';
 import VentanaModal from '../../globales/VentanasModales';
 import Tabla from '../../globales/Tabla';
@@ -12,6 +13,123 @@ import { showToast } from '@/components/globales/Toast';
 
 // URL base del servidor donde se almacenan las imágenes
 const BASE_URL = 'http://localhost:8000';
+
+// Definir tipo local para Programacion compatible con useProgramacion
+interface Semillero {
+  id: number;
+  nombre_semilla: string;
+  fecha_siembra: Date;
+  fecha_estimada: Date;
+  cantidad: number;
+}
+
+interface Cultivo {
+  id: number;
+  nombre_cultivo: string;
+  descripcion: string;
+  fk_id_especie: {
+    id: number;
+    nombre_comun: string;
+    nombre_cientifico: string;
+    descripcion: string;
+    fk_id_tipo_cultivo: {
+      id: number;
+      nombre: string;
+      descripcion: string;
+      ciclo_duracion?: string;
+    };
+  };
+}
+
+interface Plantacion {
+  id: number;
+  descripcion: string;
+  fk_id_cultivo: Cultivo;
+  cantidad_transplante?: number;
+  fk_id_semillero?: Semillero;
+  fecha_plantacion: string;
+}
+
+interface Actividad {
+  id: number;
+  nombre_actividad: string;
+  descripcion: string;
+}
+
+interface Realiza {
+  id: number;
+  fk_id_plantacion?: Plantacion;
+  fk_id_actividad?: Actividad;
+}
+
+interface Insumo {
+  id: number;
+  nombre: string;
+}
+
+interface Herramienta {
+  id: number;
+  nombre_h: string;
+}
+
+interface RecursosAsignados {
+  insumos?: Insumo[];
+  herramientas?: Herramienta[];
+}
+
+interface Rol {
+  id: number;
+  rol: string;
+}
+
+interface Usuario {
+  id: number;
+  nombre: string;
+  apellido: string;
+  email: string;
+  fk_id_rol: Rol |undefined;
+  identificacion: string;
+  is_active: boolean;
+  ficha: {
+    id: number;
+    numero_ficha: number;
+    nombre_ficha: string;
+    abreviacion: string;
+    fecha_inicio: string;
+    fecha_salida: string;
+    is_active: boolean;
+  } | null;
+  img: string | null;
+  img_url: string;
+}
+
+interface UnidadMedida {
+  id: number;
+  nombre_medida: string;
+  unidad_base: 'g' | 'ml' | 'u';
+  factor_conversion: number;
+}
+
+interface LocalAsignacion {
+  id: number;
+  estado: 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada';
+  fecha_programada: string;
+  observaciones: string;
+  fk_id_realiza: number | Realiza;
+  fk_identificacion: (number | { id: number } | Usuario)[];
+  recursos_asignados: (string | RecursosAsignados)[];
+}
+
+interface LocalProgramacion {
+  id: number;
+  fk_id_asignacionActividades: number | LocalAsignacion;
+  fecha_realizada?: string;
+  duracion?: number;
+  cantidad_insumo?: number;
+  img?: string | File | null;
+  fk_unidad_medida?: UnidadMedida;
+  estado?: 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada';
+}
 
 // Interfaz ajustada para incluir elementos (recursos asignados) en campos separados
 interface AsignacionTabla {
@@ -23,8 +141,8 @@ interface AsignacionTabla {
   actividad: string;
   usuarios: string[];
   fecha_realizada: string | null | string;
-  insumos: string; // Campo separado para insumos
-  herramientas: string; // Campo separado para herramientas
+  insumos: string;
+  herramientas: string;
   duracion: number | null | string;
   img: string | null | React.ReactNode;
 }
@@ -103,7 +221,6 @@ const ListarAsignacion: React.FC = () => {
   const [modalContenido, setModalContenido] = useState<React.ReactNode>(null);
   const [imagenAmpliada, setImagenAmpliada] = useState<string | null>(null);
 
-  // Corrección: Eliminar la aserción de tipo incorrecta
   const { data: user, isLoading: isLoadingUser, error: errorUser } = useCurrentUser();
   const { data: asignaciones = [], isLoading: isLoadingAsignaciones, error: errorAsignaciones, refetch: refetchAsignaciones } = useAsignacion();
   const { data: realizaList = [], isLoading: isLoadingRealiza, error: errorRealiza } = useRealiza();
@@ -128,13 +245,12 @@ const ListarAsignacion: React.FC = () => {
   }, [asignaciones, realizaList, usuarios, programaciones, user]);
 
   const filteredAsignaciones = useMemo(() => {
-    if (!user || !user.fk_id_rol) return asignaciones; // Verificación más segura
+    if (!user || !user.fk_id_rol) return asignaciones;
 
     const allowedRoles = ['Administrador', 'Instructor', 'Operario'];
     if (user.fk_id_rol && allowedRoles.includes(user.fk_id_rol.rol)) {
-      return asignaciones; // Administrador, Instructor, Operario ven todas las asignaciones
+      return asignaciones;
     } else {
-      // Otros roles solo ven asignaciones donde están incluidos
       return asignaciones.filter((asignacion) =>
         Array.isArray(asignacion.fk_identificacion) &&
         asignacion.fk_identificacion.some((id) => {
@@ -218,13 +334,12 @@ const ListarAsignacion: React.FC = () => {
         }
       }
 
-      // Procesar recursos_asignados para insumos y herramientas por separado
       let insumosStr = 'No asignado';
       let herramientasStr = 'No asignado';
 
       asignacion.recursos_asignados.forEach((recurso) => {
         if (typeof recurso === 'string') {
-          insumosStr = recurso; // Si es string, asignarlo a insumos por ahora (puedes ajustar según lógica)
+          insumosStr = recurso;
         } else if (recurso && typeof recurso === 'object') {
           if (recurso.insumos?.length) {
             insumosStr = ` ${recurso.insumos.map((i) => i.nombre).join(', ')}`;
@@ -244,17 +359,14 @@ const ListarAsignacion: React.FC = () => {
         actividad: realiza?.fk_id_actividad?.nombre_actividad ?? `Sin actividad (fk_id_realiza: ${realizaId || 'N/A'})`,
         usuarios: usuariosAsignados.length > 0 ? usuariosAsignados : ['Sin usuarios'],
         fecha_realizada: programacion?.fecha_realizada || 'No asignada',
-        insumos: insumosStr, // Campo separado para insumos
-        herramientas: herramientasStr, // Campo separado para herramientas
+        insumos: insumosStr,
+        herramientas: herramientasStr,
         duracion: programacion?.duracion ?? 'No asignada',
         img: imgElement,
       };
     });
   }, [filteredAsignaciones, realizaList, usuarios, programaciones]);
 
-  console.log("los datos filtrados para ver si llegan los elementos", filteredAsignaciones);
-
-  // Depuración: Mostrar tablaData después de que se haya inicializado
   useEffect(() => {
     console.log('Tabla Data:', tablaData);
     return () => {
@@ -301,8 +413,6 @@ const ListarAsignacion: React.FC = () => {
       });
       return;
     }
-    console.log('Asignación encontrada:', asignacion);
-    console.log('Usuario ID:', user.id, 'fk_identificacion:', asignacion.fk_identificacion);
     const userAssigned = Array.isArray(asignacion.fk_identificacion)
       ? asignacion.fk_identificacion.some((id) => {
           const userId = typeof id === 'object' ? id.id : id;
@@ -364,7 +474,7 @@ const ListarAsignacion: React.FC = () => {
         }}
         usuarios={usuarios}
         onCreateUsuario={() => refetchAsignaciones()}
-        onCancel={closeModal} // Agregar la prop onCancel
+        onCancel={closeModal}
       />
     );
     setIsModalOpen(true);
@@ -400,8 +510,8 @@ const ListarAsignacion: React.FC = () => {
     'Plantacion',
     'Observaciones',
     'Fecha Realizada',
-    'Insumos', // Nueva columna para insumos
-    'Herramientas', // Nueva columna para herramientas
+    'Insumos',
+    'Herramientas',
     'Duracion',
     'Img',
     'Estado',
@@ -424,8 +534,8 @@ const ListarAsignacion: React.FC = () => {
         <td className="p-3">{item.plantacion}</td>
         <td className="p-3">{item.observaciones}</td>
         <td className="p-3">{item.fecha_realizada}</td>
-        <td className="p-3">{item.insumos}</td> {/* Nueva columna para insumos */}
-        <td className="p-3">{item.herramientas}</td> {/* Nueva columna para herramientas */}
+        <td className="p-3">{item.insumos}</td>
+        <td className="p-3">{item.herramientas}</td>
         <td className="p-3">{item.duracion}</td>
         <td className="p-3">{item.img}</td>
         <td className="p-3">{item.estado}</td>
@@ -476,12 +586,15 @@ const ListarAsignacion: React.FC = () => {
             contenido={
               <CrearProgramacion
                 asignacionId={selectedAsignacion.id}
-                existingProgramacion={programaciones.find((p) => {
-                  const programacionId = typeof p.fk_id_asignacionActividades === 'object'
-                    ? p.fk_id_asignacionActividades?.id
-                    : p.fk_id_asignacionActividades;
-                  return programacionId === selectedAsignacion.id;
-                }) as Programacion | undefined} // Aserción de tipo explícita
+                existingProgramacion={
+                  programaciones.find((p) => {
+                    const programacionId =
+                      typeof p.fk_id_asignacionActividades === 'object'
+                        ? p.fk_id_asignacionActividades?.id
+                        : p.fk_id_asignacionActividades;
+                    return programacionId === selectedAsignacion.id;
+                  }) as LocalProgramacion // Asegurar compatibilidad con LocalProgramacion
+                }
                 onSuccess={() => {
                   refetchProgramaciones();
                   refetchAsignaciones();
@@ -500,7 +613,7 @@ const ListarAsignacion: React.FC = () => {
         </>
       )}
       <div className="bg-white rounded-lg shadow p-6">
-        <Tabla
+        <Tabla<AsignacionTabla>
           title="Lista de Asignaciones"
           headers={headers}
           data={tablaData}
