@@ -1,92 +1,92 @@
+// src/context/AuthContext.tsx
 import { createContext, useContext, useState, useEffect } from 'react';
-import { Usuario } from '../hooks/usuarios/usuario/usePerfilUsuarios';
-import { Spinner } from "@heroui/react";
 import { useNavigate, useLocation } from 'react-router-dom';
+import { jwtDecode } from "jwt-decode";
+
+// Define el tipo esperado de los datos que vienen en el token JWT
+interface DecodedUsuario {
+  user_id: number;
+  identificacion: string;
+  nombre: string;
+  apellido: string;
+  email: string;
+  rol: string;
+  numero_ficha: string;
+  img_url?: string;
+  exp: number;
+  iat: number;
+}
 
 interface AuthContextType {
-  usuario: Usuario | null;
-  setUsuario: (usuario: Usuario | null) => void;
+  usuario: DecodedUsuario | null;
+  setUsuario: (usuario: DecodedUsuario | null) => void;
   loading: boolean;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export default function LoadingBox() {
-  return (
-    <div className="fixed inset-0 flex justify-center items-center bg-white bg-opacity-90 z-50">
-      <div className="bg-white shadow-lg rounded-2xl border border-green-200 p-6 flex flex-col items-center space-y-4">
-        <Spinner color="success" labelColor="success" />
-        <p className="text-sm text-gray-600">Por favor, espera un momento.</p>
-      </div>
-    </div>
-  );
-}
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [usuario, setUsuario] = useState<Usuario | null>(() => {
-    const stored = localStorage.getItem('user');
-    return stored ? JSON.parse(stored) : null;
-  });
-
+  const [usuario, setUsuario] = useState<DecodedUsuario | null>(null);
   const [loading, setLoading] = useState(true);
 
   const logout = () => {
-    localStorage.removeItem('user');
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
     setUsuario(null);
     navigate('/');
   };
 
-  // Sincronizar usuario entre pestañas
-  useEffect(() => {
-    const syncStorage = (event: StorageEvent) => {
-      if (event.key === 'user') {
-        if (event.newValue) {
-          setUsuario(JSON.parse(event.newValue));
-        } else {
-          logout();
-        }
-      }
-
-      if (event.key === 'token' && !event.newValue) {
-        logout();
-      }
-    };
-
-    window.addEventListener('storage', syncStorage);
-    return () => window.removeEventListener('storage', syncStorage);
-  }, []);
-
-  // Guardar usuario en localStorage si cambia
-  useEffect(() => {
-    if (usuario) {
-      localStorage.setItem('user', JSON.stringify(usuario));
-    } else {
-      localStorage.removeItem('user');
-    }
-  }, [usuario]);
-
-  // Verificar token al cargar app, solo en rutas privadas
-  useEffect(() => {
+  const decodificarToken = () => {
     const token = localStorage.getItem('token');
+    if (!token) return null;
+
+    try {
+      const decoded: DecodedUsuario = jwtDecode(token);
+      const ahora = Math.floor(Date.now() / 1000);
+      if (decoded.exp < ahora) {
+        logout(); // Token expirado
+        return null;
+      }
+      return decoded;
+    } catch (err) {
+      console.error("Error al decodificar token:", err);
+      logout();
+      return null;
+    }
+  };
+
+  useEffect(() => {
     const rutasPublicas = ['/', '/register', '/solicitarRecuperacion'];
     const esRutaPublica = rutasPublicas.includes(location.pathname);
 
-    if (!token && !esRutaPublica) {
+    const usuarioDecodificado = decodificarToken();
+    setUsuario(usuarioDecodificado);
+
+    if (!usuarioDecodificado && !esRutaPublica) {
       logout();
     }
 
     setLoading(false);
   }, [location.pathname]);
 
-  
+  // Sincronizar entre pestañas
+  useEffect(() => {
+    const syncStorage = (event: StorageEvent) => {
+      if (event.key === 'token') {
+        const nuevoUsuario = decodificarToken();
+        setUsuario(nuevoUsuario);
+        if (!nuevoUsuario) logout();
+      }
+    };
 
-  if (loading) return <LoadingBox />;
+    window.addEventListener('storage', syncStorage);
+    return () => window.removeEventListener('storage', syncStorage);
+  }, []);
 
   return (
     <AuthContext.Provider value={{ usuario, setUsuario, loading, logout }}>

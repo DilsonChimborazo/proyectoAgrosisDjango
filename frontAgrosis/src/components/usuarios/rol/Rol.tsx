@@ -45,6 +45,7 @@ const Rol = () => {
     setSelectedRol(null);
     setModoCreacion(false);
     setIsModalOpen(false);
+    refetch();
   }, []);
 
   const headers = [

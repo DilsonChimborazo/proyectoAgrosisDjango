@@ -38,6 +38,6 @@ export const useRoles = () => {
   return useQuery<Rol[], Error>({
     queryKey: ['roles'],
     queryFn: fetchRoles,
-    staleTime: 1000 * 60 * 10,
+    staleTime: 0,
   });
 };

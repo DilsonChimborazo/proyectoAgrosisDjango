@@ -6,3 +6,7 @@ class RolSerializer(ModelSerializer):
         model = Rol
         fields = ['id', 'rol']
         read_only_fields = ['fecha_creacion']
+
+    def validate_rol(self, value):
+
+        return value.strip().capitalize()

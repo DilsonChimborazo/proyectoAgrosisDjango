@@ -32,7 +32,7 @@ export const useCreateRol = () =>{
   return data;
 },
 onSuccess: () => {
-  queryClient.invalidateQueries({queryKey: ["rol"]});
+  queryClient.invalidateQueries({queryKey: ["roles"]});
 },
 onError: (error: any) => {
   console.error("Error al crear una nuevo rol:", error.message)

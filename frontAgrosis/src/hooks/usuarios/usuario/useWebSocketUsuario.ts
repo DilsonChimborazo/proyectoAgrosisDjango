@@ -8,9 +8,9 @@ const useWebSocketUsuario = () => {
   const { usuario, logout } = useAuthContext();
 
   useEffect(() => {
-    if (!usuario?.id) return;
+    if (!usuario?.user_id) return;
 
-    const ws = new WebSocket(`${wsBaseUrl}usuario/${usuario.id}/`);
+    const ws = new WebSocket(`${wsBaseUrl}usuario/${usuario.user_id}/`);
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);

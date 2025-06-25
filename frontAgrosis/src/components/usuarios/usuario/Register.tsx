@@ -7,7 +7,7 @@ import { registroSchema, RegistroData } from "@/hooks/validaciones/useSchemas";
 import logoAgrosis from "../../../../public/def_AGROSIS_LOGOTIC4.png";
 import logoSena from "../../../../public/logoSena.png";
 import { showToast } from "@/components/globales/Toast";
-import LoadingBox from "@/context/AuthContext";
+import LoadingBox from "@/components/globales/LoadingBox";
 
 export default function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
