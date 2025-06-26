@@ -57,11 +57,11 @@ const Evapotranspiracion = () => {
     const [modalContenido, setModalContenido] = useState<React.ReactNode>(null);
     const [range, setRange] = useState<'24h' | '7d'>('24h');
     const navigate = useNavigate();
+    selectedEvapo
 
     useEffect(() => {
         const loadPlantaciones = async () => {
             try {
-                console.log('Cargando plantaciones desde:', `${apiUrl}plantacion/`);
                 const token = localStorage.getItem('token');
                 if (!token) {
                     throw new Error('No se encontró un token de autenticación');
@@ -69,13 +69,11 @@ const Evapotranspiracion = () => {
                 const headers = { Authorization: `Bearer ${token}` };
                 const response = await axios.get(`${apiUrl}plantacion/`, { headers });
                 const plantacionesData = response.data;
-                console.log('Plantaciones recibidas:', plantacionesData);
                 setPlantaciones(plantacionesData);
                 if (plantacionesData.length > 0 && plantacionId === 0) {
                     setPlantacionId(plantacionesData[0].id);
                 }
             } catch (err: any) {
-                console.error('Error al cargar plantaciones:', err);
                 setErrorPlantaciones(err.response?.data?.error || err.message || 'No se pudo cargar la lista de plantaciones');
             }
         };
@@ -83,14 +81,12 @@ const Evapotranspiracion = () => {
     }, []);
 
     const chartData: ChartData<"line"> = useMemo(() => {
-        console.log('Datos para la gráfica:', data); // Depuración
         if (!data || !Array.isArray(data) || data.length === 0) {
             return { labels: [], datasets: [] };
         }
 
         // Filtrado por plantacionId
         const filteredByPlantacion = data.filter(d => d.plantacion_id === plantacionId);
-        console.log('Datos filtrados por plantacionId:', filteredByPlantacion);
 
         // Filtrado por rango de tiempo
         const now = new Date().getTime();
@@ -104,10 +100,7 @@ const Evapotranspiracion = () => {
                 return dataDate >= now - 7 * 24 * 60 * 60 * 1000;
             });
 
-        console.log('Datos filtrados por rango:', filteredData); // Depuración
-
         if (filteredData.length === 0) {
-            console.log('No hay datos filtrados para la gráfica');
             return { labels: [], datasets: [] };
         }
 
@@ -161,11 +154,6 @@ const Evapotranspiracion = () => {
         setSelectedEvapo(null);
         setModalContenido(null);
         setIsModalOpen(false);
-    };
-
-
-    const handleUpdate = (evapo: { id: number }) => {
-        navigate(`/EditarEvapotranspiracion/${evapo.id}`);
     };
 
     const handleCreate = () => {

@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useEditarSensor } from "@/hooks/iot/sensores/useEditarSensor";
-import { useSensorPorId } from "@/hooks/iot/sensores/useSensorPorId"; 
+import { useSensorPorId } from "@/hooks/iot/sensores/useSensorPorId";
 import Formulario from "../../globales/Formulario";
+import { showToast } from "@/components/globales/Toast";
 
 interface EditarSensorProps {
   id: string;
@@ -23,7 +24,6 @@ const EditarSensor = ({ id, onSuccess }: EditarSensorProps) => {
 
   useEffect(() => {
     if (sensor) {
-      console.log("🔄 Cargando datos del Sensor:", sensor);
       const tipoSensorValue = sensor.tipo_sensor ? sensor.tipo_sensor.toUpperCase() : "";
       console.log("📋 Tipo de Sensor normalizado:", tipoSensorValue);
       setFormData({
@@ -37,8 +37,31 @@ const EditarSensor = ({ id, onSuccess }: EditarSensorProps) => {
     }
   }, [sensor]);
 
-  const handleSubmit = (data: { [key: string]: string }) => {
+  const handleSubmit = (data: { [key: string]: string | string[] | File }) => {
     if (!id) return;
+
+    // Validaciones locales
+    if (
+      typeof data.nombre_sensor !== "string" ||
+      typeof data.tipo_sensor !== "string" ||
+      typeof data.unidad_medida !== "string" ||
+      typeof data.descripcion !== "string" ||
+      typeof data.medida_minima !== "string" ||
+      typeof data.medida_maxima !== "string" ||
+      !data.nombre_sensor ||
+      !data.tipo_sensor ||
+      !data.unidad_medida ||
+      !data.descripcion ||
+      !data.medida_minima ||
+      !data.medida_maxima
+    ) {
+      showToast({
+        title: "Error",
+        description: "Todos los campos son obligatorios y deben ser válidos",
+        variant: "error",
+      });
+      return;
+    }
 
     const sensorActualizado = {
       id: Number(id),
@@ -50,25 +73,16 @@ const EditarSensor = ({ id, onSuccess }: EditarSensorProps) => {
       medida_maxima: Number(data.medida_maxima) || 0,
     };
 
-    if (
-      !sensorActualizado.nombre_sensor ||
-      !sensorActualizado.tipo_sensor ||
-      !sensorActualizado.unidad_medida ||
-      !sensorActualizado.descripcion ||
-      sensorActualizado.medida_minima === undefined ||
-      sensorActualizado.medida_maxima === undefined
-    ) {
-      console.error("⚠️ Datos inválidos. No se enviará la actualización.");
-      return;
-    }
-
-    console.log("🚀 Enviando Sensor actualizado:", sensorActualizado);
-
     actualizarSensor.mutate(sensorActualizado, {
       onSuccess: () => {
-        console.log("✅ Sensor actualizado correctamente");
+        showToast({
+          title: "Éxito",
+          description: "Sensor actualizado exitosamente",
+          variant: "success",
+        });
         if (onSuccess) onSuccess();
       },
+      
     });
   };
 
@@ -98,7 +112,7 @@ const EditarSensor = ({ id, onSuccess }: EditarSensorProps) => {
 
   return (
     <div className="max-w-4xl mx-auto p-4">
-      <Formulario 
+      <Formulario
         fields={[
           { id: "nombre_sensor", label: "Nombre del Sensor", type: "text" },
           {
@@ -117,11 +131,11 @@ const EditarSensor = ({ id, onSuccess }: EditarSensorProps) => {
           { id: "medida_minima", label: "Medida Mínima", type: "number" },
           { id: "medida_maxima", label: "Medida Máxima", type: "number" },
         ]}
-        onSubmit={handleSubmit}  
-        isError={actualizarSensor.isError} 
+        onSubmit={handleSubmit}
+        isError={actualizarSensor.isError}
         isSuccess={actualizarSensor.isSuccess}
         title="Actualizar Sensor"
-        initialValues={formData}  
+        initialValues={formData}
         key={JSON.stringify(formData)}
       />
     </div>

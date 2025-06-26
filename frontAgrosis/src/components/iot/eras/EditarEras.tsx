@@ -24,15 +24,8 @@ const EditarEras = ({ id, onSuccess }: EditarErasProps) => {
 
   useEffect(() => {
     if (eras) {
-      console.log("🔄 Datos de la Era recibidos:", eras);
       const fkIdLote = eras.fk_id_lote?.id ? eras.fk_id_lote.id.toString() : "";
       setFormData({
-        fk_id_lote: fkIdLote,
-        nombre: eras.nombre || "",
-        descripcion: eras.descripcion || "",
-        estado: eras.estado ? "true" : "false",
-      });
-      console.log("📋 FormData actualizado:", {
         fk_id_lote: fkIdLote,
         nombre: eras.nombre || "",
         descripcion: eras.descripcion || "",
@@ -42,7 +35,6 @@ const EditarEras = ({ id, onSuccess }: EditarErasProps) => {
   }, [eras]);
 
   useEffect(() => {
-    console.log("📦 Lotes disponibles:", lotes);
   }, [lotes]);
 
   useEffect(() => {
@@ -56,7 +48,7 @@ const EditarEras = ({ id, onSuccess }: EditarErasProps) => {
     }
   }, [error]);
 
-  const handleSubmit = (data: { [key: string]: string | File }) => {
+  const handleSubmit = (data: { [key: string]: string | string[] | File }) => {
     if (!id) return;
 
     // Validaciones locales
@@ -84,11 +76,8 @@ const EditarEras = ({ id, onSuccess }: EditarErasProps) => {
       estado: (data.estado as string) === "true",
     };
 
-    console.log("🚀 Enviando Era actualizada:", eraActualizada);
-
     actualizarEra.mutate(eraActualizada, {
       onSuccess: () => {
-        console.log("✅ Era actualizada correctamente");
         showToast({
           title: "Éxito",
           description: "Era actualizada exitosamente",
@@ -98,7 +87,6 @@ const EditarEras = ({ id, onSuccess }: EditarErasProps) => {
         if (onSuccess) onSuccess();
       },
       onError: (error: any) => {
-        console.error("❌ Error al intentar actualizar la Era:", error);
         let errorMessage = "Error al actualizar la era. Intenta de nuevo.";
         if (error.response?.status === 401) {
           errorMessage = "No estás autorizado. Verifica tu token o permisos.";

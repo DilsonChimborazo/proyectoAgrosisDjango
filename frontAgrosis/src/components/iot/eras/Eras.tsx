@@ -58,7 +58,6 @@ const Eras = () => {
         } catch (error) {
             
             setTimeout(() => setMensaje(null), 3000);
-            console.error(`Error al ${action} la era:`, error);
         }
     };
 

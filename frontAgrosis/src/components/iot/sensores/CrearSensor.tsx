@@ -1,6 +1,7 @@
 import { Sensores } from '@/hooks/iot/sensores/useCrearSensores';
 import { useCrearSensores } from '../../../hooks/iot/sensores/useCrearSensores';
 import Formulario from '../../globales/Formulario';
+import { showToast } from '@/components/globales/Toast';
 
 interface CrearSensorProps {
   onSuccess?: (sensor: Sensores) => void;
@@ -49,8 +50,15 @@ const CrearSensor = ({ onSuccess }: CrearSensorProps) => {
     { id: 'medida_maxima', label: 'Medida Máxima', type: 'number' },
   ];
 
-  const handleSubmit = (formData: { [key: string]: string }) => {
+  const handleSubmit = (formData: { [key: string]: string | string[] | File }) => {
+    // Validar que los campos sean strings y no estén vacíos
     if (
+      typeof formData.nombre_sensor !== 'string' ||
+      typeof formData.tipo_sensor !== 'string' ||
+      typeof formData.unidad_medida !== 'string' ||
+      typeof formData.descripcion !== 'string' ||
+      typeof formData.medida_minima !== 'string' ||
+      typeof formData.medida_maxima !== 'string' ||
       !formData.nombre_sensor ||
       !formData.tipo_sensor ||
       !formData.unidad_medida ||
@@ -58,7 +66,11 @@ const CrearSensor = ({ onSuccess }: CrearSensorProps) => {
       !formData.medida_minima ||
       !formData.medida_maxima
     ) {
-      console.log('Campos faltantes');
+      showToast({
+        title: 'Error',
+        description: 'Todos los campos son obligatorios y deben ser válidos',
+        variant: 'error',
+      });
       return;
     }
 
@@ -73,11 +85,20 @@ const CrearSensor = ({ onSuccess }: CrearSensorProps) => {
 
     mutation.mutate(newSensor, {
       onSuccess: (data) => {
-        console.log('✅ Sensor creado correctamente:', data);
+        showToast({
+          title: 'Éxito',
+          description: 'Sensor creado exitosamente',
+          variant: 'success',
+        });
         if (onSuccess) onSuccess(data);
       },
       onError: (error: any) => {
         console.error('❌ Error al crear el sensor:', error.message);
+        showToast({
+          title: 'Error',
+          description: 'No se pudo crear el sensor',
+          variant: 'error',
+        });
       },
     });
   };

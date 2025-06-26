@@ -39,11 +39,21 @@ const CrearEras = ({ onSuccess }: CrearErasProps) => {
         }
     ];
 
-    const handleSubmit = (formData: { [key: string]: string }) => {
-        if (!formData.nombre || !formData.descripcion || !formData.fk_id_lote || !formData.estado) {
+    const handleSubmit = (formData: { [key: string]: string | string[] | File }) => {
+        // Validar que los campos sean strings y no estén vacíos
+        if (
+            typeof formData.nombre !== 'string' ||
+            typeof formData.descripcion !== 'string' ||
+            typeof formData.fk_id_lote !== 'string' ||
+            typeof formData.estado !== 'string' ||
+            !formData.nombre ||
+            !formData.descripcion ||
+            !formData.fk_id_lote ||
+            !formData.estado
+        ) {
             showToast({
                 title: 'Error',
-                description: 'Todos los campos son obligatorios',
+                description: 'Todos los campos son obligatorios y deben ser válidos',
                 variant: 'error',
             });
             return;
