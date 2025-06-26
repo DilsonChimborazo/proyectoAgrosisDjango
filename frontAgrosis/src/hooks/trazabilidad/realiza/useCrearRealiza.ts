@@ -11,16 +11,11 @@ export const useCrearRealiza = () => {
 
   return useMutation({
     mutationFn: async (data: CrearRealizaDTO) => {
-      console.log('Enviando datos al backend:', data); // Depuración
       const response = await axios.post('http://127.0.0.1:8000/api/realiza/', data);
       return response.data;
     },
     onSuccess: () => {
-      console.log('Realiza creado exitosamente');
       queryClient.invalidateQueries({ queryKey: ['realiza'] });
-    },
-    onError: (error: any) => {
-      console.error('Error al crear realiza:', error.message);
     },
   });
 };

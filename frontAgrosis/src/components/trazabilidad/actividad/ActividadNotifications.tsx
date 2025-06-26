@@ -10,7 +10,7 @@ interface Notification {
 }
 
 const ActividadNotifications: React.FC = () => {
-  const [,setNotifications] = useState<Notification[]>([]);
+  const [, setNotifications] = useState<Notification[]>([]);
   const socketRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
@@ -18,7 +18,6 @@ const ActividadNotifications: React.FC = () => {
     socketRef.current = new WebSocket(wsUrl);
 
     socketRef.current.onopen = () => {
-      console.log("✅ Conectado al WebSocket:", wsUrl);
       addToast({
         title: "Conexión Establecida",
         description: "Conectado al servidor de notificaciones.",
@@ -30,7 +29,6 @@ const ActividadNotifications: React.FC = () => {
     socketRef.current.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        console.log("📩 Mensaje recibido:", data);
 
         if (data.message) {
           // Agregar la notificación al estado
@@ -56,7 +54,6 @@ const ActividadNotifications: React.FC = () => {
           });
         }
       } catch (error) {
-        console.error("❌ Error al procesar el mensaje:", error);
         addToast({
           title: "Error",
           description: "No se pudo procesar la notificación.",
@@ -66,8 +63,7 @@ const ActividadNotifications: React.FC = () => {
       }
     };
 
-    socketRef.current.onclose = (event) => {
-      console.log("🔌 WebSocket cerrado:", event);
+    socketRef.current.onclose = () => {
       addToast({
         title: "Conexión Cerrada",
         description: "Se perdió la conexión con el servidor de notificaciones.",
@@ -84,9 +80,7 @@ const ActividadNotifications: React.FC = () => {
   }, []);
 
   return (
-    <div style={styles.container}>
-
-    </div>
+    <div style={styles.container}></div>
   );
 };
 

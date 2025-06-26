@@ -87,7 +87,7 @@ interface Usuario {
   nombre: string;
   apellido: string;
   email: string;
-  fk_id_rol: Rol |undefined;
+  fk_id_rol: Rol | undefined;
   identificacion: string;
   is_active: boolean;
   ficha: {
@@ -239,11 +239,6 @@ const ListarAsignacion: React.FC = () => {
     }
   }, [asignaciones, isLoadingAsignaciones, errorAsignaciones]);
 
-  // Depuración: Mostrar datos recibidos
-  useEffect(() => {
-    console.log('Datos recibidos de asignaciones:', asignaciones);
-  }, [asignaciones, realizaList, usuarios, programaciones, user]);
-
   const filteredAsignaciones = useMemo(() => {
     if (!user || !user.fk_id_rol) return asignaciones;
 
@@ -263,11 +258,9 @@ const ListarAsignacion: React.FC = () => {
 
   const tablaData: AsignacionTabla[] = useMemo(() => {
     if (!filteredAsignaciones.length) {
-      console.log('No hay asignaciones para mapear.');
       return [];
     }
     if (!realizaList.length) {
-      console.log('No hay datos en realizaList.');
       return filteredAsignaciones.map((asignacion) => ({
         id: asignacion.id,
         estado: asignacion.estado as 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada',
@@ -286,11 +279,7 @@ const ListarAsignacion: React.FC = () => {
 
     return filteredAsignaciones.map((asignacion) => {
       const realizaId = typeof asignacion.fk_id_realiza === 'object' ? asignacion.fk_id_realiza?.id : asignacion.fk_id_realiza;
-      console.log(`Mapeando asignación ID: ${asignacion.id}, fk_id_realiza: ${realizaId}`);
       const realiza = realizaList.find((r) => r.id === realizaId);
-      if (!realiza) {
-        console.warn(`No se encontró realiza para fk_id_realiza: ${realizaId}`);
-      }
 
       const usuariosAsignados = Array.isArray(asignacion.fk_identificacion)
         ? asignacion.fk_identificacion
@@ -368,7 +357,6 @@ const ListarAsignacion: React.FC = () => {
   }, [filteredAsignaciones, realizaList, usuarios, programaciones]);
 
   useEffect(() => {
-    console.log('Tabla Data:', tablaData);
     return () => {
       tablaData.forEach((item) => {
         if (typeof item.img === 'string' && item.img?.startsWith('blob:')) {
@@ -431,7 +419,7 @@ const ListarAsignacion: React.FC = () => {
     if (!user.fk_id_rol || !['Aprendiz', 'Operario', 'Administrador', 'Instructor', 'Pasante'].includes(user.fk_id_rol.rol)) {
       showToast({
         title: 'Acceso Denegado',
-        description: 'No tienes permiso para finalizar esta asignación.',
+        description: 'No tienesne permiso para finalizar esta asignación.',
         timeout: 3000,
         variant: 'error',
       });
@@ -518,7 +506,6 @@ const ListarAsignacion: React.FC = () => {
   ];
 
   const renderRow = (item: AsignacionTabla) => {
-    console.log('Renderizando fila para ID:', item.id, 'Estado:', item.estado, 'Usuario:', user);
     return (
       <tr key={item.id} className="hover:bg-gray-100 cursor-pointer">
         <td className="p-3">{item.id}</td>
@@ -593,7 +580,7 @@ const ListarAsignacion: React.FC = () => {
                         ? p.fk_id_asignacionActividades?.id
                         : p.fk_id_asignacionActividades;
                     return programacionId === selectedAsignacion.id;
-                  }) as LocalProgramacion // Asegurar compatibilidad con LocalProgramacion
+                  }) as LocalProgramacion
                 }
                 onSuccess={() => {
                   refetchProgramaciones();

@@ -146,23 +146,13 @@ const crearAsignacion = async (asignacionData: CrearAsignacionDTO): Promise<Asig
       throw new Error('Los IDs de usuarios en fk_identificacion deben ser enteros válidos y mayores que cero');
     }
 
-    // Log request data for debugging
-    console.log('Enviando datos para crear asignación:', JSON.stringify(asignacionData, null, 2));
-
-    // Make POST request
     const { data } = await axios.post(`${apiUrl}asignaciones_actividades/`, asignacionData, {
       headers: {
         'Content-Type': 'application/json',
       },
     });
-
-    // Log raw response for debugging
-    console.log('Respuesta cruda del backend:', JSON.stringify(data, null, 2));
-
-    // Handle both direct Asignacion and wrapped { asignacion: Asignacion } responses
     const asignacion = data.asignacion || data;
 
-    // Validate the response structure
     if (!asignacion || typeof asignacion !== 'object' || !asignacion.id) {
       throw new Error('La API no devolvió una asignación válida.');
     }
@@ -174,12 +164,6 @@ const crearAsignacion = async (asignacionData: CrearAsignacionDTO): Promise<Asig
       error.response?.data?.error ||
       error.message ||
       'No se pudo crear la asignación';
-    console.error('Error al crear asignación:', {
-      status: error.response?.status,
-      data: error.response?.data,
-      message: error.message,
-      stack: error.stack,
-    });
     throw new Error(errorMessage);
   }
 };

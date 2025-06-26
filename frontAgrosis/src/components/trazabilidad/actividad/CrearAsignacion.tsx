@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import Select, { MultiValue, ActionMeta } from 'react-select'; // Importar MultiValue y ActionMeta
+import Select, { MultiValue, ActionMeta } from 'react-select';
 import { useCrearAsignacion } from '@/hooks/trazabilidad/asignacion/useCrearAsignacion';
 import { useRealiza } from '@/hooks/trazabilidad/realiza/useRealiza';
 import VentanaModal from '../../globales/VentanasModales';
@@ -105,13 +105,8 @@ const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios }: CrearAsignaci
   const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
-    console.log('Usuarios iniciales:', JSON.stringify(initialUsuarios, null, 2));
     setUsuarios(initialUsuarios);
   }, [initialUsuarios]);
-
-  useEffect(() => {
-    console.log('realizaList:', JSON.stringify(realizaList, null, 2));
-  }, [realizaList]);
 
   useEffect(() => {
     const fetchResources = async () => {
@@ -120,22 +115,17 @@ const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios }: CrearAsignaci
           axios.get(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/'}herramientas/`),
           axios.get(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/'}insumo/`),
         ]);
-        console.log('Respuesta herramientas:', herramientasResp.data);
-        console.log('Respuesta insumos:', insumosResp.data);
         if (Array.isArray(herramientasResp.data)) {
           setHerramientas(herramientasResp.data);
         } else {
-          console.error('Datos de herramientas no es un array:', herramientasResp.data);
           setHerramientas([]);
         }
         if (Array.isArray(insumosResp.data)) {
           setInsumos(insumosResp.data);
         } else {
-          console.error('Datos de insumos no es un array:', insumosResp.data);
           setInsumos([]);
         }
       } catch (error: any) {
-        console.error('Error al cargar recursos:', error.response?.data || error.message);
         showToast({
           title: 'Error',
           description: 'No se pudieron cargar los recursos. Revisa la consola para más detalles.',
@@ -226,9 +216,6 @@ const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios }: CrearAsignaci
     label: i.nombre,
   }));
 
-  console.log('Opciones herramientas:', opcionesHerramientas);
-  console.log('Opciones insumos:', opcionesInsumos);
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -245,18 +232,18 @@ const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios }: CrearAsignaci
     setSelectedFicha(newFicha);
   };
 
-const handleUsuariosChange = (newValue: MultiValue<SelectOption>, _actionMeta: ActionMeta<SelectOption>) => {
-  const selectedIds = newValue ? newValue.map((option) => option.value) : [];
-  setFormData((prev) => ({ ...prev, fk_identificacion: selectedIds }));
-};
+  const handleUsuariosChange = (newValue: MultiValue<SelectOption>, _actionMeta: ActionMeta<SelectOption>) => {
+    const selectedIds = newValue ? newValue.map((option) => option.value) : [];
+    setFormData((prev) => ({ ...prev, fk_identificacion: selectedIds }));
+  };
 
-const handleHerramientasChange = (newValue: MultiValue<SelectOption>, _actionMeta: ActionMeta<SelectOption>) => {
-  setFormData((prev) => ({ ...prev, herramientas: newValue as SelectOption[] }));
-};
+  const handleHerramientasChange = (newValue: MultiValue<SelectOption>, _actionMeta: ActionMeta<SelectOption>) => {
+    setFormData((prev) => ({ ...prev, herramientas: newValue as SelectOption[] }));
+  };
 
-const handleInsumosChange = (newValue: MultiValue<SelectOption>, _actionMeta: ActionMeta<SelectOption>) => {
-  setFormData((prev) => ({ ...prev, insumos: newValue as SelectOption[] }));
-};
+  const handleInsumosChange = (newValue: MultiValue<SelectOption>, _actionMeta: ActionMeta<SelectOption>) => {
+    setFormData((prev) => ({ ...prev, insumos: newValue as SelectOption[] }));
+  };
 
   const validateForm = () => {
     if (!formData.fk_id_realiza) return 'Debe seleccionar una gestión de cultivo';

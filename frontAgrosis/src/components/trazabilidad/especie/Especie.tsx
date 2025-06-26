@@ -91,7 +91,7 @@ const ListarEspecie = () => {
       <VentanaModal
         isOpen={isDetailModalOpen}
         onClose={closeModal}
-        titulo="Detalles de la Especie"
+        titulo=""
         contenido={
           selectedEspecie ? (
             <div className="p-4">
@@ -115,7 +115,7 @@ const ListarEspecie = () => {
         }
       />
 
-      <VentanaModal isOpen={isUpdateModalOpen} onClose={closeModal} titulo="Actualizar Especie" contenido={modalContenido} />
+      <VentanaModal isOpen={isUpdateModalOpen} onClose={closeModal} titulo="" contenido={modalContenido} />
 
       <Tabla
         title="Lista de Especies"

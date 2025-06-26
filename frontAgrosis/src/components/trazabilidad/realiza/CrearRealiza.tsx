@@ -12,7 +12,7 @@ interface CrearRealizaProps {
   onCancel: () => void;
 }
 
-const CrearRealiza = ({ onSuccess}: CrearRealizaProps) => {
+const CrearRealiza = ({ onSuccess }: CrearRealizaProps) => {
   const { mutate, isPending } = useCrearRealiza();
   const { data: plantaciones = [], isLoading: isLoadingPlantaciones, error: errorPlantaciones, refetch: refetchPlantaciones } = usePlantacion();
   const { data: actividades = [], isLoading: isLoadingActividades, error: errorActividades, refetch: refetchActividades } = useActividad();
@@ -42,8 +42,6 @@ const CrearRealiza = ({ onSuccess}: CrearRealizaProps) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    console.time('handleSubmitRealiza');
-
     const { fk_id_plantacion, fk_id_actividad } = formData;
 
     if (!fk_id_plantacion || !fk_id_actividad) {
@@ -53,7 +51,6 @@ const CrearRealiza = ({ onSuccess}: CrearRealizaProps) => {
         timeout: 5000,
         variant: 'error',
       });
-      console.timeEnd('handleSubmitRealiza');
       return;
     }
 
@@ -72,7 +69,6 @@ const CrearRealiza = ({ onSuccess}: CrearRealizaProps) => {
         });
         setFormData({ fk_id_plantacion: '', fk_id_actividad: '' });
         onSuccess();
-        console.timeEnd('handleSubmitRealiza');
       },
       onError: (error: any) => {
         showToast({
@@ -81,17 +77,14 @@ const CrearRealiza = ({ onSuccess}: CrearRealizaProps) => {
           timeout: 5000,
           variant: 'error',
         });
-        console.timeEnd('handleSubmitRealiza');
       },
     });
   };
 
   const openCreatePlantacionModal = () => {
-    console.log('Abriendo modal de CrearPlantacion'); // Depuración
     setModalContent(
       <CrearPlantacion
         onSuccess={async () => {
-          console.log('Plantación creada, refetching plantaciones');
           await refetchPlantaciones();
           setIsModalOpen(false);
           showToast({
@@ -102,7 +95,6 @@ const CrearRealiza = ({ onSuccess}: CrearRealizaProps) => {
           });
         }}
         onCancel={() => {
-          console.log('Creación de plantación cancelada');
           setIsModalOpen(false);
           showToast({
             title: 'Creación cancelada',
@@ -117,11 +109,9 @@ const CrearRealiza = ({ onSuccess}: CrearRealizaProps) => {
   };
 
   const openCreateActividadModal = () => {
-    console.log('Abriendo modal de CrearActividad'); // Depuración
     setModalContent(
       <CrearActividad
         onSuccess={async () => {
-          console.log('Actividad creada, refetching actividades');
           await refetchActividades();
           setIsModalOpen(false);
           showToast({
@@ -132,7 +122,6 @@ const CrearRealiza = ({ onSuccess}: CrearRealizaProps) => {
           });
         }}
         onCancel={() => {
-          console.log('Creación de actividad cancelada');
           setIsModalOpen(false);
           showToast({
             title: 'Creación cancelada',
@@ -163,7 +152,6 @@ const CrearRealiza = ({ onSuccess}: CrearRealizaProps) => {
         Error al cargar plantaciones o actividades
         <button
           onClick={() => {
-            console.log('Reintentando cargar plantaciones y actividades');
             refetchPlantaciones();
             refetchActividades();
           }}
@@ -264,7 +252,6 @@ const CrearRealiza = ({ onSuccess}: CrearRealizaProps) => {
         <VentanaModal
           isOpen={isModalOpen}
           onClose={() => {
-            console.log('Cerrando modal');
             setIsModalOpen(false);
           }}
           titulo=""

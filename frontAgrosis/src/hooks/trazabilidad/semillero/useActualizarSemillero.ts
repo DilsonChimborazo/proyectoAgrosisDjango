@@ -17,12 +17,10 @@ export const useActualizarSemillero = () => {
     return useMutation({
         mutationFn: async (semilleroActualizado: Semillero) => {
             const { id, ...datos } = semilleroActualizado; // Extraer el ID y preparar los datos
-            console.log("📡 Enviando datos para actualizar semillero:", datos); // Depuración
             const { data } = await axios.put(`${apiUrl}semilleros/${id}/`, datos); // Enviar PUT al endpoint
             return data;
         },
         onSuccess: () => {
-            console.log("✅ Semillero actualizado con éxito"); // Confirmación
             queryClient.invalidateQueries({ queryKey: ["Semilleros"] }); // Refrescar la lista de semilleros
         },
         

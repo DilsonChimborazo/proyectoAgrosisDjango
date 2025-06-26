@@ -9,7 +9,6 @@ export const useSemilleroPorId = (id: string | undefined) => {
         queryFn: async () => {
             if (!id) throw new Error("ID no proporcionado");
             const { data } = await axios.get(`${apiUrl}semilleros/${id}`);
-            console.log("🌱 Datos obtenidos del backend:", data); // Verifica los datos
             return data;
         },
         enabled: !!id, // Solo realiza la consulta si el ID está definido

@@ -9,7 +9,6 @@ export const useCalendarioPorId = (id: string | undefined) => {
         queryFn: async () => {
             if (!id) throw new Error("ID no proporcionado"); // Verifica que se proporcione un ID válido
             const { data } = await axios.get(`${apiUrl}calendario_lunar/${id}`); // Endpoint correspondiente
-            console.log("🌕 Datos obtenidos del backend:", data); // Imprime los datos obtenidos para depuración
             return data;
         },
         enabled: !!id, // Activa la consulta solo si el ID está definido

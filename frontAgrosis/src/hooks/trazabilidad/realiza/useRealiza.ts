@@ -56,7 +56,6 @@ const fetchRealiza = async (): Promise<Realiza[]> => {
     const { data } = await axios.get(`${apiUrl}realiza/`);
     return data;
   } catch (error: any) {
-    console.error("Error al obtener realiza:", error.response?.data || error.message);
     throw new Error("No se pudo obtener la lista de realiza");
   }
 };
@@ -78,10 +77,8 @@ export interface CrearRealizaDTO {
 const crearRealiza = async (realizaData: CrearRealizaDTO): Promise<Realiza> => {
   try {
     const response = await axios.post(`${apiUrl}realiza/`, realizaData);
-    console.log("Realiza creado exitosamente:", response.data);
     return response.data;
   } catch (error: any) {
-    console.error("Error al crear realiza:", error.response?.data || error.message);
     throw new Error("No se pudo crear el realiza");
   }
 };

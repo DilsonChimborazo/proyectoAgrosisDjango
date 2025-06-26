@@ -153,15 +153,6 @@ const ActualizarEspecie = ({ id, initialValues, onSuccess }: ActualizarEspeciePr
         });
         onSuccess();
       },
-      onError: (error: any) => {
-        console.error('Error al actualizar especie:', error);
-        showToast({
-          title: 'Error',
-          description: error.response?.data?.detail || 'Ocurrió un error al actualizar la especie',
-          timeout: 5000,
-          variant: 'error',
-        });
-      },
     });
   };
 

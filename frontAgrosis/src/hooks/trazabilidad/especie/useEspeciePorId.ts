@@ -9,7 +9,6 @@ export const useEspeciePorId = (id: number | undefined) => {
         queryFn: async () => {
             if (!id) throw new Error("ID no proporcionado"); // Verifica que el ID sea válido
             const { data } = await axios.get(`${apiUrl}especies/${id}/`); // Endpoint de la especie
-            console.log("🌱 Datos obtenidos del backend:", data); // Depuración
             return data;
         },
         enabled: !!id, // Ejecutar solo si el ID existe

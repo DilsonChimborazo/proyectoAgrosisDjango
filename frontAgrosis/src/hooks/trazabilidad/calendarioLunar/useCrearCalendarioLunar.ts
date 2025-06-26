@@ -14,7 +14,6 @@ export const useCrearCalendarioLunar = () => {
 
     return useMutation({
         mutationFn: async (nuevoCalendario: CalendarioLunar) => {
-            console.log("Datos enviados al backend:", nuevoCalendario);
             const { data } = await axios.post(`${apiUrl}calendario_lunar/`, nuevoCalendario);
             return data;
         },

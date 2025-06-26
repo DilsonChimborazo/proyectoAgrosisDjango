@@ -148,7 +148,6 @@ const fetchInsumos = async (ids: number[]): Promise<Insumo[]> => {
     });
     return Array.isArray(data) ? data : [];
   } catch (error) {
-    console.error('Error al obtener insumos:', error);
     return [];
   }
 };
@@ -161,7 +160,6 @@ const fetchHerramientas = async (ids: number[]): Promise<Herramienta[]> => {
     });
     return Array.isArray(data) ? data : [];
   } catch (error) {
-    console.error('Error al obtener herramientas:', error);
     return [];
   }
 };
@@ -212,15 +210,9 @@ const fetchAsignaciones = async (): Promise<Asignacion[]> => {
       })
     );
 
-    console.log('Transformed asignaciones:', transformedData); // Depuración
     return transformedData as Asignacion[];
   } catch (error: any) {
     const errorMessage = error.response?.data?.detail || error.message || 'No se pudo obtener la lista de asignaciones';
-    console.error('Error al obtener asignaciones:', {
-      status: error.response?.status,
-      data: error.response?.data,
-      message: error.message,
-    });
     throw new Error(errorMessage);
   }
 };
@@ -232,11 +224,6 @@ export const finalizarAsignacion = async (id: number): Promise<Asignacion> => {
     return data.asignacion;
   } catch (error: any) {
     const errorMessage = error.response?.data?.error || error.message || 'No se pudo finalizar la asignación';
-    console.error('Error al finalizar asignación:', {
-      status: error.response?.status,
-      data: error.response?.data,
-      message: error.message,
-    });
     throw new Error(errorMessage);
   }
 };

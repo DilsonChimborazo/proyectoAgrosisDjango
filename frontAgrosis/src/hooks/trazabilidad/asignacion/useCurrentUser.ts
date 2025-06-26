@@ -44,7 +44,6 @@ const fetchCurrentUser = async (): Promise<Usuario> => {
         return user as Usuario;
       }
     } catch (error) {
-      console.warn('Usuario almacenado en localStorage inválido:', error);
     }
   }
 
@@ -70,7 +69,6 @@ const fetchCurrentUser = async (): Promise<Usuario> => {
     localStorage.setItem('user', JSON.stringify(perfil));
     return perfil as Usuario;
   } catch (error: any) {
-    console.error('Error al obtener usuario actual:', error.message);
     throw error;
   }
 };
@@ -95,7 +93,6 @@ export const useCurrentUser = () => {
 
   useEffect(() => {
     if (query.error) {
-      console.error('Error en useCurrentUser:', query.error.message);
       if (query.error.message.includes('token')) {
         localStorage.removeItem('token');
         localStorage.removeItem('user');

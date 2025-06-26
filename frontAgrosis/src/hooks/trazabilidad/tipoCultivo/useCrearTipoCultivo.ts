@@ -15,16 +15,11 @@ export const useCrearTipoCultivo = () => {
 
     return useMutation({
         mutationFn: async (nuevoTipoCultivo: Omit<TipoCultivo, 'id'>) => {
-            console.log("🚀 Enviando datos al backend:", nuevoTipoCultivo);
             const { data } = await axios.post(`${apiUrl}tipos_cultivo/`, nuevoTipoCultivo);
             return data;
         },
         onSuccess: () => {
-            console.log("✅ Tipo de cultivo creado con éxito");
             queryClient.invalidateQueries({ queryKey: ["tiposCultivo"] });
-        },
-        onError: (error) => {
-            console.error("❌ Error al crear tipo de cultivo:", error);
         },
     });
 };
