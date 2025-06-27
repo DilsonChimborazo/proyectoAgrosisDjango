@@ -12,6 +12,19 @@ interface Props {
   onSuccess?: () => void;
 }
 
+export interface Usuario {
+  id: number;
+  identificacion: string;
+  email: string;
+  nombre: string;
+  apellido: string;
+  is_active: boolean;
+  fk_id_rol: number | null;
+  ficha: number | null;
+  img: string | null;
+  img_url: string;
+}
+
 interface ItemSeleccionado {
   id: number;
   cantidad: number;
@@ -136,22 +149,33 @@ const RegistrarSalidaBodega = ({
   };
 
   const formFields = [
-    {
-      id: "fk_id_asignacion",
-      label: "Asignación relacionada",
-      type: "select",
-      options: [
-        ...asignacionesPendientes.map((a) => ({
+  {
+    id: "fk_id_asignacion",
+    label: "Asignación relacionada",
+    type: "select",
+    options: [
+      ...asignacionesPendientes.map((a) => {
+        const isUsuario = (item: Usuario | number | { id: number }): item is Usuario => {
+          return (item as Usuario).nombre !== undefined;
+        };
+
+        const primerIdentificacion = a.fk_identificacion[0];
+        const nombreUsuario = primerIdentificacion && isUsuario(primerIdentificacion)
+          ? primerIdentificacion.nombre
+          : 'Usuario desconocido';
+
+        return {
           value: a.id.toString(),
-          label: `Asignación ${a.fecha_programada} - ${a.fk_identificacion[0]?.nombre || 'Usuario desconocido'}`,
-        })),
-      ],
-      onChange: (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
-        const value = e.target.value;
-        setAsignacionSeleccionada(value ? parseInt(value) : null);
-      },
+          label: `Asignación ${a.fecha_programada} - ${nombreUsuario}`,
+        };
+      }),
+    ],
+    onChange: (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
+      const value = e.target.value;
+      setAsignacionSeleccionada(value ? parseInt(value) : null);
     },
-  ];
+  },
+];
 
   const handleSubmit = (formData: any) => {
     if (herramientasSeleccionadas.length === 0 && insumosSeleccionados.length === 0) {

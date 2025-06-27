@@ -121,7 +121,7 @@ export interface Asignacion {
   fecha_programada: string;
   observaciones: string;
   fk_id_realiza: Realiza | number;
-  fk_identificacion: (Usuario|number | { id: number })[];
+  fk_identificacion: (Usuario | number | { id: number })[];
   recursos_asignados: (string | RecursosAsignados)[];
 }
 
