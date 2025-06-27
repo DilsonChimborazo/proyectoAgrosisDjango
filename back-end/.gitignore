@@ -6,4 +6,8 @@ __pycache__/
 !**/migrations/__init__.py
 
 /media/
+
+
+!back-end/media/imagenes/defecto.jpg
+
 /staticfiles/
