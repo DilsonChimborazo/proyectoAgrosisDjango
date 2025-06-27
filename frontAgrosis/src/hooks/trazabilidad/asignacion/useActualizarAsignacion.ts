@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
-import { showToast } from '@/components/globales/Toast'; // Asegúrate de importar showToast
+import { showToast } from '@/components/globales/Toast';
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -34,10 +34,6 @@ const actualizarAsignacion = async (asignacion: ActualizarAsignacionDTO): Promis
 
   const updateData = { estado: asignacion.estado };
 
-  // Depuración: Mostrar datos enviados
-  console.log('Datos enviados al backend:', JSON.stringify(updateData, null, 2));
-  console.log('Token de autenticación:', token);
-
   try {
     const response = await axios.post(
       `${apiUrl}asignaciones_actividades/${asignacion.id}/finalizar/`,
@@ -50,10 +46,8 @@ const actualizarAsignacion = async (asignacion: ActualizarAsignacionDTO): Promis
       }
     );
 
-    console.log('Respuesta del backend:', JSON.stringify(response.data, null, 2));
     return response.data.asignacion || response.data as Asignacion;
   } catch (error: any) {
-    const errorDetails = error.response?.data || error.message;
     let errorMessage = 'No se pudo actualizar la asignación';
 
     if (error.response?.status === 403) {
@@ -69,7 +63,6 @@ const actualizarAsignacion = async (asignacion: ActualizarAsignacionDTO): Promis
       }
     }
 
-    console.error('Error detallado al actualizar asignación:', errorMessage, errorDetails);
     throw new Error(errorMessage);
   }
 };
@@ -79,8 +72,7 @@ export const useActualizarAsignacion = () => {
 
   return useMutation<Asignacion, Error, ActualizarAsignacionDTO>({
     mutationFn: actualizarAsignacion,
-    onSuccess: (data: Asignacion) => {
-      console.log('Asignación actualizada exitosamente:', data);
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['Asignaciones'] });
       showToast({
         title: 'Éxito',
@@ -90,7 +82,6 @@ export const useActualizarAsignacion = () => {
       });
     },
     onError: (error: any) => {
-      console.error('Error al actualizar asignación:', error.message);
       showToast({
         title: 'Error',
         description: error.message || 'Ocurrió un error al actualizar la asignación.',

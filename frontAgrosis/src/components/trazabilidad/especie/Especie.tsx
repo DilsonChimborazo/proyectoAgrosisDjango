@@ -50,17 +50,20 @@ const ListarEspecie = () => {
     setSelectedEspecie(item);
     setModalContenido(
       <ActualizarEspecie
-        id={item.id}
+        id={item.id} // Ya es number
         initialValues={{
           nombre_comun: item.nombre_comun,
           nombre_cientifico: item.nombre_cientifico,
           descripcion: item.descripcion,
-          fk_id_tipo_cultivo: item.tipo_cultivo, // Pasamos el valor actual
+          fk_id_tipo_cultivo: item.tipo_cultivo.includes('ID: ')
+            ? item.tipo_cultivo.replace('ID: ', '') // Extraer el ID si es necesario
+            : item.tipo_cultivo, // Asegúrate de que sea un ID válido
         }}
         onSuccess={() => {
           refetch();
           closeModal();
         }}
+        onCancel={closeModal}
       />
     );
     setIsUpdateModalOpen(true);
@@ -85,30 +88,43 @@ const ListarEspecie = () => {
     <div className="p-4">
       <VentanaModal isOpen={isModalOpen} onClose={closeModal} titulo="Crear Especie" contenido={modalContenido} />
       
-      <VentanaModal isOpen={isDetailModalOpen} onClose={closeModal} titulo="Detalles de la Especie" contenido={
-        selectedEspecie ? (
-          <div className="p-4">
-            <h2 className="text-xl font-bold mb-4">Detalles de la Especie</h2>
-            <div className="space-y-3">
-              <p><span className="font-semibold">Nombre Común:</span> {selectedEspecie.nombre_comun}</p>
-              <p><span className="font-semibold">Nombre Científico:</span> {selectedEspecie.nombre_cientifico}</p>
-              <p><span className="font-semibold">Descripción:</span> {selectedEspecie.descripcion}</p>
-              <p><span className="font-semibold">Tipo Cultivo:</span> {selectedEspecie.tipo_cultivo}</p>
+      <VentanaModal
+        isOpen={isDetailModalOpen}
+        onClose={closeModal}
+        titulo=""
+        contenido={
+          selectedEspecie ? (
+            <div className="p-4">
+              <h2 className="text-xl font-bold mb-4">Detalles de la Especie</h2>
+              <div className="space-y-3">
+                <p>
+                  <span className="font-semibold">Nombre Común:</span> {selectedEspecie.nombre_comun}
+                </p>
+                <p>
+                  <span className="font-semibold">Nombre Científico:</span> {selectedEspecie.nombre_cientifico}
+                </p>
+                <p>
+                  <span className="font-semibold">Descripción:</span> {selectedEspecie.descripcion}
+                </p>
+                <p>
+                  <span className="font-semibold">Tipo Cultivo:</span> {selectedEspecie.tipo_cultivo}
+                </p>
+              </div>
             </div>
-          </div>
-        ) : null
-      } />
+          ) : null
+        }
+      />
 
-      <VentanaModal isOpen={isUpdateModalOpen} onClose={closeModal} titulo="Actualizar Especie" contenido={modalContenido} />
+      <VentanaModal isOpen={isUpdateModalOpen} onClose={closeModal} titulo="" contenido={modalContenido} />
 
       <Tabla
         title="Lista de Especies"
         headers={headers}
         data={tablaData.length > 0 ? tablaData : []}
         onClickAction={handleItemClick}
-        onUpdate={handleUpdateClick} // Ahora se abre el modal con los datos actuales
+        onUpdate={handleUpdateClick}
         onCreate={handleCreate}
-        createButtonTitle="Crear Especie"
+        createButtonTitle=""
       />
 
       {especies?.length === 0 && (

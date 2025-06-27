@@ -5,27 +5,27 @@ import axios from 'axios';
 const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/';
 
 // Definición de interfaces
-interface Insumo {
+export interface Insumo {
   id: number;
   nombre: string; // Puedes agregar más propiedades si la API las incluye
 }
 
-interface Herramienta {
+export interface Herramienta {
   id: number;
   nombre_h: string; // Puedes agregar más propiedades si la API las incluye
 }
 
-interface RecursosAsignados {
+export interface RecursosAsignados {
   insumos?: Insumo[];
   herramientas?: Herramienta[];
 }
 
-interface Rol {
+export interface Rol {
   id: number;
   rol: string;
 }
 
-interface Ficha {
+export interface Ficha {
   id: number;
   numero_ficha: number;
   nombre_ficha: string;
@@ -35,7 +35,7 @@ interface Ficha {
   is_active: boolean;
 }
 
-interface Usuario {
+export interface Usuario {
   id: number;
   identificacion: string;
   email: string;
@@ -48,20 +48,20 @@ interface Usuario {
   img_url: string;
 }
 
-interface Actividad {
+export interface Actividad {
   id: number;
   nombre_actividad: string;
   descripcion: string;
 }
 
-interface TipoCultivo {
+export interface TipoCultivo {
   id: number;
   nombre: string;
   descripcion: string;
   ciclo_duracion?: string;
 }
 
-interface Especie {
+export interface Especie {
   id: number;
   nombre_comun: string;
   nombre_cientifico: string;
@@ -69,24 +69,16 @@ interface Especie {
   fk_id_tipo_cultivo: TipoCultivo;
 }
 
-interface Cultivo {
+export interface Cultivo {
   id: number;
   nombre_cultivo: string;
   descripcion: string;
   fk_id_especie: Especie;
 }
 
-interface Plantacion {
-  id: number;
-  descripcion: string;
-  fk_id_cultivo: Cultivo;
-  cantidad_transplante?: number;
-  fk_id_era: Eras;
-  fk_id_semillero: Semillero;
-  fecha_plantacion: string;
-}
 
-interface Semillero {
+export interface Semillero {
+
   id: number;
   nombre_semilla: string;
   fecha_siembra: Date;
@@ -94,24 +86,33 @@ interface Semillero {
   cantidad: number;
 }
 
-interface Lote {
+export interface Plantacion {
+  id: number;
+  descripcion: string;
+  fk_id_cultivo: Cultivo;
+  cantidad_transplante?: number;
+  fk_id_semillero: Semillero|undefined;
+  fecha_plantacion: string;
+}
+
+export interface Realiza {
+  id: number;
+  fk_id_plantacion: Plantacion| undefined;
+  fk_id_actividad: Actividad;
+}
+
+export interface Lote {
   id: number;
   nombre_lote: string;
   dimencion: string;
   estado: boolean;
 }
 
-interface Eras {
+export interface Eras {
   id: number;
   descripcion: string;
   fk_id_lote: Lote;
   estado: boolean;
-}
-
-interface Realiza {
-  id: number;
-  fk_id_plantacion: Plantacion;
-  fk_id_actividad: Actividad;
 }
 
 export interface Asignacion {
@@ -120,7 +121,7 @@ export interface Asignacion {
   fecha_programada: string;
   observaciones: string;
   fk_id_realiza: Realiza | number;
-  fk_identificacion: Usuario[];
+  fk_identificacion: (Usuario|number | { id: number })[];
   recursos_asignados: (string | RecursosAsignados)[];
 }
 
@@ -149,7 +150,6 @@ const fetchInsumos = async (ids: number[]): Promise<Insumo[]> => {
     });
     return Array.isArray(data) ? data : [];
   } catch (error) {
-    console.error('Error al obtener insumos:', error);
     return [];
   }
 };
@@ -162,7 +162,6 @@ const fetchHerramientas = async (ids: number[]): Promise<Herramienta[]> => {
     });
     return Array.isArray(data) ? data : [];
   } catch (error) {
-    console.error('Error al obtener herramientas:', error);
     return [];
   }
 };
@@ -213,15 +212,9 @@ const fetchAsignaciones = async (): Promise<Asignacion[]> => {
       })
     );
 
-    console.log('Transformed asignaciones:', transformedData); // Depuración
     return transformedData as Asignacion[];
   } catch (error: any) {
     const errorMessage = error.response?.data?.detail || error.message || 'No se pudo obtener la lista de asignaciones';
-    console.error('Error al obtener asignaciones:', {
-      status: error.response?.status,
-      data: error.response?.data,
-      message: error.message,
-    });
     throw new Error(errorMessage);
   }
 };
@@ -233,11 +226,6 @@ export const finalizarAsignacion = async (id: number): Promise<Asignacion> => {
     return data.asignacion;
   } catch (error: any) {
     const errorMessage = error.response?.data?.error || error.message || 'No se pudo finalizar la asignación';
-    console.error('Error al finalizar asignación:', {
-      status: error.response?.status,
-      data: error.response?.data,
-      message: error.message,
-    });
     throw new Error(errorMessage);
   }
 };

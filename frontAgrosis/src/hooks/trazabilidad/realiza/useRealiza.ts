@@ -1,6 +1,7 @@
 // @/hooks/trazabilidad/realiza/useRealiza.ts
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import axios from 'axios';
+import { Cultivo } from '../asignacion/useAsignacion';
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -37,6 +38,7 @@ export interface Plantacion {
   id: number;
   nombre_cultivo: string;
   descripcion: string;
+  fk_id_cultivo:  Cultivo
   fk_id_especie: Especie;
   cantidad_transplante?: number;
   fk_id_semillero?: Semillero;
@@ -54,7 +56,6 @@ const fetchRealiza = async (): Promise<Realiza[]> => {
     const { data } = await axios.get(`${apiUrl}realiza/`);
     return data;
   } catch (error: any) {
-    console.error("Error al obtener realiza:", error.response?.data || error.message);
     throw new Error("No se pudo obtener la lista de realiza");
   }
 };
@@ -76,10 +77,8 @@ export interface CrearRealizaDTO {
 const crearRealiza = async (realizaData: CrearRealizaDTO): Promise<Realiza> => {
   try {
     const response = await axios.post(`${apiUrl}realiza/`, realizaData);
-    console.log("Realiza creado exitosamente:", response.data);
     return response.data;
   } catch (error: any) {
-    console.error("Error al crear realiza:", error.response?.data || error.message);
     throw new Error("No se pudo crear el realiza");
   }
 };

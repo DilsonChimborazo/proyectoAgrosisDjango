@@ -16,16 +16,12 @@ export const useCrearSemillero = () => {
 
     return useMutation({
         mutationFn: async (nuevoSemillero: Semillero) => {
-            console.log("🚀 Datos enviados al backend:", nuevoSemillero);
+
             const { data } = await axios.post(`${apiUrl}semilleros/`, nuevoSemillero); // Endpoint correcto
             return data;
         },
         onSuccess: () => {
-            console.log("✅ Semillero creado con éxito");
             queryClient.invalidateQueries({ queryKey: ["Semilleros"] }); // Refresca la lista automáticamente
-        },
-        onError: (error) => {
-            console.error("❌ Error al crear semillero:", error); // Muestra el error
         },
     });
 };

@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useCrearSemillero, Semillero } from '@/hooks/trazabilidad/semillero/useCrearSemillero';
 import Formulario from '../../globales/Formulario';
 import { useNavigate } from 'react-router-dom';
@@ -20,12 +19,62 @@ const CrearSemillero = ({ onSuccess }: { onSuccess: () => void }) => {
     return !isNaN(date.getTime());
   };
 
-  const handleSubmit = (formData: { [key: string]: string | File }) => {
-    const nombreSemilla = formData.nombre_semilla as string;
-    const fechaSiembra = formData.fecha_siembra as string;
-    const fechaEstimada = formData.fecha_estimada as string;
-    const cantidad = formData.cantidad as string;
+  const handleSubmit = (formData: { [key: string]: string | File | string[] }) => {
+    // Convertimos los valores a string, manejando string[] si es necesario
+    const nombreSemilla = Array.isArray(formData.nombre_semilla)
+      ? formData.nombre_semilla[0]
+      : typeof formData.nombre_semilla === 'string'
+      ? formData.nombre_semilla
+      : '';
+    const fechaSiembra = Array.isArray(formData.fecha_siembra)
+      ? formData.fecha_siembra[0]
+      : typeof formData.fecha_siembra === 'string'
+      ? formData.fecha_siembra
+      : '';
+    const fechaEstimada = Array.isArray(formData.fecha_estimada)
+      ? formData.fecha_estimada[0]
+      : typeof formData.fecha_estimada === 'string'
+      ? formData.fecha_estimada
+      : '';
+    const cantidad = Array.isArray(formData.cantidad)
+      ? formData.cantidad[0]
+      : typeof formData.cantidad === 'string'
+      ? formData.cantidad
+      : '';
 
+    // Verificamos que no se hayan recibido Files
+    if (
+      formData.nombre_semilla instanceof File ||
+      formData.fecha_siembra instanceof File ||
+      formData.fecha_estimada instanceof File ||
+      formData.cantidad instanceof File
+    ) {
+      showToast({
+        title: 'Error al crear semillero',
+        description: 'Los campos no pueden contener archivos',
+        timeout: 5000,
+        variant: 'error',
+      });
+      return;
+    }
+
+    // Validamos que los valores no sean arrays
+    if (
+      Array.isArray(formData.nombre_semilla) ||
+      Array.isArray(formData.fecha_siembra) ||
+      Array.isArray(formData.fecha_estimada) ||
+      Array.isArray(formData.cantidad)
+    ) {
+      showToast({
+        title: 'Error al crear semillero',
+        description: 'Todos los campos deben ser valores de texto o números',
+        timeout: 5000,
+        variant: 'error',
+      });
+      return;
+    }
+
+    // Validamos campos obligatorios
     if (!nombreSemilla || !fechaSiembra || !fechaEstimada || !cantidad) {
       showToast({
         title: 'Error al crear semillero',
@@ -36,6 +85,7 @@ const CrearSemillero = ({ onSuccess }: { onSuccess: () => void }) => {
       return;
     }
 
+    // Validamos fechas
     if (!isValidDate(fechaSiembra)) {
       showToast({
         title: 'Error al crear semillero',
@@ -56,6 +106,7 @@ const CrearSemillero = ({ onSuccess }: { onSuccess: () => void }) => {
       return;
     }
 
+    // Validamos cantidad
     const cantidadNum = parseInt(cantidad, 10);
     if (isNaN(cantidadNum) || cantidadNum <= 0) {
       showToast({

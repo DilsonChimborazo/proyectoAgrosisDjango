@@ -29,8 +29,5 @@ const actualizarAsignacion = async (asignacion: Asignacion) => {
 export const useActualizarAsignacion = () => {
   return useMutation({
     mutationFn: actualizarAsignacion,
-    onError: (error: any) => {
-      console.error('Error al actualizar asignación:', error.response?.data || error.message);
-    },
-  });
-};
+   
+  })}

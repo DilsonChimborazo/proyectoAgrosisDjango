@@ -17,26 +17,16 @@ export const useActualizarEspecie = () => {
     return useMutation({
         mutationFn: async (especieActualizada: Especie) => {
             const { id, ...datos } = especieActualizada; // Extraer ID y preparar datos
-            console.log("📡 Enviando datos para actualizar:", datos);
 
             try {
                 const { data } = await axios.put(`${apiUrl}especies/${id}/`, datos);
-                console.log("✅ Respuesta del backend:", data);
                 return data;
             } catch (error: any) {
-                console.error(
-                    "❌ Error al actualizar la especie:",
-                    error.response?.data || error.message || "Error desconocido"
-                );
                 throw error; // Relanzar el error para manejarlo en el componente
             }
         },
         onSuccess: () => {
-            console.log("✅ Especie actualizada con éxito");
             queryClient.invalidateQueries({ queryKey: ["especies"] }); // Refrescar datos
-        },
-        onError: (error) => {
-            console.error("❌ Error en la actualización:", error);
         },
     });
 };

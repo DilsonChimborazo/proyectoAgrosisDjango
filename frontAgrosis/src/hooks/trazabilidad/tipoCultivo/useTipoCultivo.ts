@@ -5,6 +5,7 @@ export interface TipoCultivo {
     id: number;
     nombre: string;
     descripcion: string;
+    ciclo_duracion: string;
 }
 
 const fetchTiposCultivo = async (): Promise<TipoCultivo[]> => {

@@ -17,7 +17,6 @@ const fetchSemilleros = async (): Promise<Semillero[]> => {
     const { data } = await axios.get(`${apiUrl}semilleros/`);
     return data;
   } catch (error) {
-    console.error("Error al obtener los semilleros:", error);
     throw new Error("No se pudo obtener los semilleros");
   }
 };

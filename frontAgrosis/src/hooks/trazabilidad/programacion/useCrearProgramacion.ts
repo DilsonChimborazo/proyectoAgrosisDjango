@@ -18,24 +18,19 @@ export const useCrearProgramacion = () => {
 
   return useMutation<Programacion, Error, FormData>({
     mutationFn: async (nuevaProgramacion: FormData) => {
-      console.log('🚀 Datos enviados al backend:', nuevaProgramacion);
       const formDataEntries: Record<string, any> = {};
       for (const [key, value] of nuevaProgramacion.entries()) {
         formDataEntries[key] = value instanceof File ? `File: ${value.name}` : value;
       }
-      console.log('🚀 Entradas de FormData:', formDataEntries);
 
       const response = await axios.post(`${apiUrl}programaciones/`, nuevaProgramacion, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
-
-      console.log('📩 Respuesta completa del backend:', response);
       return response.data as Programacion;
     },
-    onSuccess: (data) => {
-      console.log('✅ Programación creada con éxito, datos retornados:', data);
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['programaciones'] });
       showToast({
         title: 'Programación Creada',
@@ -56,11 +51,6 @@ export const useCrearProgramacion = () => {
           errorMessage = error.response.data.detail || error.response.data.message || error.message;
         }
       }
-      console.error('❌ Error al crear programación:', {
-        message: errorMessage,
-        response: error.response?.data,
-        status: error.response?.status,
-      });
       showToast({
         title: 'Error al crear programación',
         description: errorMessage,

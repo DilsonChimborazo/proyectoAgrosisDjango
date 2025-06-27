@@ -47,7 +47,7 @@ export interface Plantacion {
   descripcion: string;
   fk_id_cultivo: Cultivo;
   cantidad_transplante?: number;
-  fk_id_semillero?: Semillero;
+  fk_id_semillero?: Semillero | undefined;
   fecha_plantacion: string;
 }
 
@@ -75,10 +75,23 @@ export interface Eras {
 
 export interface Realiza {
   id: number;
-  fk_id_plantacion: Plantacion;
-  fk_id_actividad: Actividad;
+  fk_id_plantacion: Plantacion | undefined;
+  fk_id_actividad: Actividad | undefined;
+}
+export interface Insumo {
+  id: number;
+  nombre: string; // Puedes agregar más propiedades si la API las incluye
 }
 
+export interface Herramienta {
+  id: number;
+  nombre_h: string; // Puedes agregar más propiedades si la API las incluye
+}
+
+export interface RecursosAsignados {
+  insumos?: Insumo[];
+  herramientas?: Herramienta[];
+}
 export interface Asignacion {
   id: number;
   estado: 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada';
@@ -86,6 +99,7 @@ export interface Asignacion {
   observaciones: string;
   fk_id_realiza: Realiza | number;
   fk_identificacion: Usuario[];
+  recursos_asignados: (string | RecursosAsignados)[];
 }
 
 export interface UnidadMedida {

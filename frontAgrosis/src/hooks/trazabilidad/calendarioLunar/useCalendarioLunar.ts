@@ -15,7 +15,6 @@ const fetchCalendarioLunar = async (): Promise<CalendarioLunar[]> => {
     const { data } = await axios.get(`${apiUrl}calendario_lunar/`);
     return data;
   } catch (error) {
-    console.error("Error al obtener el calendario lunar:", error);
     throw new Error("No se pudo obtener el calendario lunar");
   }
 };

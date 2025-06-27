@@ -19,20 +19,12 @@ interface TipoCultivo {
 
 const fetchEspecie = async (): Promise<Especie[]> => {
   try {
-    console.log("📞 Fetching especies from API:", `${apiUrl}especies/`);
-    const { data, status, headers } = await axios.get(`${apiUrl}especies/`);
-    console.log("📩 API response for especies:", { data, status, headers });
+    const { data} = await axios.get(`${apiUrl}especies/`);
     if (!Array.isArray(data)) {
-      console.error("⚠️ API response is not an array:", data);
       throw new Error("La respuesta del API no es una lista de especies");
     }
     return data;
   } catch (error: any) {
-    console.error("❌ Error al obtener las especies:", {
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status,
-    });
     const errorMessage = error.response?.data?.message || "No se pudo obtener la lista de especies";
     throw new Error(errorMessage);
   }

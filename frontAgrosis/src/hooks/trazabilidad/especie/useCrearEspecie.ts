@@ -21,21 +21,11 @@ export const useCrearEspecie = () => {
 
     return useMutation({
         mutationFn: async (nuevaEspecie: Omit<Especie, 'id'>) => {
-            console.log("🚀 Datos enviados al backend:", nuevaEspecie);
             const response = await axios.post(`${apiUrl}especies/`, nuevaEspecie);
-            console.log("📩 Respuesta del backend:", response.data);
             return response.data;
         },
-        onSuccess: (data) => {
-            console.log("✅ Especie creada con éxito, datos retornados:", data);
+        onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["especies"] });
-        },
-        onError: (error: any) => {
-            console.error("❌ Error al crear especie:", {
-                message: error.message,
-                response: error.response?.data,
-                status: error.response?.status,
-            });
         },
     });
 };

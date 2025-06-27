@@ -3,31 +3,145 @@ import { useCrearProgramacion } from '@/hooks/trazabilidad/programacion/useCrear
 import { useActualizarAsignacion } from '@/hooks/trazabilidad/asignacion/useActualizarAsignacion';
 import { showToast } from '@/components/globales/Toast';
 
-interface Programacion {
-  id?: number;
-  fk_id_asignacionActividades: number;
-  fecha_realizada?: string;
-  duracion?: string;
-  img?: File | null | string;
+// Definir tipos locales compatibles con useProgramacion
+interface Semillero {
+  id: number;
+  nombre_semilla: string;
+  fecha_siembra: Date;
+  fecha_estimada: Date;
+  cantidad: number;
+}
+
+interface Cultivo {
+  id: number;
+  nombre_cultivo: string;
+  descripcion: string;
+  fk_id_especie: {
+    id: number;
+    nombre_comun: string;
+    nombre_cientifico: string;
+    descripcion: string;
+    fk_id_tipo_cultivo: {
+      id: number;
+      nombre: string;
+      descripcion: string;
+      ciclo_duracion?: string;
+    };
+  };
+}
+
+interface Plantacion {
+  id: number;
+  descripcion: string;
+  fk_id_cultivo: Cultivo;
+  cantidad_transplante?: number;
+  fk_id_semillero?: Semillero;
+  fecha_plantacion: string;
+}
+
+interface Actividad {
+  id: number;
+  nombre_actividad: string;
+  descripcion: string;
+}
+
+interface Realiza {
+  id: number;
+  fk_id_plantacion?: Plantacion;
+  fk_id_actividad?: Actividad;
+}
+
+interface Insumo {
+  id: number;
+  nombre: string;
+}
+
+interface Herramienta {
+  id: number;
+  nombre_h: string;
+}
+
+interface RecursosAsignados {
+  insumos?: Insumo[];
+  herramientas?: Herramienta[];
+}
+
+interface Rol {
+  id: number;
+  rol: string;
+}
+
+interface Usuario {
+  id: number;
+  nombre: string;
+  apellido: string;
+  email: string;
+  fk_id_rol: Rol;
+  identificacion: string;
+  is_active: boolean;
+  ficha: {
+    id: number;
+    numero_ficha: number;
+    nombre_ficha: string;
+    abreviacion: string;
+    fecha_inicio: string;
+    fecha_salida: string;
+    is_active: boolean;
+  } | null;
+  img: string | null;
+  img_url: string;
+}
+
+interface UnidadMedida {
+  id: number;
+  nombre_medida: string;
+  unidad_base: 'g' | 'ml' | 'u';
+  factor_conversion: number;
+}
+
+interface LocalAsignacion {
+  id: number;
   estado: 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada';
+  fecha_programada: string;
+  observaciones: string;
+  fk_id_realiza: number | Realiza;
+  fk_identificacion: (number | { id: number } | Usuario)[];
+  recursos_asignados: (string | RecursosAsignados)[];
+}
+
+interface LocalProgramacion {
+  id?: number;
+  fk_id_asignacionActividades: number | LocalAsignacion;
+  fecha_realizada?: string;
+  duracion?: number;
+  cantidad_insumo?: number;
+  img?: string | File | null;
+  fk_unidad_medida?: UnidadMedida;
+  estado?: 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada';
 }
 
 interface CrearProgramacionModalProps {
   asignacionId: number;
-  existingProgramacion?: Programacion;
+  existingProgramacion?: LocalProgramacion;
   onSuccess: () => void;
   onCancel: () => void;
 }
 
-const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess }: CrearProgramacionModalProps) => {
-  const { mutate: createProgramacion, isLoading: isLoadingProgramacion } = useCrearProgramacion();
-  const { mutate: actualizarAsignacion, isLoading: isLoadingAsignacion } = useActualizarAsignacion();
-  const [formData, setFormData] = useState<Programacion>({
-    estado: 'Completada' as 'Pendiente' | 'Completada' | 'Cancelada' | 'Reprogramada',
-    fecha_realizada: '',
-    duracion: '',
-    img: null,
+const CrearProgramacion: React.FC<CrearProgramacionModalProps> = ({
+  asignacionId,
+  existingProgramacion,
+  onSuccess,
+
+}) => {
+  const { mutate: createProgramacion, isLoading: isLoadingProgramacion } = useCrearProgramacion() as any;
+  const { mutate: actualizarAsignacion, isLoading: isLoadingAsignacion } = useActualizarAsignacion() as any;
+
+  const [formData, setFormData] = useState<Partial<LocalProgramacion>>({
     fk_id_asignacionActividades: asignacionId,
+    fecha_realizada: existingProgramacion?.fecha_realizada || '',
+    duracion: existingProgramacion?.duracion || undefined,
+    img: existingProgramacion?.img || null,
+    estado: existingProgramacion?.estado || 'Completada',
   });
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const isCompleted = existingProgramacion?.estado === 'Completada';
@@ -50,7 +164,11 @@ const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess 
       setPreviewUrl(url);
       return () => URL.revokeObjectURL(url);
     }
-    setPreviewUrl(null);
+    if (typeof formData.img === 'string') {
+      setPreviewUrl(formData.img);
+    } else {
+      setPreviewUrl(null);
+    }
   }, [formData.img]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -76,7 +194,7 @@ const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess 
       !formData.fecha_realizada ||
       !formData.duracion ||
       Number(formData.duracion) <= 0 ||
-      !formData.img  // Agregar validación para img
+      !formData.img
     ) {
       return 'Todos los campos son obligatorios';
     }
@@ -118,9 +236,9 @@ const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess 
     }
 
     const formDataToSend = new FormData();
-    formDataToSend.append('estado', formData.estado);
-    formDataToSend.append('fecha_realizada', formData.fecha_realizada);
-    formDataToSend.append('duracion', formData.duracion);
+    formDataToSend.append('estado', formData.estado || 'Completada');
+    formDataToSend.append('fecha_realizada', formData.fecha_realizada || '');
+    formDataToSend.append('duracion', String(formData.duracion || ''));
     formDataToSend.append('fk_id_asignacionActividades', asignacionId.toString());
     if (formData.img instanceof File) {
       formDataToSend.append('img', formData.img);
@@ -185,7 +303,7 @@ const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess 
             type="date"
             id="fecha_realizada"
             name="fecha_realizada"
-            value={formData.fecha_realizada}
+            value={formData.fecha_realizada || ''}
             onChange={handleChange}
             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
           />
@@ -198,9 +316,10 @@ const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess 
             type="number"
             id="duracion"
             name="duracion"
-            value={formData.duracion}
+            value={formData.duracion || ''}
             onChange={handleChange}
             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+            min="0"
           />
         </div>
         <div>
@@ -237,4 +356,4 @@ const CrearProgramacionModal = ({ asignacionId, existingProgramacion, onSuccess 
   );
 };
 
-export default CrearProgramacionModal;
+export default CrearProgramacion;

@@ -16,6 +16,7 @@ import { showToast } from "@/components/globales/Toast";
 interface CrearUsuarioProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess: () => void;
 }
 
 interface FormField {
@@ -135,6 +136,7 @@ const CrearUsuario: React.FC<CrearUsuarioProps> = ({ isOpen, onClose }) => {
     mutation.mutate(newUsuario, {
       onSuccess: () => {
         onClose();
+        
       },
     });
   };

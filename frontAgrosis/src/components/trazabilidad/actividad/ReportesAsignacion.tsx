@@ -20,7 +20,7 @@ interface Asignacion {
 
 const ReporteAsignacion = () => {
   const { data: asignaciones, isLoading, isError, error } = useReporteAsignaciones() as {
-    data: Asignacion[] | { reporte: Asignacion[] } | undefined; // Permitir ambas estructuras
+    data: Asignacion[] | { reporte: Asignacion[] } | undefined;
     isLoading: boolean;
     isError: boolean;
     error?: any;
@@ -43,28 +43,23 @@ const ReporteAsignacion = () => {
         variant: 'error',
       });
     }
-    console.log('Datos recibidos de useReporteAsignaciones:', asignaciones); // Depuración
   }, [isLoading, isError, error]);
 
   const asignacionesList = useMemo(() => {
     // Manejar ambas estructuras posibles: array directo o objeto con "reporte"
     if (Array.isArray(asignaciones)) {
-      console.log('Datos son un array directo:', asignaciones);
       return asignaciones;
     }
     if (asignaciones?.reporte && Array.isArray(asignaciones.reporte)) {
-      console.log('Datos tienen propiedad "reporte":', asignaciones.reporte);
       return asignaciones.reporte;
     }
-    console.log('No se encontraron datos válidos:', asignaciones);
     return [];
   }, [asignaciones]);
 
   const columnasPDF = ['Fecha Programada', 'Plantacion', 'Usuarios', 'Actividad', 'Estado', 'Observaciones'];
   const datosPDF = useMemo(() => {
     if (asignacionesList.length === 0) {
-      console.log('No hay asignaciones para mostrar en el PDF'); // Depuración
-      return [['No hay datos disponibles', '', '', '', '', '']]; // Mensaje en el PDF cuando no hay datos
+      return [['No hay datos disponibles', '', '', '', '', '']];
     }
     return asignacionesList.map((asignacion: Asignacion) => [
       asignacion.fecha_programada || 'Sin fecha',
@@ -98,9 +93,7 @@ const ReporteAsignacion = () => {
           estado: asignacion.estado || 'Sin estado',
           observaciones: asignacion.observaciones || 'Sin observaciones',
         }))}
-        onClickAction={(row) => console.log('Detalle:', row)}
-        onUpdate={(row) => console.log('Actualizar:', row)} // Añadido para consistencia
-        onCreate={() => console.log('Crear nuevo')} // Añadido para consistencia
+        onCreate={() => {}}
         hiddenColumnsByDefault={[]}
         extraButton={
           <DescargarTablaPDF

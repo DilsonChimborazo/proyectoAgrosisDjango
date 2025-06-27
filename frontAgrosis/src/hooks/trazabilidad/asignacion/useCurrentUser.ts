@@ -1,5 +1,5 @@
-// src/hooks/auth/useCurrentUser.ts
 import { useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react'; // Importar useEffect desde 'react'
 import { useAuthContext } from '@/context/AuthContext';
 
 export interface Ficha {
@@ -11,6 +11,7 @@ export interface Ficha {
   fecha_salida: string;
   is_active: boolean;
 }
+
 // Interfaces
 export interface Rol {
   id: number;
@@ -24,30 +25,28 @@ export interface Usuario {
   nombre: string;
   apellido: string;
   is_active: boolean;
-  fk_id_rol: Rol | null; 
+  fk_id_rol: Rol | null;
   ficha: Ficha | null;
   img: string | null;
-  img_url: string
+  img_url: string;
+  password?: string; // Añadido como opcional para compatibilidad
 }
 
 const fetchCurrentUser = async (): Promise<Usuario> => {
-  const apiUrl = import.meta.env.VITE_API_URL;
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
   const token = localStorage.getItem('token');
   const storedUser = localStorage.getItem('user');
 
-  // Si hay un usuario almacenado en localStorage, usarlo
   if (storedUser) {
     try {
       const user = JSON.parse(storedUser);
-      if (user.id && user.nombre && user.apellido && user.fk_id_rol?.rol) {
-        return user;
+      if (user && 'id' in user && 'nombre' in user && 'apellido' in user && user.fk_id_rol?.rol) {
+        return user as Usuario;
       }
     } catch (error) {
-      console.warn('Usuario almacenado en localStorage inválido:', error);
     }
   }
 
-  // Si no hay usuario almacenado o es inválido, hacer solicitud al backend
   if (!token) {
     throw new Error('No se encontró token de autenticación');
   }
@@ -60,14 +59,16 @@ const fetchCurrentUser = async (): Promise<Usuario> => {
     });
 
     if (!response.ok) {
-      throw new Error('No se pudo obtener el perfil del usuario');
+      throw new Error(`No se pudo obtener el perfil del usuario: ${response.statusText}`);
     }
 
     const perfil = await response.json();
-    localStorage.setItem('user', JSON.stringify(perfil)); // Actualizar localStorage
-    return perfil;
+    if (!perfil || typeof perfil !== 'object' || !('id' in perfil)) {
+      throw new Error('Respuesta del servidor no válida');
+    }
+    localStorage.setItem('user', JSON.stringify(perfil));
+    return perfil as Usuario;
   } catch (error: any) {
-    console.error('Error al obtener usuario actual:', error.message);
     throw error;
   }
 };
@@ -75,19 +76,29 @@ const fetchCurrentUser = async (): Promise<Usuario> => {
 export const useCurrentUser = () => {
   const { usuario, setUsuario } = useAuthContext();
 
-  return useQuery<Usuario, Error>({
+  const query = useQuery<Usuario, Error>({
     queryKey: ['currentUser'],
     queryFn: async () => {
       const user = await fetchCurrentUser();
-      setUsuario(usuario); // Actualizar el contexto
+      if (user && setUsuario) {
+        setUsuario(user);
+      }
       return user;
     },
-    initialData: usuario || undefined, // Usar usuario del contexto como datos iniciales
-    enabled: !!localStorage.getItem('token'), // Solo ejecuta si hay token
+    initialData: usuario ? () => usuario : undefined,
+    enabled: !!localStorage.getItem('token'),
     retry: 1,
-    staleTime: 1000 * 60 * 10, // 10 minutos
-    onError: (error) => {
-      console.error('Error en useCurrentUser:', error.message);
-    },
+    staleTime: 1000 * 60 * 10,
   });
+
+  useEffect(() => {
+    if (query.error) {
+      if (query.error.message.includes('token')) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
+    }
+  }, [query.error]);
+
+  return query;
 };

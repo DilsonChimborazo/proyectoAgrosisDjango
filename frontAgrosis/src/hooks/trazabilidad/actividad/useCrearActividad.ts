@@ -15,7 +15,6 @@ const crearActividad = async (actividadData: Omit<Actividad, 'id'>): Promise<Act
     const { data } = await axios.post(`${apiUrl}actividad/`, actividadData);
     return data;
   } catch (error) {
-    console.error('Error al crear actividad:', error);
     throw new Error('No se pudo crear la actividad');
   }
 };

@@ -12,11 +12,26 @@ const CICLO_OPCIONES = [
   { value: 'Transitorios', label: 'Transitorios' },
 ];
 
+const NOMBRE_OPCIONES = [
+  { value: 'Cereales', label: 'Cereales' },
+  { value: 'Hortalizas', label: 'Hortalizas' },
+  { value: 'Leguminosas', label: 'Leguminosas' },
+  { value: 'Árboles Frutales', label: 'Árboles Frutales' },
+  { value: 'Tubérculos', label: 'Tubérculos' },
+  { value: 'Cultivos Forrajeros', label: 'Cultivos Forrajeros' },
+];
+
 const CrearTipoCultivo = ({ onSuccess }: CrearTipoCultivoProps) => {
   const { mutate: createTipoCultivo, isError } = useCrearTipoCultivo();
 
   const formFields = [
-    { id: 'nombre', label: 'Nombre', type: 'text', required: true },
+    {
+      id: 'nombre',
+      label: 'Nombre del Tipo de Cultivo',
+      type: 'select',
+      options: NOMBRE_OPCIONES,
+      required: true,
+    },
     { id: 'descripcion', label: 'Descripción', type: 'textarea', required: true },
     {
       id: 'ciclo_duracion',
@@ -27,11 +42,25 @@ const CrearTipoCultivo = ({ onSuccess }: CrearTipoCultivoProps) => {
     },
   ];
 
-  const handleSubmit = (formData: { [key: string]: string | File }) => {
-    const nombre = formData.nombre as string;
-    const descripcion = formData.descripcion as string;
-    const cicloDuracion = formData.ciclo_duracion as string;
+  const handleSubmit = (formData: { [key: string]: string | File | string[] }) => {
+    // Convertimos los valores a string, manejando string[] si es necesario
+    const nombre = Array.isArray(formData.nombre)
+      ? formData.nombre[0] // Tomamos el primer valor si es un array
+      : typeof formData.nombre === 'string'
+      ? formData.nombre
+      : '';
+    const descripcion = Array.isArray(formData.descripcion)
+      ? formData.descripcion[0]
+      : typeof formData.descripcion === 'string'
+      ? formData.descripcion
+      : '';
+    const cicloDuracion = Array.isArray(formData.ciclo_duracion)
+      ? formData.ciclo_duracion[0]
+      : typeof formData.ciclo_duracion === 'string'
+      ? formData.ciclo_duracion
+      : '';
 
+    // Validamos que los campos no estén vacíos
     if (!nombre || !descripcion || !cicloDuracion) {
       showToast({
         title: 'Aviso',
@@ -42,8 +71,23 @@ const CrearTipoCultivo = ({ onSuccess }: CrearTipoCultivoProps) => {
       return;
     }
 
+    // Verificamos que no se hayan recibido Files, ya que no los esperamos
+    if (
+      formData.nombre instanceof File ||
+      formData.descripcion instanceof File ||
+      formData.ciclo_duracion instanceof File
+    ) {
+      showToast({
+        title: 'Aviso',
+        description: 'Los campos no pueden contener archivos',
+        timeout: 3000,
+        variant: 'error',
+      });
+      return;
+    }
+
     createTipoCultivo(
-      { nombre, descripcion, ciclo_duracion: cicloDuracion },
+      { nombre: nombre.trim(), descripcion: descripcion.trim(), ciclo_duracion: cicloDuracion },
       {
         onSuccess: () => {
           showToast({
@@ -57,7 +101,8 @@ const CrearTipoCultivo = ({ onSuccess }: CrearTipoCultivoProps) => {
         onError: (error: any) => {
           showToast({
             title: 'Error al crear tipo de cultivo',
-            description: error.response?.data?.detail || 'Ocurrió un error al registrar el tipo de cultivo',
+            description:
+              error.response?.data?.detail || 'Ocurrió un error al registrar el tipo de cultivo',
             timeout: 3000,
             variant: 'error',
           });

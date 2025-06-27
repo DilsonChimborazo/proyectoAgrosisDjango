@@ -5,6 +5,37 @@ import { jwtDecode } from 'jwt-decode';
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
+
+// Interfaces
+export interface Ficha {
+  id: number;
+  numero_ficha: number;
+  nombre_ficha: string;
+  abreviacion: string;
+  fecha_inicio: string;
+  fecha_salida: string;
+  is_active: boolean;
+}
+
+export interface Rol {
+  id: number;
+  rol: string;
+}
+
+export interface Usuario {
+  id: number;
+  identificacion: string;
+  email: string;
+  nombre: string;
+  apellido: string;
+  is_active: boolean;
+  fk_id_rol: Rol | null;
+  ficha: Ficha | null;
+  password?: string;
+  img: string | null;
+  img_url: string;
+}
+
 export interface FormData {
   identificacion: string;
   nombre: string;

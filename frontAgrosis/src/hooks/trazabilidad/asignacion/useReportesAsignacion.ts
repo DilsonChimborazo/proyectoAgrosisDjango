@@ -17,7 +17,6 @@ const fetchReporteAsignaciones = async (): Promise<ReporteAsignacion[]> => {
     const { data } = await axios.get(`${apiUrl}asignaciones_actividades/reporte-asignaciones/`);
     return data.reporte;
   } catch (error) {
-    console.error('Error al obtener el reporte de asignaciones:', error);
     throw new Error('No se pudo obtener el reporte');
   }
 };

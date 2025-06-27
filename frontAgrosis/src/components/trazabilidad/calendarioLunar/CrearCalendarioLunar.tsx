@@ -25,11 +25,7 @@ const CrearCalendarioLunar: React.FC<CrearCalendarioLunarProps> = ({ closeModal,
     mutation.mutate(formData, {
       onSuccess: () => {
         closeModal();
-      },
-      onError: (error) => {
-        alert('Error al crear actividad');
-        console.error(error);
-      },
+      }
     });
   };
 
