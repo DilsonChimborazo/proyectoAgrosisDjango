@@ -9,7 +9,6 @@ export const useVentaId = (id_venta: string | undefined) => {
         queryFn: async () => {
             if (!id_venta) throw new Error("ID no proporcionado");
             const { data } = await axios.get(`${apiUrl}venta/${id_venta}`);
-            console.log("🌱 Datos obtenidos del backend:", data); // 👀 Verifica los datos
             return data;
         },
         enabled: !!id_venta, 

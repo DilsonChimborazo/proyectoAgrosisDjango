@@ -9,7 +9,6 @@ export const useProduccionId = (id_produccion: string | undefined) => {
         queryFn: async () => {
             if (!id_produccion) throw new Error("ID no proporcionado");
             const { data } = await axios.get(`${apiUrl}produccion/${id_produccion}`);
-            console.log("🌱 Datos obtenidos del backend:", data); // 👀 Verifica los datos
             return data;
         },
         enabled: !!id_produccion, 
