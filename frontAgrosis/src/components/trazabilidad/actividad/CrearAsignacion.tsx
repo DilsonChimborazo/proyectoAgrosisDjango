@@ -14,7 +14,7 @@ interface SelectOption {
   cantidad?: number; // Para almacenar cantidad_herramienta o cantidad_insumo
 }
 
-const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios, onCreateUsuario }: { onSuccess: () => void; usuarios: any[]; onCreateUsuario: (newUser: any) => void }) => {
+const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios }: { onSuccess: () => void; usuarios: any[]; onCreateUsuario: (newUser: any) => void }) => {
   const { mutate: createAsignacion, isPending } = useCrearAsignacion();
   const { data: realizaList = [], isLoading: isLoadingRealiza, error: errorRealiza, refetch: refetchRealiza } = useRealiza();
   const [formData, setFormData] = useState({
