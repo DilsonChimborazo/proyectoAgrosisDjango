@@ -77,7 +77,6 @@ export default function Principal({ children }: LayoutProps) {
   const [openMenus, setOpenMenus] = useState<{ [key: string]: boolean }>({});
   const navigate = useNavigate();
 
-
   const toggleMenu = (name: string) => {
     setOpenMenus((prev) => ({ ...prev, [name]: !prev[name] }));
   };
@@ -95,18 +94,19 @@ export default function Principal({ children }: LayoutProps) {
     navigate("/");
   };
 
-type Rol = "Invitado" | "Aprendiz" | "Pasante" | "SinRol";
+type Rol = "Invitado" | "Aprendiz" | "Pasante" | "SinRol" | "Administrador";
 
 // 2. Permisos definidos por rol
 const permisosPorRol: Record<Rol, string[]> = {
   Invitado: ["Home"],
   Aprendiz: menuItems
-    .filter(item => !["Finanzas", "Inventario", "IoT"].includes(item.name))
+    .filter(item => !["Inventario", "IoT"].includes(item.name))
     .map(item => item.name),
   Pasante: menuItems
-    .filter(item => !["Finanzas", "IoT"].includes(item.name)) // sí puede ver Inventario
+    .filter(item => !["IoT"].includes(item.name))
     .map(item => item.name),
   SinRol: [],
+  Administrador: menuItems.map(item => item.name),
 };
 
 // 3. Detectar rol actual del usuario
@@ -115,10 +115,18 @@ const rolUsuario: Rol = (usuario?.rol as Rol) || "SinRol";
 // 4. Filtrar menú principal y submenús según permisos
 const modulosPermitidos = menuItems
   .filter(item => permisosPorRol[rolUsuario]?.includes(item.name))
-  .map(item => ({
-    ...item,
-    submenu: item.submenu,
-  }));
+  .map(item => {
+    if (item.name === "Finanzas" && ["Aprendiz", "Pasante"].includes(rolUsuario)) {
+      return {
+        ...item,
+        submenu: item.submenu?.filter(subItem => subItem.name === "Stock"),
+      };
+    }
+    return {
+      ...item,
+      submenu: item.submenu,
+    };
+  });
 
   return (
     <div className="relative flex h-screen w-full overflow-x-hidden">
@@ -141,12 +149,12 @@ const modulosPermitidos = menuItems
           <img 
             src="/logoSena.png" 
             alt="SENA" 
-            className="w-14 sm:w-16" // Pequeño: w-10 (2.5rem), Grande: sm:w-14 (3.5rem)
+            className="w-14 sm:w-16"
           />       
           <img 
             src="/agrosoft.png" 
             alt="logo" 
-            className="w-20 sm:w-28" // Pequeño: w-16 (4rem), Grande: sm:w-20 (5rem)
+            className="w-20 sm:w-28"
           />
         </div>
 
