@@ -8,87 +8,19 @@ import CrearUsuario from '../../usuarios/usuario/crearUsuario';
 import { showToast } from '@/components/globales/Toast';
 import axios from 'axios';
 
-interface Rol {
-  id: number;
-  rol: string;
-}
-
-interface Ficha {
-  id: number;
-  numero_ficha: number;
-  nombre_ficha: string;
-  abreviacion: string;
-  fecha_inicio: string;
-  fecha_salida: string;
-  is_active: boolean;
-}
-
-interface Usuario {
-  id: number;
-  nombre: string;
-  apellido: string;
-  email: string;
-  ficha?: Ficha | string | null;
-  fk_id_rol?: Rol;
-}
-
-interface Cultivo {
-  id: number;
-  nombre_cultivo: string;
-  descripcion: string;
-  fk_id_especie: any;
-}
-
-interface Plantacion {
-  id: number;
-  descripcion: string;
-  fk_id_cultivo?: Cultivo;
-  cantidad_transplante?: number;
-  fk_id_semillero?: any;
-  fecha_plantacion: string;
-}
-
-interface Actividad {
-  id: number;
-  nombre_actividad: string;
-  descripcion: string;
-}
-
-interface Realiza {
-  id: number;
-  fk_id_plantacion: Plantacion;
-  fk_id_actividad: Actividad;
-}
-
-interface Herramienta {
-  id: number;
-  nombre_h: string;
-}
-
-interface Insumo {
-  id: number;
-  nombre: string;
-}
-
-interface CrearAsignacionModalProps {
-  onSuccess: () => void;
-  onCancel: () => void;
-  usuarios: Usuario[];
-  onCreateUsuario: (newUser: Usuario) => void;
-}
-
 interface SelectOption {
   value: string;
   label: string;
+  cantidad?: number; // Para almacenar cantidad_herramienta o cantidad_insumo
 }
 
-const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios }: CrearAsignacionModalProps) => {
+const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios, onCreateUsuario }: { onSuccess: () => void; usuarios: any[]; onCreateUsuario: (newUser: any) => void }) => {
   const { mutate: createAsignacion, isPending } = useCrearAsignacion();
   const { data: realizaList = [], isLoading: isLoadingRealiza, error: errorRealiza, refetch: refetchRealiza } = useRealiza();
   const [formData, setFormData] = useState({
     fk_id_realiza: '',
     fk_identificacion: [] as string[],
-    estado: 'Pendiente' as 'Pendiente',
+    estado: 'Pendiente',
     fecha_programada: '',
     observaciones: '',
     herramientas: [] as SelectOption[],
@@ -98,9 +30,9 @@ const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios }: CrearAsignaci
   const [selectedFicha, setSelectedFicha] = useState<string>('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState<React.ReactNode>(null);
-  const [usuarios, setUsuarios] = useState<Usuario[]>(initialUsuarios);
-  const [herramientas, setHerramientas] = useState<Herramienta[]>([]);
-  const [insumos, setInsumos] = useState<Insumo[]>([]);
+  const [usuarios, setUsuarios] = useState<any[]>(initialUsuarios);
+  const [herramientas, setHerramientas] = useState<any[]>([]);
+  const [insumos, setInsumos] = useState<any[]>([]);
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -115,16 +47,8 @@ const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios }: CrearAsignaci
           axios.get(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/'}herramientas/`),
           axios.get(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/'}insumo/`),
         ]);
-        if (Array.isArray(herramientasResp.data)) {
-          setHerramientas(herramientasResp.data);
-        } else {
-          setHerramientas([]);
-        }
-        if (Array.isArray(insumosResp.data)) {
-          setInsumos(insumosResp.data);
-        } else {
-          setInsumos([]);
-        }
+        setHerramientas(herramientasResp.data);
+        setInsumos(insumosResp.data);
       } catch (error: any) {
         showToast({
           title: 'Error',
@@ -137,7 +61,7 @@ const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios }: CrearAsignaci
     fetchResources();
   }, []);
 
-  const roleOptions: SelectOption[] = Array.from(
+  const roleOptions = Array.from(
     new Set(usuarios.map((usuario) => usuario.fk_id_rol?.id || 0).filter((id) => id !== 0))
   ).map((fk_id_rol) => {
     const usuario = usuarios.find((u) => u.fk_id_rol?.id === fk_id_rol);
@@ -147,7 +71,7 @@ const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios }: CrearAsignaci
     };
   });
 
-  const fichaOptions: SelectOption[] = Array.from(
+  const fichaOptions = Array.from(
     new Set(
       usuarios
         .filter((usuario) => {
@@ -168,7 +92,7 @@ const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios }: CrearAsignaci
     label: ficha === 'Sin ficha' ? 'Sin ficha' : `Ficha ${ficha}`,
   }));
 
-  const usuarioOptions: SelectOption[] = [
+  const usuarioOptions = [
     ...formData.fk_identificacion
       .map((id) => {
         const usuario = usuarios.find((u) => String(u.id) === id);
@@ -206,15 +130,47 @@ const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios }: CrearAsignaci
       })),
   ];
 
-  const opcionesHerramientas: SelectOption[] = herramientas.map((h) => ({
+  const opcionesHerramientas = herramientas.map((h) => ({
     value: String(h.id),
-    label: h.nombre_h,
+    label: `${h.nombre_h} (Cantidad disponible: ${h.cantidad_herramienta})`,
+    cantidad: h.cantidad_herramienta,
   }));
 
-  const opcionesInsumos: SelectOption[] = insumos.map((i) => ({
+  const opcionesInsumos = insumos.map((i) => ({
     value: String(i.id),
-    label: i.nombre,
+    label: `${i.nombre} (Cantidad disponible: ${i.cantidad_insumo})`,
+    cantidad: i.cantidad_insumo,
   }));
+
+  const handleHerramientasChange = (newValue: MultiValue<SelectOption>, _actionMeta: ActionMeta<SelectOption>) => {
+    const selectedHerramientas = newValue as SelectOption[];
+    const invalidHerramienta = selectedHerramientas.find((h) => h.cantidad === 0);
+    if (invalidHerramienta) {
+      showToast({
+        title: 'Error',
+        description: `La herramienta "${invalidHerramienta.label.split(' (')[0]}" no se puede seleccionar porque no hay cantidad disponible.`,
+        timeout: 5000,
+        variant: 'error',
+      });
+      return;
+    }
+    setFormData((prev) => ({ ...prev, herramientas: selectedHerramientas }));
+  };
+
+  const handleInsumosChange = (newValue: MultiValue<SelectOption>, _actionMeta: ActionMeta<SelectOption>) => {
+    const selectedInsumos = newValue as SelectOption[];
+    const invalidInsumo = selectedInsumos.find((i) => i.cantidad === 0);
+    if (invalidInsumo) {
+      showToast({
+        title: 'Error',
+        description: `El insumo "${invalidInsumo.label.split(' (')[0]}" no se puede seleccionar porque no hay cantidad disponible.`,
+        timeout: 5000,
+        variant: 'error',
+      });
+      return;
+    }
+    setFormData((prev) => ({ ...prev, insumos: selectedInsumos }));
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -235,14 +191,6 @@ const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios }: CrearAsignaci
   const handleUsuariosChange = (newValue: MultiValue<SelectOption>, _actionMeta: ActionMeta<SelectOption>) => {
     const selectedIds = newValue ? newValue.map((option) => option.value) : [];
     setFormData((prev) => ({ ...prev, fk_identificacion: selectedIds }));
-  };
-
-  const handleHerramientasChange = (newValue: MultiValue<SelectOption>, _actionMeta: ActionMeta<SelectOption>) => {
-    setFormData((prev) => ({ ...prev, herramientas: newValue as SelectOption[] }));
-  };
-
-  const handleInsumosChange = (newValue: MultiValue<SelectOption>, _actionMeta: ActionMeta<SelectOption>) => {
-    setFormData((prev) => ({ ...prev, insumos: newValue as SelectOption[] }));
   };
 
   const validateForm = () => {
@@ -411,7 +359,7 @@ const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios }: CrearAsignaci
               disabled={isPending}
             >
               <option value="">Selecciona una gestión de cultivo</option>
-              {realizaList.map((realiza: Realiza) => (
+              {realizaList.map((realiza) => (
                 <option key={realiza.id} value={realiza.id}>
                   {`Plantación: ${
                     realiza.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo || 'Sin cultivo'
@@ -547,40 +495,38 @@ const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios }: CrearAsignaci
             disabled={isPending}
           />
         </div>
-        <div>
-          <label htmlFor="herramientas" className="block text-sm font-medium text-gray-700">
-            Herramientas
-          </label>
-          <Select
-            id="herramientas"
-            isMulti
-            options={opcionesHerramientas}
-            value={formData.herramientas}
-            onChange={handleHerramientasChange}
-            placeholder="Selecciona herramientas..."
-            isDisabled={isPending}
-          />
-          {opcionesHerramientas.length === 0 && (
-            <p className="text-red-500 text-sm mt-1">No se cargaron herramientas.</p>
-          )}
-        </div>
-        <div>
-          <label htmlFor="insumos" className="block text-sm font-medium text-gray-700">
-            Insumos
-          </label>
-          <Select
-            id="insumos"
-            isMulti
-            options={opcionesInsumos}
-            value={formData.insumos}
-            onChange={handleInsumosChange}
-            placeholder="Selecciona insumos..."
-            isDisabled={isPending}
-          />
-          {opcionesInsumos.length === 0 && (
-            <p className="text-red-500 text-sm mt-1">No se cargaron insumos.</p>
-          )}
-        </div>
+        {opcionesHerramientas.length > 0 && (
+          <div>
+            <label htmlFor="herramientas" className="block text-sm font-medium text-gray-700">
+              Herramientas
+            </label>
+            <Select
+              id="herramientas"
+              isMulti
+              options={opcionesHerramientas}
+              value={formData.herramientas}
+              onChange={handleHerramientasChange}
+              placeholder="Selecciona herramientas..."
+              isDisabled={isPending}
+            />
+          </div>
+        )}
+        {opcionesInsumos.length > 0 && (
+          <div>
+            <label htmlFor="insumos" className="block text-sm font-medium text-gray-700">
+              Insumos
+            </label>
+            <Select
+              id="insumos"
+              isMulti
+              options={opcionesInsumos}
+              value={formData.insumos}
+              onChange={handleInsumosChange}
+              placeholder="Selecciona insumos..."
+              isDisabled={isPending}
+            />
+          </div>
+        )}
         <div className="flex justify-center">
           <button
             type="submit"

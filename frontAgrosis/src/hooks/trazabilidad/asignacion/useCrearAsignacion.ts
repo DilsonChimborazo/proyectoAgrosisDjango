@@ -7,12 +7,14 @@ const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/';
 // Reusing interfaces from the first snippet for consistency
 export interface Insumo {
   id: number;
-  nombre: string; // Puedes agregar más propiedades si la API las incluye
+  nombre: string; 
+  cantidad_insumo:number// Puedes agregar más propiedades si la API las incluye
 }
 
 export interface Herramienta {
   id: number;
   nombre_h: string; // Puedes agregar más propiedades si la API las incluye
+  cantidad_herramienta:number
 }
 
 export interface RecursosAsignados {
@@ -123,7 +125,7 @@ export interface Asignacion {
 }
 
 export interface CrearAsignacionDTO {
-  estado: 'Pendiente';
+  estado: 'Pendiente' | string;
   fecha_programada: string;
   observaciones: string;
   fk_id_realiza: number;
