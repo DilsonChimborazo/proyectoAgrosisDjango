@@ -246,7 +246,13 @@ const Usuarios = () => {
           isOpen={isModalOpen}
           onClose={closeModal}
           titulo="Crear Usuario"
-          contenido={<CrearUsuario isOpen={true} onClose={closeModal} />}
+          contenido={<CrearUsuario isOpen={true} onClose={closeModal} onSuccess={() => {
+          closeModal(); 
+          showToast({
+            title: "Usuario creado correctamente",
+            variant: "success",
+          });
+        }} />}
         />
       )}
 
