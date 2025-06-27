@@ -3,11 +3,16 @@ import Tabla from '../../globales/Tabla';
 import DescargarTablaPDF from '../../globales/DescargarTablaPDF';
 import { showToast } from '@/components/globales/Toast';
 
-// Definición de tipos basada en el hook
+// Definición de tipos basada en el hook y el componente original
+interface Usuario {
+  nombre: string;
+}
+
 interface ReporteAsignacion {
   fecha_programada: string;
   plantacion: string;
-  usuario: string;
+  usuario?: string; // Campo del hook
+  usuarios?: Usuario[]; // Campo del componente original
   actividad: string;
   estado: string;
   observaciones: string;
@@ -45,19 +50,26 @@ const ReporteAsignacion = ({ data: asignaciones, loading: isLoading, error: isEr
     return asignaciones || [];
   }, [asignaciones]);
 
-  const columnasPDF = ['Fecha Programada', 'Plantación', 'Usuario', 'Actividad', 'Estado', 'Observaciones'];
+  const columnasPDF = ['Fecha Programada', 'Plantacion', 'Usuario', 'Actividad', 'Estado', 'Observaciones'];
   const datosPDF = useMemo(() => {
     if (asignacionesList.length === 0) {
       return [['No hay datos disponibles', '', '', '', '', '']];
     }
-    return asignacionesList.map((asignacion: ReporteAsignacion) => [
-      asignacion.fecha_programada || 'Sin fecha',
-      asignacion.plantacion || 'Sin plantación',
-      asignacion.usuario || 'Sin usuario',
-      asignacion.actividad || 'Sin actividad',
-      asignacion.estado || 'Sin estado',
-      asignacion.observaciones || 'Sin observaciones',
-    ]);
+    return asignacionesList.map((asignacion: ReporteAsignacion) => {
+      // Manejar usuario o usuarios
+      const usuariosText = asignacion.usuarios
+        ? asignacion.usuarios.map((u) => u.nombre).join(', ') || 'Sin usuarios'
+        : asignacion.usuario || 'Sin usuario';
+      
+      return [
+        asignacion.fecha_programada || 'Sin fecha',
+        asignacion.plantacion || 'Sin plantación',
+        usuariosText,
+        asignacion.actividad || 'Sin actividad',
+        asignacion.estado || 'Sin estado',
+        asignacion.observaciones || 'Sin observaciones',
+      ];
+    });
   }, [asignacionesList]);
 
   if (isLoading) {
@@ -73,15 +85,22 @@ const ReporteAsignacion = ({ data: asignaciones, loading: isLoading, error: isEr
       <Tabla
         title="Reporte de Asignaciones"
         headers={columnasPDF}
-        data={asignacionesList.map((asignacion: ReporteAsignacion, index) => ({
-          id: index,
-          fecha_programada: asignacion.fecha_programada || 'Sin fecha',
-          plantacion: asignacion.plantacion || 'Sin plantación',
-          usuario: asignacion.usuario || 'Sin usuario',
-          actividad: asignacion.actividad || 'Sin actividad',
-          estado: asignacion.estado || 'Sin estado',
-          observaciones: asignacion.observaciones || 'Sin observaciones',
-        }))}
+        data={asignacionesList.map((asignacion: ReporteAsignacion, index) => {
+          // Manejar usuario o usuarios
+          const usuariosText = asignacion.usuarios
+            ? asignacion.usuarios.map((u) => u.nombre).join(', ') || 'Sin usuarios'
+            : asignacion.usuario || 'Sin usuario';
+          
+          return {
+            id: index,
+            fecha_programada: asignacion.fecha_programada || 'Sin fecha',
+            plantacion: asignacion.plantacion || 'Sin plantación',
+            usuario: usuariosText,
+            actividad: asignacion.actividad || 'Sin actividad',
+            estado: asignacion.estado || 'Sin estado',
+            observaciones: asignacion.observaciones || 'Sin observaciones',
+          };
+        })}
         onCreate={() => {}}
         hiddenColumnsByDefault={[]}
         extraButton={
