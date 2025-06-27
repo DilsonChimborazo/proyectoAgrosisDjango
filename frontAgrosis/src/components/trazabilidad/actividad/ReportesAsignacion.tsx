@@ -1,31 +1,26 @@
 import { useMemo, useEffect } from 'react';
-import { useReporteAsignaciones } from '@/hooks/trazabilidad/asignacion/useReportesAsignacion';
 import Tabla from '../../globales/Tabla';
 import DescargarTablaPDF from '../../globales/DescargarTablaPDF';
 import { showToast } from '@/components/globales/Toast';
 
-// Definición de tipos basados en la respuesta del backend
-interface Usuario {
-  nombre: string;
-}
-
-interface Asignacion {
+// Definición de tipos basada en el hook
+interface ReporteAsignacion {
   fecha_programada: string;
   plantacion: string;
-  usuarios: Usuario[];
+  usuario: string;
   actividad: string;
   estado: string;
   observaciones: string;
 }
 
-const ReporteAsignacion = () => {
-  const { data: asignaciones, isLoading, isError, error } = useReporteAsignaciones() as {
-    data: Asignacion[] | { reporte: Asignacion[] } | undefined;
-    isLoading: boolean;
-    isError: boolean;
-    error?: any;
-  };
+// Definición de la interfaz de props para el componente
+interface ReporteAsignacionProps {
+  data: ReporteAsignacion[] | undefined;
+  loading: boolean;
+  error: Error | null;
+}
 
+const ReporteAsignacion = ({ data: asignaciones, loading: isLoading, error: isError }: ReporteAsignacionProps) => {
   useEffect(() => {
     if (isLoading) {
       showToast({
@@ -35,36 +30,30 @@ const ReporteAsignacion = () => {
         variant: 'info',
       });
     }
-    if (isError && error) {
+    if (isError) {
       showToast({
         title: 'Error al cargar reporte',
-        description: `No se pudo cargar el reporte: ${error.message || 'Desconocido'}`,
+        description: `No se pudo cargar el reporte: ${isError?.message || 'Desconocido'}`,
         timeout: 5000,
         variant: 'error',
       });
     }
-  }, [isLoading, isError, error]);
+  }, [isLoading, isError]);
 
   const asignacionesList = useMemo(() => {
-    // Manejar ambas estructuras posibles: array directo o objeto con "reporte"
-    if (Array.isArray(asignaciones)) {
-      return asignaciones;
-    }
-    if (asignaciones?.reporte && Array.isArray(asignaciones.reporte)) {
-      return asignaciones.reporte;
-    }
-    return [];
+    // Manejar caso de datos undefined o vacíos
+    return asignaciones || [];
   }, [asignaciones]);
 
-  const columnasPDF = ['Fecha Programada', 'Plantacion', 'Usuarios', 'Actividad', 'Estado', 'Observaciones'];
+  const columnasPDF = ['Fecha Programada', 'Plantación', 'Usuario', 'Actividad', 'Estado', 'Observaciones'];
   const datosPDF = useMemo(() => {
     if (asignacionesList.length === 0) {
       return [['No hay datos disponibles', '', '', '', '', '']];
     }
-    return asignacionesList.map((asignacion: Asignacion) => [
+    return asignacionesList.map((asignacion: ReporteAsignacion) => [
       asignacion.fecha_programada || 'Sin fecha',
       asignacion.plantacion || 'Sin plantación',
-      asignacion.usuarios.map((u) => u.nombre).join(', ') || 'Sin usuarios',
+      asignacion.usuario || 'Sin usuario',
       asignacion.actividad || 'Sin actividad',
       asignacion.estado || 'Sin estado',
       asignacion.observaciones || 'Sin observaciones',
@@ -84,11 +73,11 @@ const ReporteAsignacion = () => {
       <Tabla
         title="Reporte de Asignaciones"
         headers={columnasPDF}
-        data={asignacionesList.map((asignacion: Asignacion, index) => ({
+        data={asignacionesList.map((asignacion: ReporteAsignacion, index) => ({
           id: index,
           fecha_programada: asignacion.fecha_programada || 'Sin fecha',
           plantacion: asignacion.plantacion || 'Sin plantación',
-          usuarios: asignacion.usuarios.map((u) => u.nombre).join(', ') || 'Sin usuarios',
+          usuario: asignacion.usuario || 'Sin usuario',
           actividad: asignacion.actividad || 'Sin actividad',
           estado: asignacion.estado || 'Sin estado',
           observaciones: asignacion.observaciones || 'Sin observaciones',
