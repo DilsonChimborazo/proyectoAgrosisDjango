@@ -462,7 +462,6 @@ const ListarAsignacion: React.FC = () => {
         }}
         usuarios={usuarios}
         onCreateUsuario={() => refetchAsignaciones()}
-        onCancel={closeModal}
       />
     );
     setIsModalOpen(true);
