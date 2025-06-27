@@ -100,8 +100,12 @@ type Rol = "Invitado" | "Aprendiz" | "Pasante" | "SinRol";
 // 2. Permisos definidos por rol
 const permisosPorRol: Record<Rol, string[]> = {
   Invitado: ["Home"],
-  Aprendiz: ["Home", "Usuarios", "Calendario", "Mapa", "Cultivo", "Plagas", "Reportes"],
-  Pasante: ["Home", "Usuarios", "Calendario", "Mapa", "Cultivo", "Plagas", "Inventario","Reportes"],
+  Aprendiz: menuItems
+    .filter(item => !["Finanzas", "Inventario", "IoT"].includes(item.name))
+    .map(item => item.name),
+  Pasante: menuItems
+    .filter(item => !["Finanzas", "IoT"].includes(item.name)) // sí puede ver Inventario
+    .map(item => item.name),
   SinRol: [],
 };
 
@@ -109,20 +113,12 @@ const permisosPorRol: Record<Rol, string[]> = {
 const rolUsuario: Rol = (usuario?.rol as Rol) || "SinRol";
 
 // 4. Filtrar menú principal y submenús según permisos
-const modulosPermitidos =
-  permisosPorRol[rolUsuario]?.length > 0
-    ? menuItems
-        .filter((item) => permisosPorRol[rolUsuario].includes(item.name))
-        .map((item) => ({
-          ...item,
-          submenu: item.submenu?.filter((subItem) =>
-            permisosPorRol[rolUsuario].includes(subItem.name)
-          ),
-        }))
-    : menuItems;
-
-
-
+const modulosPermitidos = menuItems
+  .filter(item => permisosPorRol[rolUsuario]?.includes(item.name))
+  .map(item => ({
+    ...item,
+    submenu: item.submenu,
+  }));
 
   return (
     <div className="relative flex h-screen w-full overflow-x-hidden">
