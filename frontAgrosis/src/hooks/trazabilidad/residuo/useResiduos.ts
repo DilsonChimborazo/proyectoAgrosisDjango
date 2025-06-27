@@ -52,8 +52,6 @@ export interface TipoResiduos {
 const fetchAsignacion = async (): Promise<Residuos[]> => {
     try {
         const response = await axios.get(`${apiUrl}residuos/`);
-        console.log("Respuesta completa de la API:", response);
-        console.log("Datos de residuos:", response.data);
         return response.data;
     } catch (error) {
         console.error("Error al obtener residuos:", error);
@@ -66,7 +64,6 @@ export const useResiduos= () => {
         queryKey: ['Residuos'],
         queryFn: async () => {
             const data = await fetchAsignacion();
-            console.log("Datos de residuos en React Query:", data);
             return data;
         },
         gcTime: 1000 * 60 * 10, 

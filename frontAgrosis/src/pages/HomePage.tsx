@@ -326,7 +326,6 @@ const HomePage = () => {
   }, []);
 
   useEffect(() => {
-    console.log("Datos de sensores recibidos:", sensors);
   }, [sensors]);
 
   const loadChartsData = useCallback(() => {
@@ -373,7 +372,6 @@ const HomePage = () => {
 
   useEffect(() => {
     const wsSensors = new WebSocket(`${wsUrl}sensores/`);
-    wsSensors.onopen = () => console.log("✅ Conectado al WebSocket de sensores");
     wsSensors.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
@@ -398,7 +396,6 @@ const HomePage = () => {
         console.error("⚠ Error al procesar datos del WebSocket de sensores:", error);
       }
     };
-    wsSensors.onclose = () => console.log("⚠ Desconectado del WebSocket de sensores");
     return () => wsSensors.close();
   }, []);
 
@@ -446,7 +443,6 @@ const HomePage = () => {
 
   useEffect(() => {
     const ws = new WebSocket(`${wsUrl}mide/`);
-    ws.onopen = () => console.log("✅ Conectado al WebSocket de mediciones");
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
@@ -466,7 +462,6 @@ const HomePage = () => {
             },
           };
           saveRealTimeData(newData);
-          console.log("Datos en tiempo real actualizados:", newData);
           return newData;
         });
 
@@ -487,7 +482,6 @@ const HomePage = () => {
         console.error("⚠ Error al procesar datos del WebSocket de mediciones:", error);
       }
     };
-    ws.onclose = () => console.log("⚠ Desconectado del WebSocket de mediciones");
     return () => ws.close();
   }, [saveRealTimeData, saveChartsData]);
 
@@ -536,7 +530,6 @@ const HomePage = () => {
 
   const latestSensorValues = useMemo(() => {
     if (!sensors || sensors.length === 0 || !realTimeData) {
-      console.log("No hay sensores o datos en tiempo real disponibles");
       return [];
     }
 
@@ -556,7 +549,6 @@ const HomePage = () => {
       })
       .filter((entry) => entry !== null && entry.value !== 0);
 
-    console.log("Datos para el gráfico de dona (latestSensorValues):", values);
     return values;
   }, [sensors, realTimeData]);
 
@@ -566,7 +558,7 @@ const HomePage = () => {
     return COLORS[tipoSensor] || COLORS.default;
   };
 
-  const getPieColor = (entry: any, index: number) => {
+  const getPieColor = (entry: any, _index: number) => {
     const sensor = sensors.find((s) => s.nombre_sensor === entry.name.split(" (")[0]);
     const tipoSensor = sensor ? mapSensorType(sensor.tipo_sensor) : "default";
     return COLORS[tipoSensor] || COLORS.default;
@@ -617,8 +609,6 @@ const HomePage = () => {
           const sensorInfo = sensors.find((s) => s.id === sensor.id);
           const tipoSensor = mapSensorType(sensorInfo?.tipo_sensor);
           const cardClass = `card-${tipoSensor}`;
-
-          console.log(`Sensor: ${sensor.nombre}, tipo_sensor: ${sensorInfo?.tipo_sensor}, tipoSensor mapeado: ${tipoSensor}, clase asignada: ${cardClass}`);
 
           if (!chartData) {
             return (
@@ -901,7 +891,7 @@ const HomePage = () => {
                         marginRight: '5px',
                       }}
                     />
-                    <span className="text-left">{entry.name}</span>
+                    <span className="text-left">{entry ? entry.name : ''}</span>
                   </div>
                 ))}
               </div>

@@ -17,7 +17,6 @@ const fetchTiposResiduos = async (): Promise<TipoResiduo[]> => {
         //Authorization: `Bearer ${token}`,
       },
     });
-    console.log("Datos de tipos de residuos:", data); // Para depuración
     return data;
   } catch (error) {
     console.error("Error al obtener tipos de residuos:", error);

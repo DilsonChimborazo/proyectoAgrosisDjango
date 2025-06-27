@@ -17,7 +17,6 @@ const useEditarEras = () => {
   return useMutation({
     mutationFn: async (eraActualizada: Eras) => {
       const token = localStorage.getItem("token");
-      console.log("🔑 Token para actualizar era:", token);
 
       if (!token) {
         throw new Error("No se encontró el token. Por favor, inicia sesión.");
@@ -27,15 +26,13 @@ const useEditarEras = () => {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       };
-      console.log("📋 Encabezados de la solicitud:", headers);
+
 
       const url = `${apiUrl}eras/${eraActualizada.id}/`;
-      console.log("🔍 URL de la solicitud:", url);
-      console.log("📦 Datos enviados:", eraActualizada);
+
 
       try {
         const { data } = await axios.put(url, eraActualizada, { headers });
-        console.log("✅ Respuesta del servidor:", data);
         return data;
       } catch (error) {
         console.error("❌ Error en la solicitud:", error);
@@ -46,7 +43,6 @@ const useEditarEras = () => {
       }
     },
     onSuccess: () => {
-      console.log("✅ Era actualizada correctamente, invalidando caché...");
       queryClient.invalidateQueries({ queryKey: ["eras"] });
     },
     onError: (error: any) => {

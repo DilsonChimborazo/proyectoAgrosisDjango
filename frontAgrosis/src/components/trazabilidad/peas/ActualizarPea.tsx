@@ -21,7 +21,6 @@ const ActualizarPea = ({ id, onSuccess }: ActualizarPea) => {
 
   useEffect(() => {
     if (pea) {
-      console.log("🔄 Cargando datos de la PEA:", pea);
       setFormData({
         nombre_pea: pea.nombre_pea ?? "",
         descripcion: pea.descripcion ?? "",

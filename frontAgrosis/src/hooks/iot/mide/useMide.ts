@@ -53,7 +53,6 @@ export function useMide() {
       const response = await fetch(API_MEDICIONES);
       if (!response.ok) throw new Error("Error al obtener mediciones");
       const data = await response.json();
-      console.log("📥 Datos históricos recibidos:", data);
       const processedData = data.map((item: any) => ({
         fk_id_sensor: item.fk_id_sensor?.id || item.fk_id_sensor,
         nombre_sensor: item.fk_id_sensor?.nombre_sensor || "Desconocido",
@@ -64,7 +63,6 @@ export function useMide() {
         fecha_medicion: parseDate(item.fecha_medicion).toISOString(),
       }));
       setSensorData(processedData);
-      console.log("Datos procesados y guardados en sensorData:", processedData);
     } catch (error) {
       console.error("❌ Error obteniendo mediciones:", error);
     }
@@ -76,7 +74,6 @@ export function useMide() {
       const response = await fetch(API_SENSORES);
       if (!response.ok) throw new Error("Error al obtener sensores");
       const data: Sensor[] = await response.json();
-      console.log("📥 Sensores recibidos:", data);
       setSensors(data);
     } catch (error) {
       console.error("❌ Error obteniendo sensores:", error);
@@ -90,14 +87,12 @@ export function useMide() {
     socketRef.current = socket;
 
     socket.onopen = () => {
-      console.log("✅ WebSocket de mediciones conectado");
       reconnectAttempts.current = 0;
     };
 
     socket.onmessage = (event: MessageEvent) => {
       try {
         const data = JSON.parse(event.data);
-        console.log("📥 Mensaje WebSocket recibido:", data);
         if (
           data.fk_id_sensor &&
           data.valor_medicion !== undefined &&
@@ -124,7 +119,6 @@ export function useMide() {
                 fecha_medicion: parseDate(data.fecha_medicion).toISOString(),
               },
             ];
-            console.log("Datos actualizados en sensorData:", newData);
             return newData.slice(-100);
           });
         }
@@ -139,7 +133,6 @@ export function useMide() {
       if (!isManuallyClosed.current) {
         const retryTime = Math.min(5000, 1000 * 2 ** reconnectAttempts.current);
         reconnectAttempts.current = Math.min(reconnectAttempts.current + 1, 6);
-        console.log(`⚠ WebSocket de mediciones cerrado, reintentando en ${retryTime}ms...`);
         setTimeout(connectWebSocket, retryTime);
       }
     };
@@ -152,22 +145,18 @@ export function useMide() {
     sensorSocketRef.current = socket;
 
     socket.onopen = () => {
-      console.log("✅ WebSocket de sensores conectado");
       reconnectAttempts.current = 0;
     };
 
     socket.onmessage = (event: MessageEvent) => {
       try {
         const newSensor: Sensor = JSON.parse(event.data);
-        console.log("📥 Mensaje WebSocket de sensores recibido:", newSensor);
         if (newSensor.id) {
           setSensors((prev) => {
             const exists = prev.some((sensor) => sensor.id === newSensor.id);
             if (exists) {
-              console.log(`Sensor ${newSensor.nombre_sensor} ya existe en el estado sensors`);
               return prev;
             }
-            console.log(`Añadiendo sensor ${newSensor.nombre_sensor} al estado sensors`);
             return [...prev, newSensor];
           });
         }
@@ -182,7 +171,6 @@ export function useMide() {
       if (!isManuallyClosed.current) {
         const retryTime = Math.min(5000, 1000 * 2 ** reconnectAttempts.current);
         reconnectAttempts.current = Math.min(reconnectAttempts.current + 1, 6);
-        console.log(`⚠ WebSocket de sensores cerrado, reintentando en ${retryTime}ms...`);
         setTimeout(connectSensorWebSocket, retryTime);
       }
     };

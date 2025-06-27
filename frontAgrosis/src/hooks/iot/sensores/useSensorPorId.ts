@@ -12,7 +12,6 @@ export const useSensorPorId = (id: string | undefined) => {
                 throw new Error("ID no proporcionado");
             }
             const { data } = await axios.get(`${apiUrl}sensores/${id}`);
-            console.log("📋 Datos del sensor obtenidos:", data);
             return data;
         },
         enabled: !!id,

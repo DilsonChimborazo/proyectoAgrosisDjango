@@ -11,7 +11,7 @@ import axios from 'axios';
 interface SelectOption {
   value: string;
   label: string;
-  cantidad?: number; // Para almacenar cantidad_herramienta o cantidad_insumo
+  cantidad?: number; 
 }
 
 const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios }: { onSuccess: () => void; usuarios: any[]; onCreateUsuario: (newUser: any) => void }) => {
@@ -130,17 +130,21 @@ const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios }: { onSuccess: 
       })),
   ];
 
-  const opcionesHerramientas = herramientas.map((h) => ({
-    value: String(h.id),
-    label: `${h.nombre_h} (Cantidad disponible: ${h.cantidad_herramienta})`,
-    cantidad: h.cantidad_herramienta,
-  }));
+  const opcionesHerramientas = herramientas
+    .filter((h) => h.cantidad_herramienta > 0)
+    .map((h) => ({
+      value: String(h.id),
+      label: `${h.nombre_h} (Cantidad disponible: ${h.cantidad_herramienta})`,
+      cantidad: h.cantidad_herramienta,
+    }));
 
-  const opcionesInsumos = insumos.map((i) => ({
-    value: String(i.id),
-    label: `${i.nombre} (Cantidad disponible: ${i.cantidad_insumo})`,
-    cantidad: i.cantidad_insumo,
-  }));
+  const opcionesInsumos = insumos
+    .filter((i) => i.cantidad_insumo > 0)
+    .map((i) => ({
+      value: String(i.id),
+      label: `${i.nombre} (Cantidad disponible: ${i.cantidad_insumo})`,
+      cantidad: i.cantidad_insumo,
+    }));
 
   const handleHerramientasChange = (newValue: MultiValue<SelectOption>, _actionMeta: ActionMeta<SelectOption>) => {
     const selectedHerramientas = newValue as SelectOption[];

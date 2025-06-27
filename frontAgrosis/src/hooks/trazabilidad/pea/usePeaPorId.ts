@@ -9,7 +9,6 @@ export const usePeaPorId = (id: string | undefined) => {
         queryFn: async () => {
             if (!id) throw new Error("ID no proporcionado");
             const { data } = await axios.get(`${apiUrl}pea/${id}`);
-            console.log("📋 Datos de la Pea obtenidos del backend:", data);
             return data;
         },
         enabled: !!id,

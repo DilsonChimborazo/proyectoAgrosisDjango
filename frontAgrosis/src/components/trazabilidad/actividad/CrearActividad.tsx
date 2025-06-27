@@ -41,7 +41,7 @@ const CrearActividad = ({ onSuccess }: CrearActividadProps) => {
         variant: 'success',
       });
       onSuccess();
-    } catch (err: any) { // Tipificación explícita de err como any
+    } catch (err: any) { 
       showToast({
         title: 'Error al crear actividad',
         description: err.response?.data?.detail || 'Error al crear la actividad. Inténtalo nuevamente.',

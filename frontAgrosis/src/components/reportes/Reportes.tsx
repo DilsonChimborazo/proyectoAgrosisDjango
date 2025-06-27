@@ -270,9 +270,6 @@ const ReporteLotes = ({ data, loading, error }: { data: any, loading: boolean, e
           title="Lotes Activos"
           headers={columns.map(c => c.name)}
           data={lotesData}
-          onClickAction={(row) => console.log('Detalle:', row)}
-          onUpdate={(row) => console.log('Actualizar:', row)}
-          onCreate={() => console.log('Crear nuevo')}
         />
       )}
     </>

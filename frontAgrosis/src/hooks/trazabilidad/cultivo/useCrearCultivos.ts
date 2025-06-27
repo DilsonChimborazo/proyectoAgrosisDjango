@@ -14,7 +14,6 @@ export const useCrearCultivo = () => {
 
     return useMutation({
         mutationFn: async (nuevoCultivo: Cultivos) => {
-            console.log("Datos enviados al backend:", nuevoCultivo);
             const { data } = await axios.post(`${apiUrl}cultivo/`, nuevoCultivo);
             return data;
         },

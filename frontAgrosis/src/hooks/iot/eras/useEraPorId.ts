@@ -12,7 +12,6 @@ export const useEraPorId = (id: string | undefined) => {
                 throw new Error("ID no proporcionado");
             }
             const { data } = await axios.get(`${apiUrl}eras/${id}`);
-            console.log("📋 Datos de la Pea obtenidos:", data);
             return data;
         },
         enabled: !!id,

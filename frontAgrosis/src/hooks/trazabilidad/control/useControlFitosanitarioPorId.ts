@@ -10,7 +10,6 @@ export const useControlFitosanitarioPorId = (id: string | undefined) => {
             if (!id) throw new Error("ID no proporcionado");
             
             const { data } = await axios.get(`${apiUrl}control_fitosanitario/${id}`);
-            console.log("📋 Datos del Control Fitosanitario obtenidos:", data);
             return data;
         },
         enabled: !!id,

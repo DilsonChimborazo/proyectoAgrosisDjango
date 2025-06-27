@@ -9,7 +9,6 @@ export const useResiduoPorId = (id: string | undefined) => {
             if (!id) throw new Error("ID no proporcionado");
             
             const { data } = await axios.get(`${apiUrl}residuos/${id}`);
-            console.log("📋 Datos del Residuo obtenidos:", data);
             return data;
         },
         enabled: !!id,

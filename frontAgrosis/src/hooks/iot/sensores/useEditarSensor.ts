@@ -32,7 +32,6 @@ export const useEditarSensor = () => {
                 throw new Error("⚠️ Datos inválidos. Por favor, revisa los campos.");
             }
 
-            console.log("📝 Enviando datos para actualizar:", datos);
 
             try {
                 const { data } = await axios.put(`${apiUrl}sensores/${id}/`, datos, {
@@ -47,7 +46,6 @@ export const useEditarSensor = () => {
             }
         },
         onSuccess: () => {
-            console.log("✅ Sensor actualizado con éxito");
             queryClient.invalidateQueries({ queryKey: ["sensores"] });
         },
         onError: (error) => {

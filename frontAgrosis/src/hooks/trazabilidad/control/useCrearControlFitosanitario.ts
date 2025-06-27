@@ -40,19 +40,6 @@ export const useCrearControlFitosanitario = () => {
                 formData.append(`fk_identificacion[${index}]`, String(id));
             });
             formData.append('img', nuevoControl.img);
-            console.log("FormData enviado al backend:", {
-                fecha_control: formData.get('fecha_control'),
-                duracion: formData.get('duracion'),
-                descripcion: formData.get('descripcion'),
-                tipo_control: formData.get('tipo_control'),
-                fk_id_plantacion: formData.get('fk_id_plantacion'),
-                fk_id_pea: formData.get('fk_id_pea'),
-                fk_id_insumo: formData.get('fk_id_insumo'),
-                cantidad_insumo: formData.get('cantidad_insumo'),
-                fk_unidad_medida: formData.get('fk_unidad_medida'),
-                fk_identificacion: formData.getAll('fk_identificacion'),
-                img: formData.get('img'),
-            });
 
             try {
                 const { data } = await axios.post(`${apiUrl}control_fitosanitario/`, formData, {

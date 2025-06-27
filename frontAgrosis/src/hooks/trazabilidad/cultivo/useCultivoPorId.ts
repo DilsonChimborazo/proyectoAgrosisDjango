@@ -9,7 +9,6 @@ export const useCultivoPorId = (id: string | undefined) => {
         queryFn: async () => {
             if (!id) throw new Error("ID no proporcionado");
             const { data } = await axios.get(`${apiUrl}cultivo/${id}`);
-            console.log("🌱 Datos obtenidos del backend:", data); // 👀 Verifica los datos
             return data;
         },
         enabled: !!id, 

@@ -16,7 +16,6 @@ export const useCrearResiduo = () => {
 
     return useMutation({
         mutationFn: async (nuevoResiduo: Residuos) => {
-            console.log("Enviando datos al backend:", nuevoResiduo);
             const { data } = await axios.post(`${apiUrl}residuos/`, nuevoResiduo);
             return data;
         },

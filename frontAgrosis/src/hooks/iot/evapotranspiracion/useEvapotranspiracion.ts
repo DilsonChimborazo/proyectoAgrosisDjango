@@ -36,7 +36,6 @@ export function useEvapotranspiracion(plantacionId: number) {
                 throw new Error('No se encontró un token de autenticación.');
             }
 
-            console.log('Cargando datos históricos desde:', `${apiUrl}evapotranspiracion/?fk_id_plantacion=${plantacionId}`);
 
             const response = await fetch(`${apiUrl}evapotranspiracion/?fk_id_plantacion=${plantacionId}`, {
                 headers: {
@@ -51,7 +50,6 @@ export function useEvapotranspiracion(plantacionId: number) {
             }
 
             const data = await response.json();
-            console.log('Datos históricos recibidos:', data);
 
             if (!data || !Array.isArray(data)) {
                 throw new Error('Datos de evapotranspiración inválidos');
@@ -69,7 +67,6 @@ export function useEvapotranspiracion(plantacionId: number) {
                 etc: Number(item.etc) || 0,
                 fecha: item.fecha ? new Date(item.fecha).toISOString() : new Date().toISOString(),
             }));
-            console.log("esto si va aparecer",processedData)
 
             setHistoricalData(processedData);
         } catch (err: any) {
@@ -92,17 +89,14 @@ export function useEvapotranspiracion(plantacionId: number) {
             return;
         }
 
-        console.log('Intentando conectar al WebSocket:', wsUrl);
         const ws = new WebSocket(wsUrl);
 
         ws.onopen = () => {
-            console.log('✅ Conectado al WebSocket de evapotranspiracion');
         };
 
         ws.onmessage = (event) => {
             try {
                 const message = JSON.parse(event.data);
-                console.log('📡 Mensaje crudo del WebSocket:', message);
 
                 if (message.error) {
                     console.error('Error en WebSocket:', message.error);
@@ -127,8 +121,6 @@ export function useEvapotranspiracion(plantacionId: number) {
                     etc: Number(message.etc) || 0,
                     fecha: new Date(message.fecha).toISOString(),
                 };
-
-                console.log('Nuevo dato procesado:', newData);
                 setWsData((prev) => {
                     const exists = prev.some((item) => item.id === newData.id);
                     if (!exists) {
@@ -150,10 +142,8 @@ export function useEvapotranspiracion(plantacionId: number) {
             setError('Error de conexión con el WebSocket');
         };
 
-        ws.onclose = (event) => {
-            console.log('⚠️ WebSocket cerrado. Código:', event.code, 'Razón:', event.reason);
+        ws.onclose = () => {
             setTimeout(() => {
-                console.log('Intentando reconectar al WebSocket:', wsUrl);
                 const newWs = new WebSocket(wsUrl);
                 newWs.onopen = ws.onopen;
                 newWs.onmessage = ws.onmessage;
@@ -163,7 +153,6 @@ export function useEvapotranspiracion(plantacionId: number) {
         };
 
         return () => {
-            console.log('Cerrando WebSocket');
             ws.close();
         };
     }, [plantacionId]);
@@ -183,7 +172,6 @@ export function useEvapotranspiracion(plantacionId: number) {
     }, [historicalData, wsData]);
 
     const latestData = combinedData.length > 0 ? combinedData[combinedData.length - 1] : null;
-    console.log("esto ya es el final", latestData)
 
     return {
         data: combinedData, // Combinación de datos históricos y en tiempo real

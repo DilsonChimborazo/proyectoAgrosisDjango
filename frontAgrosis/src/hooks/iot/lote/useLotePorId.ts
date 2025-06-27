@@ -12,7 +12,6 @@ export const useLotePorId = (id: string | undefined) => {
                 throw new Error("ID no proporcionado");
             }
             const { data } = await axios.get(`${apiUrl}lote/${id}`);
-            console.log("📋 Datos del lote obtenidos:", data);
             return data;
         },
         enabled: !!id,

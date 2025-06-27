@@ -18,7 +18,6 @@ export const useCrearPlantacion = () => {
 
     return useMutation({
         mutationFn: async (nuevaPlantacion: Plantacion) => {
-            console.log("Datos enviados al backend:", nuevaPlantacion);
             const { data } = await axios.post(`${apiUrl}plantacion/`, nuevaPlantacion);
             return data;
         },

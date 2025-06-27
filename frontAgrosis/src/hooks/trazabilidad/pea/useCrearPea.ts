@@ -15,7 +15,6 @@ export const useCrearPea = () => {
 
     return useMutation({
         mutationFn: async (nuevoPea: Pea) => {
-            console.log("Datos enviados al backend:", nuevoPea);
             const { data } = await axios.post(`${apiUrl}pea/`, nuevoPea);
             return data;
         },

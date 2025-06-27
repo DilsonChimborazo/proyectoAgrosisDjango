@@ -23,7 +23,6 @@ export const useEditarLote = () => {
             }
 
             const token = localStorage.getItem("token");
-            console.log("🔑 Token para actualizar lote:", token);
 
             if (!token) {
                 throw new Error("No se encontró el token. Por favor, inicia sesión.");
@@ -33,14 +32,9 @@ export const useEditarLote = () => {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`, // Añadimos el token
             };
-            console.log("📋 Encabezados de la solicitud:", headers);
-
-            console.log("🔍 URL de la solicitud:", `${apiUrl}lote/${id}/`);
-            console.log("📦 Datos enviados:", datos);
 
             try {
                 const { data } = await axios.put(`${apiUrl}lote/${id}/`, datos, { headers });
-                console.log("✅ Respuesta del servidor:", data);
                 return data;
             } catch (error: any) {
                 console.error("❌ Error en la solicitud:", error.response?.data || error.message);
@@ -48,7 +42,6 @@ export const useEditarLote = () => {
             }
         },
         onSuccess: () => {
-            console.log("✅ Lote actualizado con éxito");
             queryClient.invalidateQueries({ queryKey: ["lote"] });
         },
         onError: (error: any) => {
