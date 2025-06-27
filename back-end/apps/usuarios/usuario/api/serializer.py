@@ -78,7 +78,6 @@ class EscribirUsuarioSerializer(ModelSerializer):
         return usuario
 
     def update(self, instance, validated_data):
-        print("VALIDATED DATA EN UPDATE:", validated_data)
     
         remove_img = validated_data.pop('remove_img', False)
         if remove_img:

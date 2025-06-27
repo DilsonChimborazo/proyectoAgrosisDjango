@@ -11,14 +11,13 @@ from django.conf import settings
 class AsignacionActividadesConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         """Conexión WebSocket"""
-        print(f"✅ Intentando conectar WebSocket: {self.channel_name}")
+
         await self.channel_layer.group_add("asignacion_actividades_notifications", self.channel_name)
         await self.accept()
-        print(f"✅ Conectado al WebSocket: {self.channel_name}")
+
 
     async def disconnect(self, close_code):
         """Desconexión WebSocket"""
-        print(f"🔌 Desconectando WebSocket: {self.channel_name} (código: {close_code})")
         await self.channel_layer.group_discard("asignacion_actividades_notifications", self.channel_name)
 
     async def receive(self, text_data):
@@ -55,7 +54,6 @@ class AsignacionActividadesConsumer(AsyncWebsocketConsumer):
 
     async def asignacion_notification(self, event):
         """Envía los datos de la asignación al cliente en tiempo real"""
-        print(f"📩 Enviando notificación de asignación: {event['message']}")
         await self.send(text_data=json.dumps(event["message"]))
 
     @sync_to_async

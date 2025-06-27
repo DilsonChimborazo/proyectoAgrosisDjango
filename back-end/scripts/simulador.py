@@ -24,7 +24,6 @@ async def registrar_medicion(sensor_id, era_id, valor):
         fk_id_era_id=era_id,
         valor_medicion=valor
     )
-    print(f"✅ Medición guardada en BD: Sensor {sensor_id}, Era {era_id}, Valor {valor}")
 
 async def send_random_data():
     """ Simula el envío de datos de sensores a WebSockets y registra en la BD """
@@ -50,13 +49,6 @@ async def send_random_data():
 
                         # Enviar datos al WebSocket
                         await websocket.send(json.dumps(data))
-                        
-                        # 🖥️ Mostrar en consola cada 10 segundos
-                        print("📡 Enviando datos al WebSocket:")
-                        print(f"   - Sensor ID: {sensor}")
-                        print(f"   - Era ID: {era}")
-                        print(f"   - Valor Medición: {valor}")
-                        print("-" * 40)
 
                         # Registrar medición en la BD
                         await registrar_medicion(sensor, era, valor)
@@ -64,7 +56,6 @@ async def send_random_data():
                     await asyncio.sleep(10)  # Enviar datos cada 10 segundos
 
         except websockets.exceptions.ConnectionClosedError:
-            print("⚠️ Conexión WebSocket cerrada. Reintentando en 5 segundos...")
             await asyncio.sleep(5)
         except Exception as e:
             print(f"❌ Error en el simulador: {e}")

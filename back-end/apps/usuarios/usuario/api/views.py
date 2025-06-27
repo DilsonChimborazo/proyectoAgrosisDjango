@@ -27,7 +27,6 @@ class UsuarioViewSet(ModelViewSet):
     @action(detail=False, methods=['post'], permission_classes=[IsAdminUser])
     def carga_masiva(self, request):
         archivo = request.FILES.get('file')
-        print("Archivos recibidos:", request.FILES)
 
         if not archivo:
             return Response({'error': 'Debes subir un archivo'}, status=400)

@@ -12,14 +12,12 @@ class NotificacionConsumer(AsyncWebsocketConsumer):
             token = self.scope['query_string'].decode().split('token=')[-1]
             user = await self.get_user_from_token(token)
             if user is None:
-                print("Usuario no autenticado, cerrando conexión")
                 await self.close()
                 return
 
             self.group_name = f'notificaciones_{user.id}'
             await self.channel_layer.group_add(self.group_name, self.channel_name)
             await self.accept()
-            print(f"WebSocket conectado para usuario {user.id}")
         except Exception as e:
             print(f"Error en connect: {e}")
             await self.close()
@@ -27,7 +25,6 @@ class NotificacionConsumer(AsyncWebsocketConsumer):
     async def disconnect(self, close_code):
         if hasattr(self, 'group_name'):
             await self.channel_layer.group_discard(self.group_name, self.channel_name)
-            print(f"WebSocket desconectado, group_name: {self.group_name}")
 
     async def receive(self, text_data):
         try:
@@ -44,7 +41,6 @@ class NotificacionConsumer(AsyncWebsocketConsumer):
                 'type': 'notification',
                 'notification': notification
             }))
-            print(f"Notificación enviada: {notification}")
         except Exception as e:
             print(f"Error en send_notification: {e}")
 
@@ -65,6 +61,5 @@ class NotificacionConsumer(AsyncWebsocketConsumer):
             notification = Notificacion.objects.get(id=notification_id, usuario__id=self.group_name.split('_')[-1])
             notification.leida = True
             notification.save()
-            print(f"Notificación {notification_id} marcada como leída")
         except Notificacion.DoesNotExist:
             print(f"Notificación {notification_id} no encontrada")

@@ -16,10 +16,6 @@ class UsuariosConsumer(AsyncWebsocketConsumer):
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(self.group_name, self.channel_name)
 
-    async def receive(self, text_data):
-        # Por si deseas recibir algo del frontend
-        print("Mensaje recibido del frontend:", text_data)
-
     async def desactivar_usuario(self, event):
         await self.send(text_data=json.dumps({
             "type": "logout",
