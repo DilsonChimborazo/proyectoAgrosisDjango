@@ -1,4 +1,3 @@
-// src/hooks/useAuth.ts
 import { useState } from "react";
 import { useAuthContext } from "../../../context/AuthContext";
 
@@ -30,26 +29,14 @@ export function useAuth() {
         throw new Error(data.detail || "Error en la autenticación.");
       }
 
+      // Guardar tokens
       localStorage.setItem("token", data.access);
       if (data.refresh) {
         localStorage.setItem("refreshToken", data.refresh);
       }
 
-      // Obtener perfil del usuario usando el token
-      const perfilResponse = await fetch(`${apiUrl}perfil/`, {
-        headers: {
-          Authorization: `Bearer ${data.access}`,
-        },
-      });
-
-      if (!perfilResponse.ok) {
-        throw new Error("No se pudo obtener el perfil del usuario.");
-      }
-
-      const perfil = await perfilResponse.json();
-      localStorage.setItem("user", JSON.stringify(perfil));
-      setUsuario(perfil);
-
+      // No es necesario hacer fetch de perfil, ya viene en el token
+      // El contexto se encargará de decodificar y establecer el usuario
       return { success: true };
     } catch (err: any) {
       setError(err.message);
@@ -60,8 +47,8 @@ export function useAuth() {
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("refreshToken");
-    localStorage.removeItem("user");
-    logoutGlobal(); // limpia el contexto + redirige
+    setUsuario(null); // opcional, ya lo hace el contexto
+    logoutGlobal();   // navega fuera y limpia más
   };
 
   return { login, logout, error };

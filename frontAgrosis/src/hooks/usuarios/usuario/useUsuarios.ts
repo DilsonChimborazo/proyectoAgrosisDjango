@@ -48,8 +48,6 @@ const fetchUsuarios = async (): Promise<Usuario[]> => {
       throw new Error("La API no devolvió un array válido.");
     }
 
-    console.log("Datos recibidos de la API:", response.data);
-
     return response.data;
   } catch (error: any) {
     console.error("Error al obtener usuarios:", error.response || error.message);

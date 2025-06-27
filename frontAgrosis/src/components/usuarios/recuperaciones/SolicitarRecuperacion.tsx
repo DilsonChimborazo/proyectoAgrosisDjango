@@ -24,7 +24,7 @@ const SolicitarRecuperacion = () => {
     if (isError) {
       showToast({
         title: "Error al enviar",
-        description: (error as any)?.message || "Ocurrió un error al intentar enviar el correo.",
+        description: "Este email no esta registrado en el sistema.",
         variant: "error",
       });
     }

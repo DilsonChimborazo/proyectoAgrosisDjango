@@ -16,16 +16,12 @@ import pandas as pd
 import traceback
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+from rest_framework_simplejwt.tokens import RefreshToken
 
 class UsuarioViewSet(ModelViewSet):
-    # No defines parser_classes aquí globalmente, lo haremos dinámicamente
-    # parser_classes = [MultiPartParser, JSONParser]
-
     def get_parser_classes(self):
-        # Usar MultiPartParser solo para carga_masiva (espera archivos)
         if self.action == 'carga_masiva':
             return [MultiPartParser]
-        # Para todo lo demás usar JSONParser (espera json)
         return [JSONParser]
 
     @action(detail=False, methods=['post'], permission_classes=[IsAdminUser])
@@ -55,33 +51,51 @@ class UsuarioViewSet(ModelViewSet):
 
             for fila in filas:
                 try:
-                    rol = Rol.objects.get(rol=fila["rol"])
-                    numero_ficha = fila.get("ficha")
-                    ficha = Ficha.objects.get(numero_ficha=numero_ficha) if numero_ficha else None
+                    campos_requeridos = ["nombre", "apellido", "identificacion", "email"]
+                    if any(campo not in fila or not fila[campo] for campo in campos_requeridos):
+                        errores.append({
+                            "identificacion": fila.get("identificacion", "N/A"),
+                            "error": f"Faltan campos: {', '.join([c for c in campos_requeridos if c not in fila or not fila[c]])}"
+                        })
+                        continue
+
+                    identificacion = str(fila["identificacion"])
+                    email = fila["email"]
+
+                    if Usuarios.objects.filter(email=email).exists():
+                        errores.append({
+                            "email": email,
+                            "error": "Ya existe un usuario con este correo."
+                        })
+                        continue
+
+                    rol, _ = Rol.objects.get_or_create(rol="Invitado")
 
                     user_data = {
-                        "identificacion": fila["identificacion"],
-                        "email": fila["email"],
-                        "password": fila["password"],
                         "nombre": fila["nombre"],
                         "apellido": fila["apellido"],
+                        "identificacion": identificacion,
+                        "email": email,
+                        "password": identificacion,
                         "fk_id_rol": rol.id,
-                        "ficha": ficha.numero_ficha if ficha else None,
+                        "ficha": None,
                     }
 
                     serializer = EscribirUsuarioSerializer(data=user_data, context={'request': request})
                     if serializer.is_valid():
                         serializer.save()
-                        creados.append(fila["email"])
+                        creados.append(email)
                     else:
-                        errores.append({"email": fila["email"], "errores": serializer.errors})
+                        errores.append({
+                            "email": email,
+                            "errores": serializer.errors
+                        })
 
-                except Rol.DoesNotExist:
-                    errores.append({"email": fila.get("email", ""), "error": f"Rol '{fila['rol']}' no existe"})
-                except Ficha.DoesNotExist:
-                    errores.append({"email": fila.get("email", ""), "error": f"Ficha ID '{fila['ficha']}' no existe"})
                 except Exception as e:
-                    errores.append({"email": fila.get("email", ""), "error": str(e)})
+                    errores.append({
+                        "email": fila.get("email", ""),
+                        "error": str(e)
+                    })
 
             return Response({"creados": creados, "errores": errores}, status=201)
 
@@ -113,18 +127,16 @@ class UsuarioViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         if Usuarios.objects.count() == 0:
-            # El primer usuario semilla
             serializer.save(is_staff=True, is_superuser=True)
         else:
-            # Los demás usuarios: revisa si tienen rol de Administrador
             rol_id = self.request.data.get("fk_id_rol")
-    
+
             try:
                 rol = Rol.objects.get(id=rol_id)
                 es_admin = rol.rol == "Administrador"
             except Rol.DoesNotExist:
                 es_admin = False
-    
+
             serializer.save(is_staff=es_admin)
 
     def get_serializer_context(self):
@@ -142,16 +154,15 @@ class UsuarioViewSet(ModelViewSet):
     @action(detail=True, methods=['post'], permission_classes=[IsAdminUser])
     def desactivar(self, request, pk=None):
         usuario = self.get_object()
-    
+
         if not usuario.is_active:
             return Response({"message": "El usuario ya está inactivo."}, status=status.HTTP_400_BAD_REQUEST)
-    
+
         usuario.is_active = False
         usuario.save()
-    
-        # 🚨 Enviar notificación por WebSocket al usuario desactivado
+
         notificar_usuario_desactivado(usuario.id)
-    
+
         return Response({"message": "Usuario desactivado"}, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get', 'put'], permission_classes=[IsAuthenticated])
@@ -166,14 +177,48 @@ class UsuarioViewSet(ModelViewSet):
             serializer = EscribirUsuarioSerializer(usuario, data=request.data, partial=True, context={'request': request})
             if serializer.is_valid():
                 serializer.save()
-                return Response(LeerUsuarioSerializer(usuario, context={'request': request}).data)
+
+                refresh = RefreshToken.for_user(usuario)
+                refresh["identificacion"] = usuario.identificacion
+                refresh["nombre"] = usuario.nombre
+                refresh["apellido"] = usuario.apellido
+                refresh["email"] = usuario.email
+                refresh["rol"] = usuario.fk_id_rol.rol if usuario.fk_id_rol else None
+                refresh["ficha"] = usuario.ficha.numero_ficha if usuario.ficha else None
+                if usuario.img:
+                    img_url = request.build_absolute_uri(usuario.img.url) if request else usuario.img.url
+                else:
+                    img_url = request.build_absolute_uri('/media/imagenes/defecto.png') if request else '/media/imagenes/defecto.png'
+                refresh["img_url"] = img_url
+
+                access = str(refresh.access_token)
+                return Response({"access": access}, status=status.HTTP_200_OK)
+
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         data = super().validate(attrs)
+        request = self.context.get("request")
         user = self.user
+
+        refresh = self.get_token(user)
+        refresh['identificacion'] = user.identificacion
+        refresh['nombre'] = user.nombre
+        refresh['apellido'] = user.apellido
+        refresh['email'] = user.email
+        refresh['rol'] = user.fk_id_rol.rol if user.fk_id_rol else None
+        refresh['ficha'] = user.ficha.numero_ficha if user.ficha else None
+        if user.img:
+            img_url = request.build_absolute_uri(user.img.url) if request else user.img.url
+        else:
+            img_url = request.build_absolute_uri('/media/imagenes/defecto.png') if request else '/media/imagenes/defecto.png'
+        refresh['img_url'] = img_url
+
+        data['refresh'] = str(refresh)
+        data['access'] = str(refresh.access_token)
         data['user'] = LeerUsuarioSerializer(user, context=self.context).data
+
         return data
 
 class CustomTokenObtainPairView(TokenObtainPairView):

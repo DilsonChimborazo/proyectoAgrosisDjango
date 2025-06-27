@@ -19,7 +19,7 @@ const CrearRol: React.FC<CrearRolProps> = ({ onClose, onCreated }) => {
     { id: 'fecha_creacion', label: 'Fecha de creacion', type: 'date' }
   ];
 
-  const handleSubmit = (formData: { [key: string]: string }) => {
+  const handleSubmit = (formData: { [key: string]: any }) => {
     const { rol, fecha_creacion } = formData;
 
     if (!rol || !fecha_creacion) {

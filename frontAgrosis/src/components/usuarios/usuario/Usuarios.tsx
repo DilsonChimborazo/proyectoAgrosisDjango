@@ -5,21 +5,22 @@ import VentanaModal from "@/components/globales/VentanasModales";
 import CrearUsuario from "../usuario/crearUsuario";
 import ActualizarUsuarioModal from "../usuario/UpdateUsuario";
 import { showToast } from "@/components/globales/Toast";
-import LoadingBox from "@/context/AuthContext";
+import LoadingBox from "@/components/globales/LoadingBox";
 
 const Usuarios = () => {
   const { data: usuarios, isLoading, error, refetch } = useUsuarios();
   const [selectedUser, setSelectedUser] = useState<Record<string, any> | null>(null);
   const [modalType, setModalType] = useState<"details" | "create" | "update" | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalContenido, setModalContenido] = useState<React.ReactNode>(null);
   const [esAdministrador, setEsAdministrador] = useState(false);
   const [mensaje] = useState<string | null>(null);
 
   useEffect(() => {
-    const usuarioGuardado = localStorage.getItem("user");
-    const usuario = usuarioGuardado ? JSON.parse(usuarioGuardado) : null;
-    setEsAdministrador(usuario?.fk_id_rol?.rol === "Administrador");
+    const token = localStorage.getItem("token");
+    if (token) {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      setEsAdministrador(payload.rol === "Administrador");
+    }
   }, []);
 
   useEffect(() => {
@@ -37,20 +38,19 @@ const Usuarios = () => {
   }, [error]);
 
   const openModalHandler = useCallback(async (usuario: Record<string, any>) => {
-  const token = localStorage.getItem("token");
-  try {
-    const res = await fetch(`http://localhost:8000/api/usuario/${usuario.id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const data = await res.json();
-    setSelectedUser(data);
-    setModalType("details");
-    setModalContenido(null);
-    setIsModalOpen(true);
-  } catch (error) {
-    console.error("Error al obtener usuario:", error);
-  }
-}, []);
+    const token = localStorage.getItem("token");
+    try {
+      const res = await fetch(`http://localhost:8000/api/usuario/${usuario.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setSelectedUser(data);
+      setModalType("details");
+      setIsModalOpen(true);
+    } catch (error) {
+      console.error("Error al obtener usuario:", error);
+    }
+  }, []);
 
   const handleUpdate = (usuario: Record<string, any>) => {
     if (!esAdministrador) {
@@ -79,16 +79,14 @@ const Usuarios = () => {
 
     setSelectedUser(null);
     setModalType("create");
-    setModalContenido(<CrearUsuario isOpen={true} onClose={closeModal} />);
     setIsModalOpen(true);
   };
 
   const closeModal = useCallback(() => {
     setSelectedUser(null);
     setModalType(null);
-    setModalContenido(null);
     setIsModalOpen(false);
-    refetch(); // Actualizar la lista al cerrar cualquier modal
+    refetch();
   }, [refetch]);
 
   const handleToggleEstado = async (usuario: any) => {
@@ -209,6 +207,7 @@ const Usuarios = () => {
         />
       )}
 
+      {/* Detalles del usuario */}
       {isModalOpen && modalType === "details" && selectedUser && (
         <VentanaModal
           isOpen={isModalOpen}
@@ -241,10 +240,19 @@ const Usuarios = () => {
         />
       )}
 
-      {isModalOpen && modalType === "create" && modalContenido}
+      {/* Crear usuario */}
+      {isModalOpen && modalType === "create" && (
+        <VentanaModal
+          isOpen={isModalOpen}
+          onClose={closeModal}
+          titulo="Crear Usuario"
+          contenido={<CrearUsuario isOpen={true} onClose={closeModal} />}
+        />
+      )}
 
+      {/* Actualizar usuario */}
       {isModalOpen && modalType === "update" && selectedUser && (
-        <ActualizarUsuarioModal id={String(selectedUser.id)} isOpen={isModalOpen} onClose={closeModal} />
+        <ActualizarUsuarioModal id={String(selectedUser.id)} isOpen={isModalOpen} onClose={closeModal} onSuccess={refetch}/>
       )}
     </div>
   );

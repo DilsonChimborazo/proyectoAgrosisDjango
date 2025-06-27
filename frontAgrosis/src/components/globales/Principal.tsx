@@ -1,4 +1,4 @@
-import { ReactNode, useState, useEffect } from "react";
+import { ReactNode, useState } from "react";
 import { Button } from "@heroui/react";
 import { Menu, ChevronDown, ChevronUp, LogOut, Copyright } from "lucide-react";
 import { Home, User, Calendar, Map, Leaf, DollarSign, Bug, Clipboard, Cpu } from "lucide-react";
@@ -71,37 +71,20 @@ const menuItems = [
 ];
 
 export default function Principal({ children }: LayoutProps) {
-  const { usuario, setUsuario } = useAuthContext();
+  const { usuario, logout  } = useAuthContext();
   const [sidebarOpen, setSidebarOpen] = useState(false); 
   const [active, setActive] = useState<string>("");
   const [openMenus, setOpenMenus] = useState<{ [key: string]: boolean }>({});
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const usuarioGuardado = localStorage.getItem('user');
-      if (usuarioGuardado) {
-        setUsuario(JSON.parse(usuarioGuardado));
-      } else {
-        setUsuario(null);
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    handleStorageChange();
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, []);
 
   const toggleMenu = (name: string) => {
     setOpenMenus((prev) => ({ ...prev, [name]: !prev[name] }));
   };
 
   const handleLogout = () => {
+    logout();
     localStorage.removeItem("token");
-    localStorage.removeItem("user");
     localStorage.removeItem("refreshToken");
     showToast({
       title: "Sesión cerrada",
@@ -111,6 +94,31 @@ export default function Principal({ children }: LayoutProps) {
     });
     navigate("/");
   };
+
+type Rol = "Invitado" | "Aprendiz" | "Pasante" | "SinRol";
+
+// 2. Permisos definidos por rol
+const permisosPorRol: Record<Rol, string[]> = {
+  Invitado: ["Home"],
+  Aprendiz: menuItems
+    .filter(item => !["Finanzas", "Inventario", "IoT"].includes(item.name))
+    .map(item => item.name),
+  Pasante: menuItems
+    .filter(item => !["Finanzas", "IoT"].includes(item.name)) // sí puede ver Inventario
+    .map(item => item.name),
+  SinRol: [],
+};
+
+// 3. Detectar rol actual del usuario
+const rolUsuario: Rol = (usuario?.rol as Rol) || "SinRol";
+
+// 4. Filtrar menú principal y submenús según permisos
+const modulosPermitidos = menuItems
+  .filter(item => permisosPorRol[rolUsuario]?.includes(item.name))
+  .map(item => ({
+    ...item,
+    submenu: item.submenu,
+  }));
 
   return (
     <div className="relative flex h-screen w-full overflow-x-hidden">
@@ -143,13 +151,15 @@ export default function Principal({ children }: LayoutProps) {
         </div>
 
         <nav className="mt-4 text-center text-base sm:text-lg flex-1 overflow-y-auto">
-          {menuItems.map((item) => (
+          {modulosPermitidos.map((item) => (
             <div key={item.name}>
               {item.submenu ? (
                 <button
                   onClick={() => toggleMenu(item.name)}
                   className={`flex items-center gap-3 w-full shadow-lg p-3 sm:p-4 rounded-2xl transition-all duration-300 ${
-                    active === item.name ? "bg-gray-300 text-gray-800 shadow-inner" : "bg-white hover:bg-gray-200"
+                    active === item.name
+                      ? "bg-gray-300 text-gray-800 shadow-inner"
+                      : "bg-white hover:bg-gray-200"
                   } mb-2`}
                 >
                   {item.icon}
@@ -157,38 +167,43 @@ export default function Principal({ children }: LayoutProps) {
                   {openMenus[item.name] ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                 </button>
               ) : (
-                <Link 
-                  to={item.path} 
-                  onClick={() => {
-                    setActive(item.name);
-                    setSidebarOpen(false); 
-                  }}
-                >
-                  <button
-                    className={`flex items-center gap-3 w-full shadow-lg p-3 sm:p-4 rounded-2xl transition-all duration-300 ${
-                      active === item.name ? "bg-gray-300 text-gray-800 shadow-inner" : "bg-white hover:bg-gray-200"
-                    } mb-2`}
+                
+                  <Link
+                    to={item.path ?? "#"}
+                    onClick={() => {
+                      setActive(item.name);
+                      setSidebarOpen(false);
+                    }}
                   >
-                    {item.icon}
-                    <span>{item.name}</span>
-                  </button>
-                </Link>
+                    <button
+                      className={`flex items-center gap-3 w-full shadow-lg p-3 sm:p-4 rounded-2xl transition-all duration-300 ${
+                        active === item.name
+                          ? "bg-gray-300 text-gray-800 shadow-inner"
+                          : "bg-white hover:bg-gray-200"
+                      } mb-2`}
+                    >
+                      {item.icon}
+                      <span>{item.name}</span>
+                    </button>
+                  </Link>
               )}
 
               {item.submenu && openMenus[item.name] && (
                 <div className="ml-4 sm:ml-6 mt-2">
                   {item.submenu.map((subItem) => (
-                    <Link 
-                      to={subItem.path} 
-                      key={subItem.name} 
+                    <Link
+                      to={subItem.path}
+                      key={subItem.name}
                       onClick={() => {
                         setActive(subItem.name);
-                        setSidebarOpen(false); 
+                        setSidebarOpen(false);
                       }}
                     >
                       <button
                         className={`block w-full text-left p-2 sm:p-3 rounded-lg transition-all duration-300 ${
-                          active === subItem.name ? "bg-gray-200 text-gray-900" : "hover:bg-gray-100"
+                          active === subItem.name
+                            ? "bg-gray-200 text-gray-900"
+                            : "hover:bg-gray-100"
                         }`}
                       >
                         {subItem.name}

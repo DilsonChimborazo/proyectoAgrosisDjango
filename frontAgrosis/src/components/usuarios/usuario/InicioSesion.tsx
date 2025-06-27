@@ -46,8 +46,7 @@ export default function Login() {
 
       localStorage.setItem("token", responseData.access);
       if (responseData.refresh) localStorage.setItem("refreshToken", responseData.refresh);
-      if (responseData.user) localStorage.setItem("user", JSON.stringify(responseData.user));
-      await queryClient.invalidateQueries(['perfilUsuario']);
+      await queryClient.invalidateQueries({ queryKey: ['perfilusuario'] });
       navigate("/principal");
     } catch (err: any) {
       setError(err.message);

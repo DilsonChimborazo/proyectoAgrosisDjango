@@ -1,86 +1,110 @@
-import React, { useState, useEffect } from "react";
-import { useActualizarUsuario } from "@/hooks/usuarios/usuario/useUpdateUsuarios";
+import { useState, useEffect } from "react";
 import { useUsuarioPorId } from "@/hooks/usuarios/usuario/useIdUsuarios";
-import Formulario from "@/components/globales/Formulario";
-import { Usuario } from "@/hooks/usuarios/usuario/useCreateUsuarios";
+import { useActualizarUsuario } from "@/hooks/usuarios/usuario/useUpdateUsuarios";
 import { useRoles } from "@/hooks/usuarios/rol/useRol";
 import { UseFicha } from "@/hooks/usuarios/ficha/useFicha";
-import VentanaModal from "@/components/globales/VentanasModales";
+import Formulario from "@/components/globales/Formulario";
 import { showToast } from "@/components/globales/Toast";
+import VentanaModal from "@/components/globales/VentanasModales";
 
-interface ActualizarUsuarioModalProps {
+interface ActualizarUsuarioProps {
   id: string;
   isOpen: boolean;
   onClose: () => void;
+  onSuccess: () => void;
 }
 
-const ActualizarUsuarioModal: React.FC<ActualizarUsuarioModalProps> = ({ id, isOpen, onClose }) => {
+const ActualizarUsuarioModal = ({ id, isOpen, onClose, onSuccess }: ActualizarUsuarioProps) => {
   const { data: usuario, isLoading, error } = useUsuarioPorId(id);
   const actualizarUsuario = useActualizarUsuario();
   const { data: roles = [] } = useRoles();
   const { data: fichas = [] } = UseFicha();
 
-  const [formData, setFormData] = useState<Partial<Usuario>>({
-    identificacion: 0,
-    email: "",
+  const [formData, setFormData] = useState<Record<string, string>>({
+    identificacion: "",
     nombre: "",
     apellido: "",
-    fk_id_rol: 0,
-    ficha: 0,
+    email: "",
+    fk_id_rol: "",
+    ficha: "",
   });
 
   useEffect(() => {
-    if (usuario && Object.keys(usuario).length > 0) {
+    if (usuario) {
       setFormData({
-        identificacion: usuario.identificacion ?? 0,
-        email: usuario.email ?? "",
+        identificacion: String(usuario.identificacion ?? ""),
         nombre: usuario.nombre ?? "",
         apellido: usuario.apellido ?? "",
-        fk_id_rol: usuario.fk_id_rol?.id ?? 0,
-        ficha: usuario.ficha?.id ?? 0,
+        email: usuario.email ?? "",
+        fk_id_rol: String(usuario.fk_id_rol?.id ?? ""),
+        ficha: String(usuario.ficha?.id ?? ""),
       });
     }
   }, [usuario]);
 
-  const handleSubmit = (data: { [key: string]: string }) => {
-    const usuarioActualizado: Partial<Usuario> = {};
+  const handleSubmit = (data: Record<string, string | string[] | File>) => {
+    const getString = (val: any) => (Array.isArray(val) ? val[0] : String(val || ""));
 
-    Object.entries(data).forEach(([key, value]) => {
-      if (
-        typeof value === "string" &&
-        value.trim() !== "" &&
-        value !== String(usuario?.[key as keyof Usuario])
-      ) {
-        (usuarioActualizado as any)[key] = ["fk_id_rol", "identificacion", "ficha"].includes(key)
-          ? parseInt(value, 10) || 0
-          : value;
+    const actualizados = {
+      identificacion: getString(data.identificacion),
+      nombre: getString(data.nombre),
+      apellido: getString(data.apellido),
+      email: getString(data.email),
+      fk_id_rol: getString(data.fk_id_rol),
+      ficha: getString(data.ficha),
+    };
+
+    for (const [k, v] of Object.entries(actualizados)) {
+      if (!v && k !== "ficha") {  // ✅ permitir que ficha esté vacía
+        return showToast({
+          title: "Error",
+          description: `El campo ${k} es obligatorio`,
+          variant: "error",
+        });
       }
-    });
-
-    const usuarioFinal = Object.fromEntries(
-      Object.entries(usuarioActualizado).filter(([_, value]) => value !== undefined)
-    );
+    }
 
     actualizarUsuario.mutate(
-      { id: Number(id), ...usuarioFinal },
+      {
+        id: parseInt(id),
+        identificacion: parseInt(actualizados.identificacion),
+        nombre: actualizados.nombre,
+        apellido: actualizados.apellido,
+        email: actualizados.email,
+        fk_id_rol: actualizados.fk_id_rol,
+        ficha: parseInt(actualizados.ficha),
+      },
       {
         onSuccess: () => {
-         showToast({
-          title: 'Usuario actualizado',
-          description: "Usuario actualizado correctamente",
-          variant: 'success',
-        });
-          onClose(); // cerrar modal al actualizar
+          showToast({
+            title: "Éxito",
+            description: "Usuario actualizado correctamente",
+            variant: "success",
+          });
+          onSuccess(); // Refrescar lista
+          onClose();   // Cerrar modal
         },
-        onError: (error) => {
-          console.error("Error al actualizar usuario:", error);
+        onError: () => {
+          showToast({
+            title: "Error",
+            description: "No se pudo actualizar el usuario",
+            variant: "error",
+          });
         },
       }
     );
   };
 
-  if (isLoading) return null; // o algún spinner dentro del modal
-  if (error) return null; // también puedes manejar error dentro del modal
+  if (!isOpen) return null;
+  if (isLoading) return null;
+  if (error) {
+    showToast({
+      title: "Error",
+      description: "No se pudo cargar el usuario",
+      variant: "error",
+    });
+    return null;
+  }
 
   return (
     <VentanaModal
@@ -91,33 +115,36 @@ const ActualizarUsuarioModal: React.FC<ActualizarUsuarioModalProps> = ({ id, isO
       variant="content"
       contenido={
         <Formulario
+          title=""
+          initialValues={formData}
+          key={JSON.stringify(formData)}
+          onSubmit={handleSubmit}
+          isError={actualizarUsuario.isError}
+          isSuccess={actualizarUsuario.isSuccess}
           fields={[
             { id: "identificacion", label: "Identificación", type: "text" },
-            { id: "email", label: "Email", type: "email" },
             { id: "nombre", label: "Nombre", type: "text" },
             { id: "apellido", label: "Apellido", type: "text" },
+            { id: "email", label: "Email", type: "email" },
             {
               id: "fk_id_rol",
               label: "Rol",
               type: "select",
-              options: roles.map((rol) => ({ value: String(rol.id), label: rol.rol })),
+              options: roles.map((r) => ({ value: String(r.id), label: r.rol })),
             },
             {
               id: "ficha",
               label: "Ficha",
               type: "select",
-              options: fichas
-                .filter((f) => f.numero_ficha !== undefined && f.numero_ficha !== undefined)
-                .map((f) => ({ value: String(f.numero_ficha), label: f.numero_ficha })),
-            },
+              options: [
+                { value: "", label: "Sin ficha asignada" }, // 👈 opción opcional
+                ...fichas.map((f) => ({
+                  value: f.numero_ficha,
+                  label: `${f.numero_ficha} - ${f.nombre_ficha}`,
+                })),
+              ],
+            }
           ]}
-          onSubmit={handleSubmit}
-          isError={actualizarUsuario.isError}
-          isSuccess={actualizarUsuario.isSuccess}
-          initialValues={Object.fromEntries(
-            Object.entries(formData).map(([key, value]) => [key, String(value ?? "")])
-          )}
-          key={JSON.stringify(formData)}
         />
       }
     />

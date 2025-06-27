@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useResetearContrasena } from "@/hooks/usuarios/recuperaciones/useResetearContrasena";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { showToast } from "@/components/globales/Toast";
-import LoadingBox from "@/context/AuthContext";
+import LoadingBox from "@/components/globales/LoadingBox";
 
 const ResetearContrasena = () => {
   const [searchParams] = useSearchParams();
@@ -59,6 +59,7 @@ const ResetearContrasena = () => {
           <p className="text-red-500 text-center mt-4">
             Enlace inválido o expirado. Solicita otro correo de recuperación.
           </p>
+          
         ) : (
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <input

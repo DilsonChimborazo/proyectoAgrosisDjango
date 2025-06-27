@@ -20,7 +20,7 @@ const CrearFicha: React.FC<CrearFichaProps> = ({ onClose, onCreated }) => {
     { id: 'fecha_salida', label: 'Fecha de salida', type: 'date' },
   ];
 
-  const handleSubmit = (formData: { [key: string]: string }) => {
+  const handleSubmit = (formData: { [key: string]: any }) => {
     const { numero_ficha, nombre_ficha, abreviacion, fecha_inicio, fecha_salida } = formData;
 
     if (!numero_ficha || !nombre_ficha || !abreviacion || !fecha_inicio || !fecha_salida) {

@@ -4,11 +4,11 @@ import { FormData } from '../../../hooks/usuarios/usuario/usePerfilUsuarios';
 import { perfilSchema } from '@/hooks/validaciones/useSchemas';
 import { Eye, EyeOff } from "lucide-react";
 import { showToast } from "@/components/globales/Toast";
-
+import { useAuthContext } from '@/context/AuthContext';
 
 const PerfilUsuario: React.FC = () => {
-  const { perfil, isLoading, error, updatePerfil, isUpdating, refetchPerfil} = usePerfilUsuario();
-
+  const { usuario } = useAuthContext();
+  const { updatePerfil, isUpdating } = usePerfilUsuario();
 
   const [formData, setFormData] = useState<FormData>({
     identificacion: '',
@@ -24,19 +24,19 @@ const PerfilUsuario: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (perfil) {
+    if (usuario) {
       setFormData({
-        identificacion: perfil.identificacion,
-        nombre: perfil.nombre,
-        apellido: perfil.apellido,
-        email: perfil.email,
-        password:'',
+        identificacion: usuario.identificacion.toString(),
+        nombre: usuario.nombre,
+        apellido: usuario.apellido,
+        email: usuario.email,
+        password: '',
         img: null,
       });
     }
-  }, [perfil]);
+  }, [usuario]);
 
-  const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     setFormError(null);
@@ -53,7 +53,6 @@ const PerfilUsuario: React.FC = () => {
     }
   };
 
-
   const handleImageClick = () => {
     fileInputRef.current?.click();
   };
@@ -68,45 +67,43 @@ const PerfilUsuario: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
     const result = perfilSchema.safeParse(formData);
 
+    if (!result.success) {
+      const firstError = Object.values(result.error.flatten().fieldErrors)[0]?.[0];
+      setFormError(firstError || 'Datos inválidos');
+      return;
+    }
 
-  if (!result.success) {
-    // Extraer el primer error
-    const firstError = Object.values(result.error.flatten().fieldErrors)[0]?.[0];
-    setFormError(firstError || 'Datos inválidos');
-    return;
-  }
+    const dataToUpdate = { ...formData };
+    if (!formData.password) {
+      delete dataToUpdate.password;
+    }
 
-  const dataToUpdate = { ...formData };
-  if (!formData.password) {
-    delete dataToUpdate.password;
-  }
+    try {
+      await updatePerfil(dataToUpdate);
 
-  await updatePerfil(dataToUpdate);
-  await refetchPerfil();
-
-  showToast({
-          title: 'Perfil actualizado',
-          description: 'Perfil actualizado correctamente',
-          variant: 'success'
-        })
-        
-};
+      showToast({
+        title: 'Perfil actualizado',
+        description: 'Perfil actualizado correctamente',
+        variant: 'success',
+      });
+    } catch (error: any) {
+      showToast({
+        title: 'Error',
+        description: error.message || 'Hubo un problema al actualizar el perfil',
+        variant: 'error',
+      });
+    }
+  };
 
   const imageUrl = useMemo(() => {
     if (preview) return preview;
-    return perfil?.img_url || 'http://localhost:8000/media/imagenes/defecto.jpg';
-  }, [preview, perfil?.img_url]);
+    return usuario?.img_url || 'http://localhost:8000/media/imagenes/defecto.jpg';
+  }, [preview, usuario?.img_url]);
 
-  if (isLoading) return <div className="text-center text-gray-500">Cargando...</div>;
-  if (error) return <div className="text-center text-red-500">Error: {error.message}</div>;
-  if (!perfil) return null;
-
-  
-
-  return (
+   return (
     <div className="max-w-4xl mx-auto my-10 flex bg-white shadow-lg rounded-xl overflow-hidden">
       {/* Lado izquierdo amarillo con imagen, rol y ficha */}
       <div className="w-1/3 bg-green-700 flex flex-col items-center justify-center p-6 text-white">
@@ -142,8 +139,8 @@ const PerfilUsuario: React.FC = () => {
   
         {/* Rol y ficha */}
         <div className="text-center">
-          <p className="font-semibold">{perfil.fk_id_rol?.rol || 'Sin rol'}</p>
-          <p className="text-sm">{perfil.ficha?.numero_ficha || 'Sin ficha'}</p>
+          <p className="font-semibold">{usuario?.rol || 'Sin rol'}</p>
+          <p className="text-sm">{usuario?.numero_ficha || 'Sin ficha'}</p>
         </div>
   
       
@@ -272,5 +269,6 @@ const PerfilUsuario: React.FC = () => {
     </div>
   );
 };
+
 
 export default PerfilUsuario;

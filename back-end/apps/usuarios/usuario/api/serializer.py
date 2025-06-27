@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework.serializers import ModelSerializer
 from apps.usuarios.usuario.models import Usuarios
 from apps.usuarios.rol.api.serializer import RolSerializer
@@ -40,10 +41,25 @@ class EscribirUsuarioSerializer(ModelSerializer):
             'img': {'required': False},
         }
 
+    def validate(self, attrs):
+        # Asegurar nombre con mayúscula inicial
+        if 'nombre' in attrs and isinstance(attrs['nombre'], str):
+            attrs['nombre'] = attrs['nombre'].strip().capitalize()
+
+        # Asegurar apellido con mayúscula inicial
+        if 'apellido' in attrs and isinstance(attrs['apellido'], str):
+            attrs['apellido'] = attrs['apellido'].strip().capitalize()
+
+        # Por si se usara texto para el rol (aunque tú lo mandas por ID)
+        if 'fk_id_rol' in attrs and hasattr(attrs['fk_id_rol'], 'rol'):
+            rol = attrs['fk_id_rol'].rol
+            attrs['fk_id_rol'].rol = rol.strip().capitalize()
+
+        return super().validate(attrs)
+
     def create(self, validated_data):
         groups_data = validated_data.pop('groups', None)
         user_permissions_data = validated_data.pop('user_permissions', None)
-
         password = validated_data.pop('password', None)
 
         usuario = Usuarios(**validated_data)
@@ -51,8 +67,7 @@ class EscribirUsuarioSerializer(ModelSerializer):
         if password:
             usuario.set_password(password)
 
-        usuario.is_active = True  # 👈 Activar el usuario
-
+        usuario.is_active = True
         usuario.save()
 
         if groups_data is not None:
@@ -64,11 +79,9 @@ class EscribirUsuarioSerializer(ModelSerializer):
 
     def update(self, instance, validated_data):
         print("VALIDATED DATA EN UPDATE:", validated_data)
-
+    
         remove_img = validated_data.pop('remove_img', False)
-
         if remove_img:
-            # Solo borrar la imagen si existe y no es la imagen por defecto
             if instance.img and instance.img.name != 'imagenes/defecto.png':
                 instance.img.delete(save=False)
             instance.img = None
@@ -78,8 +91,13 @@ class EscribirUsuarioSerializer(ModelSerializer):
             print("SETEANDO CONTRASEÑA HASH")
             instance.set_password(password)
     
+        # ✅ Limpiar ficha vacía
+        if 'ficha' in validated_data and validated_data['ficha'] == "":
+            validated_data['ficha'] = None
+    
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
     
         instance.save()
         return instance
+    
