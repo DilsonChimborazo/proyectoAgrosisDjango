@@ -16,7 +16,7 @@ import { showToast } from "@/components/globales/Toast";
 interface CrearUsuarioProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess?: () => void;
 }
 
 interface FormField {
