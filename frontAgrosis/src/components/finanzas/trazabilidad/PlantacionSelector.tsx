@@ -1,5 +1,5 @@
 import Button from '@/components/globales/Button';
-import { BarChart2, History, GitCompare, Download } from 'lucide-react';
+import { History, GitCompare } from 'lucide-react';
 import { Plantacion } from '@/hooks/trazabilidad/plantacion/usePlantacion';
 
 interface PlantacionSelectorProps {
@@ -25,10 +25,8 @@ const PlantacionSelector = ({
     loadingPlantaciones,
     plantacionSeleccionada,
     onPlantacionChange,
-    onVerResumen,
     onVerEvolucion,
     onCompararVersiones,
-    onExportarReporte,
     historialDisponible
 }: PlantacionSelectorProps) => {
     return (

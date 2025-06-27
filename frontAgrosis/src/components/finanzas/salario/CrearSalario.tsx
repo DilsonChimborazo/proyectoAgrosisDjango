@@ -127,7 +127,6 @@ const CrearSalario = ({ onClose, onSuccess }: CrearSalarioProps) => {
             description: mensajeError,
             timeout: 5000,
           });
-          console.error('Error al crear el salario:', error.response?.data || error.message);
         },
       });
     },

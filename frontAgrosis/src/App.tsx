@@ -48,12 +48,11 @@ import ActualizarProduccionPage from "./pages/finanzas/produccion/ActualizarProd
 import CrearEras from "./components/iot/eras/CrearEras";
 import CrearLote from "./components/iot/lotes/CrearLote";
 import CrearEspecie from "./components/trazabilidad/especie/CrearEspecie";
-import ActualizarVentaPage from "./pages/finanzas/venta/ActualizarVentaPage";
+
 import Mapa from "./components/trazabilidad/mapa/Mapa";
 import ListarHerramientas from "./components/inventario/herramientas/ListarHerramientas";
 import ListarInsumos from "./components/inventario/insumos/Insumos";
 import RegistroDiario from "./pages/finanzas/consultas/RegistroDiario";
-import ReporteInsumosPage from "./pages/finanzas/consultas/ReporteInsumosPage";
 import ReportesPage from "./components/reportes/Reportes";
 import BodegaPage from "./pages/inventario/BodegaPage";
 import UnidadMedida from "./components/inventario/unidadMedida/UnidadMedida";
@@ -138,11 +137,9 @@ function App() {
           <Route path="/ventas" element={<Principal><VentaPage /></Principal>} />
           <Route path="/registrar-venta" element={<Principal><CrearVentaPage /></Principal>} />
           <Route path="/actualizarproduccion/:id_produccion" element={<Principal><ActualizarProduccionPage /></Principal>} />
-          <Route path="/actualizarventa/:id_venta" element={<Principal><ActualizarVentaPage /></Principal>} />
           <Route path="/CrearSalario" element={<Principal><CrearSalarioPage /></Principal>} />
           <Route path="/Salario" element={<Principal><SalarioPage /></Principal>} />
           <Route path="/diario" element={<Principal><RegistroDiario /></Principal>} />
-          <Route path="/insumo-egresos" element={<Principal><ReporteInsumosPage /></Principal>} />
           <Route path="/stock" element={<Principal><StockPage /></Principal>} />
           <Route path="/nomina" element={<Principal><NominaPage /></Principal>} />
 

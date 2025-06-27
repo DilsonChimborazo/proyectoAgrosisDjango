@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { useReporteEgresos } from '@/hooks/finanzas/consultas/useReporteInsumos';
-import { useReporteProgramacion } from '@/hooks/finanzas/consultas/useRegistroDiarioWebHook';
+
 import useLotesActivos from '@/hooks/iot/lote/useLotesActivos';
 import { useReporteHerramientas } from '@/hooks/inventario/herramientas/useReporteHerramientas';
 import { useReporteInsumos } from '@/hooks/inventario/insumos/useReporteInsumos';
@@ -41,11 +40,7 @@ const Reportes = () => {
   );
 
   // Obtener datos de los hooks
-  const { data: egresos, isLoading: loadingEgresos, error: errorEgresos } = useReporteEgresos();
-  const { data: programacion, isLoading: loadingProgramacion, error: errorProgramacion } = useReporteProgramacion(
-    new Date(fechaInicio).getFullYear(), 
-    new Date(fechaInicio).getMonth() + 1
-  );
+
   const { lotes, loading: loadingLotes, error: errorLotes } = useLotesActivos();
   const { data: herramientas, isLoading: loadingHerramientas, error: errorHerramientas } = useReporteHerramientas();
   const { data: insumosBajoStock, isLoading: loadingInsumos, error: errorInsumos } = useReporteInsumos();
@@ -55,24 +50,6 @@ const Reportes = () => {
   
   // Configuración de módulos y reportes disponibles
   const modulos: Modulo[] = [
-    {
-      id: 'finanzas',
-      nombre: 'Finanzas',
-      reportes: [
-        {
-          id: 'egresos',
-          nombre: 'Reporte de Egresos',
-          requiereFechas: true,
-          componente: <ReporteEgresos data={egresos} loading={loadingEgresos} error={errorEgresos} />
-        },
-        {
-          id: 'programacion',
-          nombre: 'Reporte de Programación',
-          requiereFechas: true,
-          componente: <ReporteProgramacion data={programacion} loading={loadingProgramacion} error={errorProgramacion} />
-        }
-      ]
-    },
     {
       id: 'iot',
       nombre: 'IoT',
@@ -262,63 +239,6 @@ const Reportes = () => {
   );
 };
 
-// Componentes específicos para cada reporte
-const ReporteEgresos = ({ data, loading, error }: { data: any, loading: boolean, error: any }) => {
-  const columns = [
-    { name: 'Tipo', key: 'tipo' },
-    { name: 'Nombre', key: 'nombre' },
-    { name: 'Insumos', key: 'insumos' },
-    { name: 'Costos', key: 'costos' },
-    { name: 'Total', key: 'total' }
-  ];
-
-  return (
-    <>
-      <h2 className="text-xl font-semibold mb-4">Reporte de Egresos</h2>
-      {loading ? (
-        <p>Cargando egresos...</p>
-      ) : error ? (
-        <p className="text-red-500">Error: {error.message}</p>
-      ) : (
-        <Tabla
-          title="Egresos"
-          headers={columns.map(c => c.name)}
-          data={data || []}
-          onClickAction={(row) => console.log('Detalle:', row)}
-          onUpdate={(row) => console.log('Actualizar:', row)}
-          onCreate={() => console.log('Crear nuevo')}
-        />
-      )}
-    </>
-  );
-};
-
-const ReporteProgramacion = ({ data, loading, error }: { data: any, loading: boolean, error: any }) => {
-  const columns = [
-    { name: 'Actividad', key: 'fk_id_asignacionActividades__fk_id_actividad__nombre_actividad' },
-    { name: 'Total', key: 'total' },
-  ];
-
-  return (
-    <>
-      <h2 className="text-xl font-semibold mb-4">Reporte de Programación</h2>
-      {loading ? (
-        <p>Cargando programación...</p>
-      ) : error ? (
-        <p className="text-red-500">Error: {error.message}</p>
-      ) : (
-        <Tabla
-          title="Programación"
-          headers={columns.map(c => c.name)}
-          data={data || []}
-          onClickAction={(row) => console.log('Detalle:', row)}
-          onUpdate={(row) => console.log('Actualizar:', row)}
-          onCreate={() => console.log('Crear nuevo')}
-        />
-      )}
-    </>
-  );
-};
 
 const ReporteLotes = ({ data, loading, error }: { data: any, loading: boolean, error: any }) => {
   const formatUbicacion = (ubicacion: any) => {

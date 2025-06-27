@@ -57,7 +57,6 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
         initialStock[prod.id] = prod.stock_disponible;
       });
       setStockAjustado(initialStock);
-      console.log('Inicializando stockAjustado:', initialStock);
     }
   }, [producciones, stockAjustado]);
 
@@ -127,7 +126,6 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
       descuentoPorcentaje: 0,
     });
     setError(null);
-    console.log('Producto seleccionado:', produccion.id, 'Stock ajustado:', stockAjustado[produccion.id]);
   };
 
   const agregarProducto = () => {
@@ -183,7 +181,6 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
     );
 
     const nuevoStock = Math.max(0, stockActual - cantidadEnBaseParaStock);
-    console.log(`Agregando producto: ${produccion.nombre_produccion}, Cantidad en base: ${cantidadEnBaseParaStock}, Stock actual: ${stockActual}, Nuevo stock: ${nuevoStock}`);
 
     if (productoExistenteIndex >= 0) {
       // Si existe, actualizamos la cantidad
@@ -239,7 +236,6 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
 
     setStockAjustado((prev) => {
       const nuevoStock = (prev[productoEliminado.produccionId] || 0) + cantidadEnBase;
-      console.log(`Eliminando producto: ${productoEliminado.nombreProduccion}, Cantidad en base: ${cantidadEnBase}, Nuevo stock: ${nuevoStock}`);
       return {
         ...prev,
         [productoEliminado.produccionId]: nuevoStock,
@@ -275,8 +271,7 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
           onSuccess();
           onClose();
         },
-        onError: (error: any) => {
-          console.error('Error en crearVentaMutation:', error);
+        onError: (error: Error | { message: string }) => {
           const errorMessage = error?.message || 'Error al crear la venta. Revise los datos.';
           showToast({ title: errorMessage, timeout: 5000 });
 

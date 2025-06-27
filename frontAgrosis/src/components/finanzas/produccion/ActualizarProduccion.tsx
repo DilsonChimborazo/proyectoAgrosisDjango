@@ -34,38 +34,40 @@ const ActualizarProduccion = () => {
     }
   }, [produccion]);
 
-  const handleSubmit = (data: { [key: string]: string }) => {
+  const handleSubmit = (data: { [key: string]: string | string[] | File }) => {
     if (!id_produccion) return;
+
+    // Convertir los valores necesarios a string para el formulario
+    const stringData: { [key: string]: string } = {};
+    Object.entries(data).forEach(([key, value]) => {
+      stringData[key] = value instanceof File ? value.name : Array.isArray(value) ? value.join(',') : value;
+    });
 
     const produccionActualizada = {
       id_produccion: Number(id_produccion),
-      nombre_produccion: data.nombre_produccion || "",
-      cantidad_producida: data.cantidad_producida ? parseFloat(data.cantidad_producida) : 0,
-      fecha: data.fecha || new Date().toISOString().split("T")[0],
-      fk_id_plantacion: data.fk_id_plantacion ? parseInt(data.fk_id_plantacion, 10) : null,
-      fk_unidad_medida: data.fk_unidad_medida ? parseInt(data.fk_unidad_medida, 10) : null,
-      stock_disponible: data.stock_disponible ? parseFloat(data.stock_disponible) : undefined,
-      precio_sugerido_venta: data.precio_sugerido_venta ? parseFloat(data.precio_sugerido_venta) : null,
+      nombre_produccion: stringData.nombre_produccion || "",
+      cantidad_producida: stringData.cantidad_producida ? parseFloat(stringData.cantidad_producida) : 0,
+      fecha: stringData.fecha || new Date().toISOString().split("T")[0],
+      fk_id_plantacion: stringData.fk_id_plantacion ? parseInt(stringData.fk_id_plantacion, 10) : null,
+      fk_unidad_medida: stringData.fk_unidad_medida ? parseInt(stringData.fk_unidad_medida, 10) : null,
+      stock_disponible: stringData.stock_disponible ? parseFloat(stringData.stock_disponible) : undefined,
+      precio_sugerido_venta: stringData.precio_sugerido_venta ? parseFloat(stringData.precio_sugerido_venta) : null,
     };
 
-    if (isNaN(produccionActualizada.cantidad_producida) || (produccionActualizada.stock_disponible && isNaN(produccionActualizada.stock_disponible))) {
-      console.error("Valores numéricos inválidos");
+    if (isNaN(produccionActualizada.cantidad_producida) || 
+        (produccionActualizada.stock_disponible && isNaN(produccionActualizada.stock_disponible))) {
       return;
     }
 
     actualizarProduccion.mutate(produccionActualizada, {
       onSuccess: () => {
         navigate("/produccion", { replace: true });
-      },
-      onError: (error) => {
-        console.error("❌ Error al actualizar producción:", error.message);
-        // Aquí podrías mostrar un mensaje al usuario (e.g., con un toast)
-      },
+      }
     });
   };
 
   if (isLoading) return <div className="text-center text-gray-500 py-4">Cargando datos...</div>;
-  if (error) return <div className="text-center text-red-500 py-4">Error al cargar la producción: {error.message}</div>;
+  if (error) return <div className="text-center text-red-500 py-4">Error al cargar la producción</div>;
 
   return (
     <div className="max-w-4xl mx-auto p-4 bg-white rounded-lg shadow-md">
@@ -86,7 +88,6 @@ const ActualizarProduccion = () => {
           isSuccess={actualizarProduccion.isSuccess}
           title="Actualizar Producción"
           initialValues={formData}
-          submitButtonText="Guardar Cambios"
         />
       )}
     </div>

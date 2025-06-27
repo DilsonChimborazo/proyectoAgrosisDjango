@@ -1,4 +1,4 @@
-import React, { useState, useMemo, ChangeEvent } from "react";
+import { useState, useMemo, ChangeEvent } from "react";
 import { useCrearProduccion } from "@/hooks/finanzas/produccion/useCrearProduccion";
 import { usePlantacion } from "@/hooks/trazabilidad/plantacion/usePlantacion";
 import { useMedidas } from "@/hooks/inventario/unidadMedida/useMedidad";
@@ -42,7 +42,6 @@ const CrearProduccion = ({ onClose, onSuccess }: CrearProduccionProps) => {
   const formFields = useMemo(() => {
     const currentSelectedUnit = unidades.find(u => u.id === selectedFkUnidadMedida);
 
-    // Obtener la fecha actual en formato YYYY-MM-DD
     const today = new Date().toISOString().split("T")[0];
 
     return [
@@ -116,7 +115,6 @@ const CrearProduccion = ({ onClose, onSuccess }: CrearProduccionProps) => {
 
     const errors: string[] = [];
 
-    // Validar que la fecha no sea futura
     const selectedDate = new Date(formData.fecha as string);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -124,13 +122,11 @@ const CrearProduccion = ({ onClose, onSuccess }: CrearProduccionProps) => {
       errors.push("La fecha no puede ser posterior a la fecha actual");
     }
 
-    // Validar fk_id_plantacion
     const fkIdPlantacion = Array.isArray(formData.fk_id_plantacion)
       ? formData.fk_id_plantacion[0]
       : formData.fk_id_plantacion;
     if (!fkIdPlantacion) errors.push("Plantación es obligatoria");
 
-    // Validar nombre_produccion
     const nombreProduccion = Array.isArray(formData.nombre_produccion)
       ? formData.nombre_produccion[0]
       : formData.nombre_produccion;
@@ -138,7 +134,6 @@ const CrearProduccion = ({ onClose, onSuccess }: CrearProduccionProps) => {
       errors.push("Nombre Producción es obligatorio");
     }
 
-    // Validar cantidad_producida
     const cantidadProducida = Array.isArray(formData.cantidad_producida)
       ? formData.cantidad_producida[0]
       : formData.cantidad_producida;
@@ -146,16 +141,13 @@ const CrearProduccion = ({ onClose, onSuccess }: CrearProduccionProps) => {
       errors.push("Cantidad Producida debe ser mayor a cero");
     }
 
-    // Validar fk_unidad_medida
     const fkUnidadMedida = Array.isArray(formData.fk_unidad_medida)
       ? formData.fk_unidad_medida[0]
       : formData.fk_unidad_medida;
     if (!fkUnidadMedida) errors.push("Unidad de Medida es obligatoria");
 
-    // Validar fecha
     if (!formData.fecha) errors.push("Fecha es obligatoria");
 
-    // Validar precio_sugerido_venta
     const precioSugeridoVenta = Array.isArray(formData.precio_sugerido_venta)
       ? formData.precio_sugerido_venta[0]
       : formData.precio_sugerido_venta;
@@ -203,7 +195,6 @@ const CrearProduccion = ({ onClose, onSuccess }: CrearProduccionProps) => {
           timeout: 5000,
         });
         setErrorMessage("Error al crear la producción. Intente de nuevo.");
-        console.error("Error al crear la producción:", error.message);
       },
     });
   };
