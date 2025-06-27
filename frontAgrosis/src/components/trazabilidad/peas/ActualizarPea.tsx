@@ -70,11 +70,8 @@ const ActualizarPea = ({ id, onSuccess }: ActualizarPea) => {
       tipo_pea,
     };
 
-    console.log("🚀 Enviando PEA actualizada al backend:", peaActualizada);
-
     actualizarPea.mutate(peaActualizada, {
       onSuccess: () => {
-        console.log("✅ PEA actualizada correctamente");
         showToast({
           title: "PEA actualizado exitosamente",
           description: "El PEA ha sido actualizado en el sistema.",
@@ -84,7 +81,6 @@ const ActualizarPea = ({ id, onSuccess }: ActualizarPea) => {
         onSuccess();
       },
       onError: (error) => {
-        console.error("❌ Error al actualizar PEA:", error);
         showToast({
           title: "Error al actualizar PEA",
           description: error.message || "No se pudo actualizar el PEA. Intenta de nuevo.",

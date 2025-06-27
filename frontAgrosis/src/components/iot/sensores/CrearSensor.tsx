@@ -92,14 +92,6 @@ const CrearSensor = ({ onSuccess }: CrearSensorProps) => {
         });
         if (onSuccess) onSuccess(data);
       },
-      onError: (error: any) => {
-        console.error('❌ Error al crear el sensor:', error.message);
-        showToast({
-          title: 'Error',
-          description: 'No se pudo crear el sensor',
-          variant: 'error',
-        });
-      },
     });
   };
 

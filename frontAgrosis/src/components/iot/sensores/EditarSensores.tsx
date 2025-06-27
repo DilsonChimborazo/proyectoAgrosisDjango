@@ -25,7 +25,6 @@ const EditarSensor = ({ id, onSuccess }: EditarSensorProps) => {
   useEffect(() => {
     if (sensor) {
       const tipoSensorValue = sensor.tipo_sensor ? sensor.tipo_sensor.toUpperCase() : "";
-      console.log("📋 Tipo de Sensor normalizado:", tipoSensorValue);
       setFormData({
         nombre_sensor: sensor.nombre_sensor || "",
         tipo_sensor: tipoSensorValue,

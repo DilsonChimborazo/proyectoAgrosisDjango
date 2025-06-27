@@ -164,7 +164,7 @@ const CrearControlFitosanitario = ({ onSuccess }: CrearControlFitosanitarioProps
     ) {
       showToast({
         title: 'Error al crear control fitosanitario',
-        description: 'Por favor, completa todos los campos obligatorios .',
+        description: 'Por favor, completa todos los campos obligatorios.',
         timeout: 5000,
         variant: 'error',
       });
@@ -176,10 +176,10 @@ const CrearControlFitosanitario = ({ onSuccess }: CrearControlFitosanitarioProps
       (insumo) => String(insumo.id) === formData.fk_id_insumo
     );
 
-    if (insumoSeleccionado && cantidadInsumoIngresada > (insumoSeleccionado.cantidad_en_base ?? 0)) {
+    if (insumoSeleccionado && cantidadInsumoIngresada > (Number(insumoSeleccionado.cantidad_en_base) ?? 0)) {
       showToast({
         title: 'Error en la cantidad de insumo',
-        description: `La cantidad ingresada (${cantidadInsumoIngresada}) excede el stock disponible (${insumoSeleccionado.cantidad_en_base ?? 0}).`,
+        description: `La cantidad ingresada (${cantidadInsumoIngresada}) excede el stock disponible (${Number(insumoSeleccionado.cantidad_en_base) ?? 0}).`,
         timeout: 5000,
         variant: 'error',
       });
