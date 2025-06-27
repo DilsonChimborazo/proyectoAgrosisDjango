@@ -1,4 +1,3 @@
-// src/components/trazabilidad/asignacion/ListarAsignacion.tsx
 import { useState, useMemo, useEffect, memo } from 'react';
 import { useAsignacion, Asignacion } from '@/hooks/trazabilidad/asignacion/useAsignacion';
 import { useRealiza } from '@/hooks/trazabilidad/realiza/useRealiza';
@@ -173,41 +172,37 @@ const DetalleAsignacionModal = memo(({ item, realizaList, usuarios }: { item: As
         <p><span className="font-semibold">Fecha Programada:</span> {item.fecha_programada}</p>
         <p><span className="font-semibold">Observaciones:</span> {item.observaciones || 'Sin observaciones'}</p>
         <p><span className="font-semibold">Realiza:</span> {realizaNombre}</p>
-        <p>
-          <span className="font-semibold">Usuarios:</span>
-          {usuariosAsignados.length > 0 ? (
-            <ul className="list-none space-y-2 mt-1">
-              {usuariosAsignados.map((u, index) => (
-                <li key={index} className="text-gray-700 before:content-['-'] before:mr-2">
-                  {`${u.nombre} ${u.apellido}`}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            ' Sin usuarios'
-          )}
-        </p>
-        <p>
-          <span className="font-semibold">Recursos Asignados:</span>
-          {item.recursos_asignados.length > 0 ? (
-            <ul className="list-none space-y-2 mt-1">
-              {item.recursos_asignados.map((recurso, index) => (
-                <li key={index} className="text-gray-700 before:content-['-'] before:mr-2">
-                  {typeof recurso === 'string'
-                    ? recurso
-                    : [
-                        recurso.insumos?.map((i) => i.nombre).join(', '),
-                        recurso.herramientas?.map((h) => h.nombre_h).join(', '),
-                      ]
-                        .filter(Boolean)
-                        .join(' | ')}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            ' Sin recursos asignados'
-          )}
-        </p>
+        <p><span className="font-semibold">Usuarios:</span></p>
+        {usuariosAsignados.length > 0 ? (
+          <ul className="list-none space-y-2 mt-1">
+            {usuariosAsignados.map((u, index) => (
+              <li key={index} className="text-gray-700 before:content-['-'] before:mr-2">
+                {`${u.nombre} ${u.apellido}`}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>Sin usuarios</p>
+        )}
+        <p><span className="font-semibold">Recursos Asignados:</span></p>
+        {item.recursos_asignados.length > 0 ? (
+          <ul className="list-none space-y-2 mt-1">
+            {item.recursos_asignados.map((recurso, index) => (
+              <li key={index} className="text-gray-700 before:content-['-'] before:mr-2">
+                {typeof recurso === 'string'
+                  ? recurso
+                  : [
+                      recurso.insumos?.map((i) => i.nombre).join(', '),
+                      recurso.herramientas?.map((h) => h.nombre_h).join(', '),
+                    ]
+                      .filter(Boolean)
+                      .join(' | ')}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>Sin recursos asignados</p>
+        )}
       </div>
     </div>
   );
@@ -562,7 +557,7 @@ const ListarAsignacion: React.FC = () => {
           <VentanaModal
             isOpen={isDetailModalOpen}
             onClose={closeModal}
-            titulo="Detalles de Asignación"
+            titulo=""
             contenido={<DetalleAsignacionModal item={selectedAsignacion} realizaList={realizaList} usuarios={usuarios} />}
           />
           <VentanaModal
