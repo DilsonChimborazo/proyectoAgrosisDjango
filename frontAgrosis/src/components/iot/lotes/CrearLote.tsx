@@ -25,11 +25,19 @@ const CrearLote = ({ onSuccess }: CrearLoteProps) => {
     },
   ];
 
-  const handleSubmit = (formData: { [key: string]: string }) => {
-    if (!formData.dimencion || !formData.nombre_lote || !formData.estado) {
+  const handleSubmit = (formData: { [key: string]: string | string[] | File }) => {
+    // Validar que los campos necesarios sean strings y no estén vacíos
+    if (
+      typeof formData.dimencion !== "string" ||
+      typeof formData.nombre_lote !== "string" ||
+      typeof formData.estado !== "string" ||
+      !formData.dimencion ||
+      !formData.nombre_lote ||
+      !formData.estado
+    ) {
       showToast({
         title: 'Error',
-        description: 'Todos los campos son obligatorios',
+        description: 'Todos los campos son obligatorios y deben ser válidos',
         variant: 'error',
       });
       return;
@@ -56,7 +64,7 @@ const CrearLote = ({ onSuccess }: CrearLoteProps) => {
           title: 'Error',
           description: 'No se pudo crear el lote',
           variant: 'error',
-        });
+        });error
       },
     });
   };

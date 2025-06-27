@@ -20,19 +20,6 @@ interface ExtendedFormField {
   accept?: string;
 }
 
-// Extender la interfaz FormProps (sin errorMessage)
-interface ExtendedFormProps {
-  fields: ExtendedFormField[];
-  onSubmit: (data: { [key: string]: string | string[] | File | null }) => void;
-  onFieldChange?: (fieldId: string, value: string | string[]) => void;
-  isError: boolean;
-  isSuccess: boolean;
-  title: string;
-  initialValues?: { [key: string]: string | string[] | File };
-  key?: string;
-  multipart?: boolean;
-}
-
 const ActualizarControlFitosanitario = ({ id, onSuccess }: { id: string | number; onSuccess: () => void }) => {
   const { data: control, isLoading, error } = useControlFitosanitarioPorId(String(id));
   const actualizarControl = useActualizarControlFitosanitario();
@@ -57,8 +44,6 @@ const ActualizarControlFitosanitario = ({ id, onSuccess }: { id: string | number
     img: new File([], ""),
   });
 
-  console.log("Control data received:", control);
-
   useEffect(() => {
     if (control && Object.keys(control).length > 0) {
       setFormData({
@@ -75,11 +60,6 @@ const ActualizarControlFitosanitario = ({ id, onSuccess }: { id: string | number
         img: new File([], ""),
       });
       setSelectedInsumoId(control.fk_id_insumo?.id ? String(control.fk_id_insumo.id) : null);
-      console.log("Form data set:", {
-        tipo_control: tipoControlOptions.find(option => option.value === control.tipo_control)?.value || "",
-        fk_id_plantacion: control.fk_id_plantacion?.id,
-        fk_identificacion: control.fk_identificacion?.map((user: any) => String(user.id)),
-      });
     }
   }, [control]);
 
@@ -129,7 +109,6 @@ const ActualizarControlFitosanitario = ({ id, onSuccess }: { id: string | number
   };
 
   const handleSubmit = (data: { [key: string]: string | string[] | File | null }) => {
-    console.log("Datos del formulario recibidos:", data);
 
     const errors: string[] = [];
     if (!data.fecha_control) errors.push("La fecha del control es obligatoria");
@@ -177,12 +156,9 @@ const ActualizarControlFitosanitario = ({ id, onSuccess }: { id: string | number
       img: data.img instanceof File ? data.img : undefined,
     };
 
-    console.log("Enviando control fitosanitario actualizado al backend:", controlActualizado);
 
     actualizarControl.mutate(controlActualizado, {
-      onSuccess: (response) => {
-        console.log("✅ Respuesta del backend:", response);
-        console.log("✅ Control fitosanitario actualizado correctamente");
+      onSuccess: () => {
         showToast({
           title: 'Control fitosanitario actualizado exitosamente',
           description: 'El control fitosanitario ha sido actualizado en el sistema.',
@@ -192,7 +168,7 @@ const ActualizarControlFitosanitario = ({ id, onSuccess }: { id: string | number
         onSuccess();
       },
       onError: (error: any) => {
-        console.error("Error al actualizar control fitosanitario:", error.message);
+        
         showToast({
           title: 'Error al actualizar control fitosanitario',
           description: error.message || 'No se pudo actualizar el control fitosanitario. Intenta de nuevo.',

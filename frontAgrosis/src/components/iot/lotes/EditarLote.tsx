@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useEditarLote } from "@/hooks/iot/lote/useEditarLote";
-import { useLotePorId } from "@/hooks/iot/lote/useLotePorId"; 
+import { useLotePorId } from "@/hooks/iot/lote/useLotePorId";
 import Formulario from "../../globales/Formulario";
 import { showToast } from "@/components/globales/Toast";
 
@@ -12,7 +12,7 @@ interface EditarLoteProps {
 const EditarLote = ({ id, onSuccess }: EditarLoteProps) => {
   const { data: lote, isLoading, error } = useLotePorId(id);
   const actualizarLote = useEditarLote();
-  
+
   const [formData, setFormData] = useState({
     dimencion: "",
     nombre_lote: "",
@@ -21,11 +21,10 @@ const EditarLote = ({ id, onSuccess }: EditarLoteProps) => {
 
   useEffect(() => {
     if (lote) {
-      console.log("🔄 Cargando datos del Lote:", lote);
       setFormData({
         dimencion: lote.dimencion ? lote.dimencion.toString() : "",
         nombre_lote: lote.nombre_lote || "",
-        estado: lote.estado ? "true" : "false", // Convertimos a string para el formulario
+        estado: lote.estado ? "true" : "false",
       });
     }
   }, [lote]);
@@ -41,16 +40,16 @@ const EditarLote = ({ id, onSuccess }: EditarLoteProps) => {
     }
   }, [error]);
 
-  const handleSubmit = (data: { [key: string]: string | File }) => {
+  const handleSubmit = (data: { [key: string]: string | string[] | File }) => {
     if (!id) return;
 
     // Validaciones locales
     const errors: string[] = [];
-    if (!data.dimencion || typeof data.dimencion !== "string" || isNaN(Number(data.dimencion))) 
+    if (!data.dimencion || typeof data.dimencion !== "string" || isNaN(Number(data.dimencion)))
       errors.push("Dimensión es obligatoria y debe ser un número");
-    if (!data.nombre_lote || typeof data.nombre_lote !== "string") 
+    if (!data.nombre_lote || typeof data.nombre_lote !== "string")
       errors.push("Nombre del Lote es obligatorio");
-    if (!data.estado || typeof data.estado !== "string") 
+    if (!data.estado || typeof data.estado !== "string")
       errors.push("Estado es obligatorio");
 
     if (errors.length > 0) {
@@ -67,14 +66,11 @@ const EditarLote = ({ id, onSuccess }: EditarLoteProps) => {
       id: Number(id),
       dimencion: Number(data.dimencion) || 0,
       nombre_lote: (data.nombre_lote as string).trim(),
-      estado: (data.estado as string) === "true", // Convertimos a boolean
+      estado: (data.estado as string) === "true",
     };
-
-    console.log("🚀 Enviando Lote actualizado:", loteActualizado);
 
     actualizarLote.mutate(loteActualizado, {
       onSuccess: () => {
-        console.log("✅ Lote actualizado correctamente");
         showToast({
           title: "Éxito",
           description: "Lote actualizado exitosamente",
@@ -84,7 +80,6 @@ const EditarLote = ({ id, onSuccess }: EditarLoteProps) => {
         if (onSuccess) onSuccess();
       },
       onError: (error: any) => {
-        console.error("❌ Error al intentar actualizar el Lote:", error);
         let errorMessage = "Error al actualizar el lote. Intenta de nuevo.";
         if (error.response?.status === 401) {
           errorMessage = "No estás autorizado. Verifica tu token o permisos.";
@@ -106,7 +101,7 @@ const EditarLote = ({ id, onSuccess }: EditarLoteProps) => {
 
   return (
     <div className="max-w-4xl mx-auto p-4">
-      <Formulario 
+      <Formulario
         fields={[
           { id: "dimencion", label: "Dimensión", type: "number" },
           { id: "nombre_lote", label: "Nombre del Lote", type: "text" },
@@ -120,11 +115,11 @@ const EditarLote = ({ id, onSuccess }: EditarLoteProps) => {
             ],
           },
         ]}
-        onSubmit={handleSubmit}  
-        isError={actualizarLote.isError} 
+        onSubmit={handleSubmit}
+        isError={actualizarLote.isError}
         isSuccess={actualizarLote.isSuccess}
         title="Actualizar Lote"
-        initialValues={formData}  
+        initialValues={formData}
         key={JSON.stringify(formData)}
       />
     </div>

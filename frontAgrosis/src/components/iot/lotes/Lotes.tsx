@@ -61,7 +61,6 @@ const Lotes = () => {
 
       refetch();
     } catch (error: any) {
-      console.error(`Error al ${action} el lote:`, error);
     }
   };
 

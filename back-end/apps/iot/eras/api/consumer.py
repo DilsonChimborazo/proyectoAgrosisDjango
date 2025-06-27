@@ -9,12 +9,12 @@ class ErasConsumer(AsyncWebsocketConsumer):
         """Conexión WebSocket"""
         await self.channel_layer.group_add("eras", self.channel_name)
         await self.accept()
-        print("✅ Conexión WebSocket establecida con el cliente")
+        
 
     async def disconnect(self, close_code):
         """Desconexión WebSocket"""
         await self.channel_layer.group_discard("eras", self.channel_name)
-        print("❌ Conexión WebSocket cerrada")
+      
 
     async def receive(self, text_data):
         """Maneja los mensajes entrantes desde el cliente"""
@@ -22,20 +22,20 @@ class ErasConsumer(AsyncWebsocketConsumer):
 
         if "fk_id_lote" in data:
             fk_id_lote = data["fk_id_lote"]
-            print(f"📩 Mensaje recibido: Buscando eras para lote {fk_id_lote}")
+     
 
             # Obtener datos de las eras asociadas al lote
             eras_data = await self.get_eras_data(fk_id_lote)
 
             if eras_data:
-                print(f"📡 Eras encontradas: {json.dumps(eras_data, indent=2)}")
+          
                 await self.send(text_data=json.dumps({
                     "status": "success",
                     "message": "Datos de eras encontrados",
                     "data": eras_data
                 }))
             else:
-                print("⚠️ No se encontraron eras para este lote")
+           
                 await self.send(text_data=json.dumps({
                     "status": "error",
                     "message": "No se encontraron eras para este lote"
@@ -44,7 +44,7 @@ class ErasConsumer(AsyncWebsocketConsumer):
         else:
             # Si no se especifica lote, obtener **todas las eras**
             eras_data = await self.get_all_eras()
-            print(f"📡 Todas las eras encontradas: {json.dumps(eras_data, indent=2)}")
+           
 
             await self.send(text_data=json.dumps({
                 "status": "success",
@@ -70,7 +70,7 @@ class ErasConsumer(AsyncWebsocketConsumer):
     def get_all_eras(self):
         """Consulta la base de datos para obtener **todas** las eras registradas"""
         eras = Eras.objects.all()
-        print(f"🔍 Total de eras encontradas: {eras.count()}")  # Depuración
+     
         return self.serialize_eras(eras)
 
     def serialize_eras(self, eras):
@@ -84,5 +84,5 @@ class ErasConsumer(AsyncWebsocketConsumer):
             }
             for era in eras
         ]
-        print(f"📊 Datos serializados manualmente: {json.dumps(serialized_eras, indent=2)}")
+
         return serialized_eras if serialized_eras else None

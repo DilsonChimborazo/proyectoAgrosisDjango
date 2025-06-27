@@ -14,25 +14,25 @@ logger = logging.getLogger(__name__)
 
 class EvapotranspiracionViewSet(ViewSet):
     def list(self, request):
-        print("Solicitud recibida en EvapotranspiracionViewSet.list")
+
         plantacion_id = request.query_params.get('fk_id_plantacion')
         if not plantacion_id:
-            print("Falta el parámetro fk_id_plantacion")
+          
             return Response({"error": "Se requiere el parámetro fk_id_plantacion"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             plantacion = Plantacion.objects.get(id=plantacion_id)
-            print(f"Plantación encontrada: {plantacion_id}")
+        
             evapotranspiraciones = Evapotranspiracion.objects.filter(fk_id_plantacion=plantacion)
-            print(f"Registros encontrados: {evapotranspiraciones.count()}")
+           
 
             serializer = LeerEvapotranspiracionSerializer(evapotranspiraciones, many=True)
             return Response(serializer.data)
         except Plantacion.DoesNotExist:
-            print(f"Plantación no encontrada: {plantacion_id}")
+          
             return Response({"error": "Plantación no encontrada"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            print(f"Error en list: {str(e)}")
+           
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     
