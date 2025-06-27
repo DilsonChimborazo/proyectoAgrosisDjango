@@ -13,13 +13,6 @@ interface DetalleActividad {
 
 export type { DetalleActividad };
 
-interface UnidadMedida {
-    id: number;
-    nombre_medida: string;
-    unidad_base: string;
-    factor?: number;
-}
-
 interface DetalleInsumo {
     tipo: string;
     nombre: string;
