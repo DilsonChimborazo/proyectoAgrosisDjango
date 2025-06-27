@@ -29,8 +29,8 @@ interface ProductoSeleccionado {
 }
 
 interface CrearVentaProps {
-  onClose: () => void;
-  onSuccess: () => void;
+  onClose?: () => void; 
+  onSuccess?: () => void; 
 }
 
 const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
@@ -268,8 +268,8 @@ const CrearVenta: React.FC<CrearVentaProps> = ({ onClose, onSuccess }) => {
           showToast({ title: 'Venta creada exitosamente', timeout: 3000 });
           setProductos([]);
           setStockAjustado({}); // Reiniciar stockAjustado después de la venta
-          onSuccess();
-          onClose();
+          onClose?.();
+          onSuccess?.();
         },
         onError: (error: Error | { message: string }) => {
           const errorMessage = error?.message || 'Error al crear la venta. Revise los datos.';
