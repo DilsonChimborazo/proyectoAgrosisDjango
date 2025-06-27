@@ -3,8 +3,27 @@ import { useReporteResiduos } from '../../../hooks/trazabilidad/residuo/useRepor
 import Tabla from '../../globales/Tabla';
 import DescargarTablaPDF from '../../globales/DescargarTablaPDF';
 
-const ReporteResiduos = () => {
-  const { data: residuos, isLoading, isError } = useReporteResiduos();
+// Define the interface for the component props
+interface ReporteResiduosProps {
+  data: ReporteResiduo[] | undefined;
+  loading: boolean;
+  error: boolean;
+}
+
+interface ReporteResiduo {
+  fecha: string;
+  cultivo: string;
+  residuo: string;
+}
+
+const ReporteResiduos = ({ data: residuosFromProps, loading: isLoadingFromProps, error: isErrorFromProps }: ReporteResiduosProps) => {
+  // Use the hook as originally intended
+  const { data: residuosFromHook, isLoading: isLoadingFromHook, isError: isErrorFromHook } = useReporteResiduos();
+
+  // Use props if provided, otherwise fall back to hook data
+  const residuos = residuosFromProps ?? residuosFromHook;
+  const isLoading = isLoadingFromProps || isLoadingFromHook;
+  const isError = isErrorFromProps || isErrorFromHook;
 
   // Preparar datos para la tabla y el PDF
   const residuosList = useMemo(() => {
@@ -25,10 +44,8 @@ const ReporteResiduos = () => {
 
   return (
     <div className="p-4">
-     
-
- <Tabla
-        title=" Reporte de Residuos"
+      <Tabla
+        title="Reporte de Residuos"
         headers={columnasPDF}
         data={residuosList.map((residuo, index) => ({
           id: index,

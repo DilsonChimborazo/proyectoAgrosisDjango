@@ -3,8 +3,30 @@ import { useReporteControles } from '../../../hooks/trazabilidad/control/useRepo
 import Tabla from '../../globales/Tabla';
 import DescargarTablaPDF from '../../globales/DescargarTablaPDF';
 
-const ReporteControlFitosanitario = () => {
-  const { data: controles, isLoading, isError } = useReporteControles();
+// Define the interface for the component props
+interface ReporteControlProps {
+  data: ReporteControl[] | undefined;
+  loading: boolean;
+  error: Error | null;
+}
+
+interface ReporteControl {
+  fecha_control: Date;
+  plantacion: string;
+  cultivo: string;
+  pea: string;
+  tipo_control: string;
+  descripcion: string;
+}
+
+const ReporteControlFitosanitario = ({ data: controlesFromProps, loading: isLoadingFromProps, error: isErrorFromProps }: ReporteControlProps) => {
+  // Use the hook as originally intended
+  const { data: controlesFromHook, isLoading: isLoadingFromHook, isError: isErrorFromHook } = useReporteControles();
+
+  // Use props if provided, otherwise fall back to hook data
+  const controles = controlesFromProps ?? controlesFromHook;
+  const isLoading = isLoadingFromProps || isLoadingFromHook;
+  const isError = isErrorFromProps || isErrorFromHook;
 
   // Asegurar que controles sea un arreglo
   const controlesList = useMemo(() => {
