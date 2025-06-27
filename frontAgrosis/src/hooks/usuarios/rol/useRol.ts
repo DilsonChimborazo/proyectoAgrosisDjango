@@ -14,8 +14,6 @@ const fetchRoles = async (): Promise<Rol[]> => {
     const token = localStorage.getItem("token");
     if (!token) throw new Error("No hay token de autenticación");
 
-    console.log("Token enviado:", token);
-
     const response = await axios.get(`${apiUrl}rol/`, {
       headers: {
         Authorization: `Bearer ${token}`,

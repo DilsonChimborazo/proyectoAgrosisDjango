@@ -26,7 +26,6 @@ const useWebSocketUsuario = () => {
     };
 
     ws.onclose = () => {
-      console.log("WebSocket cerrado");
     };
 
     return () => ws.close();

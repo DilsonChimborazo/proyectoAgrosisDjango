@@ -41,7 +41,6 @@ class NotificationInsumoConsumer(AsyncWebsocketConsumer):
                 await self.check_insumo_status()
                 
         except (InvalidToken, TokenError, KeyError, IndexError, User.DoesNotExist) as e:
-            print(f"Error de autenticación: {str(e)}")
             await self.close()
 
     async def disconnect(self, close_code):
@@ -50,7 +49,6 @@ class NotificationInsumoConsumer(AsyncWebsocketConsumer):
                 self.group_name,
                 self.channel_name
             )
-        print(f"Desconectado: {close_code}")
 
     async def receive(self, text_data):
         try:

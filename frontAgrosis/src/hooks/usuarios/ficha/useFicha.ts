@@ -24,15 +24,12 @@ const fetchFicha = async (): Promise<Ficha[]> => {
         });
         if (!Array.isArray(response.data)) {
             throw new Error("La API no devolvió un array válido.");
-          }
-      
-          console.log("Datos recibidos de la API:", response.data);
-      
-          return response.data;
+        }
+            return response.data;
     } catch (error: any) {
         console.error("Error al obtener las fichas:", error.response || error.message);
         throw new Error(
-          error.response?.data?.detail || "Error al obtener la lista de fichas"
+            error.response?.data?.detail || "Error al obtener la lista de fichas"
         );
     }
 };

@@ -11,8 +11,6 @@ const ResetearContrasena = () => {
   const id = searchParams.get("id");
 
   useEffect(() => {
-    console.log("Token recibido:", token);
-    console.log("ID recibido:", id);
   }, [token, id]);
 
   const [password, setPassword] = useState("");
