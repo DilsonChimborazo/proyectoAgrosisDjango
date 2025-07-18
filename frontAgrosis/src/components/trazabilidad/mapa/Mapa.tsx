@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
-import { LatLngExpression } from "leaflet";
+import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
 import axios from "axios";
-import "leaflet/dist/leaflet.css";
 
+// Interfaces como las tienes
 interface Cultivo {
   id: number;
   nombre_cultivo: string;
@@ -34,38 +33,31 @@ interface MapaProps {
   nuevaPlantacion?: Plantacion;
 }
 
-const DEFAULT_CENTER: LatLngExpression = [1.892074, -76.090376];
+const containerStyle = {
+  width: "100%",
+  height: "100vh",
+};
 
-const MapUpdater = ({ center }: { center: LatLngExpression }) => {
-  const map = useMap();
-  useEffect(() => {
-    map.setView(center, 15);
-  }, [center, map]);
-  return null;
+const DEFAULT_CENTER = {
+  lat: 1.892074,
+  lng: -76.090376,
 };
 
 const Mapa: React.FC<MapaProps> = ({ nuevaPlantacion }) => {
   const [plantaciones, setPlantaciones] = useState<Plantacion[]>([]);
   const [selectedPlantacion, setSelectedPlantacion] = useState<Plantacion | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const [mapCenter, setMapCenter] = useState<LatLngExpression>(DEFAULT_CENTER);
+  const [mapCenter, setMapCenter] = useState(DEFAULT_CENTER);
 
-  useEffect(() => {
-    const mapContainer = document.getElementById("map");
-    if (mapContainer && (mapContainer as any)._leaflet_id != null) {
-      (mapContainer as any)._leaflet_id = null;
-    }
-  }, []);
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+  });
 
   useEffect(() => {
     axios
       .get<Plantacion[]>(`${import.meta.env.VITE_API_URL}plantacion/`)
-      .then((response) => {
-        setPlantaciones(response.data);
-      })
-      .catch((error) => {
-        console.error("Error cargando plantaciones:", error);
-      });
+      .then((res) => setPlantaciones(res.data))
+      .catch((err) => console.error("Error cargando plantaciones:", err));
   }, []);
 
   useEffect(() => {
@@ -77,21 +69,21 @@ const Mapa: React.FC<MapaProps> = ({ nuevaPlantacion }) => {
         return prev;
       });
       setSelectedPlantacion(nuevaPlantacion);
-      setMapCenter([
-        nuevaPlantacion.latitud || DEFAULT_CENTER[0],
-        nuevaPlantacion.longitud || DEFAULT_CENTER[1],
-      ]);
+      setMapCenter({
+        lat: nuevaPlantacion.latitud || DEFAULT_CENTER.lat,
+        lng: nuevaPlantacion.longitud || DEFAULT_CENTER.lng,
+      });
       setShowModal(true);
     }
   }, [nuevaPlantacion]);
 
   const handleMarkerClick = (plantacion: Plantacion) => {
     setSelectedPlantacion(plantacion);
+    setMapCenter({
+      lat: plantacion.latitud || DEFAULT_CENTER.lat,
+      lng: plantacion.longitud || DEFAULT_CENTER.lng,
+    });
     setShowModal(true);
-    setMapCenter([
-      plantacion.latitud || DEFAULT_CENTER[0],
-      plantacion.longitud || DEFAULT_CENTER[1],
-    ]);
   };
 
   const closeModal = () => {
@@ -99,36 +91,30 @@ const Mapa: React.FC<MapaProps> = ({ nuevaPlantacion }) => {
     setSelectedPlantacion(null);
   };
 
-  return (
-    <div style={{ height: "100vh", width: "100vw", position: "relative", overflow: "hidden" }}>
-      <MapContainer
-        id="map"
-        center={mapCenter}
-        zoom={10}
-        scrollWheelZoom={true}
-        style={{ height: "100%", width: "100%" }}
-      >
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        />
+  if (!isLoaded) return <p>Cargando mapa...</p>;
 
+  return (
+    <div style={{ height: "100vh", width: "100vw", position: "relative" }}>
+      <GoogleMap
+        mapContainerStyle={containerStyle}
+        center={mapCenter}
+        zoom={14}
+      >
         {plantaciones.map(
           (plantacion) =>
             plantacion.latitud &&
             plantacion.longitud && (
               <Marker
                 key={plantacion.id}
-                position={[plantacion.latitud, plantacion.longitud]}
-                eventHandlers={{
-                  click: () => handleMarkerClick(plantacion),
+                position={{
+                  lat: plantacion.latitud,
+                  lng: plantacion.longitud,
                 }}
+                onClick={() => handleMarkerClick(plantacion)}
               />
             )
         )}
-
-        <MapUpdater center={mapCenter} />
-      </MapContainer>
+      </GoogleMap>
 
       {showModal && selectedPlantacion && (
         <>
