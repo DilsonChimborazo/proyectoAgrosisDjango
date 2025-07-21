@@ -1,0 +1,10 @@
+_pycache_/
+*.pyc
+venv/
+.env
+*.sqlite3
+.git
+.vscode/
+.idea/
+.DS_Store
+staticfiles/

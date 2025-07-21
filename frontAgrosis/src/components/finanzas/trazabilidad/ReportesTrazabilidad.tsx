@@ -1,6 +1,4 @@
 import { useState } from 'react';
-import { Download } from 'lucide-react';
-import Button from '@/components/globales/Button';
 import { TrazabilidadCultivoReporte, SnapshotTrazabilidad } from './Types';
 import { Plantacion } from '@/hooks/trazabilidad/plantacion/usePlantacion';
 import ReporteRentabilidad from './ReporteRentabilidad';
@@ -47,7 +45,7 @@ const ReportesTrazabilidad = ({
                 return (
                     <ReporteMultiplesCultivos
                         plantaciones={plantaciones}
-                        plantacionesSeleccionadas={plantacionSeleccionada ? [plantacionSeleccionada] : []}
+                        plantacionSeleccionada={plantacionSeleccionada}
                         formato={formato}
                     />
                 );
