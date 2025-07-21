@@ -1,5 +1,5 @@
 import Button from '@/components/globales/Button';
-import { History, GitCompare } from 'lucide-react';
+import { History, GitCompare, FileText } from 'lucide-react';
 import { Plantacion } from '@/hooks/trazabilidad/plantacion/usePlantacion';
 
 interface PlantacionSelectorProps {
@@ -10,7 +10,7 @@ interface PlantacionSelectorProps {
     onVerResumen: () => void;
     onVerEvolucion: () => void;
     onCompararVersiones: () => void;
-    onExportarReporte: () => void;
+    onVerReportes: () => void; // Nuevo callback
     historialDisponible: boolean;
 }
 
@@ -27,6 +27,7 @@ const PlantacionSelector = ({
     onPlantacionChange,
     onVerEvolucion,
     onCompararVersiones,
+    onVerReportes, // Añadido
     historialDisponible
 }: PlantacionSelectorProps) => {
     return (
@@ -59,13 +60,6 @@ const PlantacionSelector = ({
                 
                 {plantacionSeleccionada && (
                     <div className="mt-6 space-y-2">
-                        {/*<Button 
-                            text="Ver Resumen Actual" 
-                            variant="green" 
-                            onClick={onVerResumen}
-                            className="w-full flex justify-center items-center gap-2"
-                            icon={BarChart2}
-                        />*/}
                         <Button 
                             text="Ver Evolución" 
                             variant="success" 
@@ -81,13 +75,13 @@ const PlantacionSelector = ({
                             icon={GitCompare}
                             disabled={!historialDisponible}
                         />
-                        {/*<Button 
-                            text="Exportar Reporte" 
+                        <Button 
+                            text="Reportes" 
                             variant="outline" 
-                            onClick={onExportarReporte}
+                            onClick={onVerReportes}
                             className="w-full flex justify-center items-center gap-2"
-                            icon={Download}
-                        />*/}
+                            icon={FileText}
+                        />
                     </div>
                 )}
             </div>

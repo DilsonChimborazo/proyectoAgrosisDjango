@@ -265,9 +265,9 @@ const Tabla = <T extends Record<string, any>>({
               </thead>
               <tbody>
                 {paginatedData.map((row, index) => {
-                  const rowClass = rowClassName ? rowClassName(row) : 
+                  const rowClass = rowClassName ? rowClassName(row) :
                     `${index % 2 === 0 ? "bg-gray-50" : "bg-white"} hover:bg-green-100`;
-                  
+
                   return (
                     <tr
                       key={row.id || index}
@@ -295,20 +295,17 @@ const Tabla = <T extends Record<string, any>>({
                                 <MoreVertical size={16} />
                               </HerouiButton>
                             </DropdownTrigger>
-                            <DropdownMenu aria-label="Acciones">
-                              {[
-                                onClickAction && (
-                                  <DropdownItem key="details" onClick={() => onClickAction(row)}>
-                                    Ver detalles
-                                  </DropdownItem>
-                                ),
-                                onUpdate && (
-                                  <DropdownItem key="update" onClick={() => onUpdate(row)}>
-                                    Actualizar
-                                  </DropdownItem>
-                                )
-                              ].filter(Boolean) as React.ReactElement[]}
+                            <DropdownMenu
+                              aria-label="Acciones"
+                              onAction={(key) => {
+                                if (key === "details" && onClickAction) onClickAction(row);
+                                if (key === "update" && onUpdate) onUpdate(row);
+                              }}
+                            >
+                              <DropdownItem key="details">Ver detalles</DropdownItem>
+                              <DropdownItem key="update">Actualizar</DropdownItem>
                             </DropdownMenu>
+
                           </Dropdown>
                         </td>
                       )}
@@ -321,9 +318,9 @@ const Tabla = <T extends Record<string, any>>({
 
           <div className="block sm:hidden px-4 space-y-4">
             {paginatedData.map((row, index) => {
-              const rowClass = rowClassName ? rowClassName(row) : 
+              const rowClass = rowClassName ? rowClassName(row) :
                 `${index % 2 === 0 ? "bg-gray-50" : "bg-white"} hover:bg-green-100`;
-              
+
               return (
                 <div
                   key={row.id || index}
@@ -351,19 +348,15 @@ const Tabla = <T extends Record<string, any>>({
                             <MoreVertical size={16} />
                           </HerouiButton>
                         </DropdownTrigger>
-                        <DropdownMenu aria-label="Acciones">
-                          {[
-                            onClickAction && (
-                              <DropdownItem key="details" onClick={() => onClickAction(row)}>
-                                Ver detalles
-                              </DropdownItem>
-                            ),
-                            onUpdate && (
-                              <DropdownItem key="update" onClick={() => onUpdate(row)}>
-                                Actualizar
-                              </DropdownItem>
-                            )
-                          ].filter(Boolean) as React.ReactElement[]}
+                        <DropdownMenu
+                          aria-label="Acciones"
+                          onAction={(key) => {
+                            if (key === "details" && onClickAction) onClickAction(row);
+                            if (key === "update" && onUpdate) onUpdate(row);
+                          }}
+                        >
+                          <DropdownItem key="details">Ver detalles</DropdownItem>
+                          <DropdownItem key="update">Actualizar</DropdownItem>
                         </DropdownMenu>
                       </Dropdown>
                     </div>
