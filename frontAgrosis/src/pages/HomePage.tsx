@@ -22,6 +22,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import VentanaModal from "@/components/globales/VentanasModales";
 import CrearSensor from "@/components/iot/sensores/CrearSensor";
+import { useAuthContext } from "../context/AuthContext";
 
 // CSS para el estilo y animaciones
 const styles = `
@@ -169,7 +170,7 @@ const styles = `
     }
     .card {
       padding: 0.75rem;
-      font-size: 0.9rem;
+      font-size 0.9rem;
     }
     .measurement {
       font-size: 1.2rem;
@@ -204,10 +205,6 @@ styleSheet.innerText = styles;
 document.head.appendChild(styleSheet);
 
 const wsUrl = import.meta.env.VITE_WS_URL;
-
-interface User {
-  fk_id_rol?: { rol: string };
-}
 
 interface Sensor {
   id: number;
@@ -317,13 +314,16 @@ const HomePage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [esAdministrador, setEsAdministrador] = useState(false);
   const navigate = useNavigate();
+  const { usuario } = useAuthContext();
 
   // Verificar si el usuario es administrador
   useEffect(() => {
-    const usuarioGuardado = localStorage.getItem("user");
-    const usuario: User | null = usuarioGuardado ? JSON.parse(usuarioGuardado) : null;
-    setEsAdministrador(usuario?.fk_id_rol?.rol === "Administrador");
-  }, []);
+    if (usuario) {
+      setEsAdministrador(usuario.rol === 'Administrador');
+    } else {
+      setEsAdministrador(false);
+    }
+  }, [usuario]);
 
   useEffect(() => {
   }, [sensors]);

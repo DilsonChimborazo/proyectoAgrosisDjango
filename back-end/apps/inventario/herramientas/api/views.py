@@ -2,7 +2,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.utils import timezone
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated
 from django.db.models import Count, Sum
 from apps.inventario.herramientas.models import Herramientas
 from apps.inventario.bodega.models import Bodega
@@ -11,7 +11,7 @@ from rest_framework.exceptions import ValidationError
 
 class HerramientasViewSet(ModelViewSet):
     queryset = Herramientas.objects.all()
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
     serializer_class = HerramientasSerializer
 
 

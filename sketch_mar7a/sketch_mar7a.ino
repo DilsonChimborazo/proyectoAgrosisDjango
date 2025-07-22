@@ -27,7 +27,7 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 // ⏰ Configuración NTP
 WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP, "pool.ntp.org", -18000, 60000); // UTC-5 (Colombia)
+NTPClient timeClient(ntpUDP, "pool.ntp.org", -18000, 60000); 
 
 // 🌐 Configuración
 const char* websocket_server = "10.4.22.86";
@@ -63,9 +63,9 @@ float lastHumidity = 0.0;
 
 // Tiempo para actualizar
 unsigned long lastSensorUpdate = 0;
-const unsigned long sensorUpdateInterval = 60000 ; // 1 minutos
+const unsigned long sensorUpdateInterval = 60000; 
 unsigned long lastMideUpdate = 0;
-const unsigned long mideUpdateInterval = 60000; //  1 minutos
+const unsigned long mideUpdateInterval = 60000; 
 
 void IRAM_ATTR handleResetButton() {
   if (millis() - lastDebounceTime > DEBOUNCE_TIME) {
@@ -181,7 +181,7 @@ void sendWebSocketData(int sensorId, int plantacionId, float value) {
   DynamicJsonDocument doc(128);
   doc["fk_id_sensor"] = sensorId;
   doc["fk_id_plantacion"] = plantacionId;
-  doc["valor_medicion"] = (int)value; // Enviar como entero
+  doc["valor_medicion"] = (int)value; 
   String jsonData;
   serializeJson(doc, jsonData);
   webSocket.sendTXT(jsonData);
@@ -247,7 +247,7 @@ void setup() {
   // Iniciar WebSocket
   webSocket.begin(websocket_server, websocket_port, websocket_path);
   webSocket.onEvent(webSocketEvent);
-  webSocket.setReconnectInterval(5000); // Reconectar cada 5 segundos si falla
+  webSocket.setReconnectInterval(5000); 
 
   updateSensorNames();
 }

@@ -1,12 +1,12 @@
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from apps.inventario.bodega.models import Bodega
 from apps.inventario.bodega.api.serializers import LeerBodegaSerializer, EscribirBodegaSerializer
 
 class BodegaModelViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
     queryset = Bodega.objects.all()
     
     def get_serializer_class(self):

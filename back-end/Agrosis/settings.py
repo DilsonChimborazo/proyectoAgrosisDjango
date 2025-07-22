@@ -161,14 +161,14 @@ CHANNEL_LAYERS = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'pruebasjueves',
-        'USER': 'postgres',                
-        'PASSWORD': '28782We',      
-        'HOST': 'localhost',                  
-        'PORT': '5432',  
+        'NAME': os.getenv('DB_NAME', 'agrosoft'),  
+        'USER': os.getenv('DB_USER', 'postgres'),  
+        'PASSWORD': os.getenv('DB_PASSWORD', 'adso2024'),  
+        'HOST': os.getenv('DB_HOST', 'postgres'),  
+        'PORT': os.getenv('DB_PORT', '5432'),
         'OPTIONS': {
             'client_encoding': 'UTF8',
-        },                     
+        },
     }
 }
 
