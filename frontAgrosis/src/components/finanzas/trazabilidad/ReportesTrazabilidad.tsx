@@ -15,6 +15,7 @@ interface ReportesTrazabilidadProps {
     plantaciones: Plantacion[] | undefined;
     ordenarSnapshots: SnapshotTrazabilidad[];
     comparando: number[];
+    onVolver: () => void; // ✅ Prop agregada
 }
 
 const ReportesTrazabilidad = ({
@@ -23,6 +24,7 @@ const ReportesTrazabilidad = ({
     plantaciones,
     ordenarSnapshots,
     comparando,
+    onVolver, // ✅ Recibe prop
 }: ReportesTrazabilidadProps) => {
     const [tipoReporte, setTipoReporte] = useState<
         'rentabilidad' | 'insumos' | 'produccion_ventas' | 'historial' | 'comparaciones' | 'multiples' | 'eficiencia'
@@ -58,6 +60,18 @@ const ReportesTrazabilidad = ({
 
     return (
         <div className="w-full lg:w-3/4 bg-white rounded-xl shadow-md p-6">
+            {/* Botón de volver */}
+            <button
+                onClick={onVolver}
+                className="mb-4 text-green-700 hover:underline flex items-center gap-1"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                </svg>
+                Volver
+            </button>
+
             <h1 className="text-2xl font-bold text-green-800 mb-6">Generar Reportes</h1>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div>

@@ -1,15 +1,16 @@
 import { useState } from 'react';
-import { useProducciones, useAllStock } from '../../../hooks/finanzas/stock/useStock';
+import { useProducciones, useAllStock } from '@/hooks/finanzas/stock/useStock';
 import { useVentas } from '@/hooks/finanzas/venta/useVenta';
 import VentaComponent from '../venta/Venta';
 import ProduccionComponent from '../produccion/Produccion';
 import Tabla from '../../globales/Tabla';
 import VentanaModal from '../../globales/VentanasModales';
-import { format } from 'date-fns';
+import { format, parseISO, isWithinInterval } from 'date-fns';
 import { es } from 'date-fns/locale';
 import CrearVenta from '../venta/CrearVenta';
 import CrearProduccion from '../produccion/CrearProduccion';
-import { PlusCircle, Package, ChevronDown, ChevronUp, Activity, DollarSign } from 'lucide-react';
+import { PlusCircle, Package, ChevronDown, ChevronUp, Activity, DollarSign, FileText } from 'lucide-react';
+import ReporteModal from './ReporteModal';
 
 const SeccionDesplegable = ({
   titulo,
@@ -51,13 +52,14 @@ const SeccionDesplegable = ({
 const StockDashboard = () => {
   const { data: producciones, error: produccionesError, refetch: refetchProducciones } = useProducciones();
   const { data: allStock, error: allStockError, refetch: refetchAllStock } = useAllStock();
-  const { data: ventas,  error: ventasError, refetch: refetchVentas } = useVentas();
+  const { data: ventas, error: ventasError, refetch: refetchVentas } = useVentas();
   const [selectedProduccionId, setSelectedProduccionId] = useState<number | null>(null);
   const [isMovimientosModalOpen, setIsMovimientosModalOpen] = useState(false);
   const [isProductosModalOpen, setIsProductosModalOpen] = useState(false);
   const [isValorModalOpen, setIsValorModalOpen] = useState(false);
   const [isVentaModalOpen, setIsVentaModalOpen] = useState(false);
   const [isProduccionModalOpen, setIsProduccionModalOpen] = useState(false);
+  const [isReportesModalOpen, setIsReportesModalOpen] = useState(false);
   const [seccionAbierta, setSeccionAbierta] = useState<string | null>(null);
 
   const toggleSeccion = (seccion: string) => {
@@ -94,6 +96,59 @@ const StockDashboard = () => {
     if (precio == null) return 0;
     const numero = typeof precio === 'string' ? parseFloat(precio) : precio;
     return isNaN(numero) ? 0 : numero;
+  };
+
+  const getCultivosUnicos = () => {
+    const cultivos = new Set<string>();
+    producciones?.forEach(p => {
+      const nombreCultivo = p.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo;
+      if (nombreCultivo) cultivos.add(nombreCultivo);
+    });
+    ventas?.forEach(v => {
+      v.items.forEach(item => {
+        const nombreCultivo = item.produccion.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo;
+        if (nombreCultivo) cultivos.add(nombreCultivo);
+      });
+    });
+    allStock?.forEach(s => {
+      const nombreCultivo = s.fk_id_produccion?.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo;
+      if (nombreCultivo) cultivos.add(nombreCultivo);
+    });
+    return Array.from(cultivos).sort();
+  };
+
+  const filtrarDatos = (fechaInicio: string, fechaFin: string, cultivosSeleccionados: string[]) => {
+    const fechaInicioDate = fechaInicio ? parseISO(fechaInicio) : null;
+    const fechaFinDate = fechaFin ? parseISO(fechaFin) : null;
+
+    const filtrarPorFecha = (fecha: string) => {
+      if (!fechaInicioDate || !fechaFinDate) return true;
+      try {
+        const fechaDato = parseISO(fecha);
+        return isWithinInterval(fechaDato, { start: fechaInicioDate, end: fechaFinDate });
+      } catch {
+        return false;
+      }
+    };
+
+    const filtrarPorCultivo = (nombreCultivo: string | undefined) => {
+      if (cultivosSeleccionados.length === 0) return true;
+      return nombreCultivo && cultivosSeleccionados.includes(nombreCultivo);
+    };
+
+    const produccionesFiltradas = producciones?.filter(p => {
+      return filtrarPorFecha(p.fecha) && filtrarPorCultivo(p.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo);
+    }) || [];
+
+    const allStockFiltrado = allStock?.filter(s => {
+      return filtrarPorFecha(s.fecha) && filtrarPorCultivo(s.fk_id_produccion?.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo);
+    }) || [];
+
+    const ventasFiltradas = ventas?.filter(v => {
+      return filtrarPorFecha(v.fecha) && v.items.some(item => filtrarPorCultivo(item.produccion.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo));
+    }) || [];
+
+    return { produccionesFiltradas, allStockFiltrado, ventasFiltradas };
   };
 
   const renderMovimientosDetails = () => {
@@ -160,7 +215,7 @@ const StockDashboard = () => {
 
     return (
       <div className="p-4 bg-white rounded-lg shadow-sm">
-        <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2 mb-4">
+        <h3 className="text-lg font-semibold text-gray погод: 800 border-b border-gray-200 pb-2 mb-4">
           Valor Estimado por Producto
         </h3>
         <table className="w-full text-sm text-gray-700">
@@ -173,8 +228,7 @@ const StockDashboard = () => {
           <tbody>
             {productosConStock.map((p) => {
               const precioSugerido = parsePrecioSugerido(p.precio_sugerido_venta);
-              const valorTotal = precioSugerido * p.cantidad_producida;
-
+              const valorTotal = precioSugerido * (p.stock_disponible || 0);
               return (
                 <tr key={p.id} className="border-b border-gray-100 hover:bg-green-50">
                   <td className="py-2 px-3">{p.nombre_produccion}</td>
@@ -210,7 +264,7 @@ const StockDashboard = () => {
   const totalProductos = productosConStock.length;
   const valorEstimado = productosConStock.reduce((sum, p) => {
     const precio = parsePrecioSugerido(p.precio_sugerido_venta);
-    const valor = precio * p.cantidad_producida;
+    const valor = precio * (p.stock_disponible || 0);
     return sum + valor;
   }, 0) || 0;
 
@@ -258,10 +312,10 @@ const StockDashboard = () => {
             <Package size={24} className="text-green-600" />
             Stock Actual
           </h1>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <button
               onClick={() => setIsVentaModalOpen(true)}
-              className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg text-sm flex items-center gap-1 transition-colors"
+              className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg text-sm flex items-center gap-1 transition-colors w-full sm:w-auto"
               type="button"
             >
               <PlusCircle size={16} />
@@ -269,11 +323,19 @@ const StockDashboard = () => {
             </button>
             <button
               onClick={() => setIsProduccionModalOpen(true)}
-              className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg text-sm flex items-center gap-1 transition-colors"
+              className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg text-sm flex items-center gap-1 transition-colors w-full sm:w-auto"
               type="button"
             >
               <PlusCircle size={16} />
               Registrar Producción
+            </button>
+            <button
+              onClick={() => setIsReportesModalOpen(true)}
+              className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg text-sm flex items-center gap-1 transition-colors w-full sm:w-auto"
+              type="button"
+            >
+              <FileText size={16} />
+              Reportes
             </button>
           </div>
         </div>
@@ -312,7 +374,7 @@ const StockDashboard = () => {
               headers={produccionesHeaders}
               data={mappedProducciones}
               rowClassName={() => "hover:bg-green-50 transition-colors duration-150"}
-              onRowClick={(row) => openMovimientosModal(row.id)} // Agregado para usar openMovimientosModal
+              onRowClick={(row) => openMovimientosModal(row.id)}
             />
           )}
         </SeccionDesplegable>
@@ -406,6 +468,16 @@ const StockDashboard = () => {
           modalClassName="bg-white rounded-lg shadow-md"
         />
       )}
+
+      <ReporteModal
+        isOpen={isReportesModalOpen}
+        onClose={() => setIsReportesModalOpen(false)}
+        producciones={producciones}
+        allStock={allStock}
+        ventas={ventas}
+        filtrarDatos={filtrarDatos}
+        cultivosUnicos={getCultivosUnicos()}
+      />
     </div>
   );
 };

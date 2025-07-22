@@ -4,52 +4,58 @@ import axios from 'axios';
 import { ChartBar } from '@/components/globales/Charts';
 import ExcelJS from 'exceljs';
 import html2canvas from 'html2canvas';
-import { Download, Check, X, ChevronDown, Search } from 'lucide-react';
+import { Download, X, Search } from 'lucide-react';
 import Button from '@/components/globales/Button';
 import { Plantacion } from '@/hooks/trazabilidad/plantacion/usePlantacion';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { cargarImagenComoBase64 } from './utils';
+import { TrazabilidadCultivoReporte } from '@/components/finanzas/trazabilidad/Types';
+
+const apiUrl = import.meta.env.VITE_API_URL;
 
 interface ReporteMultiplesCultivosProps {
   plantaciones: Plantacion[] | undefined;
-  plantacionSeleccionada: number | null; // Nueva prop para inicialización
+  plantacionSeleccionada: number | null;
   formato: 'pdf' | 'excel';
 }
 
-interface TrazabilidadData {
-  cultivo: string;
-  beneficio_costo_acumulado: number;
-  ingresos_ventas_acumulado: number;
-  costo_mano_obra_acumulado: number;
-  egresos_insumos_acumulado: number;
-  depreciacion_herramientas_acumulada: number;
-}
-
 const useTrazabilidadMultiples = (plantacionIds: number[]) => {
+  const token = localStorage.getItem('token');
   return useQueries({
     queries: plantacionIds.map(id => ({
-      queryKey: ['trazabilidad', id],
-      queryFn: async (): Promise<{ datos: TrazabilidadData }> => {
+      queryKey: ['trazabilidadActual', id],
+      queryFn: async (): Promise<TrazabilidadCultivoReporte> => {
         try {
-          const response = await axios.get(`/api/trazabilidad/${id}`, {
+          console.log(`Solicitando datos para plantación ${id}`);
+          const response = await axios.get(`${apiUrl}trazabilidad/plantacion/${id}/`, {
             headers: {
               'Accept': 'application/json',
               'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
             },
           });
-
-          if (typeof response.data === 'string' && response.data.startsWith('<!doctype html>')) {
-            throw new Error('El servidor devolvió una página HTML en lugar de datos JSON');
-          }
-
-          return response.data;
+          console.log(`Datos recibidos para plantación ${id}:`, response.data);
+          return {
+            ...response.data,
+            cultivo: response.data.cultivo || 'Sin cultivo',
+            beneficio_costo_acumulado: Number(response.data.beneficio_costo_acumulado) || 0,
+            ingresos_ventas_acumulado: Number(response.data.ingresos_ventas_acumulado) || 0,
+            costo_mano_obra_acumulado: Number(response.data.costo_mano_obra_acumulado) || 0,
+            egresos_insumos_acumulado: Number(response.data.egresos_insumos_acumulado) || 0,
+            depreciacion_herramientas_acumulada: Number(response.data.depreciacion_herramientas_acumulada) || 0,
+            precio_minimo_venta_por_unidad_acumulado: Number(response.data.precio_minimo_venta_por_unidad_acumulado) || 0,
+            total_cantidad_producida_base_acumulado: Number(response.data.total_cantidad_producida_base_acumulado) || 0,
+            total_horas: Number(response.data.total_horas) || 0,
+            stock_disponible_total: Number(response.data.stock_disponible_total) || 0,
+          };
         } catch (error) {
           console.error(`Error al obtener datos para plantación ${id}:`, error);
           throw error;
         }
       },
-      enabled: !!id,
+      enabled: !!id && !!token,
+      staleTime: 1000 * 60 * 5,
       retry: false,
     })),
   });
@@ -59,20 +65,19 @@ const ReporteMultiplesCultivos = ({ plantaciones, plantacionSeleccionada, format
   const chartRef = useRef<HTMLDivElement>(null);
   const [seleccionados, setSeleccionados] = useState<number[]>([]);
   const [busqueda, setBusqueda] = useState('');
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const [chartRendered, setChartRendered] = useState(false);
 
-  // Inicializar seleccionados con plantacionSeleccionada si existe
   useEffect(() => {
     if (plantacionSeleccionada && !seleccionados.includes(plantacionSeleccionada)) {
-      setSeleccionados(prev => [plantacionSeleccionada, ...prev]);
+      setSeleccionados(prev => [...prev, plantacionSeleccionada]);
     }
   }, [plantacionSeleccionada]);
 
   const trazabilidadQueries = useTrazabilidadMultiples(seleccionados);
   const isLoading = trazabilidadQueries.some(q => q.isLoading);
   const isError = trazabilidadQueries.some(q => q.isError);
-  const trazabilidadData = trazabilidadQueries.map(q => q.data?.datos).filter((d): d is TrazabilidadData => !!d);
+  const trazabilidadData = trazabilidadQueries.map(q => q.data).filter((d): d is TrazabilidadCultivoReporte => !!d);
 
   const plantacionesFiltradas = plantaciones?.filter(plantacion =>
     plantacion.fk_id_cultivo.nombre_cultivo.toLowerCase().includes(busqueda.toLowerCase()) ||
@@ -92,73 +97,80 @@ const ReporteMultiplesCultivos = ({ plantaciones, plantacionSeleccionada, format
     }
   }, [trazabilidadData]);
 
-  const toggleTodosFiltrados = () => {
-    if (plantacionesFiltradas.length === 0) return;
-
-    const todosSeleccionados = plantacionesFiltradas.every(p => seleccionados.includes(p.id));
-
-    if (todosSeleccionados) {
-      setSeleccionados(prev => prev.filter(id => !plantacionesFiltradas.some(p => p.id === id)));
-    } else {
-      const nuevosIds = plantacionesFiltradas
-        .filter(p => !seleccionados.includes(p.id))
-        .map(p => p.id);
-      setSeleccionados(prev => [...prev, ...nuevosIds]);
-    }
-  };
-
   const generarDatosGraficoMultiples = () => {
     if (!trazabilidadData.length) {
       return { labels: [], datasets: [] };
     }
-
-    return {
+    const datosGrafico = {
       labels: trazabilidadData.map(t => t.cultivo || 'Sin cultivo'),
       datasets: [
         {
-          label: 'Relación B/C',
-          data: trazabilidadData.map(t => t.beneficio_costo_acumulado || 0),
+          label: 'Costo Mano de Obra',
+          data: trazabilidadData.map(t => t.costo_mano_obra_acumulado || 0),
           backgroundColor: '#4CAF50',
-          borderColor: '#388E3C',
-          borderWidth: 1,
+          stack: 'Stack 0',
         },
         {
-          label: 'Balance',
-          data: trazabilidadData.map(t =>
-            (t.ingresos_ventas_acumulado || 0) -
-            ((t.costo_mano_obra_acumulado || 0) +
-              (t.egresos_insumos_acumulado || 0) +
-              (t.depreciacion_herramientas_acumulada || 0))
-          ),
+          label: 'Costo Insumos',
+          data: trazabilidadData.map(t => t.egresos_insumos_acumulado || 0),
           backgroundColor: '#2196F3',
-          borderColor: '#1976D2',
-          borderWidth: 1,
+          stack: 'Stack 0',
+        },
+        {
+          label: 'Depreciación Herramientas',
+          data: trazabilidadData.map(t => t.depreciacion_herramientas_acumulada || 0),
+          backgroundColor: '#FF9800',
+          stack: 'Stack 0',
+        },
+        {
+          label: 'Productividad (kg/hora)',
+          data: trazabilidadData.map(t =>
+            t.total_horas > 0 ? (t.total_cantidad_producida_base_acumulado / t.total_horas) : 0
+          ),
+          backgroundColor: '#9C27B0',
+          stack: 'Stack 1',
+        },
+        {
+          label: 'Stock Disponible',
+          data: trazabilidadData.map(t => t.stock_disponible_total || 0),
+          backgroundColor: '#F44336',
+          stack: 'Stack 2',
         },
       ],
     };
+    return datosGrafico;
   };
 
   const generarReporte = async () => {
     if (!trazabilidadData.length || !chartRendered) return;
 
-    const columnas = ['Cultivo', 'Relación B/C', 'Balance'];
+    const columnas = [
+      'Cultivo',
+      'Costo por Unidad (COP)',
+      'Productividad (kg/hora)',
+      'Stock Disponible (kg)',
+      'Ingresos Totales (COP)',
+      'Costos Totales (COP)',
+    ];
     const datos = trazabilidadData.map(t => [
       t.cultivo || 'Sin cultivo',
-      (t.beneficio_costo_acumulado ?? 0).toFixed(2),
-      new Intl.NumberFormat('es-CO', {
-        style: 'currency',
-        currency: 'COP',
-      }).format(
-        (t.ingresos_ventas_acumulado || 0) -
-        ((t.costo_mano_obra_acumulado || 0) +
-          (t.egresos_insumos_acumulado || 0) +
-          (t.depreciacion_herramientas_acumulada || 0))
+      new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(
+        t.precio_minimo_venta_por_unidad_acumulado || 0
+      ),
+      (t.total_horas > 0 ? (t.total_cantidad_producida_base_acumulado / t.total_horas) : 0).toFixed(2),
+      (t.stock_disponible_total || 0).toFixed(2),
+      new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(
+        t.ingresos_ventas_acumulado || 0
+      ),
+      new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(
+        (t.costo_mano_obra_acumulado || 0) +
+        (t.egresos_insumos_acumulado || 0) +
+        (t.depreciacion_herramientas_acumulada || 0)
       ),
     ]);
 
     if (formato === 'pdf') {
       const doc = new jsPDF();
-
       const logoSena = await cargarImagenComoBase64('/logoSena.png');
       const logoKaizen = await cargarImagenComoBase64('/agrosoft.png');
 
@@ -203,7 +215,7 @@ const ReporteMultiplesCultivos = ({ plantaciones, plantacionSeleccionada, format
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(0, 0, 0);
-      doc.text('Reporte de Múltiples Cultivos', leftMargin, infoY, { align: 'left' });
+      doc.text('Reporte de Eficiencia Operativa y Rentabilidad', leftMargin, infoY, { align: 'left' });
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(100, 100, 100);
@@ -214,23 +226,22 @@ const ReporteMultiplesCultivos = ({ plantaciones, plantacionSeleccionada, format
         head: [columnas],
         body: datos,
         theme: 'striped',
-        styles: { fontSize: 10, cellPadding: 4, halign: 'center', lineWidth: 0.1, font: 'helvetica' },
-        headStyles: { fillColor: [0, 120, 100], textColor: 255, fontStyle: 'bold', fontSize: 11 },
+        styles: { fontSize: 9, cellPadding: 3, halign: 'center', lineWidth: 0.1, font: 'helvetica' },
+        headStyles: { fillColor: [0, 120, 100], textColor: 255, fontStyle: 'bold', fontSize: 10 },
         alternateRowStyles: { fillColor: [245, 245, 245] },
         columnStyles: {
-          0: { cellWidth: 50 },
-          1: { cellWidth: 30 },
-          2: { cellWidth: 40 },
+          0: { cellWidth: 30 },
+          1: { cellWidth: 25 },
+          2: { cellWidth: 25 },
+          3: { cellWidth: 25 },
+          4: { cellWidth: 25 },
+          5: { cellWidth: 25 },
         },
       });
 
       if (chartRef.current) {
         try {
-          const canvas = await html2canvas(chartRef.current, {
-            scale: 2,
-            logging: false,
-            useCORS: true,
-          });
+          const canvas = await html2canvas(chartRef.current, { scale: 2, logging: false, useCORS: true });
           const imgData = canvas.toDataURL('image/png');
           doc.addImage(imgData, 'PNG', 15, (doc as any).lastAutoTable.finalY + 10, 180, 100);
         } catch (error) {
@@ -242,24 +253,23 @@ const ReporteMultiplesCultivos = ({ plantaciones, plantacionSeleccionada, format
       doc.setFontSize(8);
       doc.setTextColor(100, 100, 100);
       doc.text('Generado por Agrosoft - Centro de Gestión y Desarrollo Sostenible Surcolombiano', leftMargin, doc.internal.pageSize.getHeight() - 10);
-
-      doc.save('reporte_multiples_cultivos.pdf');
+      doc.save('reporte_eficiencia_cultivos.pdf');
     } else {
       const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('Múltiples Cultivos');
+      const worksheet = workbook.addWorksheet('Eficiencia Cultivos');
 
       const logoSena = await cargarImagenComoBase64('/logoSena.png');
       const logoKaizen = await cargarImagenComoBase64('/agrosoft.png');
 
-      worksheet.mergeCells('A1:C1');
+      worksheet.mergeCells('A1:F1');
       worksheet.getCell('A1').value = 'CENTRO DE GESTIÓN Y DESARROLLO SOSTENIBLE SURCOLOMBIANO';
       worksheet.getCell('A1').font = { name: 'Calibri', size: 14, bold: true, color: { argb: '004D3C' } };
       worksheet.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' };
       worksheet.getCell('A1').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F5F5F5' } };
       worksheet.getRow(1).height = 30;
 
-      worksheet.mergeCells('A2:C2');
-      worksheet.getCell('A2').value = 'ÁREA PAE - Reporte de Múltiples Cultivos';
+      worksheet.mergeCells('A2:F2');
+      worksheet.getCell('A2').value = 'ÁREA PAE - Reporte de Eficiencia Operativa y Rentabilidad';
       worksheet.getCell('A2').font = { name: 'Calibri', size: 12, bold: true, color: { argb: '006633' } };
       worksheet.getCell('A2').alignment = { horizontal: 'center', vertical: 'middle' };
       worksheet.getRow(2).height = 25;
@@ -269,10 +279,10 @@ const ReporteMultiplesCultivos = ({ plantaciones, plantacionSeleccionada, format
       worksheet.addImage(logoSenaId, { tl: { col: 0, row: 2 }, ext: { width: 50, height: 50 } });
 
       const logoKaizenId = workbook.addImage({ base64: logoKaizen, extension: 'png' });
-      worksheet.mergeCells('C3:C4');
-      worksheet.addImage(logoKaizenId, { tl: { col: 2, row: 2 }, ext: { width: 50, height: 50 } });
+      worksheet.mergeCells('F3:F4');
+      worksheet.addImage(logoKaizenId, { tl: { col: 5, row: 2 }, ext: { width: 50, height: 50 } });
 
-      worksheet.mergeCells('A5:C5');
+      worksheet.mergeCells('A5:F5');
       worksheet.getCell('A5').value = `Fecha de generación: ${new Date().toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })}`;
       worksheet.getCell('A5').font = { name: 'Calibri', size: 10, color: { argb: '666666' } };
       worksheet.getCell('A5').alignment = { horizontal: 'right', vertical: 'middle' };
@@ -282,9 +292,12 @@ const ReporteMultiplesCultivos = ({ plantaciones, plantacionSeleccionada, format
       worksheet.getRow(6).height = 10;
 
       worksheet.columns = [
-        { header: 'Cultivo', key: 'cultivo', width: 30 },
-        { header: 'Relación B/C', key: 'bc', width: 15 },
-        { header: 'Balance', key: 'balance', width: 20 },
+        { header: 'Cultivo', key: 'cultivo', width: 25 },
+        { header: 'Costo por Unidad (COP)', key: 'costo_unidad', width: 20 },
+        { header: 'Productividad (kg/hora)', key: 'productividad', width: 20 },
+        { header: 'Stock Disponible (kg)', key: 'stock', width: 20 },
+        { header: 'Ingresos Totales (COP)', key: 'ingresos', width: 20 },
+        { header: 'Costos Totales (COP)', key: 'costos', width: 20 },
       ];
       const headerRow = worksheet.getRow(7);
       headerRow.values = columnas;
@@ -302,7 +315,14 @@ const ReporteMultiplesCultivos = ({ plantaciones, plantacionSeleccionada, format
       headerRow.height = 25;
 
       datos.forEach((d, index) => {
-        const dataRow = worksheet.addRow({ cultivo: d[0], bc: d[1], balance: d[2] });
+        const dataRow = worksheet.addRow({
+          cultivo: d[0],
+          costo_unidad: d[1],
+          productividad: d[2],
+          stock: d[3],
+          ingresos: d[4],
+          costos: d[5],
+        });
         dataRow.eachCell(cell => {
           cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
           cell.font = { name: 'Calibri', size: 10 };
@@ -325,12 +345,12 @@ const ReporteMultiplesCultivos = ({ plantaciones, plantacionSeleccionada, format
           worksheet.addImage(imageId, { tl: { col: 0, row: datos.length + 8 }, ext: { width: 500, height: 300 } });
         } catch (error) {
           console.error('Error al capturar el gráfico:', error);
-          worksheet.addRow({ cultivo: 'Nota: No se pudo incluir el gráfico comparativo', bc: '', balance: '' });
+          worksheet.addRow({ cultivo: 'Nota: No se pudo incluir el gráfico comparativo', costo_unidad: '', productividad: '', stock: '', ingresos: '', costos: '' });
         }
       }
 
       const footerRow = datos.length + (chartRef.current ? 18 : 9);
-      worksheet.mergeCells(`A${footerRow}:C${footerRow}`);
+      worksheet.mergeCells(`A${footerRow}:F${footerRow}`);
       worksheet.getCell(`A${footerRow}`).value = 'Generado por Agrosoft - Centro de Gestión y Desarrollo Sostenible Surcolombiano';
       worksheet.getCell(`A${footerRow}`).font = { name: 'Calibri', size: 9, color: { argb: '666666' } };
       worksheet.getCell(`A${footerRow}`).alignment = { horizontal: 'center', vertical: 'middle' };
@@ -341,7 +361,7 @@ const ReporteMultiplesCultivos = ({ plantaciones, plantacionSeleccionada, format
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'reporte_multiples_cultivos.xlsx';
+      a.download = 'reporte_eficiencia_cultivos.xlsx';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -350,59 +370,64 @@ const ReporteMultiplesCultivos = ({ plantaciones, plantacionSeleccionada, format
   };
 
   return (
-    <div className="space-y-6 p-4 bg-white rounded-lg shadow-sm">
-      <h3 className="text-lg font-semibold text-gray-800">Reporte de Múltiples Cultivos</h3>
+    <div className="space-y-6 p-6 bg-white rounded-xl shadow-lg max-w-4xl mx-auto">
+      <h3 className="text-2xl font-bold text-gray-800">Reporte de Eficiencia Operativa y Rentabilidad</h3>
 
-      <div className="relative">
-        <div
-          className="flex items-center justify-between p-3 border rounded-lg cursor-pointer bg-gray-50"
-          onClick={() => setDropdownOpen(!dropdownOpen)}
-        >
-          <span className="text-gray-700">
-            {seleccionados.length > 0
-              ? `${seleccionados.length} cultivo(s) seleccionado(s)`
-              : 'Seleccionar cultivos'}
-          </span>
-          <ChevronDown className={`transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} size={18} />
-        </div>
-
-        {dropdownOpen && (
-          <div className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-96 overflow-hidden">
-            <div className="p-2 border-b sticky top-0 bg-white">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-                <input
-                  type="text"
-                  placeholder="Buscar cultivos..."
-                  className="w-full pl-10 pr-3 py-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  value={busqueda}
-                  onChange={(e) => setBusqueda(e.target.value)}
+      <div className="flex items-center gap-4">
+        <Button
+          text="Seleccionar Cultivos"
+          variant="green"
+          onClick={() => setModalOpen(true)}
+          className="flex items-center gap-2 hover:bg-green-600 transition-colors"
+        />
+        <div className="flex flex-wrap gap-2">
+          {seleccionados.length > 0 && plantaciones
+            ?.filter(p => seleccionados.includes(p.id))
+            .map(plantacion => (
+              <div
+                key={plantacion.id}
+                className="flex items-center bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium"
+              >
+                {plantacion.fk_id_cultivo.nombre_cultivo}
+                <X
+                  size={16}
+                  className="ml-2 cursor-pointer hover:text-red-600"
+                  onClick={() => setSeleccionados(prev => prev.filter(id => id !== plantacion.id))}
                 />
               </div>
-            </div>
+            ))}
+        </div>
+      </div>
 
-            <div
-              className="p-2 border-b cursor-pointer hover:bg-gray-50 flex items-center text-sm"
-              onClick={toggleTodosFiltrados}
-            >
-              <div
-                className={`w-5 h-5 border rounded mr-2 flex items-center justify-center
-                  ${plantacionesFiltradas.length > 0 && plantacionesFiltradas.every(p => seleccionados.includes(p.id))
-                    ? 'bg-green-500 border-green-500 text-white'
-                    : 'border-gray-300'}`}
-              >
-                {plantacionesFiltradas.length > 0 &&
-                  plantacionesFiltradas.every(p => seleccionados.includes(p.id)) && <Check size={14} />}
-              </div>
-              <span>Seleccionar todos los filtrados</span>
+      {modalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h4 className="text-lg font-semibold text-gray-800">Seleccionar Cultivos</h4>
+              <X
+                size={20}
+                className="cursor-pointer text-gray-500 hover:text-red-500"
+                onClick={() => setModalOpen(false)}
+              />
             </div>
-
-            <div className="overflow-y-auto max-h-64">
+            <div className="relative mb-4">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+              <input
+                type="text"
+                placeholder="Buscar cultivos..."
+                className="w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+              />
+            </div>
+            <div className="max-h-64 overflow-y-auto">
               {plantacionesFiltradas.length > 0 ? (
                 plantacionesFiltradas.map(plantacion => (
                   <div
                     key={plantacion.id}
-                    className="p-3 hover:bg-gray-50 cursor-pointer flex items-center justify-between border-b"
+                    className={`p-3 rounded-lg cursor-pointer flex items-center justify-between transition-colors ${
+                      seleccionados.includes(plantacion.id) ? 'bg-green-50' : 'hover:bg-gray-100'
+                    }`}
                     onClick={() => {
                       setSeleccionados(prev =>
                         prev.includes(plantacion.id)
@@ -412,65 +437,57 @@ const ReporteMultiplesCultivos = ({ plantaciones, plantacionSeleccionada, format
                     }}
                   >
                     <div>
-                      <p className="font-medium">{plantacion.fk_id_cultivo.nombre_cultivo}</p>
+                      <p className="font-medium text-gray-800">{plantacion.fk_id_cultivo.nombre_cultivo}</p>
                       <p className="text-xs text-gray-500">
                         Plantado: {new Date(plantacion.fecha_plantacion).toLocaleDateString('es-CO')}
                       </p>
                     </div>
-                    <div
-                      className={`w-5 h-5 border rounded flex items-center justify-center
-                        ${seleccionados.includes(plantacion.id)
-                          ? 'bg-green-500 border-green-500 text-white'
-                          : 'border-gray-300'}`}
-                    >
-                      {seleccionados.includes(plantacion.id) && <Check size={14} />}
-                    </div>
+                    <input
+                      type="checkbox"
+                      checked={seleccionados.includes(plantacion.id)}
+                      onChange={() => {}}
+                      className="h-5 w-5 text-green-500 rounded focus:ring-green-500"
+                    />
                   </div>
                 ))
               ) : (
-                <div className="p-4 text-center text-gray-500">
+                <p className="text-center text-gray-500 py-4">
                   {busqueda ? 'No se encontraron resultados' : 'No hay cultivos disponibles'}
-                </div>
+                </p>
               )}
             </div>
-          </div>
-        )}
-      </div>
-
-      {seleccionados.length > 0 && (
-        <div className="bg-gray-50 p-3 rounded-lg">
-          <h4 className="text-sm font-medium mb-2">Cultivos seleccionados:</h4>
-          <div className="flex flex-wrap gap-2">
-            {plantaciones
-              ?.filter(p => seleccionados.includes(p.id))
-              .map(plantacion => (
-                <div key={plantacion.id} className="flex items-center bg-white px-3 py-1 rounded-full border text-sm">
-                  {plantacion.fk_id_cultivo.nombre_cultivo}
-                  <X
-                    size={14}
-                    className="ml-2 text-gray-400 hover:text-red-500 cursor-pointer"
-                    onClick={e => {
-                      e.stopPropagation();
-                      setSeleccionados(prev => prev.filter(id => id !== plantacion.id));
-                    }}
-                  />
-                </div>
-              ))}
+            <div className="mt-4 flex justify-end gap-2">
+              <Button
+                text="Limpiar"
+                variant="green"
+                onClick={() => setSeleccionados([])}
+                className="hover:bg-gray-200"
+              />
+              <Button
+                text="Confirmar"
+                variant="success"
+                onClick={() => setModalOpen(false)}
+                className="hover:bg-green-600"
+              />
+            </div>
           </div>
         </div>
       )}
 
       {seleccionados.length > 0 && !isLoading && !isError && (
-        <div ref={chartRef} className="mt-4">
+        <div ref={chartRef} className="mt-6 bg-gray-50 p-4 rounded-lg">
           <ChartBar
             data={generarDatosGraficoMultiples()}
             options={{
               responsive: true,
               plugins: {
-                title: { display: true, text: 'Comparación de Cultivos', font: { size: 16 } },
+                title: { display: true, text: 'Eficiencia y Costos por Cultivo', font: { size: 16 } },
                 legend: { position: 'top' },
               },
-              scales: { y: { beginAtZero: true } },
+              scales: {
+                y: { beginAtZero: true, stacked: true },
+                y1: { position: 'right', beginAtZero: true, grid: { display: false } },
+              },
             }}
             height={300}
           />
