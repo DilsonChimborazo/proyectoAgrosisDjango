@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo,ReactNode} from 'react';
 import { usePagosDetallados, useMarcarPago, useMarcarPagosPorUsuario } from '@/hooks/finanzas/nomina/useNomina';
 import Tabla from '@/components/globales/Tabla';
 import DescargarTablaPDF from '@/components/globales/DescargarTablaPDF';
@@ -25,7 +25,7 @@ type FilaPago = {
   actividad: string;
   tipo: string;
   pago_total: string;
-  estado: JSX.Element;
+  estado: ReactNode;
   esPagado: boolean;
   duracion?: number | null | undefined;
   cultivo?: string | null | undefined;
@@ -220,7 +220,7 @@ const TablaPagosDetallados: React.FC = () => {
       ['Salario (Jornal)', `$${pago.salario?.jornal?.toLocaleString() || 'N/A'}`],
       ['Horas por Jornal', pago.salario?.horas_por_jornal?.toString() || 'N/A']
     ];
-    
+
     await generarPDFLocal({
       nombreArchivo: `detalle_pago_${pago.id || 'sin_id'}.pdf`,
       columnas: columns,

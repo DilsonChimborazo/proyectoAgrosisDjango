@@ -1,5 +1,5 @@
-FROM --platform=$TARGETPLATFORM python:3.12-slim
 
+FROM --platform=$TARGETPLATFORM python:3.12-slim
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
@@ -8,3 +8,4 @@ ENV PYTHONUNBUFFERED=1
 ENV DJANGO_SETTINGS_MODULE=Agrosis.settings
 EXPOSE 8000
 CMD ["sh", "-c", "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"]
+
