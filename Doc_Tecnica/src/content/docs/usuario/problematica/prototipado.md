@@ -1,7 +1,7 @@
 ---
 title: "Prototipado del sistema - Agrosoft"
-description: "Documento técnico versión 1.0 para el sistema Agrosoft."
-pubDate: 2024-10-09
+description: "Documento técnico versión 2.0 para el sistema Agrosoft."
+pubDate: 2025-07-23
 author: Juan David Bolaños
 ---
 
@@ -10,7 +10,7 @@ author: Juan David Bolaños
 | VERSIÓN | FECHA | RESPONSABLE | FECHA REVISIÓN | RESPONSABLE REVISIÓN |
 |---------|-------|-------------|----------------|-----------------------|
 | 1.0     | 2024/10/09 | Juan david bolaños | 2024/10/09 | Carlos Sterling |
-
+| 2.0     | 2025/07/29 | Juan david bolaños | 2025/07/30 | Carlos Sterling |
 ---
 
 ## CAMBIOS RESPECTO A LA VERSIÓN ANTERIOR
@@ -18,7 +18,7 @@ author: Juan David Bolaños
 | VERSIÓN | MODIFICACIÓN RESPECTO VERSIÓN ANTERIOR |
 |---------|-----------------------------------------|
 |    1    | Modificacion en todo el archivo por escritura |
-
+|    2    | ActualizaciÓn de los Figmas del sistema      |
 ---
 
 1. [Introducción](#1-introducción)  
@@ -83,23 +83,18 @@ author: Juan David Bolaños
 
 # 1. Introducción
 
-En el contexto de la producción agrícola moderna, resulta fundamental contar con sistemas de gestión eficientes que permitan optimizar los procesos y asegurar un control riguroso de las actividades relacionadas con el cultivo. En este sentido, la Corporación de Gestión y Desarrollo Sostenible (C.G.D.S.S.) y sus áreas de influencia requieren de una herramienta tecnológica que facilite el seguimiento integral de las prácticas agrícolas, promoviendo un uso responsable y sostenible de los recursos.
-
-El presente documento tiene como objetivo proponer el desarrollo de un sistema de gestión orientado al monitoreo y control de actividades clave en la producción agrícola, tales como el cuidado de las plantas, la gestión del riego, la aplicación de fertilizantes, el uso de insumos y el seguimiento de cultivos. Este sistema busca no solo simplificar el registro y la administración de estas actividades, sino también proporcionar información actualizada y precisa que respalde la toma de decisiones estratégicas.
-
-Además, se prioriza la facilidad de uso del sistema para garantizar que los usuarios puedan interactuar con la plataforma de forma intuitiva, generando informes detallados que contribuyan a la mejora continua de los procesos agrícolas en la región. A través de esta herramienta, se espera fomentar prácticas agrícolas más eficientes y sostenibles, impulsando así un desarrollo agrícola más productivo y respetuoso con el medio ambiente.
+El presente documento tiene como propósito el diseño y prototipado de un sistema de gestión agrícola basado en tecnologías IoT, orientado a satisfacer las necesidades de la C.G.D.S.S. El prototipo propuesto permitirá el registro, monitoreo y análisis de datos agrícolas en tiempo real, garantizando la trazabilidad de insumos y actividades, conforme a normativas colombianas como la Ley 1581 de 2012 (protección de datos), la Resolución 464 de 2017 (Buenas Prácticas Agrícolas) y el Estatuto Tributario. El enfoque del presente documento se centra específicamente en el desarrollo del prototipo, abarcando desde la definición de requerimientos funcionales hasta la implementación de una solución preliminar que facilite la interacción intuitiva de los usuarios y la generación de informes detallados. A través de este prototipo, se busca sentar las bases para una herramienta que no solo simplifique la administración agrícola, sino que también promueva prácticas sostenibles, contribuyendo al desarrollo productivo y ambiental de la región.
 
 ## 1.1 Propósito
 
-El presente documento tiene como objetivo detallar los requerimientos funcionales necesarios para el desarrollo de un sistema de información destinado a la gestión integral de cultivos en la unidad productiva PAE. Dichos requerimientos buscan asegurar que el sistema propuesto cumpla con las necesidades específicas de la unidad, abordando de manera eficiente aspectos esenciales como el monitoreo de cultivos, la gestión de inventario, la planificación de siembras, el control de plagas y enfermedades, así como la optimización del uso de recursos hídricos y nutrientes.
+El presente documento tiene como objetivo detallar por medios del prototipado los requerimientos funcionales necesarios para el desarrollo de un sistema de información destinado a la gestión integral de cultivos en la unidad productiva PAE. Dichos requerimientos buscan asegurar que el sistema propuesto cumpla con las necesidades específicas de la unidad, abordando de manera eficiente aspectos esenciales como el monitoreo de cultivos, la gestión de inventario, la planificación de siembras, el control de plagas y enfermedades, así como la optimización del uso de recursos hídricos y nutrientes.
 
 Asimismo, el sistema deberá proporcionar herramientas intuitivas y accesibles que faciliten una interacción ágil y efectiva por parte de los usuarios, permitiendo un manejo óptimo de la información relevante para la gestión agrícola. La implementación de este sistema no solo está orientada a mejorar la eficiencia operativa, sino también a ofrecer análisis e informes detallados que apoyen la toma de decisiones estratégicas en la unidad productiva PAE.
 
+
 ## 1.2 Alcance
 
-El nuevo sistema de gestión agrícola para la Corporación de Gestión y Desarrollo Sostenible (C.G.D.S.S.) y sus áreas de influencia está diseñado para optimizar el monitoreo y la administración de las actividades agrícolas. El sistema se estructurará en cuatro módulos principales: Internet de las Cosas (IoT), Actividades, Finanzas e Inventario.
-
-Estos módulos permitirán un control integral de procesos críticos, tales como el riego automatizado, la fertilización precisa, el cuidado de las plantas y la gestión eficiente de insumos. Gracias a esta estructura modular, el sistema no solo mejorará la eficiencia en la gestión de recursos, sino que también proporcionará datos clave para respaldar decisiones estratégicas y fomentar prácticas agrícolas más sostenibles.
+El presente documento tiene como alcance el diseño y prototipado de un sistema de gestión agrícola basado en tecnologías IoT, enfocado en cumplir con los requerimientos funcionales establecidos para la Corporación de Gestión y Desarrollo Sostenible (C.G.D.S.S.). Se centra exclusivamente en desarrollar un prototipo que permita el registro, monitoreo y análisis de actividades agrícolas clave, garantizando la trazabilidad y cumplimiento normativo, con una interfaz intuitiva para los usuarios.
 
 ## 1.3 Responsables e involucrados
 
@@ -111,7 +106,6 @@ Estos módulos permitirán un control integral de procesos críticos, tales como
 | Wilson Eduardo Samboni    | Aprendiz                         | Desarrollador |
 | Lucy Fernanda Rodriguez   | Aprendiz                         | Desarrollador |
 | Francisco Javier Urbano   | Aprendiz                         | Desarrollador |
-| Yanira Jimenez Martinez   | Aprendiz                         | Desarrollador |
 
 # Prototipado del Sistema
 
@@ -235,18 +229,9 @@ Cada variable debe actualizarse **en tiempo real** y mostrarse en **cuadros inde
 
 - **Página web:**  ![Pagina de mostrar datos en tiempo real de sensores](/imgprototipado/resen.png)  
 - **Aplicativo Móvil:**  ![Pagina de mostrar datos en tiempo real de sensores](/imgprototipado/resenc.png) 
+ 
 
-## 12. El sistema deberá mostrar la información recogida sobre la humedad de las eras
-
-**Descripción:**  
-El sistema utilizará tecnología **IoT** para recopilar y transmitir en **tiempo real** los datos sobre la **humedad en las eras**. Esta información será presentada de manera **clara y accesible**, permitiendo a los usuarios **monitorear y gestionar eficientemente** la humedad del suelo en las áreas de cultivo.
-
-**Diseños:**
-
-- **Página web:** ![Pagina de mostrar datos de humedad de las eras](/imgprototipado/hume.png)
-- **Aplicativo Móvil:** ![Pagina de mostrar datos de humedad de las eras](/imgprototipado/humec.png)  
-
-## 13. El sistema deberá mostrar la información recogida sobre la humedad ambiente
+## 12. El sistema deberá mostrar la información recogida sobre la humedad ambiente
 
 **Descripción:**  
 El sistema mostrará la información sobre la **humedad ambiente** recopilada mediante **sensores IoT**, presentando los datos en **tiempo real** para ofrecer información **precisa y actualizada** sobre los niveles de humedad en el entorno.
@@ -255,7 +240,7 @@ El sistema mostrará la información sobre la **humedad ambiente** recopilada me
 - **Pagina Web:** ![Pagina de mostrar datos de humedad ambiente](/imgprototipado/humea.png)
 - **Aplicativo Móvil:**  ![Pagina de mostrar datos de humedad ambiente](/imgprototipado/humeac.png)
 
-## 14. El sistema deberá mostrar la información recogida sobre la luminosidad
+## 13. El sistema deberá mostrar la información recogida sobre la luminosidad
 
 **Descripción:**  
 La información sobre la **luminosidad** se obtiene mediante **sensores distribuidos** en varios puntos, que envían datos en **tiempo real** a la base de datos. Estos datos son **procesados y presentados** de forma clara, facilitando la **gestión de las condiciones de iluminación** en el campo.
@@ -266,18 +251,7 @@ La información sobre la **luminosidad** se obtiene mediante **sensores distribu
 
 - **Aplicativo Móvil:** ![Pagina de mostrar datos de la luminosidad](/imgprototipado/lumc.png)  
 
-## 15. El sistema deberá mostrar la información recogida sobre la lluvia
-
-**Descripción:**  
-Mediante un **pluviómetro**, se medirá la cantidad de lluvia en un área específica durante un período determinado. Este instrumento proporcionará datos sobre la **cantidad, intensidad, frecuencia y duración** de la lluvia en la ubicación seleccionada.
-
-**Diseños:**
-
-- **Página web:** ![Pagina de mostrar datos de la lluvia](/imgprototipado/llu.png) 
-
-- **Aplicativo Móvil:**  ![Pagina de mostrar datos de la lluvia](/imgprototipado/lluc.png) 
-
-## 16. El sistema deberá mostrar la información recogida sobre la temperatura
+## 14. El sistema deberá mostrar la información recogida sobre la temperatura
 
 **Descripción:**  
 El sistema medirá y mostrará la **temperatura** en las áreas de cultivo utilizando **sensores IoT**. Los datos se recopilarán en **tiempo real** y se presentarán de manera clara, permitiendo a los usuarios monitorear las **condiciones térmicas** y optimizar la gestión de los recursos agrícolas.
@@ -287,7 +261,7 @@ El sistema medirá y mostrará la **temperatura** en las áreas de cultivo utili
 - **Página web:**  ![Pagina de mostrar datos de la temperatura](/imgprototipado/tem.png) 
 - **Aplicativo Móvil:** ![Pagina de mostrar datos de la temperatura](/imgprototipado/temc.png)  
 
-## 17. El sistema deberá mostrar la información recogida sobre la velocidad y dirección del viento
+## 15. El sistema deberá mostrar la información recogida sobre la velocidad y dirección del viento
 
 **Descripción:**  
 Mediante sensores, se medirá la **velocidad** y **dirección del viento**. Los datos serán capturados en diferentes ubicaciones y enviados en **tiempo real** a una plataforma en la nube para su procesamiento y visualización. Esta información será clave para la planificación de actividades agrícolas sensibles a las condiciones climáticas.
@@ -297,7 +271,7 @@ Mediante sensores, se medirá la **velocidad** y **dirección del viento**. Los 
 - **Página web:**  ![Pagina de mostrar datos de el viento](/imgprototipado/vient.png)   
 - **Aplicativo Móvil:** ![Pagina de mostrar datos de el viento](/imgprototipado/vientc.png)  
 
-## 18. El sistema deberá mostrar la información recogida sobre el pH del suelo
+## 16. El sistema deberá mostrar la información recogida sobre el pH del suelo
 
 **Descripción:**  
 El sistema recopilará y mostrará las lecturas de **pH del suelo** mediante **sensores IoT especializados**. Esta información será clave para gestionar la **acidez o alcalinidad del suelo**, lo cual influye directamente en la **salud de las plantas** y en la **eficiencia de absorción de los nutrientes**. Los datos se mostrarán en tiempo real para facilitar la toma de decisiones agronómicas oportunas.
@@ -307,20 +281,266 @@ El sistema recopilará y mostrará las lecturas de **pH del suelo** mediante **s
 - **Página web:**  ![Pagina de mostrar datos recogidos del ph](/imgprototipado/ph.png)   
 - **Aplicativo Móvil:** ![Pagina de mostrar datos recogidos del ph](/imgprototipado/phc.png)   
 
+## 17.	EL SISTEMA DEBERÁ MONITOREAR LA EVAPOTRANSPIRACIÓN
+
+**Descripción:**  
+El sistema integrará sensores y algoritmos para estimar la evapotranspiración (ET) en las áreas de cultivo, considerando la evaporación del suelo y la transpiración de las plantas. Esta información será esencial para una gestión eficiente del riego.
+
+**Diseños:**
+
+- **Página web:**  ![Pagina web](/imgprototipado/evapo.png)   
+- **Aplicativo Móvil:** ![aplicativo movil](/imgprototipado/evapoc.png)   
+
+## 18.	EL SISTEMA DEBE PERMITIR REGISTRAR, LISTAR Y EDITAR EL NOMBRE Y TIPO DE CULTIVO 
+
+**Descripción:**  
+Este formulario tiene como propósito facilitar el registro de nombre del cultivo y tipo de cultivo, para luego ser asignados a los cultivos en el sistema. Está diseñado para permitir a los usuarios ingresar datos básicos, los cuales serán almacenados para su posterior consulta y gestión.
+
+**Diseños:**
+
+- **Página web:**  ![Pagina web](/imgprototipado/cul.png)   
+- **Aplicativo Móvil:** ![aplicativo movil](/imgprototipado/culc.png) 
+
+## 19. EL SISTEMA DEBE PERMITIR EL REGISTRO DE NUEVOS SEMILLEROS MEDIANTE UN FORMULARIO INTERACTIVO.
+
+**Descripción:**  
+Los usuarios podrán registrar información sobre los semilleros mediante un formulario interactivo, donde podrán ingresar el número de unidades de semilleros, la fecha de siembra y la fecha estimada de salida a producción.
+
+**Diseños:**
+
+- **Página web:**  ![Pagina web](/imgprototipado/sem.png)   
+- **Aplicativo Móvil:** ![aplicativo movil](/imgprototipado/semc.png) 
 
 
+## 20.	EL SISTEMA DEBERÁ PERMITIR REGISTRAR, LISTAR Y EDITAR LOS LOTES.
+
+**Descripción:**  
+En la sección de lotes, los usuarios podrán registrar nuevos lotes y editar la información de los lotes ya registrados. La opción de edición es esencial para corregir errores, actualizar datos y garantizar la precisión de la información almacenada.
+
+**Diseños:**
+
+- **Página web:**  ![Pagina web](/imgprototipado/lote.png)   
+- **Aplicativo Móvil:** ![aplicativo movil](/imgprototipado/lotec.png.png) 
+
+## 21.	EL SISTEMA DEBERÁ PERMITIR REGISTRAR, LISTAR Y EDITAR LA IMPLEMENTACIÓN DE ERAS EN UN LOTE:
+
+**Descripción:**  
+El sistema de eras será diseñado y construido con el objetivo de optimizar el espacio de cultivo y facilitar el mantenimiento de las plantas. Este sistema contribuirá a crear un entorno más eficiente y sostenible para el crecimiento de los cultivos.
+
+**Diseños:**
+
+- **Página web:**  ![Pagina web](/imgprototipado/era.png)   
+- **Aplicativo Móvil:** ![aplicativo movil](/imgprototipado/erac.png) 
+
+## 22.	EL SISTEMA DEBE PERMITIR REGISTRAR, LISTAR Y EDITAR LOS NUEVOS CULTIVOS MEDIANTE UN FORMULARIO.  
+
+**Descripción:**  
+El propósito de este formulario es optimizar el registro de nuevos cultivos en el sistema. A través de él, los usuarios podrán ingresar información clave sobre cada cultivo, que será almacenada y organizada para su posterior consulta y gestión eficiente.
+
+**Diseños:**
+
+- **Página web:**  ![Pagina web](/imgprototipado/cult.png)   
+- **Aplicativo Móvil:** ![aplicativo movil](/imgprototipado/cultc.png) 
+
+## 23.	EL SISTEMA DEBE PERMITIR REGISTRAR LAS ACTIVIDADES A REALIZAR EN LOS CULTIVOS
+
+**Descripción:**  
+Los usuarios podrán registrar nuevas actividades para los cultivos, proporcionando información clave como el nombre de la actividad, una descripción que sirva de referencia para los aprendices, y la fecha de creación de la actividad.
+
+**Diseños:**
+
+- **Página web:**  ![Pagina web](/imgprototipado/acti.png)   
+- **Aplicativo Móvil:** ![aplicativo movil](/imgprototipado/actic.png) 
+
+## 24.	EL SISTEMA DEBE PERMITIR ASIGNAR, LISTAR Y EDITAR LAS ACTIVIDADES YA REGISTRADAS, QUE SE PUEDEN REALIZAR EN UN CULTIVO
+
+**Descripción:**  
+Los instructores podrán asignar nuevas actividades a los cultivos proporcionando detalles como el lote donde se encuentra el cultivo, el cultivo en sí, y la actividad que se va a realizar (por ejemplo, riego, siembra o fertilización). Además, deberán incluir una descripción detallada de la actividad, la fecha programada, y el personal asignado para llevarla a cabo. También se especificarán los insumos y herramientas que se utilizarán durante la actividad, así como el estado en el que se asigna la actividad.
+
+**Diseños:**
+
+- **Página web:**  ![Pagina web](/imgprototipado/asig.png)   
+- **Aplicativo Móvil:** ![aplicativo movil](/imgprototipado/asigc.png) 
+
+## 25.	EL SISTEMA DEBE PERMITIR DAR FINALIZACIÓN A UNA ACTIVIDAD YA REALIZADA
+
+**Descripción:**  
+después que la persona termina la actividad que se le asignó debe cambiar el estado de la actividad a lo cual podrá realizar mediante un botón de actualización (icono de actualización), para continuar con este proceso el usuario debe ingresar los datos del tiempo gastado en la actividad (en minutos), la cantidad gastada del insumo que se le asignó, y seleccionar el nuevo estado de la actividad por último dar en ‘finalizar actividad’ para terminar el proceso y dar por terminada la actividad.
+
+**Diseños:**
+
+- **Página web:**  ![Pagina web](/imgprototipado/fin.png)   
+- **Aplicativo Móvil:** ![aplicativo movil](/imgprototipado/finc.png) 
+
+## 26.	EL SISTEMA PERMITIRÁ REGISTRAR LA PRODUCCION OBTENIDA DE UN CULTIVO
+
+**Descripción:**  
+El sistema permitirá registrar la producción obtenida de un cultivo, después de realizada la actividad de cosecha donde se debe brindar información como: El cultivo que se recolecto, la cantidad recolectada, la unidad de medida para la recolección, la fecha de recolección y una fotografía de la recolección.
+
+**Diseños:**
+
+- **Página web:**  ![Pagina web](/imgprototipado/pro.png)   
+- **Aplicativo Móvil:** ![aplicativo movil](/imgprototipado/proc.png) 
+
+## 27.	EL SISTEMA PERMITIRÁ REGISTRAR LAS PLAGAS, ENFERMEDADES Y ARVENSES QUE AFECTAN LOS CULTIVOS
+
+**Descripción:**  
+El registro debe incluir la fecha de observación, la identificación del organismo (nombre científico y común), su ubicación exacta en el cultivo, el nivel de daño causado, y una descripción detallada de los daños, métodos de erradicación y comentarios adicionales. Este registro tiene como objetivo realizar un control preciso de los organismos presentes en los cultivos, documentando las acciones de erradicación para mejorar la gestión de amenazas y garantizar la salud del cultivo.
+
+**Diseños:**
+
+- **Página web:**  ![Pagina web](/imgprototipado/pea.png)   
+- **Aplicativo Móvil:** ![aplicativo movil](/imgprototipado/peac.png) 
+
+## 28.	EL SISTEMA PERMITIRÁ AL USUARIO LLEVAR EL RESPECTIVO CONTROL FITOSANITARIO DE CADA CULTIVO EN ESPECÍFICO
+
+**Descripción:**  
+El objetivo es ofrecer a los usuarios un control fitosanitario eficiente, permitiendo registrar las acciones realizadas. Tras registrar la información sobre la plaga que afecta un cultivo, el usuario podrá acceder al apartado de control fitosanitario para documentar las medidas de eliminación de la plaga o el seguimiento para la recuperación del cultivo.
+
+**Diseños:**
+
+- **Página web:**  ![Pagina web](/imgprototipado/confi.png)   
+- **Aplicativo Móvil:** ![aplicativo movil](/imgprototipado/confic.png) 
+
+## 29.	EL SISTEMA DEBE PERMITIR MOSTRAR AL USUARIO LA INFORMACION SOBRE COMO INFLUYE LAS FASES LUNARES EN EL CULTIVO
+
+**Descripción:**  
+El calendario lunar mostrará las fases de la luna (nueva, cuarto creciente, llena y menguante) con una interfaz intuitiva. Incluirá un semáforo interactivo para actividades, y al seleccionar una fecha, se mostrará información relevante y fotos de las plantas. 
+
+**Diseños:**
+
+- **Página web:**  ![Pagina web](/imgprototipado/cal.png)   
+- **Aplicativo Móvil:** ![aplicativo movil](/imgprototipado/calc.png) 
+
+## 30.	EL SISTEMA HA DE CONTENER UN AREA DE RECORDATORIOS Y EVENTOS POR MEDIO DE UN CALENDARIO INTERACTIVO EN DONDE SE SUMINISTREN NOTAS, FECHAS DE FERTILIZACIÓN O COSECHAS
+
+**Descripción:**  
+El sistema ofrecerá un calendario accesible desde la interfaz principal, permitiendo a los usuarios registrar, visualizar y gestionar eventos relacionados con la producción agrícola, como siembra, fertilización, tratamientos fitosanitarios y cosechas. Este calendario contará con una interfaz intuitiva para facilitar la navegación y visualización de eventos. Los usuarios recibirán recordatorios automáticos sobre eventos próximos y podrán personalizar los registros con categorías, etiquetas, descripciones y notas adicionales. Además, será posible modificar o eliminar eventos según sea necesario para ajustar la programación de actividades.
+
+**Diseños:**
+
+- **Página web:**  ![Pagina web](/imgprototipado/rec.png)   
+- **Aplicativo Móvil:** ![aplicativo movil](/imgprototipado/recc.png) 
+
+## 31.	EL SISTEMA DEBE PERMITIR MOSTRAR POR MEDIO DE UN MAPA EL NOMBRE DE CULTIVO CON SU RESPECTIVA DESCRIPCIÓN
+
+**Descripción:**  
+Desarrollar un mapa interactivo que registre el historial de cada cultivo. Al seleccionar un sector específico como tomate o cebolla, se desplegará el historial relacionado, incluyendo detalles como riego y abono.
+
+**Diseños:**
+
+- **Página web:**  ![Pagina web](/imgprototipado/map.png)   
+- **Aplicativo Móvil:** ![aplicativo movil](/imgprototipado/mapc.png) 
+
+## 32.	EL SISTEMA DEBE PERMITIR AL ADMINISTRADOR LA ASIGNACIÓN DE ROLES Y PERMISOS.
+
+**Descripción:**  
+El sistema debe permitir asignar roles a los usuarios, como administrador, instructor, pasante, operario, o visitante, definiendo los permisos de acceso a diferentes módulos o funcionalidades según el rol asignado.
+
+**Diseños:**
+
+- **Página web:**  ![Pagina web](/imgprototipado/rol.png)   
+- **Aplicativo Móvil:** ![aplicativo movil](/imgprototipado/rolc.png) 
+
+## 33.	EL SISTEMA DEBERÁ PERMITIR REGISTRAR Y ACTUALIZAR EL PRECIO DE PRODUCTO
+
+**Descripción:**  
+Permitirá registrar el precio base de un producto al momento de agregarlo al sistema Y provee una interfaz para actualizar los precios de productos existentes, permitiendo registrar cambios Este precio debe incluir información como moneda, impuestos aplicables y vigencia inicial.
+
+**Diseños:**
+
+- **Página web:**  ![Pagina web](/imgprototipado/pre.png)   
+- **Aplicativo Móvil:** ![aplicativo movil](/imgprototipado/prec.png) 
+
+## 34.	EL SISTEMA DEBE DAR UN REGISTRO DETALLADO DE CADA VENTA.
+
+**Descripción:**  
+El sistema permite registrar cada transacción de venta, capturando detalles como fecha, producto, cantidad, ingresos y cliente. Esto crea un historial completo que facilita el seguimiento de operaciones comerciales y mejora la gestión de la cartera de clientes.
+
+**Diseños:**
+
+- **Página web:**  ![Pagina web](/imgprototipado/ven.png)   
+- **Aplicativo Móvil:** ![aplicativo movil](/imgprototipado/venc.png) 
+
+## 35.	EL SISTEMA DEBE PERMITIR CALCULAR Y MOSTRAR LA RENTABILIDAD DE CADA CULTIVO.	
+
+**Descripción:**  
+El sistema permitirá a los usuarios calcular y comparar la rentabilidad de cada cultivo registrado, basándose en ingresos y egresos. Los resultados se mostrarán tanto en porcentajes como en valores absolutos, detallados por actividad y bancal. Además, incluirá un Resumen General enfocado en un bancal seleccionado, consolidando los datos financieros para facilitar el análisis. Los usuarios tendrán la opción de exportar estos informes en formatos PDF o Excel, optimizando la gestión y toma de decisiones estratégicas.
+
+**Diseños:**
+
+- **Página web:**  ![Pagina web](/imgprototipado/ren.png)   
+- **Aplicativo Móvil:** ![aplicativo movil](/imgprototipado/renc.png) 
+
+## 36.	EL SISTEMA DEBE GENERAR REPORTES DE LOS USUARIOS:
+
+**Descripción:**  
+Este reporte analiza el uso de la plataforma "AgroSoft" por parte de los aprendices registrados previamente por el administrador. Presenta datos clave sobre su actividad, satisfacción y problemas frecuentes, con el fin de mejorar la experiencia de aprendizaje y optimizar las funcionalidades más utilizadas.
+
+**Diseños:**
+
+- **Página web:**  ![Pagina web](/imgprototipado/reus.png)   
+- **Aplicativo Móvil:** ![aplicativo movil](/imgprototipado/reusc.png) 
+
+## 17.	EL SISTEMA DEBERÁ MONITOREAR LA EVAPOTRANSPIRACIÓN
+
+**Descripción:**  
+El sistema integrará sensores y algoritmos para estimar la evapotranspiración (ET) en las áreas de cultivo, considerando la evaporación del suelo y la transpiración de las plantas. Esta información será esencial para una gestión eficiente del riego.
+
+**Diseños:**
+
+- **Página web:**  ![Pagina web](/imgprototipado/evapo.png)   
+- **Aplicativo Móvil:** ![aplicativo movil](/imgprototipado/evapoc.png) 
 
 
+## 37.	EL SISTEMA DEBE PERMITIR HACER REPORTES DE LOS INSUMOS PREVIAMENTE REGISTRADOS:
+
+**Descripción:**  
+El sistema debe permitir visualizar todos los datos de los insumos registrados, enlistando cada producto con detalles como nombre, cantidad disponible, fecha de caducidad, y otras características relevantes. Esta visualización proporcionará una descripción clara de los insumos, facilitando su gestión y permitiendo un control eficiente sobre los recursos disponibles.
+
+**Diseños:**
+
+- **Página web:**  ![Pagina web](/imgprototipado/reins.png)   
 
 
+## 38.	EL SISTEMA DEBERÁ GENERAR UN REPORTE DE LOS DATOS TOMADOS EN TIEMPO REAL (SENSORES)
+
+**Descripción:**  
+El sistema generará un reporte con los datos tomados en tiempo real por los sensores, incluyendo información sobre humedad del suelo, humedad ambiente, temperatura, viento, luminosidad, pH y pluviómetro. Los datos serán presentados de manera clara y organizada mediante gráficas, permitiendo a los usuarios analizar las condiciones del entorno de los cultivos.
+
+**Diseños:**
+
+- **Página web:**  ![Pagina web](/imgprototipado/repsen.png)   
+- **Aplicativo Móvil:** ![aplicativo movil](/imgprototipado/repsenc.png) 
 
 
+## 39.	EL SISTEMA DEBE GENERAR UN REPORTE DE LAS ACTIVIDADES REALIZADAS:
+
+**Descripción:**  
+El sistema debe permitir la generación de un reporte detallado de las actividades realizadas en cada cultivo. este reporte servirá para monitorear el historial de mantenimiento y cuidado de cada cultivo, facilitando la trazabilidad y el análisis de las prácticas agrícolas realizadas
+
+**Diseños:**
+
+- **Página web:**  ![Pagina web](/imgprototipado/reasi.png)   
 
 
+## 40.	EL SISTEMA GENERARÁ UN REPORTE DE LOS REGISTROS DE CONTROLES QUE SE LES LLEVÓ A LA PLAGAS, ENFERMEDADES O ARVENSE PRESENTE EN EL CULTIVO
+
+**Descripción:**  
+El sistema deberá generar un PDF, con los reportes de los controles que se llevaron a cabo para erradicar las enfermedades, plagas o arvenses presentes en los cultivos. Al conocer los controles que se le realizaron, permitirá llevar un seguimiento detallado del cultivo. 
+
+**Diseños:**
+
+- **Página web:**  ![Pagina web](/imgprototipado/recon.png)    
 
 
+## 41.	EL SISTEMA DEBE PERMITIR LA GENERACIÓN DE UN INFORME DE INGRESOS DETALLADO POR CADA PRODUCTO VENDIDO.
 
+**Descripción:**  
+El sistema genera un reporte que desglosa las ventas de cada producto, incluyendo unidades vendidas, ingresos totales y margen de ganancia. Este informe permite analizar el rendimiento comercial de los productos y tomar decisiones informadas para mejorar las estrategias de venta.
 
+**Diseños:**
 
-
+- **Página web:**  ![Pagina web](/imgprototipado/reing.png)   
+- **Aplicativo Móvil:** ![aplicativo movil](/imgprototipado/reingc.png) 
 
