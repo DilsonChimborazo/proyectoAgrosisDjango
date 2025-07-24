@@ -13,15 +13,53 @@ export interface UnidadMedida {
   factor_conversion: number;
 }
 
+export interface Lote {
+  id: number;
+  dimencion: string;
+  nombre_lote: string;
+  estado: boolean;
+}
+
+export interface Eras {
+  id: number;
+  descripcion: string;
+  fk_id_lote: Lote | null;
+  estado: boolean;
+}
+
+export interface Semillero {
+  id: number;
+  nombre_semilla: string;
+  fecha_siembra: string;
+  fecha_estimada: string;
+  cantidad: number;
+}
+
+export interface Cultivo {
+  id: number;
+  nombre_cultivo: string;
+  descripcion: string;
+}
+
+export interface Plantacion {
+  id: number;
+  fk_id_eras: Eras | null;
+  fk_id_cultivo: Cultivo | null;
+  cantidad_transplante: number;
+  fecha_plantacion: string;
+  fk_id_semillero: Semillero | null;
+}
+
 export interface Produccion {
   id: number;
   nombre_produccion: string;
   cantidad_producida: number;
   fecha: string;
   stock_disponible: number;
-  precio_sugerido_venta: number | null; 
-  fk_unidad_medida: UnidadMedida;
-  cantidad_en_base: number;
+  precio_sugerido_venta: number | null;
+  fk_id_plantacion: Plantacion | null;
+  fk_unidad_medida: UnidadMedida | null;
+  cantidad_en_base: number | null;
 }
 
 export interface CrearItemVenta {

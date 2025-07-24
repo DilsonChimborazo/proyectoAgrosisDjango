@@ -29,11 +29,12 @@ ChartJS.register(
 interface Dataset {
     label?: string;
     data: number[] | { x: number; y: number }[];
-    backgroundColor: string | string[];
+    backgroundColor?: string | string[]; // Hacer opcional para gráficos de líneas
     borderColor?: string | string[];
     borderWidth?: number;
     yAxisID?: string;
     pointRadius?: number;
+    fill?: boolean; // Añadido para gráficos de líneas
 }
 
 interface ChartProps {
