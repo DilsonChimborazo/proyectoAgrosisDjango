@@ -27,6 +27,7 @@ class Asignacion_actividadesModelViewSet(ModelViewSet):
         'fk_id_realiza__fk_id_plantacion__fk_id_cultivo',
         'fk_id_realiza__fk_id_actividad',
     ).prefetch_related('fk_identificacion').all()
+    permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve']:

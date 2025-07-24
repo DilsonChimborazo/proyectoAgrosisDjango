@@ -10,8 +10,8 @@ logger = logging.getLogger(__name__)
 
 class NotificacionModelViewSet(viewsets.ModelViewSet):
     serializer_class = NotificacionSerializer
-    permission_classes = [IsAuthenticated]
     queryset = Notificacion.objects.all()
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         try:

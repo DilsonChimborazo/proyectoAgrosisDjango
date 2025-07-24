@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from django_filters.rest_framework import DjangoFilterBackend
 from apps.iot.mide.models import Mide
+from rest_framework.permissions import IsAuthenticated
 from apps.iot.mide.api.serializers import leerMideSerializer, escribirMideSerializer
 import logging
 
@@ -14,6 +15,7 @@ class MideViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['fk_id_sensor', 'fecha_medicion']
     serializer_class = leerMideSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve']:

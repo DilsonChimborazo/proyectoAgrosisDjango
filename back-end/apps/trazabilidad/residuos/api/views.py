@@ -1,11 +1,13 @@
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.permissions import IsAuthenticated
 from apps.trazabilidad.residuos.models import Residuos
 from apps.trazabilidad.residuos.api.serializers import LeerResiduosSerializer, escribirResiduosSerializer
 
 class ResiduosViewSet(ModelViewSet):
     queryset = Residuos.objects.select_related('fk_id_cultivo', 'fk_id_tipo_residuo').all()
+    permissions_clases = [IsAuthenticated]
     
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve']:

@@ -74,6 +74,7 @@ const TrazabilidadHistorica = () => {
                     plantaciones={plantaciones}
                     ordenarSnapshots={ordenarSnapshots}
                     comparando={comparando}
+                    onVolver={() => setMostrarReportes(false)}
                 />
             ) : (
                 <ResumenTrazabilidad 

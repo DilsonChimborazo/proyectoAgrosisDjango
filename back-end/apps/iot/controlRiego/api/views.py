@@ -2,6 +2,7 @@ from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import status
 from apps.iot.controlRiego.models import ControlRiego
+from rest_framework.permissions import IsAuthenticated
 from apps.iot.controlRiego.api.serializer import ControlRiegoSerializer
 from apps.trazabilidad.plantacion.models import Plantacion
 import logging
@@ -10,6 +11,7 @@ import requests
 logger = logging.getLogger(__name__)
 
 class ControlRiegoViewSet(ViewSet):
+    permission_classes = [IsAuthenticated]
     def create(self, request):
         try:
             plantacion_id = request.data.get('plantacion_id')

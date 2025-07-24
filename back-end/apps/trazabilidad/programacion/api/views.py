@@ -2,6 +2,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from apps.trazabilidad.programacion.models import Programacion
+from rest_framework.permissions import IsAuthenticated
 from apps.trazabilidad.programacion.api.serializers import (
     LeerProgramacionSerializer,
     EscribirProgramacionSerializer
@@ -16,6 +17,7 @@ class ExtractEpoch(Func):
 
 class ProgramacionModelViewSet(ModelViewSet):
     queryset = Programacion.objects.all()
+    permission_classes = [IsAuthenticated]
     
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve']:

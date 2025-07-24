@@ -1,5 +1,5 @@
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.permissions import IsAdminUser, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
@@ -8,7 +8,7 @@ from apps.iot.lote.api.serializers import leerLoteSerializer, escribirLoteSerial
 
 class LoteViewSet(ModelViewSet):
     queryset = Lote.objects.all()
-
+    permission_classes = [IsAuthenticated]
     def get_serializer_class(self):
         """Retorna el serializador adecuado dependiendo de la acción"""
         if self.action in ['list', 'retrieve']:
@@ -19,7 +19,7 @@ class LoteViewSet(ModelViewSet):
         """Define permisos: solo admins pueden activar/desactivar y modificar"""
         if self.action in ['activar', 'desactivar', 'create', 'update', 'partial_update', 'destroy']:
             return [IsAdminUser()]
-        return [IsAuthenticatedOrReadOnly()]
+        return [IsAuthenticated()]
 
     @action(detail=True, methods=['post'], permission_classes=[IsAdminUser])
     def activar(self, request, pk=None):

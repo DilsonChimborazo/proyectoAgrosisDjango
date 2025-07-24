@@ -1,10 +1,19 @@
+FROM node:22-slim
 
-FROM node:22.17.0-alpine3.21
 WORKDIR /app/
-COPY package*.json .
-RUN npm install
-COPY . .
-COPY .env .
-EXPOSE 5173
-CMD ["npm", "run", "dev"]
 
+# Copiar archivos de configuración primero para aprovechar el cache
+COPY package*.json ./
+
+# Instalar dependencias sin verificar opcionales (como los módulos nativos de Rollup)
+RUN npm install --omit=optional --legacy-peer-deps
+
+# Luego copia el resto del proyecto
+COPY . .
+
+# Copia también tu archivo de entorno si es necesario
+COPY .env .env
+
+EXPOSE 5173
+
+CMD ["npm", "run", "dev"]

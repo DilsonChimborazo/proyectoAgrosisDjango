@@ -15,7 +15,7 @@ interface ReportesTrazabilidadProps {
     plantaciones: Plantacion[] | undefined;
     ordenarSnapshots: SnapshotTrazabilidad[];
     comparando: number[];
-    onVolver: () => void; // ✅ Prop agregada
+    onVolver: () => void; 
 }
 
 const ReportesTrazabilidad = ({

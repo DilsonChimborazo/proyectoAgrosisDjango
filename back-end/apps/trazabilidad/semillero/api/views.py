@@ -1,11 +1,11 @@
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated
 from apps.trazabilidad.semillero.models import Semillero
 from apps.trazabilidad.semillero.api.serializers import LeerSemilleroSerializer, EscribirSemilleroSerializer
 
 class SemilleroModelViewSet(ModelViewSet):
-    permissions_clases = [IsAuthenticatedOrReadOnly]
     queryset = Semillero.objects.all()
+    permissions_clases = [IsAuthenticated]
 
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve']:

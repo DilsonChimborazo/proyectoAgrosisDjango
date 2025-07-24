@@ -40,8 +40,6 @@ services:
     image: dilsonchimborazo/doc_tecnica:1.1.1
     ports:
       - "4321:4321"
-    volumes:
-      - ./Doc_Tecnica:/app
     networks:
       - app-network
 

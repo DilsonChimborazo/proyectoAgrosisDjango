@@ -4,6 +4,7 @@ from rest_framework import status
 from apps.iot.mide.models import Mide
 from apps.trazabilidad.plantacion.models import Plantacion
 from apps.iot.evapotranspiracion.models import Evapotranspiracion
+from rest_framework.permissions import IsAuthenticated
 from apps.iot.evapotranspiracion.api.utils import calcular_eto
 from apps.iot.evapotranspiracion.api.serializers import LeerEvapotranspiracionSerializer
 from datetime import date
@@ -13,6 +14,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 class EvapotranspiracionViewSet(ViewSet):
+    permission_classes = [IsAuthenticated]
     def list(self, request):
 
         plantacion_id = request.query_params.get('fk_id_plantacion')
