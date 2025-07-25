@@ -2,11 +2,9 @@ services:
   fronAgrosis:
     image: dilsonchimborazo/front_agrosis:1.1.1
     ports:
-      - "5173:5173"
+      - "8080:80"
     env_file:
       - ./frontAgrosis/.env
-    volumes:
-      - ./frontAgrosis:/app
     depends_on:
       - back-end
     networks:

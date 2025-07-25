@@ -1,19 +1,35 @@
-FROM node:22-slim
+# Etapa 1: Construcción
+FROM node:22-slim AS builder
 
-WORKDIR /app/
+# Establece el directorio de trabajo
+WORKDIR /app
 
-# Copiar archivos de configuración primero para aprovechar el cache
+# Copia archivos necesarios
 COPY package*.json ./
-
-# Instalar dependencias sin verificar opcionales (como los módulos nativos de Rollup)
-RUN npm install --omit=optional --legacy-peer-deps
-
-# Luego copia el resto del proyecto
+COPY vite.config.ts ./
+COPY tsconfig.json ./
 COPY . .
 
-# Copia también tu archivo de entorno si es necesario
-COPY .env .env
+# Instala dependencias
+RUN npm install --legacy-peer-deps
 
-EXPOSE 5173
+# Construye el proyecto
+RUN npm run build
 
-CMD ["npm", "run", "dev"]
+# Etapa 2: Servidor Nginx
+FROM nginx:1.25-alpine
+
+# Elimina configuración por defecto de Nginx
+RUN rm -rf /etc/nginx/conf.d/default.conf
+
+# Copia tu propia configuración de nginx
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Copia archivos generados por Vite
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Expone el puerto en el que Nginx sirve
+EXPOSE 80
+
+# Comando para ejecutar nginx
+CMD ["nginx", "-g", "daemon off;"]

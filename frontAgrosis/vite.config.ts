@@ -10,18 +10,28 @@ export default defineConfig({
     },
   },
   server: {
-    host: true, 
+    host: true,
     port: 5173,
   },
   preview: {
-    host: true, 
+    host: true,
     port: 4173,
   },
   build: {
-    rollupOptions: {
-      external: ['@rollup/rollup-linux-x64-musl'],
-    },
     outDir: 'dist',
     sourcemap: false,
+    chunkSizeWarningLimit: 1000, 
+    rollupOptions: {
+      external: ['@rollup/rollup-linux-x64-musl'],
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react')) return 'vendor-react';
+            if (id.includes('tailwindcss')) return 'vendor-tailwind';
+            return 'vendor';
+          }
+        },
+      },
+    },
   },
 });
