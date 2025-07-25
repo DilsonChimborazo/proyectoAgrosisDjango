@@ -106,7 +106,7 @@ const SafeImage = ({
     if (!path) return null;
     return path.startsWith("http://") || path.startsWith("https://")
       ? path
-      : `${apiUrl}/${path.replace(/^\/+/, "")}`;
+      : `${apiUrl}/${(path ?? '').replace(/^\/+/, "")}`;
   };
 
   useEffect(() => {

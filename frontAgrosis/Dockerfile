@@ -10,6 +10,7 @@ COPY vite.config.ts ./
 COPY tsconfig.json ./
 COPY . .
 
+
 # Instala dependencias
 RUN npm install --legacy-peer-deps
 

@@ -56,7 +56,7 @@ const ListarEspecie = () => {
           nombre_cientifico: item.nombre_cientifico,
           descripcion: item.descripcion,
           fk_id_tipo_cultivo: item.tipo_cultivo.includes('ID: ')
-            ? item.tipo_cultivo.replace('ID: ', '') // Extraer el ID si es necesario
+            ? (item.tipo_cultivo ?? '').replace('ID: ', '')
             : item.tipo_cultivo, // Asegúrate de que sea un ID válido
         }}
         onSuccess={() => {

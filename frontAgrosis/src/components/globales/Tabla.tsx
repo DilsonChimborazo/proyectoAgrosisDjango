@@ -49,7 +49,11 @@ const Tabla = <T extends Record<string, any>>({
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [visibleColumns, setVisibleColumns] = useState<string[]>(
     headers
-      .map((header) => header.toLowerCase().replace(/\s+/g, "_"))
+      .map((header) =>
+        typeof header === 'string'
+          ? header.toLowerCase().replace(/\s+/g, "_")
+          : ''
+      )
       .filter(key => !hiddenColumnsByDefault.includes(key.toLowerCase()))
   );
   const [rowsPerPage, setRowsPerPage] = useState(rowsPerPageOptions[0]);

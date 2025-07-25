@@ -625,11 +625,16 @@ const ModalesTrazabilidad = ({ modalAbierto, comparando, onCerrarModal }: Modale
         <VentanaModal
             isOpen={true}
             onClose={onCerrarModal}
-            titulo={`${modalAbierto.tipo.charAt(0).toUpperCase() + modalAbierto.tipo.slice(1)
-                .replace('MinimoAcumulado', 'Mínimo Acumulado')
-                .replace('MinimoIncremental', 'Mínimo Incremental')
-                .replace('MinimoRecuperar', 'Mínimo Recuperar')
-                .replace('DepreciacionHerramientas', 'Depreciación Herramientas')}`}
+            titulo={`${
+            modalAbierto?.tipo
+                ? modalAbierto.tipo.charAt(0).toUpperCase() +
+                modalAbierto.tipo.slice(1)
+                    .replace('MinimoAcumulado', 'Mínimo Acumulado')
+                    .replace('MinimoIncremental', 'Mínimo Incremental')
+                    .replace('MinimoRecuperar', 'Mínimo Recuperar')
+                    .replace('DepreciacionHerramientas', 'Depreciación Herramientas')
+                : ''
+            }`}
             size={modalAbierto.tipo === 'comparar' ? 'xl' : 'lg'} // Ajustado tamaño para depreciacionHerramientas a lg
             contenido={renderModalContent()}
         />

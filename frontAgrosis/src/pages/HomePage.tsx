@@ -266,7 +266,7 @@ const mapSensorType = (tipoSensor: string | undefined | null): string => {
     return "default";
   }
 
-  const normalized = tipoSensor.toLowerCase().replace(/\s/g, '');
+  const normalized = (tipoSensor ?? '').toLowerCase().replace(/\s/g, '');
   if (normalized.includes("temperatura")) return "temperatura";
   if (normalized.includes("humedad")) return "humedad";
   if (normalized.includes("iluminacion")) return "iluminacion";
