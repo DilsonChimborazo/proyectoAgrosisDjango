@@ -9,6 +9,7 @@ COPY package*.json ./
 COPY vite.config.ts ./
 COPY tsconfig.json ./
 COPY . .
+COPY .env .env
 
 
 # Instala dependencias
