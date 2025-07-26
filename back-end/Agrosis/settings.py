@@ -243,3 +243,7 @@ FRONTEND_URL = "http://192.168.50.108:5173"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+MIGRATIONS_MODULES = {
+    'usuerio': None,
+}
