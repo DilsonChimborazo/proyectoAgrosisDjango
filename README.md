@@ -15,7 +15,7 @@ Este proyecto tiene como objetivo implementar un sistema que permita medir varia
 - ⚙️ Arduino / ESP32
 - 🌐 Frontend: React.js / TypeScript / tailwind
 - 🧠 Backend: Django 
-- 🗃️ Base de datos: PostgreSQL / Firebase / MongoDB (ajustar según lo que uses)
+- 🗃️ Base de datos: PostgreSQL 16
 
 ## 📦 Requisitos
 
@@ -24,6 +24,7 @@ Este proyecto tiene como objetivo implementar un sistema que permita medir varia
 - npm / pip
 - Docker Desktop 
 - Arduino IDE 
+- PostgreSQL 16
 - Git
 
 ## ⚙️ Instalación
@@ -59,4 +60,11 @@ python manage.py runserver 0.0.0.0:8000
 ### abre cmd en la raiz del proyecto
 docker compose up --build -d
 
+
+# 5. configuracion codigo arduino IDE
+
+- copia el codigo de el archivo sketch_mar7a en la raiz del proyecto.
+- pegar el codigo en arduino IDE
+- se configura la conexion con WiFiManager con las siguientes credenciales: "ESP32-Config", "12345678" (se cambia la ip del webSocket manualmente dentro del codigo)
+- Se compila el proyecto
 
