@@ -14,15 +14,10 @@ fi
 echo "Generando archivos de migraciones..."
 python manage.py makemigrations --noinput
 
-# 🔴 ELIMINAR MIGRACIONES PROBLEMÁTICAS AQUÍ
-echo "Eliminando migraciones no deseadas..."
-for app in nomina stock notificacion; do
-  if [ -d "$app/migrations" ]; then
-    echo "Limpiando migraciones en $app..."
-    find "$app/migrations" -type f -name "0002_*.py" -exec rm -f {} +
-    find "$app/migrations" -type f -name "0002_*.pyc" -exec rm -f {} +
-  fi
-done
+echo "Marcando migraciones iniciales como aplicadas..."
+python manage.py migrate nomina 0001_initial --fake
+python manage.py migrate stock 0001_initial --fake
+python manage.py migrate notificacion 0001_initial --fake
 
 # Aplicar migraciones pendientes
 echo "Aplicando migraciones..."
