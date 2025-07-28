@@ -14,16 +14,20 @@ fi
 echo "Generando archivos de migraciones..."
 python manage.py makemigrations --noinput
 
-# Verificar si la migración nomina.0002_initial ya fue aplicada
-echo "Verificando migración nomina.0002_initial..."
-if python manage.py showmigrations | grep -q "\[ \] nomina 0002_initial"; then
-    echo "Marcando nomina.0002_initial como aplicada por columnas ya existentes..."
-    python manage.py migrate nomina 0002_initial --fake --noinput
-fi
+# 🔴 ELIMINAR MIGRACIONES PROBLEMÁTICAS AQUÍ
+echo "Eliminando migraciones no deseadas..."
+for app in nomina stock notificacion; do
+  if [ -d "$app/migrations" ]; then
+    echo "Limpiando migraciones en $app..."
+    find "$app/migrations" -type f -name "0002_*.py" -exec rm -f {} +
+    find "$app/migrations" -type f -name "0002_*.pyc" -exec rm -f {} +
+  fi
+done
 
 # Aplicar migraciones pendientes
 echo "Aplicando migraciones..."
 python manage.py migrate --noinput
+
 
 # Iniciar servidor Django
 echo "Iniciando servidor en 0.0.0.0:8000..."
