@@ -1,8 +1,6 @@
 FROM python:3.12-slim
 
-# Instala netcat-openbsd, gcc y libpq-dev para conectar con PostgreSQL
 RUN apt-get update && apt-get install -y netcat-openbsd gcc libpq-dev && apt-get clean
-
 
 WORKDIR /app
 
