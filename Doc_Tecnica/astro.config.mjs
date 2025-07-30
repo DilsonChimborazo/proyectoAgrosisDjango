@@ -281,6 +281,12 @@ integrations: [
 					{ label: 'Prototipado del sistema', slug: 'usuario/problematica/prototipado'},
 				],
 			},
+			{
+				label: 'Documnentacion de caso de pruebas',
+				items: [
+					{ label: 'Caso de pruebas', slug: 'usuario/problematica/casoprueba'},
+				],
+			},
           ]
         },
       ]
