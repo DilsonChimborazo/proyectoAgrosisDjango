@@ -1,12 +1,12 @@
 import { useRef } from 'react';
 import { ChartBar } from '@/components/globales/Charts';
-import ExcelJS from 'exceljs';
-import html2canvas from 'html2canvas';
 import { Download } from 'lucide-react';
 import Button from '@/components/globales/Button';
 import { SnapshotTrazabilidad } from './Types';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { DescargarExcel } from '@/components/globales/DescargarExcel';
+import html2canvas from 'html2canvas';
 
 interface ReporteComparacionesProps {
   ordenarSnapshots: SnapshotTrazabilidad[];
@@ -36,19 +36,28 @@ const ReporteComparaciones = ({ ordenarSnapshots, comparando, formato }: Reporte
   };
 
   const generarReporte = async () => {
-    const columnas = ['Snapshot', 'Cultivo', 'Fecha', 'Relación B/C', 'Balance'];
-    const datos = ordenarSnapshots.map(s => [
-      `v${s.version}`,
-      s.datos.cultivo || 'Sin cultivo',
-      new Date(s.fecha_registro).toLocaleDateString('es-CO'),
-      (s.datos.beneficio_costo_acumulado ?? 0).toFixed(2),
-      new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(
+    // Definir columnas para Excel
+    const columnas: { header: string; key: string; width: number }[] = [
+      { header: 'Snapshot', key: 'snapshot', width: 15 },
+      { header: 'Cultivo', key: 'cultivo', width: 30 },
+      { header: 'Fecha', key: 'fecha', width: 20 },
+      { header: 'Relación B/C', key: 'bc', width: 15 },
+      { header: 'Balance', key: 'balance', width: 25 },
+    ];
+
+    // Preparar datos para Excel
+    const datos = ordenarSnapshots.map(s => ({
+      snapshot: `v${s.version}`,
+      cultivo: s.datos.cultivo || 'Sin cultivo',
+      fecha: new Date(s.fecha_registro).toLocaleDateString('es-CO'),
+      bc: (s.datos.beneficio_costo_acumulado ?? 0).toFixed(2),
+      balance: new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(
         (s.datos.ingresos_ventas_acumulado || 0) -
         ((s.datos.costo_mano_obra_acumulado || 0) +
          (s.datos.egresos_insumos_acumulado || 0) +
          (s.datos.depreciacion_herramientas_acumulada || 0))
       ),
-    ]);
+    }));
 
     if (formato === 'pdf') {
       const doc = new jsPDF();
@@ -116,8 +125,8 @@ const ReporteComparaciones = ({ ordenarSnapshots, comparando, formato }: Reporte
       // Tabla
       autoTable(doc, {
         startY: headerTop + headerHeight + 16,
-        head: [columnas],
-        body: datos,
+        head: [columnas.map(col => col.header)],
+        body: datos.map(d => Object.values(d)),
         theme: 'striped',
         styles: {
           fontSize: 10,
@@ -140,7 +149,7 @@ const ReporteComparaciones = ({ ordenarSnapshots, comparando, formato }: Reporte
       // Gráfico
       if (chartRef.current) {
         await new Promise(resolve => setTimeout(resolve, 1000));
-        const canvas = await html2canvas(chartRef.current, { scale: 3 });
+        const canvas = await html2canvas(chartRef.current, { scale: 3, useCORS: true, logging: false });
         const imageData = canvas.toDataURL('image/png', 1.0);
         const finalY = (doc as any).lastAutoTable?.finalY || 40;
         try {
@@ -155,132 +164,17 @@ const ReporteComparaciones = ({ ordenarSnapshots, comparando, formato }: Reporte
 
       doc.save('reporte_comparaciones_snapshots.pdf');
     } else {
-      const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('Comparaciones Snapshots');
-
-      // Cargar logos
-      const logoSena = await cargarImagenComoBase64('/logoSena.png');
-      const logoKaizen = await cargarImagenComoBase64('/agrosoft.png');
-
-      // Configurar anchos de columnas para simetría
-      worksheet.columns = [
-        { key: 'snapshot', width: 15 },
-        { key: 'cultivo', width: 30 },
-        { key: 'fecha', width: 20 },
-        { key: 'bc', width: 15 },
-        { key: 'balance', width: 25 },
-      ];
-
-      // Configurar alto de filas para el encabezado
-      worksheet.getRow(1).height = 60;
-      worksheet.getRow(2).height = 20;
-      worksheet.getRow(4).height = 30;
-      worksheet.getRow(5).height = 30;
-
-      // Encabezado con logos y texto
-      worksheet.mergeCells('A1:E1');
-      const logoSenaId = workbook.addImage({ base64: logoSena, extension: 'png' });
-      worksheet.addImage(logoSenaId, { tl: { col: 0, row: 0 }, ext: { width: 50, height: 50 } });
-
-      worksheet.mergeCells('B1:D1');
-      worksheet.getCell('B1').value = 'CENTRO DE GESTIÓN Y DESARROLLO SOSTENIBLE SURCOLOMBIANO\nÁREA PAE';
-      worksheet.getCell('B1').alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-      worksheet.getCell('B1').font = { name: 'Calibri', size: 14, bold: true, color: { argb: '004B3D' } };
-      worksheet.getCell('B1').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F0F7F4' } };
-
-      const logoKaizenId = workbook.addImage({ base64: logoKaizen, extension: 'png' });
-      worksheet.addImage(logoKaizenId, { tl: { col: 4, row: 0 }, ext: { width: 50, height: 50 } });
-
-      // Subtítulo
-      worksheet.mergeCells('A2:E2');
-      worksheet.getCell('A2').value = 'Reporte de Comparaciones de Snapshots - Sector Agropecuario';
-      worksheet.getCell('A2').alignment = { horizontal: 'center', vertical: 'middle' };
-      worksheet.getCell('A2').font = { name: 'Calibri', size: 12, bold: true, color: { argb: '004B3D' } };
-      worksheet.getCell('A2').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'E6EFEA' } };
-      worksheet.getCell('A2').border = {
-        bottom: { style: 'medium', color: { argb: '004B3D' } },
-      };
-
-      // Fecha
-      worksheet.mergeCells('A4:E4');
-      worksheet.getCell('A4').value = `Fecha de generación: ${new Date().toLocaleDateString('es-CO')} ${new Date().toLocaleTimeString('es-CO')}`;
-      worksheet.getCell('A4').alignment = { horizontal: 'right', vertical: 'middle' };
-      worksheet.getCell('A4').font = { name: 'Calibri', size: 10, italic: true, color: { argb: '666666' } };
-      worksheet.getCell('A4').border = {
-        bottom: { style: 'thin', color: { argb: '004B3D' } },
-      };
-
-      // Espaciado
-      worksheet.addRow([]);
-
-      // Encabezado de la tabla
-      const headerRow = worksheet.addRow(columnas);
-      headerRow.eachCell(cell => {
-        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '004B3D' } };
-        cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFF' } };
-        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-        cell.border = {
-          top: { style: 'thin', color: { argb: '004B3D' } },
-          left: { style: 'thin', color: { argb: '004B3D' } },
-          bottom: { style: 'thin', color: { argb: '004B3D' } },
-          right: { style: 'thin', color: { argb: '004B3D' } },
-        };
+      // Usar DescargarExcel para generar el reporte Excel
+      await DescargarExcel({
+        data: datos,
+        columns: columnas,
+        title: 'CENTRO DE GESTIÓN Y DESARROLLO SOSTENIBLE SURCOLOMBIANO',
+        subtitle: 'Reporte de Comparaciones de Snapshots - Sector Agropecuario',
+        logoSenaPath: '/logoSena.png',
+        logoKaizenPath: '/agrosoft.png',
+        chartRef,
+        filename: 'Reporte_Comparaciones_Snapshots_Agropecuario.xlsx',
       });
-      headerRow.height = 25;
-
-      // Datos de la tabla
-      datos.forEach((row, index) => {
-        const dataRow = worksheet.addRow(row);
-        dataRow.eachCell(cell => {
-          cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-          cell.font = { name: 'Calibri', size: 10, color: { argb: '333333' } };
-          cell.border = {
-            top: { style: 'thin', color: { argb: 'D3D3D3' } },
-            left: { style: 'thin', color: { argb: 'D3D3D3' } },
-            bottom: { style: 'thin', color: { argb: 'D3D3D3' } },
-            right: { style: 'thin', color: { argb: 'D3D3D3' } },
-          };
-          if (index % 2 === 0) {
-            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F7FAF8' } };
-          }
-        });
-        dataRow.height = 22;
-      });
-
-      // Gráfico
-      if (chartRef.current) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        const canvas = await html2canvas(chartRef.current, { scale: 4 });
-        const imageData = canvas.toDataURL('image/png', 1.0);
-        const imageId = workbook.addImage({ base64: imageData, extension: 'png' });
-        const startRow = datos.length + 10;
-        worksheet.mergeCells(`A${startRow}:E${startRow + 13}`);
-        worksheet.addImage(imageId, { tl: { col: 0, row: startRow }, ext: { width: 600, height: 350 } });
-      }
-
-      // Pie de página
-      const footerRow = worksheet.addRow(['']);
-      footerRow.height = 20;
-      worksheet.mergeCells(`A${footerRow.number}:E${footerRow.number}`);
-      worksheet.getCell(`A${footerRow.number}`).value = 'Generado por Agrosoft - Centro de Gestión y Desarrollo Sostenible Surcolombiano';
-      worksheet.getCell(`A${footerRow.number}`).alignment = { horizontal: 'center', vertical: 'middle' };
-      worksheet.getCell(`A${footerRow.number}`).font = { name: 'Calibri', size: 9, italic: true, color: { argb: '666666' } };
-      worksheet.getCell(`A${footerRow.number}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'E6EFEA' } };
-      worksheet.getCell(`A${footerRow.number}`).border = {
-        top: { style: 'thin', color: { argb: '004B3D' } },
-      };
-
-      // Generar archivo
-      const buffer = await workbook.xlsx.writeBuffer();
-      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'Reporte_Comparaciones_Snapshots_Agropecuario.xlsx';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
     }
   };
 

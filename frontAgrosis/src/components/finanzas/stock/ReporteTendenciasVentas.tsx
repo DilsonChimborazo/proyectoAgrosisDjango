@@ -2,9 +2,9 @@ import { useRef, useEffect, useState } from 'react';
 import { Venta } from '@/hooks/finanzas/venta/useVenta';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import ExcelJS from 'exceljs';
 import html2canvas from 'html2canvas';
 import { ChartBar } from '@/components/globales/Charts';
+import { DescargarExcel } from '@/components/globales/DescargarExcel';
 import { cargarImagenComoBase64 } from '../trazabilidad/utils';
 import { format, parseISO, startOfMonth } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -31,7 +31,7 @@ const ReporteTendenciasVentas = ({ ventas, formato, onGenerate }: ReporteTendenc
       const fecha = parseISO(venta.fecha);
       const mes = format(startOfMonth(fecha), 'MMMM yyyy', { locale: es });
       const totalVenta = venta.items.reduce((sum, item) => sum + parseSubtotal(item.subtotal), 0);
-      
+
       if (!acc[mes]) {
         acc[mes] = { total: 0, cultivos: new Map<string, number>() };
       }
@@ -57,23 +57,22 @@ const ReporteTendenciasVentas = ({ ventas, formato, onGenerate }: ReporteTendenc
       )
     ).sort();
 
-    const datos = meses.map(mes => {
-      const dataMes = ventasPorMes[mes];
-      const row: (string | number)[] = [mes, dataMes.total.toFixed(2)];
-      cultivosUnicos.forEach(cultivo => {
-        row.push((dataMes.cultivos.get(cultivo) || 0).toFixed(2));
-      });
-      return row;
-    });
-
+    const datos = meses.map(mes => ({
+      mes,
+      total: new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(ventasPorMes[mes].total),
+      ...cultivosUnicos.reduce((acc, cultivo) => ({
+        ...acc,
+        [cultivo]: new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(ventasPorMes[mes].cultivos.get(cultivo) || 0),
+      }), {}),
+    }));
 
     return {
-      columnas: ['Mes', 'Total Ventas (COP)', ...cultivosUnicos],
-      datos: datos.map(row => [
-        row[0],
-        new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(Number(row[1])),
-        ...row.slice(2).map(val => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(Number(val))),
-      ]),
+      columnas: [
+        { header: 'Mes', key: 'mes', width: 20 },
+        { header: 'Total Ventas (COP)', key: 'total', width: 20 },
+        ...cultivosUnicos.map(cultivo => ({ header: cultivo, key: cultivo, width: 20 })),
+      ],
+      datos,
       grafico: {
         labels: meses,
         datasets: [
@@ -113,7 +112,7 @@ const ReporteTendenciasVentas = ({ ventas, formato, onGenerate }: ReporteTendenc
   }, [ventas]);
 
   const generarReporte = async () => {
-    if (!chartRendered) return;
+    if (!chartRendered || !ventas?.length) return;
     const { columnas, datos, titulo } = generarDatos();
 
     if (formato === 'pdf') {
@@ -166,25 +165,26 @@ const ReporteTendenciasVentas = ({ ventas, formato, onGenerate }: ReporteTendenc
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(100, 100, 100);
-      doc.text(`Fecha: ${new Date().toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })}`, pageWidth - rightMargin, infoY, { align: 'right' });
+      doc.text(`Fecha de generación: ${new Date().toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })}`, pageWidth - rightMargin, infoY, { align: 'right' });
 
       autoTable(doc, {
         startY: infoY + 10,
-        head: [columnas],
-        body: datos,
+        head: [columnas.map(col => col.header)],
+        body: datos.map(d => Object.values(d)),
         theme: 'striped',
         styles: { fontSize: 9, cellPadding: 3, halign: 'center', lineWidth: 0.1, font: 'helvetica' },
         headStyles: { fillColor: [0, 120, 100], textColor: 255, fontStyle: 'bold', fontSize: 10 },
         alternateRowStyles: { fillColor: [245, 245, 245] },
-        columnStyles: columnas.reduce((acc, _, index) => ({ ...acc, [index]: { cellWidth: 180 / columnas.length } }), {}),
+        columnStyles: columnas.reduce((acc, col, index) => ({ ...acc, [index]: { cellWidth: col.width } }), {}),
       });
 
       if (chartRef.current) {
         try {
-          const canvas = await html2canvas(chartRef.current, { scale: 2, logging: false, useCORS: true });
-          const imgData = canvas.toDataURL('image/png');
+          const canvas = await html2canvas(chartRef.current, { scale: 3, logging: false, useCORS: true });
+          const imgData = canvas.toDataURL('image/png', 1.0);
           doc.addImage(imgData, 'PNG', 15, (doc as any).lastAutoTable.finalY + 10, 180, 100);
         } catch (error) {
+          console.error('Error al agregar imagen al PDF:', error);
           doc.text('No se pudo incluir el gráfico', 15, (doc as any).lastAutoTable.finalY + 10);
         }
       }
@@ -194,106 +194,17 @@ const ReporteTendenciasVentas = ({ ventas, formato, onGenerate }: ReporteTendenc
       doc.text('Generado por Agrosoft - Centro de Gestión y Desarrollo Sostenible Surcolombiano', leftMargin, doc.internal.pageSize.getHeight() - 10);
       doc.save('tendencias-ventas.pdf');
     } else {
-      const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('Reporte Tendencias Ventas');
-
-      const logoSena = await cargarImagenComoBase64('/logoSena.png');
-      const logoKaizen = await cargarImagenComoBase64('/agrosoft.png');
-
-      worksheet.mergeCells('A1:D1');
-      worksheet.getCell('A1').value = 'CENTRO DE GESTIÓN Y DESARROLLO SOSTENIBLE SURCOLOMBIANO';
-      worksheet.getCell('A1').font = { name: 'Calibri', size: 14, bold: true, color: { argb: '004D3C' } };
-      worksheet.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' };
-      worksheet.getCell('A1').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F5F5F5' } };
-      worksheet.getRow(1).height = 30;
-
-      worksheet.mergeCells('A2:D2');
-      worksheet.getCell('A2').value = `ÁREA PAE - ${titulo}`;
-      worksheet.getCell('A2').font = { name: 'Calibri', size: 12, bold: true, color: { argb: '006633' } };
-      worksheet.getCell('A2').alignment = { horizontal: 'center', vertical: 'middle' };
-      worksheet.getRow(2).height = 25;
-
-      const logoSenaId = workbook.addImage({ base64: logoSena, extension: 'png' });
-      worksheet.mergeCells('A3:A4');
-      worksheet.addImage(logoSenaId, { tl: { col: 0, row: 2 }, ext: { width: 50, height: 50 } });
-
-      const logoKaizenId = workbook.addImage({ base64: logoKaizen, extension: 'png' });
-      worksheet.mergeCells('D3:D4');
-      worksheet.addImage(logoKaizenId, { tl: { col: 3, row: 2 }, ext: { width: 50, height: 50 } });
-
-      worksheet.mergeCells('A5:D5');
-      worksheet.getCell('A5').value = `Fecha de generación: ${new Date().toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })}`;
-      worksheet.getCell('A5').font = { name: 'Calibri', size: 10, color: { argb: '666666' } };
-      worksheet.getCell('A5').alignment = { horizontal: 'right', vertical: 'middle' };
-      worksheet.getRow(5).height = 20;
-
-      worksheet.addRow([]);
-      worksheet.getRow(6).height = 10;
-
-      worksheet.columns = columnas.map((header, index) => ({
-        header,
-        key: `col${index}`,
-        width: 25,
-      }));
-      const headerRow = worksheet.getRow(7);
-      headerRow.values = columnas;
-      headerRow.eachCell(cell => {
-        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '007864' } };
-        cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFF' } };
-        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-        cell.border = {
-          top: { style: 'thin', color: { argb: '004D3C' } },
-          left: { style: 'thin', color: { argb: '004D3C' } },
-          bottom: { style: 'thin', color: { argb: '004D3C' } },
-          right: { style: 'thin', color: { argb: '004D3C' } },
-        };
+      // Usar DescargarExcel para generar el reporte Excel
+      await DescargarExcel({
+        data: datos,
+        columns: columnas,
+        title: 'CENTRO DE GESTIÓN Y DESARROLLO SOSTENIBLE SURCOLOMBIANO',
+        subtitle: `ÁREA PAE - ${titulo}`,
+        logoSenaPath: '/logoSena.png',
+        logoKaizenPath: '/agrosoft.png',
+        chartRef,
+        filename: `tendencias-ventas_${format(new Date(), 'yyyyMMdd_HHmm')}.xlsx`,
       });
-      headerRow.height = 25;
-
-      datos.forEach((d, index) => {
-        const dataRow = worksheet.addRow(d.reduce((acc, val, i) => ({ ...acc, [`col${i}`]: val }), {}));
-        dataRow.eachCell(cell => {
-          cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-          cell.font = { name: 'Calibri', size: 10 };
-          cell.border = {
-            top: { style: 'thin', color: { argb: '004D3C' } },
-            left: { style: 'thin', color: { argb: '004D3C' } },
-            bottom: { style: 'thin', color: { argb: '004D3C' } },
-            right: { style: 'thin', color: { argb: '004D3C' } },
-          };
-          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: index % 2 === 0 ? 'F7F7F7' : 'FFFFFF' } };
-        });
-        dataRow.height = 20;
-      });
-
-      if (chartRef.current) {
-        try {
-          const canvas = await html2canvas(chartRef.current, { scale: 2 });
-          const imageData = canvas.toDataURL('image/png');
-          const imageId = workbook.addImage({ base64: imageData, extension: 'png' });
-          worksheet.addImage(imageId, { tl: { col: 0, row: datos.length + 8 }, ext: { width: 500, height: 300 } });
-        } catch (error) {
-          worksheet.addRow({ col0: 'Nota: No se pudo incluir el gráfico comparativo' });
-        }
-      }
-
-      const footerRow = datos.length + (chartRef.current ? 18 : 9);
-      worksheet.mergeCells(`A${footerRow}:D${footerRow}`);
-      worksheet.getCell(`A${footerRow}`).value = 'Generado por Agrosoft - Centro de Gestión y Desarrollo Sostenible Surcolombiano';
-      worksheet.getCell(`A${footerRow}`).font = { name: 'Calibri', size: 9, color: { argb: '666666' } };
-      worksheet.getCell(`A${footerRow}`).alignment = { horizontal: 'center', vertical: 'middle' };
-      worksheet.getRow(footerRow).height = 20;
-
-      const buffer = await workbook.xlsx.writeBuffer();
-      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'tendencias-ventas.xlsx';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
     }
     onGenerate();
   };

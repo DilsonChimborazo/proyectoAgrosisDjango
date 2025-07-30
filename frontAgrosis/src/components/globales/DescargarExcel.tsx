@@ -1,203 +1,165 @@
 import ExcelJS from 'exceljs';
 import html2canvas from 'html2canvas';
 
-interface ExcelData {
-  columnas: string[];
-  datos: any[][];
-  titulo: string;
-  nombreArchivo?: string;
-  logoIzquierdo?: string;
-  logoDerecho?: string;
-  graficoRef?: React.RefObject<HTMLDivElement | null>;
-  piePagina?: string;
+interface ExcelColumn {
+  header: string;
+  key: string;
+  width: number;
 }
 
-const setCellStyle = (
-  cell: ExcelJS.Cell,
-  font: Partial<ExcelJS.Font>,
-  alignment: Partial<ExcelJS.Alignment>,
-  fill?: ExcelJS.Fill,
-  border?: Partial<ExcelJS.Borders>
-) => {
-  cell.font = font;
-  cell.alignment = alignment;
-  if (fill) cell.fill = fill;
-  if (border) cell.border = border;
-};
+interface ExcelData {
+  [key: string]: string | number;
+}
 
-const addImage = (
-  ws: ExcelJS.Worksheet,
-  imageId: number,
-  col1: number,
-  row1: number,
-  col2: number,
-  row2: number
-) => {
-  (ws as any).addImage(imageId, {
-    tl: { col: col1, row: row1 },
-    br: { col: col2, row: row2 },
-    editAs: 'oneCell'
-  });
-};
-
-const autoAdjustColumns = (ws: ExcelJS.Worksheet) => {
-  ws.columns?.forEach(col => {
-    let maxLen = 10;
-    col.eachCell?.({ includeEmpty: true }, cell => {
-      const len = cell.value ? String(cell.value).length : 0;
-      if (len > maxLen) maxLen = len;
-    });
-    col.width = Math.min(maxLen + 4, 20);
-  });
-};
-
-const downloadExcel = async (wb: ExcelJS.Workbook, name: string) => {
-  const buf = await wb.xlsx.writeBuffer();
-  const blob = new Blob([buf], {
-    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-  });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `${name}.xlsx`;
-  link.click();
-  setTimeout(() => {
-    URL.revokeObjectURL(url);
-  }, 200);
-};
+interface DescargarExcelProps {
+  data: ExcelData[];
+  columns: ExcelColumn[];
+  title: string;
+  subtitle: string;
+  logoSenaPath: string;
+  logoKaizenPath: string;
+  chartRef?: React.RefObject<HTMLElement | null>;
+  filename: string;
+}
 
 export const DescargarExcel = async ({
-  columnas,
-  datos,
-  titulo,
-  nombreArchivo = 'reporte',
-  logoIzquierdo,
-  logoDerecho,
-  graficoRef,
-  piePagina = 'Generado por Agrosoft - Centro de Gestión y Desarrollo Sostenible Surcolombiano'
-}: ExcelData) => {
-  const wb = new ExcelJS.Workbook();
-  const ws = wb.addWorksheet('Reporte', {
-    pageSetup: { fitToPage: true, fitToWidth: 1, fitToHeight: 0 }
-  });
+  data,
+  columns,
+  title,
+  subtitle,
+  logoSenaPath,
+  logoKaizenPath,
+  chartRef,
+  filename,
+}: DescargarExcelProps) => {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Reporte');
 
-  ws.columns = new Array(7).fill({ width: 18 });
-
-  const safeMergeCells = (range: string) => {
+  // Helper function to load image as base64
+  const loadImageAsBase64 = async (path: string): Promise<string> => {
     try {
-      const [start] = range.split(':');
-      const startCell = ws.getCell(start);
-      if (!startCell.isMerged) {
-        ws.mergeCells(range);
-      }
-    } catch (err) {
-      console.error(`Error al fusionar celdas ${range}:`, err);
+      const response = await fetch(path);
+      const blob = await response.blob();
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(blob);
+      });
+    } catch (error) {
+      console.error(`Error loading image ${path}:`, error);
+      return '';
     }
   };
 
+  // Load logos
+  const logoSena = await loadImageAsBase64(logoSenaPath);
+  const logoKaizen = await loadImageAsBase64(logoKaizenPath);
+
+  // Header Section
+  worksheet.mergeCells('A1:F1');
+  worksheet.getCell('A1').value = title;
+  worksheet.getCell('A1').font = { name: 'Calibri', size: 14, bold: true, color: { argb: '004D3C' } };
+  worksheet.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' };
+  worksheet.getCell('A1').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F5F5F5' } };
+  worksheet.getRow(1).height = 30;
+
+  worksheet.mergeCells('A2:F2');
+  worksheet.getCell('A2').value = subtitle;
+  worksheet.getCell('A2').font = { name: 'Calibri', size: 12, bold: true, color: { argb: '006633' } };
+  worksheet.getCell('A2').alignment = { horizontal: 'center', vertical: 'middle' };
+  worksheet.getRow(2).height = 25;
+
   // Logos
-  if (logoIzquierdo) {
-    const imgId = wb.addImage({ base64: logoIzquierdo, extension: 'png' });
-    addImage(ws, imgId, 0, 0, 1, 3);
-  }
-  if (logoDerecho) {
-    const imgId = wb.addImage({ base64: logoDerecho, extension: 'png' });
-    addImage(ws, imgId, 5, 0, 6, 3);
+  if (logoSena) {
+    const logoSenaId = workbook.addImage({ base64: logoSena, extension: 'png' });
+    worksheet.mergeCells('A3:A4');
+    worksheet.addImage(logoSenaId, { tl: { col: 0, row: 2 }, ext: { width: 50, height: 50 } });
   }
 
-  // Títulos centrados
-  safeMergeCells('A1:G1');
-  ws.getRow(1).height = 25;
-  ws.getCell('A1').value = 'CENTRO DE GESTIÓN Y DESARROLLO SOSTENIBLE SURCOLOMBIANO';
-  setCellStyle(ws.getCell('A1'), { bold: true, size: 14, name: 'Calibri', color: { argb: '004D3C' } }, { horizontal: 'center', vertical: 'middle' });
+  if (logoKaizen) {
+    const logoKaizenId = workbook.addImage({ base64: logoKaizen, extension: 'png' });
+    worksheet.mergeCells('F3:F4');
+    worksheet.addImage(logoKaizenId, { tl: { col: 5, row: 2 }, ext: { width: 50, height: 50 } });
+  }
 
-  safeMergeCells('A2:G2');
-  ws.getRow(2).height = 20;
-  ws.getCell('A2').value = `ÁREA PAE - ${titulo}`;
-  setCellStyle(ws.getCell('A2'), { bold: true, size: 12, name: 'Calibri', color: { argb: '006633' } }, { horizontal: 'center', vertical: 'middle' });
+  // Date
+  worksheet.mergeCells('A6:F6');
+  worksheet.getCell('A6').value = `Fecha de generación: ${new Date().toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })}`;
+  worksheet.getCell('A6').font = { name: 'Calibri', size: 10, color: { argb: '666666' } };
+  worksheet.getCell('A6').alignment = { horizontal: 'right', vertical: 'middle' };
+  worksheet.getRow(6).height = 20;
 
-  // Fecha
-  safeMergeCells('A4:G4');
-  ws.getCell('A4').value = `📅 Fecha de generación: ${new Date().toLocaleDateString('es-CO', { dateStyle: 'medium' })}`;
-  setCellStyle(ws.getCell('A4'), { size: 10, color: { argb: '666666' } }, { horizontal: 'center', vertical: 'middle' });
+  // Spacer
+  worksheet.addRow([]);
+  worksheet.getRow(7).height = 10;
 
-  ws.addRow([]);
+  // Columns
+  worksheet.columns = columns;
 
-  // Tabla
-  const header = ws.addRow(columnas);
-  header.eachCell(cell => {
-    setCellStyle(
-      cell,
-      { bold: true, size: 11, color: { argb: 'FFFFFF' }, name: 'Calibri' },
-      { horizontal: 'center', vertical: 'middle', wrapText: true },
-      { type: 'pattern', pattern: 'solid', fgColor: { argb: '007864' } },
-      {
-        top: { style: 'thin' },
-        left: { style: 'thin' },
-        bottom: { style: 'thin' },
-        right: { style: 'thin' }
-      }
-    );
+  // Header Row
+  const headerRow = worksheet.getRow(8);
+  headerRow.values = columns.map(col => col.header);
+  headerRow.eachCell(cell => {
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '007864' } };
+    cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFF' } };
+    cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+    cell.border = {
+      top: { style: 'thin', color: { argb: '004D3C' } },
+      left: { style: 'thin', color: { argb: '004D3C' } },
+      bottom: { style: 'thin', color: { argb: '004D3C' } },
+      right: { style: 'thin', color: { argb: '004D3C' } },
+    };
   });
+  headerRow.height = 25;
 
-  datos.forEach((row, idx) => {
-    const dataRow = ws.addRow(row);
+  // Data Rows
+  data.forEach((rowData, index) => {
+    const dataRow = worksheet.addRow(rowData);
     dataRow.eachCell(cell => {
-      setCellStyle(
-        cell,
-        { size: 10, name: 'Calibri' },
-        { horizontal: 'center', vertical: 'middle', wrapText: true },
-        { type: 'pattern', pattern: 'solid', fgColor: { argb: idx % 2 === 0 ? 'F9F9F9' : 'FFFFFF' } },
-        {
-          top: { style: 'thin', color: { argb: 'CCCCCC' } },
-          left: { style: 'thin', color: { argb: 'CCCCCC' } },
-          bottom: { style: 'thin', color: { argb: 'CCCCCC' } },
-          right: { style: 'thin', color: { argb: 'CCCCCC' } }
-        }
-      );
+      cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+      cell.font = { name: 'Calibri', size: 10 };
+      cell.border = {
+        top: { style: 'thin', color: { argb: '004D3C' } },
+        left: { style: 'thin', color: { argb: '004D3C' } },
+        bottom: { style: 'thin', color: { argb: '004D3C' } },
+        right: { style: 'thin', color: { argb: '004D3C' } },
+      };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: index % 2 === 0 ? 'F7F7F7' : 'FFFFFF' } };
     });
+    dataRow.height = 20;
   });
 
-  // Espacio antes del gráfico
-  ws.addRow([]);
-  ws.addRow([]);
-
-  // Gráfico
-  if (graficoRef?.current) {
+  // Chart
+  if (chartRef?.current) {
     try {
-      const canvas = await html2canvas(graficoRef.current, {
-        scale: 3,
-        logging: false,
-        useCORS: true,
-        width: graficoRef.current.offsetWidth,
-        height: graficoRef.current.offsetHeight
-      });
-      const imgData = canvas.toDataURL('image/png', 1.0);
-      const imgId = wb.addImage({ base64: imgData, extension: 'png' });
-
-      const startRow = ws.lastRow?.number! + 2;
-      const chartCols = 5;
-      const startCol = 1;
-      const chartHeight = Math.ceil((graficoRef.current.offsetHeight / graficoRef.current.offsetWidth) * chartCols * 6);
-
-      addImage(ws, imgId, startCol, startRow, startCol + chartCols, startRow + chartHeight);
-      for (let i = 0; i <= chartHeight; i++) {
-        ws.getRow(startRow + i).height = 15;
-      }
-    } catch (err) {
-      console.error('Error al capturar el gráfico:', err);
-      const fallback = ws.addRow(['⚠ No se pudo incluir el gráfico']);
-      safeMergeCells(`A${fallback.number}:G${fallback.number}`);
-      setCellStyle(fallback.getCell(1), { italic: true, color: { argb: 'FF0000' }, size: 10 }, { horizontal: 'center' });
+      const canvas = await html2canvas(chartRef.current, { scale: 3, useCORS: true, logging: false });
+      const imageData = canvas.toDataURL('image/png', 1.0);
+      const imageId = workbook.addImage({ base64: imageData, extension: 'png' });
+      const chartStartRow = data.length + 9;
+      worksheet.addImage(imageId, { tl: { col: 0, row: chartStartRow }, ext: { width: 500, height: 300 } });
+    } catch (error) {
+      console.error('Error al capturar el gráfico:', error);
+      worksheet.addRow({ cultivo: 'Nota: No se pudo incluir el gráfico comparativo' });
     }
   }
 
-  // Pie de página
-  const footer = ws.addRow([]);
-  safeMergeCells(`A${footer.number}:G${footer.number}`);
-  ws.getCell(`A${footer.number}`).value = piePagina;
-  setCellStyle(ws.getCell(`A${footer.number}`), { italic: true, size: 9, color: { argb: '666666' } }, { horizontal: 'center' });
+  // Footer (fixed at row 27)
+  const footerRow = 27;
+  worksheet.mergeCells(`A${footerRow}:F${footerRow}`);
+  worksheet.getCell(`A${footerRow}`).value = 'Generado por Agrosoft - Centro de Gestión y Desarrollo Sostenible Surcolombiano';
+  worksheet.getCell(`A${footerRow}`).font = { name: 'Calibri', size: 9, color: { argb: '666666' } };
+  worksheet.getCell(`A${footerRow}`).alignment = { horizontal: 'center', vertical: 'middle' };
+  worksheet.getRow(footerRow).height = 20;
 
-  autoAdjustColumns(ws);
-  await downloadExcel(wb, nombreArchivo);
+  // Generate and download
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  window.URL.revokeObjectURL(url);
 };

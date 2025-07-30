@@ -2,7 +2,6 @@ import { useRef, useEffect, useState } from 'react';
 import { useQueries } from '@tanstack/react-query';
 import axios from 'axios';
 import { ChartBar } from '@/components/globales/Charts';
-import ExcelJS from 'exceljs';
 import html2canvas from 'html2canvas';
 import { Download, X, Search } from 'lucide-react';
 import Button from '@/components/globales/Button';
@@ -11,6 +10,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { cargarImagenComoBase64 } from './utils';
 import { TrazabilidadCultivoReporte } from '@/components/finanzas/trazabilidad/Types';
+import { DescargarExcel } from '@/components/globales/DescargarExcel';
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -101,7 +101,7 @@ const ReporteMultiplesCultivos = ({ plantaciones, plantacionSeleccionada, format
     if (!trazabilidadData.length) {
       return { labels: [], datasets: [] };
     }
-    const datosGrafico = {
+    return {
       labels: trazabilidadData.map(t => t.cultivo || 'Sin cultivo'),
       datasets: [
         {
@@ -138,36 +138,36 @@ const ReporteMultiplesCultivos = ({ plantaciones, plantacionSeleccionada, format
         },
       ],
     };
-    return datosGrafico;
   };
 
   const generarReporte = async () => {
     if (!trazabilidadData.length || !chartRendered) return;
 
     const columnas = [
-      'Cultivo',
-      'Costo por Unidad (COP)',
-      'Productividad (kg/hora)',
-      'Stock Disponible (kg)',
-      'Ingresos Totales (COP)',
-      'Costos Totales (COP)',
+      { header: 'Cultivo', key: 'cultivo', width: 25 },
+      { header: 'Costo por Unidad (COP)', key: 'costo_unidad', width: 20 },
+      { header: 'Productividad (kg/hora)', key: 'productividad', width: 20 },
+      { header: 'Stock Disponible (kg)', key: 'stock', width: 20 },
+      { header: 'Ingresos Totales (COP)', key: 'ingresos', width: 20 },
+      { header: 'Costos Totales (COP)', key: 'costos', width: 20 },
     ];
-    const datos = trazabilidadData.map(t => [
-      t.cultivo || 'Sin cultivo',
-      new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(
+
+    const datos = trazabilidadData.map(t => ({
+      cultivo: t.cultivo || 'Sin cultivo',
+      costo_unidad: new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(
         t.precio_minimo_venta_por_unidad_acumulado || 0
       ),
-      (t.total_horas > 0 ? (t.total_cantidad_producida_base_acumulado / t.total_horas) : 0).toFixed(2),
-      (t.stock_disponible_total || 0).toFixed(2),
-      new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(
+      productividad: (t.total_horas > 0 ? (t.total_cantidad_producida_base_acumulado / t.total_horas) : 0).toFixed(2),
+      stock: (t.stock_disponible_total || 0).toFixed(2),
+      ingresos: new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(
         t.ingresos_ventas_acumulado || 0
       ),
-      new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(
+      costos: new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(
         (t.costo_mano_obra_acumulado || 0) +
         (t.egresos_insumos_acumulado || 0) +
         (t.depreciacion_herramientas_acumulada || 0)
       ),
-    ]);
+    }));
 
     if (formato === 'pdf') {
       const doc = new jsPDF();
@@ -223,8 +223,8 @@ const ReporteMultiplesCultivos = ({ plantaciones, plantacionSeleccionada, format
 
       autoTable(doc, {
         startY: infoY + 10,
-        head: [columnas],
-        body: datos,
+        head: [columnas.map(col => col.header)],
+        body: datos.map(d => Object.values(d)),
         theme: 'striped',
         styles: { fontSize: 9, cellPadding: 3, halign: 'center', lineWidth: 0.1, font: 'helvetica' },
         headStyles: { fillColor: [0, 120, 100], textColor: 255, fontStyle: 'bold', fontSize: 10 },
@@ -241,8 +241,8 @@ const ReporteMultiplesCultivos = ({ plantaciones, plantacionSeleccionada, format
 
       if (chartRef.current) {
         try {
-          const canvas = await html2canvas(chartRef.current, { scale: 2, logging: false, useCORS: true });
-          const imgData = canvas.toDataURL('image/png');
+          const canvas = await html2canvas(chartRef.current, { scale: 3, logging: false, useCORS: true });
+          const imgData = canvas.toDataURL('image/png', 1.0);
           doc.addImage(imgData, 'PNG', 15, (doc as any).lastAutoTable.finalY + 10, 180, 100);
         } catch (error) {
           console.error('Error al capturar el gráfico:', error);
@@ -255,130 +255,29 @@ const ReporteMultiplesCultivos = ({ plantaciones, plantacionSeleccionada, format
       doc.text('Generado por Agrosoft - Centro de Gestión y Desarrollo Sostenible Surcolombiano', leftMargin, doc.internal.pageSize.getHeight() - 10);
       doc.save('reporte_eficiencia_cultivos.pdf');
     } else {
-      const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('Eficiencia Cultivos');
-
-      const logoSena = await cargarImagenComoBase64('/logoSena.png');
-      const logoKaizen = await cargarImagenComoBase64('/agrosoft.png');
-
-      worksheet.mergeCells('A1:F1');
-      worksheet.getCell('A1').value = 'CENTRO DE GESTIÓN Y DESARROLLO SOSTENIBLE SURCOLOMBIANO';
-      worksheet.getCell('A1').font = { name: 'Calibri', size: 14, bold: true, color: { argb: '004D3C' } };
-      worksheet.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' };
-      worksheet.getCell('A1').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F5F5F5' } };
-      worksheet.getRow(1).height = 30;
-
-      worksheet.mergeCells('A2:F2');
-      worksheet.getCell('A2').value = 'ÁREA PAE - Reporte de Eficiencia Operativa y Rentabilidad';
-      worksheet.getCell('A2').font = { name: 'Calibri', size: 12, bold: true, color: { argb: '006633' } };
-      worksheet.getCell('A2').alignment = { horizontal: 'center', vertical: 'middle' };
-      worksheet.getRow(2).height = 25;
-
-      const logoSenaId = workbook.addImage({ base64: logoSena, extension: 'png' });
-      worksheet.mergeCells('A3:A4');
-      worksheet.addImage(logoSenaId, { tl: { col: 0, row: 2 }, ext: { width: 50, height: 50 } });
-
-      const logoKaizenId = workbook.addImage({ base64: logoKaizen, extension: 'png' });
-      worksheet.mergeCells('F3:F4');
-      worksheet.addImage(logoKaizenId, { tl: { col: 5, row: 2 }, ext: { width: 50, height: 50 } });
-
-      worksheet.mergeCells('A5:F5');
-      worksheet.getCell('A5').value = `Fecha de generación: ${new Date().toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })}`;
-      worksheet.getCell('A5').font = { name: 'Calibri', size: 10, color: { argb: '666666' } };
-      worksheet.getCell('A5').alignment = { horizontal: 'right', vertical: 'middle' };
-      worksheet.getRow(5).height = 20;
-
-      worksheet.addRow([]);
-      worksheet.getRow(6).height = 10;
-
-      worksheet.columns = [
-        { header: 'Cultivo', key: 'cultivo', width: 25 },
-        { header: 'Costo por Unidad (COP)', key: 'costo_unidad', width: 20 },
-        { header: 'Productividad (kg/hora)', key: 'productividad', width: 20 },
-        { header: 'Stock Disponible (kg)', key: 'stock', width: 20 },
-        { header: 'Ingresos Totales (COP)', key: 'ingresos', width: 20 },
-        { header: 'Costos Totales (COP)', key: 'costos', width: 20 },
-      ];
-      const headerRow = worksheet.getRow(7);
-      headerRow.values = columnas;
-      headerRow.eachCell(cell => {
-        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '007864' } };
-        cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFF' } };
-        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-        cell.border = {
-          top: { style: 'thin', color: { argb: '004D3C' } },
-          left: { style: 'thin', color: { argb: '004D3C' } },
-          bottom: { style: 'thin', color: { argb: '004D3C' } },
-          right: { style: 'thin', color: { argb: '004D3C' } },
-        };
+      await DescargarExcel({
+        data: datos,
+        columns: columnas,
+        title: 'CENTRO DE GESTIÓN Y DESARROLLO SOSTENIBLE SURCOLOMBIANO',
+        subtitle: 'ÁREA PAE - Reporte de Eficiencia Operativa y Rentabilidad',
+        logoSenaPath: '/logoSena.png',
+        logoKaizenPath: '/agrosoft.png',
+        chartRef,
+        filename: 'reporte_eficiencia_cultivos.xlsx',
       });
-      headerRow.height = 25;
-
-      datos.forEach((d, index) => {
-        const dataRow = worksheet.addRow({
-          cultivo: d[0],
-          costo_unidad: d[1],
-          productividad: d[2],
-          stock: d[3],
-          ingresos: d[4],
-          costos: d[5],
-        });
-        dataRow.eachCell(cell => {
-          cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-          cell.font = { name: 'Calibri', size: 10 };
-          cell.border = {
-            top: { style: 'thin', color: { argb: '004D3C' } },
-            left: { style: 'thin', color: { argb: '004D3C' } },
-            bottom: { style: 'thin', color: { argb: '004D3C' } },
-            right: { style: 'thin', color: { argb: '004D3C' } },
-          };
-          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: index % 2 === 0 ? 'F7F7F7' : 'FFFFFF' } };
-        });
-        dataRow.height = 20;
-      });
-
-      if (chartRef.current) {
-        try {
-          const canvas = await html2canvas(chartRef.current, { scale: 2 });
-          const imageData = canvas.toDataURL('image/png');
-          const imageId = workbook.addImage({ base64: imageData, extension: 'png' });
-          worksheet.addImage(imageId, { tl: { col: 0, row: datos.length + 8 }, ext: { width: 500, height: 300 } });
-        } catch (error) {
-          console.error('Error al capturar el gráfico:', error);
-          worksheet.addRow({ cultivo: 'Nota: No se pudo incluir el gráfico comparativo', costo_unidad: '', productividad: '', stock: '', ingresos: '', costos: '' });
-        }
-      }
-
-      const footerRow = datos.length + (chartRef.current ? 18 : 9);
-      worksheet.mergeCells(`A${footerRow}:F${footerRow}`);
-      worksheet.getCell(`A${footerRow}`).value = 'Generado por Agrosoft - Centro de Gestión y Desarrollo Sostenible Surcolombiano';
-      worksheet.getCell(`A${footerRow}`).font = { name: 'Calibri', size: 9, color: { argb: '666666' } };
-      worksheet.getCell(`A${footerRow}`).alignment = { horizontal: 'center', vertical: 'middle' };
-      worksheet.getRow(footerRow).height = 20;
-
-      const buffer = await workbook.xlsx.writeBuffer();
-      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'reporte_eficiencia_cultivos.xlsx';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
     }
   };
 
   return (
-    <div className="space-y-6 p-6 bg-white rounded-xl shadow-lg max-w-4xl mx-auto">
-      <h3 className="text-2xl font-bold text-gray-800">Reporte de Eficiencia Operativa y Rentabilidad</h3>
+    <div className="space-y-6 p-8 bg-white rounded-2xl shadow-xl max-w-5xl mx-auto">
+      <h3 className="text-3xl font-semibold text-gray-900 tracking-tight">Reporte de Eficiencia Operativa y Rentabilidad</h3>
 
       <div className="flex items-center gap-4">
         <Button
           text="Seleccionar Cultivos"
           variant="green"
           onClick={() => setModalOpen(true)}
-          className="flex items-center gap-2 hover:bg-green-600 transition-colors"
+          className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
         />
         <div className="flex flex-wrap gap-2">
           {seleccionados.length > 0 && plantaciones
@@ -386,12 +285,12 @@ const ReporteMultiplesCultivos = ({ plantaciones, plantacionSeleccionada, format
             .map(plantacion => (
               <div
                 key={plantacion.id}
-                className="flex items-center bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium"
+                className="flex items-center bg-green-50 text-green-700 px-3 py-1 rounded-full text-sm font-medium shadow-sm"
               >
                 {plantacion.fk_id_cultivo.nombre_cultivo}
                 <X
                   size={16}
-                  className="ml-2 cursor-pointer hover:text-red-600"
+                  className="ml-2 cursor-pointer hover:text-red-500 transition-colors"
                   onClick={() => setSeleccionados(prev => prev.filter(id => id !== plantacion.id))}
                 />
               </div>
@@ -400,33 +299,33 @@ const ReporteMultiplesCultivos = ({ plantaciones, plantacionSeleccionada, format
       </div>
 
       {modalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-lg shadow-2xl">
             <div className="flex justify-between items-center mb-4">
-              <h4 className="text-lg font-semibold text-gray-800">Seleccionar Cultivos</h4>
+              <h4 className="text-xl font-semibold text-gray-900">Seleccionar Cultivos</h4>
               <X
-                size={20}
-                className="cursor-pointer text-gray-500 hover:text-red-500"
+                size={24}
+                className="cursor-pointer text-gray-500 hover:text-red-500 transition-colors"
                 onClick={() => setModalOpen(false)}
               />
             </div>
             <div className="relative mb-4">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <input
                 type="text"
                 placeholder="Buscar cultivos..."
-                className="w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
               />
             </div>
-            <div className="max-h-64 overflow-y-auto">
+            <div className="max-h-80 overflow-y-auto space-y-2">
               {plantacionesFiltradas.length > 0 ? (
                 plantacionesFiltradas.map(plantacion => (
                   <div
                     key={plantacion.id}
-                    className={`p-3 rounded-lg cursor-pointer flex items-center justify-between transition-colors ${
-                      seleccionados.includes(plantacion.id) ? 'bg-green-50' : 'hover:bg-gray-100'
+                    className={`p-3 rounded-lg cursor-pointer flex items-center justify-between transition-colors duration-150 ${
+                      seleccionados.includes(plantacion.id) ? 'bg-green-50' : 'hover:bg-gray-50'
                     }`}
                     onClick={() => {
                       setSeleccionados(prev =>
@@ -438,7 +337,7 @@ const ReporteMultiplesCultivos = ({ plantaciones, plantacionSeleccionada, format
                   >
                     <div>
                       <p className="font-medium text-gray-800">{plantacion.fk_id_cultivo.nombre_cultivo}</p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-sm text-gray-500">
                         Plantado: {new Date(plantacion.fecha_plantacion).toLocaleDateString('es-CO')}
                       </p>
                     </div>
@@ -446,28 +345,28 @@ const ReporteMultiplesCultivos = ({ plantaciones, plantacionSeleccionada, format
                       type="checkbox"
                       checked={seleccionados.includes(plantacion.id)}
                       onChange={() => {}}
-                      className="h-5 w-5 text-green-500 rounded focus:ring-green-500"
+                      className="h-5 w-5 text-green-500 rounded focus:ring-green-500 border-gray-300"
                     />
                   </div>
                 ))
               ) : (
-                <p className="text-center text-gray-500 py-4">
+                <p className="text-center text-gray-500 py-6">
                   {busqueda ? 'No se encontraron resultados' : 'No hay cultivos disponibles'}
                 </p>
               )}
             </div>
-            <div className="mt-4 flex justify-end gap-2">
+            <div className="mt-6 flex justify-end gap-3">
               <Button
                 text="Limpiar"
                 variant="green"
                 onClick={() => setSeleccionados([])}
-                className="hover:bg-gray-200"
+                className="bg-gray-100 text-gray-700 hover:bg-gray-200 font-medium py-2 px-4 rounded-lg transition-colors"
               />
               <Button
                 text="Confirmar"
                 variant="success"
                 onClick={() => setModalOpen(false)}
-                className="hover:bg-green-600"
+                className="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors"
               />
             </div>
           </div>
@@ -475,45 +374,47 @@ const ReporteMultiplesCultivos = ({ plantaciones, plantacionSeleccionada, format
       )}
 
       {seleccionados.length > 0 && !isLoading && !isError && (
-        <div ref={chartRef} className="mt-6 bg-gray-50 p-4 rounded-lg">
+        <div ref={chartRef} className="mt-8 bg-gray-50 p-6 rounded-xl shadow-sm">
           <ChartBar
             data={generarDatosGraficoMultiples()}
             options={{
               responsive: true,
               plugins: {
-                title: { display: true, text: 'Eficiencia y Costos por Cultivo', font: { size: 16 } },
-                legend: { position: 'top' },
+                title: { display: true, text: 'Eficiencia y Costos por Cultivo', font: { size: 18, family: 'Helvetica', weight: 'bold' } },
+                legend: { position: 'top', labels: { font: { size: 12, family: 'Helvetica' } } },
               },
               scales: {
-                y: { beginAtZero: true, stacked: true },
+                y: { beginAtZero: true, stacked: true, grid: { color: '#e5e7eb' } },
                 y1: { position: 'right', beginAtZero: true, grid: { display: false } },
               },
             }}
-            height={300}
+            height={350}
           />
         </div>
       )}
 
-      {isLoading && <p className="text-center py-4 text-gray-500">Cargando datos de los cultivos seleccionados...</p>}
+      {isLoading && (
+        <p className="text-center py-6 text-gray-600 font-medium">Cargando datos de los cultivos seleccionados...</p>
+      )}
       {isError && (
-        <p className="text-center py-4 text-red-500">
-          Error al cargar los datos. Verifica que la API esté disponible y devolviendo datos JSON válidos.
+        <p className="text-center py-6 text-red-600 font-medium">
+          Error al cargar los datos. Verifica la conexión con la API.
         </p>
       )}
       {!isLoading && !isError && seleccionados.length === 0 && (
-        <p className="text-center py-4 text-gray-500">Seleccione al menos un cultivo para generar el reporte</p>
+        <p className="text-center py-6 text-gray-600 font-medium">Seleccione al menos un cultivo para generar el reporte</p>
       )}
       {!isLoading && !isError && seleccionados.length > 0 && trazabilidadData.length === 0 && (
-        <p className="text-center py-4 text-yellow-600">
+        <p className="text-center py-6 text-yellow-600 font-medium">
           No se encontraron datos de trazabilidad para los cultivos seleccionados.
         </p>
       )}
 
       <Button
         text={isLoading ? 'Generando reporte...' : 'Descargar Reporte'}
-        variant="success"
+        variant="green"
         onClick={generarReporte}
-        className="w-full flex justify-center items-center gap-2 hover:bg-green-600 transition-colors"
+        className="w-full flex justify-center items-center gap-2 hover:bg-green-600 transition-colors py-3"
         icon={Download}
         disabled={isLoading || seleccionados.length === 0 || trazabilidadData.length === 0 || !chartRendered}
       />

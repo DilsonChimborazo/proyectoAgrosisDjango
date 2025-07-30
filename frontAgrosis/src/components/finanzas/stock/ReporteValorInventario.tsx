@@ -2,10 +2,11 @@ import { useRef, useEffect, useState } from 'react';
 import { Produccion } from '@/hooks/finanzas/stock/useStock';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import ExcelJS from 'exceljs';
 import html2canvas from 'html2canvas';
 import { ChartBar } from '@/components/globales/Charts';
+import { DescargarExcel } from '@/components/globales/DescargarExcel';
 import { cargarImagenComoBase64 } from '../trazabilidad/utils';
+import { format } from 'date-fns';
 
 interface ReporteValorInventarioProps {
   producciones: Produccion[] | undefined;
@@ -34,6 +35,7 @@ const ReporteValorInventario = ({ producciones, formato, onGenerate }: ReporteVa
     const datosValidos = producciones?.filter(p => {
       const isValid = p.stock_disponible != null && !isNaN(parseStockDisponible(p.stock_disponible));
       if (!isValid) {
+        console.warn('Producción inválida:', p);
       }
       return isValid;
     }) || [];
@@ -62,20 +64,24 @@ const ReporteValorInventario = ({ producciones, formato, onGenerate }: ReporteVa
     // Convertir a lista para la tabla
     const datos = Object.values(datosAgrupados);
 
-
     // Generar datos para el gráfico
     const labels = datos.map(d => `${d.cultivo} (${d.unidad})`);
     const stocks = datos.map(d => d.stock);
     const valores = datos.map(d => d.valor);
 
     return {
-      columnas: ['Cultivo', 'Unidad', 'Stock Disponible', 'Valor Estimado (COP)'],
-      datos: datos.map(d => [
-        d.cultivo,
-        d.unidad,
-        d.stock.toFixed(2),
-        new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(d.valor),
-      ]),
+      columnas: [
+        { header: 'Cultivo', key: 'cultivo', width: 25 },
+        { header: 'Unidad', key: 'unidad', width: 15 },
+        { header: 'Stock Disponible', key: 'stock', width: 20 },
+        { header: 'Valor Estimado (COP)', key: 'valor', width: 20 },
+      ],
+      datos: datos.map(d => ({
+        cultivo: d.cultivo,
+        unidad: d.unidad,
+        stock: d.stock.toFixed(2),
+        valor: new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(d.valor),
+      })),
       grafico: {
         labels,
         datasets: [
@@ -83,15 +89,15 @@ const ReporteValorInventario = ({ producciones, formato, onGenerate }: ReporteVa
             label: 'Stock Disponible',
             data: stocks,
             backgroundColor: '#4CAF50',
-            yAxisID: 'y', // Asignar al eje Y izquierdo
-            barPercentage: 0.4, // Reducir el ancho de las barras
-            categoryPercentage: 0.45, // Espacio entre categorías
+            yAxisID: 'y',
+            barPercentage: 0.4,
+            categoryPercentage: 0.45,
           },
           {
             label: 'Valor Estimado (COP)',
             data: valores,
             backgroundColor: '#2196F3',
-            yAxisID: 'y1', // Asignar al eje Y derecho
+            yAxisID: 'y1',
             barPercentage: 0.4,
             categoryPercentage: 0.45,
           },
@@ -115,7 +121,7 @@ const ReporteValorInventario = ({ producciones, formato, onGenerate }: ReporteVa
   }, [producciones]);
 
   const generarReporte = async () => {
-    if (!chartRendered) return;
+    if (!chartRendered || !producciones?.length) return;
     const { columnas, datos, titulo } = generarDatos();
 
     if (formato === 'pdf') {
@@ -168,25 +174,26 @@ const ReporteValorInventario = ({ producciones, formato, onGenerate }: ReporteVa
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(100, 100, 100);
-      doc.text(`Fecha: ${new Date().toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })}`, pageWidth - rightMargin, infoY, { align: 'right' });
+      doc.text(`Fecha de generación: ${new Date().toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })}`, pageWidth - rightMargin, infoY, { align: 'right' });
 
       autoTable(doc, {
         startY: infoY + 10,
-        head: [columnas],
-        body: datos,
+        head: [columnas.map(col => col.header)],
+        body: datos.map(d => Object.values(d)),
         theme: 'striped',
         styles: { fontSize: 9, cellPadding: 3, halign: 'center', lineWidth: 0.1, font: 'helvetica' },
         headStyles: { fillColor: [0, 120, 100], textColor: 255, fontStyle: 'bold', fontSize: 10 },
         alternateRowStyles: { fillColor: [245, 245, 245] },
-        columnStyles: columnas.reduce((acc, _, index) => ({ ...acc, [index]: { cellWidth: 180 / columnas.length } }), {}),
+        columnStyles: columnas.reduce((acc, col, index) => ({ ...acc, [index]: { cellWidth: col.width } }), {}),
       });
 
       if (chartRef.current) {
         try {
-          const canvas = await html2canvas(chartRef.current, { scale: 2, logging: false, useCORS: true });
-          const imgData = canvas.toDataURL('image/png');
+          const canvas = await html2canvas(chartRef.current, { scale: 3, logging: false, useCORS: true });
+          const imgData = canvas.toDataURL('image/png', 1.0);
           doc.addImage(imgData, 'PNG', 15, (doc as any).lastAutoTable.finalY + 10, 180, 100);
         } catch (error) {
+          console.error('Error al agregar imagen al PDF:', error);
           doc.text('No se pudo incluir el gráfico', 15, (doc as any).lastAutoTable.finalY + 10);
         }
       }
@@ -196,106 +203,17 @@ const ReporteValorInventario = ({ producciones, formato, onGenerate }: ReporteVa
       doc.text('Generado por Agrosoft - Centro de Gestión y Desarrollo Sostenible Surcolombiano', leftMargin, doc.internal.pageSize.getHeight() - 10);
       doc.save('valor-inventario.pdf');
     } else {
-      const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('Reporte Valor Inventario');
-
-      const logoSena = await cargarImagenComoBase64('/logoSena.png');
-      const logoKaizen = await cargarImagenComoBase64('/agrosoft.png');
-
-      worksheet.mergeCells('A1:D1');
-      worksheet.getCell('A1').value = 'CENTRO DE GESTIÓN Y DESARROLLO SOSTENIBLE SURCOLOMBIANO';
-      worksheet.getCell('A1').font = { name: 'Calibri', size: 14, bold: true, color: { argb: '004D3C' } };
-      worksheet.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' };
-      worksheet.getCell('A1').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F5F5F5' } };
-      worksheet.getRow(1).height = 30;
-
-      worksheet.mergeCells('A2:D2');
-      worksheet.getCell('A2').value = `ÁREA PAE - ${titulo}`;
-      worksheet.getCell('A2').font = { name: 'Calibri', size: 12, bold: true, color: { argb: '006633' } };
-      worksheet.getCell('A2').alignment = { horizontal: 'center', vertical: 'middle' };
-      worksheet.getRow(2).height = 25;
-
-      const logoSenaId = workbook.addImage({ base64: logoSena, extension: 'png' });
-      worksheet.mergeCells('A3:A4');
-      worksheet.addImage(logoSenaId, { tl: { col: 0, row: 2 }, ext: { width: 50, height: 50 } });
-
-      const logoKaizenId = workbook.addImage({ base64: logoKaizen, extension: 'png' });
-      worksheet.mergeCells('D3:D4');
-      worksheet.addImage(logoKaizenId, { tl: { col: 3, row: 2 }, ext: { width: 50, height: 50 } });
-
-      worksheet.mergeCells('A5:D5');
-      worksheet.getCell('A5').value = `Fecha de generación: ${new Date().toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })}`;
-      worksheet.getCell('A5').font = { name: 'Calibri', size: 10, color: { argb: '666666' } };
-      worksheet.getCell('A5').alignment = { horizontal: 'right', vertical: 'middle' };
-      worksheet.getRow(5).height = 20;
-
-      worksheet.addRow([]);
-      worksheet.getRow(6).height = 10;
-
-      worksheet.columns = columnas.map((header, index) => ({
-        header,
-        key: `col${index}`,
-        width: 25,
-      }));
-      const headerRow = worksheet.getRow(7);
-      headerRow.values = columnas;
-      headerRow.eachCell(cell => {
-        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '007864' } };
-        cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFF' } };
-        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-        cell.border = {
-          top: { style: 'thin', color: { argb: '004D3C' } },
-          left: { style: 'thin', color: { argb: '004D3C' } },
-          bottom: { style: 'thin', color: { argb: '004D3C' } },
-          right: { style: 'thin', color: { argb: '004D3C' } },
-        };
+      // Usar DescargarExcel para generar el reporte Excel
+      await DescargarExcel({
+        data: datos,
+        columns: columnas,
+        title: 'CENTRO DE GESTIÓN Y DESARROLLO SOSTENIBLE SURCOLOMBIANO',
+        subtitle: `ÁREA PAE - ${titulo}`,
+        logoSenaPath: '/logoSena.png',
+        logoKaizenPath: '/agrosoft.png',
+        chartRef,
+        filename: `valor-inventario_${format(new Date(), 'yyyyMMdd_HHmm')}.xlsx`,
       });
-      headerRow.height = 25;
-
-      datos.forEach((d, index) => {
-        const dataRow = worksheet.addRow(d.reduce((acc, val, i) => ({ ...acc, [`col${i}`]: val }), {}));
-        dataRow.eachCell(cell => {
-          cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-          cell.font = { name: 'Calibri', size: 10 };
-          cell.border = {
-            top: { style: 'thin', color: { argb: '004D3C' } },
-            left: { style: 'thin', color: { argb: '004D3C' } },
-            bottom: { style: 'thin', color: { argb: '004D3C' } },
-            right: { style: 'thin', color: { argb: '004D3C' } },
-          };
-          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: index % 2 === 0 ? 'F7F7F7' : 'FFFFFF' } };
-        });
-        dataRow.height = 20;
-      });
-
-      if (chartRef.current) {
-        try {
-          const canvas = await html2canvas(chartRef.current, { scale: 2 });
-          const imageData = canvas.toDataURL('image/png');
-          const imageId = workbook.addImage({ base64: imageData, extension: 'png' });
-          worksheet.addImage(imageId, { tl: { col: 0, row: datos.length + 8 }, ext: { width: 500, height: 300 } });
-        } catch (error) {
-          worksheet.addRow({ col0: 'Nota: No se pudo incluir el gráfico comparativo' });
-        }
-      }
-
-      const footerRow = datos.length + (chartRef.current ? 18 : 9);
-      worksheet.mergeCells(`A${footerRow}:D${footerRow}`);
-      worksheet.getCell(`A${footerRow}`).value = 'Generado por Agrosoft - Centro de Gestión y Desarrollo Sostenible Surcolombiano';
-      worksheet.getCell(`A${footerRow}`).font = { name: 'Calibri', size: 9, color: { argb: '666666' } };
-      worksheet.getCell(`A${footerRow}`).alignment = { horizontal: 'center', vertical: 'middle' };
-      worksheet.getRow(footerRow).height = 20;
-
-      const buffer = await workbook.xlsx.writeBuffer();
-      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'valor-inventario.xlsx';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
     }
     onGenerate();
   };
