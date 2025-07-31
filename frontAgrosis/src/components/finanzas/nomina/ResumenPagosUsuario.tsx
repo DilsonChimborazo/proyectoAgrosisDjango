@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React from 'react';
 import { usePagosPorUsuario } from '@/hooks/finanzas/nomina/useNomina';
 import { ChartBar } from '@/components/globales/Charts';
 
@@ -8,8 +8,6 @@ interface ResumenPagosUsuarioProps {
 
 const ResumenPagosUsuario: React.FC<ResumenPagosUsuarioProps> = ({ esModal = false }) => {
   const { data, isLoading, error } = usePagosPorUsuario();
-  const chartRef = useRef<HTMLDivElement>(null);
-  const [, setChartRendered] = useState(false);
 
   const parseNumber = (value: unknown): number => {
     if (value == null || (typeof value === 'string' && value.trim() === '')) return 0;
@@ -18,15 +16,34 @@ const ResumenPagosUsuario: React.FC<ResumenPagosUsuarioProps> = ({ esModal = fal
   };
 
   const generarDatos = () => {
-    const datosValidos = data?.filter(p => parseNumber(p.total_pagado) > 0) || [];
+    // Agrupar datos por usuario
+    const datosAgrupados = Array.from(
+      data?.reduce((acc, p) => {
+        const key = `${p.usuario_nombre} ${p.usuario_apellido}`;
+        const total = acc.get(key) || {
+          usuario_nombre: p.usuario_nombre,
+          usuario_apellido: p.usuario_apellido,
+          total_pagado: 0,
+          cantidad_actividades: 0,
+        };
+        total.total_pagado += parseNumber(p.total_pagado);
+        total.cantidad_actividades += parseNumber(p.cantidad_actividades);
+        return acc.set(key, total);
+      }, new Map<string, any>())?.values() || []
+    ).filter(p => p.total_pagado > 0);
 
     return {
+      datos: datosAgrupados.map(p => ({
+        usuario: `${p.usuario_nombre} ${p.usuario_apellido}`,
+        cantidad_actividades: p.cantidad_actividades.toString(),
+        total_pagado: new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(p.total_pagado),
+      })),
       grafico: {
-        labels: datosValidos.map(p => `${p.usuario_nombre} ${p.usuario_apellido}`),
+        labels: datosAgrupados.map(p => `${p.usuario_nombre} ${p.usuario_apellido}`),
         datasets: [
           {
             label: 'Total Pagado (COP)',
-            data: datosValidos.map(p => parseNumber(p.total_pagado)),
+            data: datosAgrupados.map(p => p.total_pagado),
             backgroundColor: '#4CAF50',
             yAxisID: 'y1',
             barPercentage: 0.4,
@@ -34,7 +51,7 @@ const ResumenPagosUsuario: React.FC<ResumenPagosUsuarioProps> = ({ esModal = fal
           },
           {
             label: 'Cantidad Actividades',
-            data: datosValidos.map(p => parseNumber(p.cantidad_actividades)),
+            data: datosAgrupados.map(p => p.cantidad_actividades),
             backgroundColor: '#2196F3',
             yAxisID: 'y',
             barPercentage: 0.4,
@@ -46,20 +63,7 @@ const ResumenPagosUsuario: React.FC<ResumenPagosUsuarioProps> = ({ esModal = fal
     };
   };
 
-  useEffect(() => {
-    if (chartRef.current && data?.length) {
-      const checkChart = setInterval(() => {
-        const canvas = chartRef.current?.querySelector('canvas');
-        if (canvas && canvas.width > 0 && canvas.height > 0) {
-          setChartRendered(true);
-          clearInterval(checkChart);
-        }
-      }, 100);
-      return () => clearInterval(checkChart);
-    }
-  }, [data]);
-
-  const { grafico, titulo } = generarDatos();
+  const { grafico, titulo, datos } = generarDatos();
 
   if (isLoading) return <div className="text-center py-8 text-gray-600">Cargando datos...</div>;
   if (error) return <div className="text-red-500 text-center py-8">Error: {error.message}</div>;
@@ -68,7 +72,7 @@ const ResumenPagosUsuario: React.FC<ResumenPagosUsuarioProps> = ({ esModal = fal
     <div className={`${esModal ? '' : 'bg-white p-6 rounded-lg shadow-md'}`}>
       {!esModal && <h2 className="text-xl font-semibold mb-4 text-gray-800">Pagos por Usuario</h2>}
 
-      <div ref={chartRef}>
+      <div>
         <ChartBar
           data={grafico}
           options={{
@@ -103,7 +107,7 @@ const ResumenPagosUsuario: React.FC<ResumenPagosUsuarioProps> = ({ esModal = fal
             <table className="min-w-full bg-white border border-gray-200">
               <thead>
                 <tr className="bg-gray-100">
-                  {['Usuario','Cantidad Actividades', 'Total Pagado'].map((header, index) => (
+                  {['Usuario', 'Cantidad Actividades', 'Total Pagado'].map((header, index) => (
                     <th key={index} className="px-4 py-2 text-left text-sm font-semibold text-gray-600">
                       {header}
                     </th>
@@ -111,13 +115,11 @@ const ResumenPagosUsuario: React.FC<ResumenPagosUsuarioProps> = ({ esModal = fal
                 </tr>
               </thead>
               <tbody>
-                {data?.map((pago, index) => (
+                {datos.map((pago, index) => (
                   <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                    <td className="px-4 py-2 text-sm text-gray-700">{pago.usuario_nombre} {pago.usuario_apellido}</td>
+                    <td className="px-4 py-2 text-sm text-gray-700">{pago.usuario}</td>
                     <td className="px-4 py-2 text-sm text-gray-700">{pago.cantidad_actividades}</td>
-                    <td className="px-4 py-2 text-sm text-gray-700">
-                      {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(pago.total_pagado)}
-                    </td>
+                    <td className="px-4 py-2 text-sm text-gray-700">{pago.total_pagado}</td>
                   </tr>
                 ))}
               </tbody>
