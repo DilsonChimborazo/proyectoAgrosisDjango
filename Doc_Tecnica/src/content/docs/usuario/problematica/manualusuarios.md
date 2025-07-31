@@ -229,3 +229,199 @@ Procesos:
 Visualizar en un mapa las plantaciones registradas con sus respectivos detalles.  
 
 ![register](/manualusuario/mapa.png)
+
+
+## 8.5	Cultivo:
+### Eras: 
+Acceso: Desde el menú principal, seleccione cultivo luego eras.
+Descripción: Permite a los usuarios registrar eras (previamente se debe registrar un lote).
+Procesos:
+Crear Eras llenar formulario con los datos necesarios.
+Actualizar los detalles de las eras registradas en el sistema.
+
+![register](/manualusuario/era1.png)
+![register](/manualusuario/era2.png)
+![register](/manualusuario/era3.png)
+
+
+### Lotes: 
+Acceso: Desde el menú principal, seleccione cultivo luego lotes.
+Descripción: Permite a los usuarios registrar lotes.
+Procesos:
+Crear lotes llenar formulario con los datos necesarios.
+Actualizar los detalles de los lotes registrados en el sistema.
+
+![register](/manualusuario/lote1.png)
+![register](/manualusuario/lote2.png)
+![register](/manualusuario/lote3.png)
+
+
+### Cultivos: 
+Acceso: Desde el menú principal, seleccione cultivo luego cultivos.
+Descripción: Permite a los usuarios registrar cultivos (previamente se debe registrar una especie).
+Procesos:
+Crear cultivos llenar formulario con los datos necesarios.
+Actualizar los detalles de los cultivos registrados en el sistema.
+
+![register](/manualusuario/cultivo1.png)
+![register](/manualusuario/cultivo2.png)
+![register](/manualusuario/cultivo3.png)
+
+
+### Especies: 
+Acceso: Desde el menú principal, seleccione cultivo luego especies.
+Descripción: Permite a los usuarios registrar especies (previamente se debe registrar un tipo de cultivo).
+Procesos:
+Crear especies, llenar formulario con los datos necesarios.
+Actualizar los detalles de las especies registradas en el sistema.
+
+![register](/manualusuario/especie1.png)
+![register](/manualusuario/especie2.png)
+![register](/manualusuario/especie3.png)
+
+
+### Residuos: 
+Acceso: Desde el menú principal, seleccione cultivo luego residuos.
+Descripción: Permite a los usuarios registrar residuos (previamente se debe registrar una un cultivo y un tipo de residuo).
+Procesos:
+Crear residuos, llenar formulario con los datos necesarios.
+Actualizar los detalles de los residuos registrados en el sistema.
+
+![register](/manualusuario/residuo1.png)
+![register](/manualusuario/residuo2.png)
+![register](/manualusuario/residuo3.png)
+
+### Plantación: 
+Acceso: Desde el menú principal, seleccione cultivo luego plantación.
+Descripción: Permite a los usuarios registrar plantaciones (previamente se debe registrar cultivos, eras y semilleros).
+Procesos:
+Crear plantaciones, llenar formulario con los datos necesarios.
+Actualizar los detalles de las plantaciones registradas en el sistema.
+
+![register](/manualusuario/plantacion1.png)
+![register](/manualusuario/plantacion2.png)
+![register](/manualusuario/plantacion3.png)
+
+### Semillero: 
+Acceso: Desde el menú principal, seleccione cultivo luego semillero.
+Descripción: Permite a los usuarios registrar semilleros.
+Procesos:
+Crear semilleros, llenar formulario con los datos necesarios.
+Actualizar los detalles de los semilleros registrados en el sistema.
+
+![register](/manualusuario/semillero1.png)
+![register](/manualusuario/semillero2.png)
+![register](/manualusuario/semillero3.png)
+
+
+### 8.6	Finanzas:
+### Stock: 
+Acceso: Desde el menú principal, seleccione finanzas luego stock.
+Descripción: Permite a los usuarios registrar las ventas y registrar las producciones de un cultivo (previamente de una venta se debe registrar una producción).
+Procesos:
+Crear ventas, llenar formulario con los datos necesarios (previamente debe registrarse una producción).
+Crear producción, llenar formulario con los datos necesarios.
+
+![register](/manualusuario/stock1.png)
+![register](/manualusuario/stock2.png)
+![register](/manualusuario/stock3.png)
+
+### Beneficio costo: 
+Acceso: Desde el menú principal, seleccione finanzas luego beneficio costo.
+Descripción: Permite a los usuarios visualizar el beneficio costo de una plantación especifica.
+Procesos:
+	Seleccionar la plantación.
+Visualizar todo el historial de beneficio costo de cada uno de las plantaciones registradas en el sistema.
+
+![register](/manualusuario/beneficioCosto.png)
+
+### Pagos: 
+Acceso: Desde el menú principal, seleccione finanzas luego pagos.
+Descripción: Permite a los usuarios registrar los pagos que van a tener cada uno de los roles dentro del sistema.
+Procesos:
+	Permite crear salario dependiendo el rol.
+Crear pagos, llenar formulario con los datos necesarios.
+Actualizar los detalles de los pagos registrados en el sistema.
+
+![register](/manualusuario/pago1.png)
+![register](/manualusuario/pago2.png)
+
+
+### 8.7	Plagas:
+### Control fitosanitario: 
+Acceso: Desde el menú principal, seleccione plagas luego control fitosanitario.
+Descripción: Permite a los usuarios registrar los controles fitosanitarios que se le deben llevar a cada cultivo luego de registrar una plaga (Previamente se debe registrar una plaga).
+Procesos:
+Crear control fitosanitario, llenar formulario con los datos necesarios.
+Actualizar los detalles del control fitosanitario registrados en el sistema.
+
+![register](/manualusuario/control1.png)
+![register](/manualusuario/control2.png)
+![register](/manualusuario/control3.png)
+
+
+### 8.8	Inventario:
+### Bodega: 
+Acceso: Desde el menú principal, seleccione inventario luego bodega.
+Descripción: Permite a los usuarios llevar el control sobre las herramientas e insumos que están disponibles para debido uso.
+Procesos:
+Crear herramientas, llenar formulario con los datos necesarios.
+Crear insumos, llenar formulario con los datos necesarios.
+Genera entradas y salidas para cada uno de los procesos que hagan tanto herramientas como insumos.
+Actualizar los detalles de los insumos registrados en el sistema.
+Actualizar los detalles de las herramientas registradas en el sistema.
+
+![register](/manualusuario/bodega1.png)
+![register](/manualusuario/bodega2.png)
+![register](/manualusuario/bodega3.png)
+![register](/manualusuario/bodega4.png)
+![register](/manualusuario/bodega5.png)
+
+
+### 8.9	IoT:
+### Sensores: 
+Acceso: Desde el menú principal, seleccione IoT luego sensores.
+Descripción: Permite a los usuarios registrar sensores que se pueden utilizar en la medición de las diferentes variables en las plantaciones
+Procesos:
+Crear sensores, llenar formulario con los datos necesarios.
+Actualizar los detalles de los sensores registrados en el sistema.
+
+![register](/manualusuario/sensor1.png)
+![register](/manualusuario/sensor2.png)
+![register](/manualusuario/sensor3.png)
+
+
+### 8.10 Reportes:
+Acceso: Desde el menú principal, seleccione reportes.
+Descripción: Permite a los usuarios visualizar y descargar los diferentes reportes generados por cada uno de los módulos existentes en el sistema.
+Procesos:
+Permite al usuario seleccionar el módulo y el reporte para visualizarlo
+Permite al usuario seleccionar el módulo y el reporte para descargarlo
+
+![register](/manualusuario/reporte.png)
+
+### 9.	Mensajes
+El sistema Agrosoft utiliza mensajes para informar al usuario sobre el estado de las operaciones, errores o alertas. Los mensajes se presentan mediante ventanas emergentes y notificaciones en pantalla con colores específicos.
+
+### 9.1	Error
+Descripción: Indican problemas que impiden completar una acción (ej. conexión fallida con sensores).
+Formato: Ventana emergente con fondo rojo y texto blanco. Ejemplo: “Error al enviar el formulario.”
+Ubicación: Esquina derecha de la pantalla, se cierra automáticamente tras 4 segundos o al hacer clic.
+
+![register](/manualusuario/error.png)
+
+
+#### 9.3 Confirmación
+Descripción: Confirman la finalización exitosa de una acción (ej. registro de un cultivo exitoso).
+Formato: Ventana emergente con fondo verde y texto blanco. Ejemplo: “Cultivo registrado exitosamente.”
+Ubicación: Esquina derecha de la pantalla, se cierra automáticamente tras 4 segundos o al hacer clic.
+
+![register](/manualusuario/confirmacion.png)
+
+
+### 9.4	Información
+Descripción: Proporcionan detalles adicionales o guías (ej. ayuda contextual).
+Formato: ventana emergente con fondo azul claro y texto blanco. Ejemplo: “No hay asignaciones disponibles”.
+Ubicación: Esquina derecha de la pantalla, se cierra automáticamente tras 4 segundos o al hacer clic.
+
+![register](/manualusuario/informacion.png)
