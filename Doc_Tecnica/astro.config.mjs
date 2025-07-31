@@ -282,9 +282,16 @@ integrations: [
 				],
 			},
 			{
+
 				label: 'Informe general del sistema',
 				items: [
 					{ label: 'Informe general del sistema', slug: 'usuario/problematica/informegeneral'},
+				],
+			},
+			{
+				label: 'Documnentacion de caso de pruebas',
+				items: [
+					{ label: 'Caso de pruebas', slug: 'usuario/problematica/casoprueba'},
 				],
 			},
           ]

@@ -1,7 +1,7 @@
 ---
 title: "Requermientos - Agrosoft"
-description: "Documento técnico versión 1.0 para el sistema Agrosoft."
-pubDate: 2024-10-09
+description: "Documento técnico versión 2.0 para el sistema Agrosoft."
+pubDate: 2025-23-07
 author: Xiomara Sabi Rojas
 ---
 
@@ -10,7 +10,7 @@ author: Xiomara Sabi Rojas
 | VERSIÓN | FECHA | RESPONSABLE | FECHA REVISIÓN | RESPONSABLE REVISIÓN |
 |---------|-------|-------------|----------------|-----------------------|
 | 1.0     | 2024/10/09 | Xiomara Sabi Rojas | 2024/10/09 | Carlos Sterling |
-
+| 2.0     | 2025/23/07 | Xiomara Sabi Rojas | 2015/30/07 | Carlos Sterling |
 ---
 
 ## CAMBIOS RESPECTO A LA VERSIÓN ANTERIOR
@@ -18,6 +18,7 @@ author: Xiomara Sabi Rojas
 | VERSIÓN | MODIFICACIÓN RESPECTO VERSIÓN ANTERIOR |
 |---------|-----------------------------------------|
 |    1    | Modificacion en todo el archivo por escritura |
+|    2    | Modificacion de redaccion en el archivo |
 
 ---
 ## Tabla de Contenido
@@ -46,40 +47,27 @@ author: Xiomara Sabi Rojas
 
 ## 1. Introducción
 
-En el contexto de la producción agrícola moderna, resulta fundamental contar con sistemas de gestión eficientes que permitan optimizar los procesos y asegurar un control riguroso de las actividades relacionadas con el cultivo.  
-En este sentido, la **Corporación de Gestión y Desarrollo Sostenible (C.G.D.S.S.)** y sus áreas de influencia requieren de una herramienta tecnológica que facilite el seguimiento integral de las prácticas agrícolas, promoviendo un uso responsable y sostenible de los recursos.
-
-El presente documento tiene como objetivo proponer el desarrollo de un sistema de gestión orientado al monitoreo y control de actividades clave en la producción agrícola, tales como el cuidado de las plantas, la gestión del riego, la aplicación de fertilizantes, el uso de insumos y el seguimiento de cultivos.  
-Este sistema busca no solo simplificar el registro y la administración de estas actividades, sino también proporcionar información actualizada y precisa que respalde la toma de decisiones estratégicas.
-
-Además, se prioriza la facilidad de uso del sistema para garantizar que los usuarios puedan interactuar con la plataforma de forma intuitiva, generando informes detallados que contribuyan a la mejora continua de los procesos agrícolas en la región.  
-A través de esta herramienta, se espera fomentar prácticas agrícolas más eficientes y sostenibles, impulsando así un desarrollo agrícola más productivo y respetuoso con el medio ambiente.
+En este documento se establece una guía clara y detallada para el desarrollo de un sistema de información destinado a la gestión integral de cultivos en la unidad productiva PAE. Su objetivo principal es definir los requerimientos funcionales que aseguren que el sistema cumpla con las necesidades de los usuarios, facilitando la trazabilidad de cultivos y la optimización de procesos agrícolas. El documento describe las funcionalidades clave, los objetivos del sistema, los aspectos legales y las restricciones de desarrollo, sirviendo como base para el diseño, implementación y validación del sistema. Está dirigido a los desarrolladores, administradores agrícolas y partes interesadas involucradas en el proyecto, proporcionando una referencia estructurada para alinear expectativas y objetivos.
 
 ---
 
 ### 1.1 Propósito
 
-El presente documento tiene como objetivo detallar los requerimientos funcionales necesarios para el desarrollo de un sistema de información destinado a la gestión integral de cultivos en la unidad productiva **PAE**.  
-Dichos requerimientos buscan asegurar que el sistema propuesto cumpla con las necesidades específicas de la unidad, abordando de manera eficiente aspectos esenciales como el monitoreo de cultivos, la gestión de inventario, la planificación de siembras, el control de plagas y enfermedades, así como la optimización del uso de recursos hídricos y nutrientes.
-
-Asimismo, el sistema deberá proporcionar herramientas intuitivas y accesibles que faciliten una interacción ágil y efectiva por parte de los usuarios, permitiendo un manejo óptimo de la información relevante para la gestión agrícola.  
-La implementación de este sistema no solo está orientada a mejorar la eficiencia operativa, sino también a ofrecer análisis e informes detallados que apoyen la toma de decisiones estratégicas en la unidad productiva PAE.
+El presente documento tiene como objetivo definir los requerimientos funcionales necesarios para el desarrollo de un sistema de información que optimice la gestión y trazabilidad de cultivos en la unidad productiva PAE. Este sistema abordará de manera eficiente el monitoreo de cultivos, la gestión de inventarios, la planificación de siembras, el control de plagas y enfermedades, y la optimización de recursos hídricos y nutrientes. El documento detalla las funcionalidades, restricciones y características necesarias para garantizar que el sistema cumpla con las necesidades operativas de la unidad, proporcionando herramientas intuitivas y análisis que apoyen la toma de decisiones estratégicas.
 
 ---
 
 ### 1.2 Alcance
 
-El nuevo sistema de gestión agrícola para la **C.G.D.S.S.** y sus áreas de influencia está diseñado para optimizar el monitoreo y la administración de las actividades agrícolas.  
-El sistema se estructurará en cuatro módulos principales:
+Este documento especifica los requerimientos del sistema agrícola para la unidad productiva PAE, abarcando las funcionalidades necesarias para la gestión y trazabilidad de cultivos. Define los siguientes aspectos:
+•	Requerimientos funcionales: Incluyen el registro y seguimiento de las etapas del cultivo, la gestión de inventarios de insumos, la planificación de siembras, el control de plagas y enfermedades, y la optimización de recursos hídricos y nutrientes.
+•	Requerimientos no funcionales: Enfocan la usabilidad, accesibilidad, escalabilidad y rendimiento del sistema, asegurando una interfaz intuitiva y la capacidad de generar informes analíticos.
+•	Límites del sistema: El documento se centra en la gestión de datos y la interfaz de usuario, excluyendo en esta fase la integración con hardware externo (como sensores IoT) o la automatización de procesos físicos.
+•	Usuarios objetivo: Administradores agrícolas, técnicos y personal operativo de la unidad PAE que interactuarán con el sistema.
+•	Entregables: Especificaciones detalladas de cada funcionalidad, restricciones, supuestos y criterios de aceptación para guiar el desarrollo y la validación.
+El documento no cubre aspectos técnicos de implementación, como la arquitectura del sistema o el código fuente, ni especificaciones de hardware, los cuales se abordarán en fases posteriores del proyecto.
 
-- **Internet de las Cosas (IoT)**  
-- **Actividades**  
-- **Finanzas**  
-- **Inventario**
 
-Estos módulos permitirán un control integral de procesos críticos, tales como el **riego automatizado**, la **fertilización precisa**, el **cuidado de las plantas** y la **gestión eficiente de insumos**.
-
-Gracias a esta estructura modular, el sistema no solo mejorará la eficiencia en la gestión de recursos, sino que también proporcionará datos clave para respaldar decisiones estratégicas y fomentar prácticas agrícolas más sostenibles.
 
 ---
 
@@ -103,7 +91,6 @@ Gracias a esta estructura modular, el sistema no solo mejorará la eficiencia en
 | Wilson Eduardo Samboni         | Aprendiz    | Desarrollador   |
 | Lucy Fernanda Rodriguez        | Aprendiz    | Desarrollador   |
 | Francisco Javier Urbano        | Aprendiz    | Desarrollador   |
-| Yanira Jimenez Martinez        | Aprendiz    | Desarrollador   |
 
 ---
 
@@ -111,10 +98,8 @@ Gracias a esta estructura modular, el sistema no solo mejorará la eficiencia en
 
 ### 2.1 Perspectiva del Producto
 
-El sistema por desarrollar es una herramienta que permitirá a los usuarios **gestionar las actividades diarias agrícolas**.  
-Su propósito es automatizar cada una de las actividades relacionadas con el campo.
+Este documento presenta la Especificación de Requerimientos del Sistema Agrícola como la base para desarrollar un sistema de información adaptado a las necesidades de la unidad productiva PAE. Desde la perspectiva del producto, el documento define un sistema que centralizará la gestión de datos agrícolas, proporcionando herramientas para el monitoreo, planificación y análisis de cultivos. A diferencia de documentos técnicos de implementación, este se enfoca en describir qué debe hacer el sistema, no cómo hacerlo, asegurando que las funcionalidades propuestas cumplan con los objetivos operativos y estratégicos de la unidad PAE. El sistema descrito está diseñado para ser escalable y adaptable, con un enfoque inicial en la usabilidad y la generación de informes, y con potencial para futuras integraciones con tecnologías avanzadas, como análisis predictivo, según las necesidades evolutivas de la unidad.
 
-Será una **plataforma web y móvil** diseñada para instructores, aprendices, administrativos, clientes, y demás personal autorizado dentro del SENA.
 
 ---
 
@@ -135,10 +120,13 @@ A continuación, se describen las principales interfaces del usuario:
 
 ### 2.2 Características del producto
 
-El sistema **AgroSis** ayuda a los agricultores a gestionar sus cultivos de manera más eficiente mediante tecnología digital.  
-Permite monitorear el clima y el suelo con sensores IoT, llevar un registro detallado de todo el proceso agrícola, administrar insumos y herramientas, y controlar los costos y ganancias.
+El documento detalla los requerimientos funcionales necesarios para implementar una funcionalidad de trazabilidad integral de cultivos en la unidad productiva PAE. Esta característica, definida en el documento, asegura que el sistema permita el registro, seguimiento y análisis de todas las etapas del ciclo de cultivo, desde la preparación del suelo hasta la cosecha. Los requerimientos especificados incluyen:
+**• Especificación de registros:** El documento define que el sistema debe permitir a los usuarios registrar datos detallados de actividades agrícolas, como fechas de siembra, riego, fertilización, aplicación de pesticidas y cosecha, incluyendo detalles específicos como tipo de insumo y cantidades utilizadas.
+**•	Requerimientos de seguimiento:** Se establece que el sistema debe ofrecer una vista consolidada y en tiempo real del estado de los cultivos, con capacidad para consultar hitos clave como germinación, floración y maduración, según lo especificado en el documento.
+**•	Almacenamiento de datos históricos:** El documento especifica que el sistema debe almacenar registros históricos accesibles para consultas y análisis comparativos, soportando la planificación futura y la identificación de patrones.
+**•	Requerimientos de usabilidad:** Se detalla que la funcionalidad debe estar soportada por una interfaz intuitiva, accesible para usuarios con conocimientos técnicos limitados, conforme a los requerimientos no funcionales del documento.
+**•	Generación de reportes:** El documento requiere que el sistema genere reportes detallados, incluyendo gráficos y tablas que resuman las actividades de trazabilidad, para apoyar la toma de decisiones.
 
-Con esta plataforma, los productores pueden tomar mejores decisiones, optimizar recursos y mejorar la productividad de sus cultivos, asegurando una gestión más organizada y sostenible de la agricultura.
 
 ---
 
@@ -291,7 +279,7 @@ El instructor tendrá permisos similares al pasante, pero también podrá valida
 | RF18    | Mostrar información del suelo                          | Esencial |
 | RF19    | Monitoreo de la evapotranspiración                     | Esencial |
 | RF20    | Gestión histórica de datos                             | Esencial |
-| RF21    | Registrar, listar y editar tipo de cultivos           | Esencial |
+| RF21    | Registrar, tipo de cultivos                            | Esencial |
 | RF22    | Registro de nuevos semilleros                          | Esencial |
 | RF23    | Registrar, listar y editar lotes                       | Esencial |
 | RF24    | Registrar, listar y editar eras                        | Esencial |
@@ -313,15 +301,8 @@ El instructor tendrá permisos similares al pasante, pero también podrá valida
 | RF40    | Rentabilidad de cada cultivo                           | Esencial |
 | RF41    | Reportes de usuarios                                   | Esencial |
 | RF42    | Reportes de insumos                                    | Esencial |
-| RF43    | Reportes de herramientas                               | Esencial |
 | RF44    | Reporte de datos de sensores                           | Esencial |
-| RF45    | Reportes de las especies                               | Esencial |
-| RF46    | Reporte de semilleros                                  | Esencial |
-| RF47    | Reporte de lotes                                       | Esencial |
-| RF48    | Reporte de eras                                        | Esencial |
-| RF49    | Reportes de cultivos activos                           | Esencial |
 | RF50    | Reportes de actividades realizadas                     | Esencial |
-| RF51    | Reporte de PEA                                         | Esencial |
 | RF52    | Reporte de control fitosanitario                       | Esencial |
 | RF53    | Reporte de venta                                       | Esencial |
 
@@ -588,67 +569,26 @@ El instructor tendrá permisos similares al pasante, pero también podrá valida
 
 ---
 
-#### RF43 – EL SISTEMA DEBE GENERAR REPORTES DE HERRAMIENTAS
-- **Descripción:** Permitirá acceder a datos completos de las herramientas registradas.
-- **Prioridad:** Alta
 
----
-
-#### RF44 – EL SISTEMA DEBERÁ GENERAR REPORTE DE SENSORES EN TIEMPO REAL
+#### RF43 – EL SISTEMA DEBERÁ GENERAR REPORTE DE SENSORES EN TIEMPO REAL
 - **Descripción:** Generará gráficos con datos de sensores (humedad, luz, pH, temperatura, etc.).
 - **Prioridad:** Alta
 
 ---
 
-#### RF45 – EL SISTEMA DEBE GENERAR REPORTE DE ESPECIES Y TIPOS
-- **Descripción:** Reportará todas las especies y tipos agrícolas registrados en el sistema.
-- **Prioridad:** Alta
-
----
-
-#### RF46 – EL SISTEMA DEBE GENERAR REPORTE DE SEMILLEROS ACTIVOS
-- **Descripción:** Mostrará estado actual y detalles de semilleros activos registrados.
-- **Prioridad:** Alta
-
----
-
-#### RF47 – EL SISTEMA DEBE GENERAR REPORTE DE LOTES
-- **Descripción:** Reportará dimensiones, tipo de suelo, fechas y datos de cada lote.
-- **Prioridad:** Alta
-
----
-
-#### RF48 – EL SISTEMA DEBE GENERAR REPORTE DE HISTORIAL DE ERAS
-- **Descripción:** Mostrará historial de eras, ubicación, tipo de suelo y disponibilidad.
-- **Prioridad:** Alta
-
----
-
-#### RF49 – EL SISTEMA DEBE GENERAR REPORTE DE CULTIVOS ACTIVOS
-- **Descripción:** Reporte en PDF que detalle ubicación, fechas y estado de cultivos.
-- **Prioridad:** Alta
-
----
-
-#### RF50 – EL SISTEMA DEBE GENERAR REPORTE DE ACTIVIDADES REALIZADAS
+#### RF44 – EL SISTEMA DEBE GENERAR REPORTE DE ACTIVIDADES REALIZADAS
 - **Descripción:** Incluirá historial de tareas agrícolas realizadas por cultivo.
 - **Prioridad:** Alta
 
 ---
 
-#### RF51 – EL SISTEMA DEBERÁ GENERAR REPORTE DE PEA POR MES
-- **Descripción:** Reportará enfermedades detectadas, nivel de afectación y acciones realizadas mensualmente.
-- **Prioridad:** Alta
-
----
-
-#### RF52 – EL SISTEMA GENERARÁ REPORTE DE CONTROLES FITOSANITARIOS
+#### RF45 – EL SISTEMA GENERARÁ REPORTE DE CONTROLES FITOSANITARIOS
 - **Descripción:** Documento PDF que incluye acciones tomadas ante enfermedades y plagas.
 - **Prioridad:** Alta
 
 ---
 
-#### RF53 – EL SISTEMA DEBE GENERAR INFORME DE INGRESOS POR PRODUCTO VENDIDO
+#### RF46 – EL SISTEMA DEBE GENERAR INFORME DE INGRESOS POR PRODUCTO VENDIDO
 - **Descripción:** Detallará ventas, ingresos y margen por producto, útil para decisiones estratégicas.
 - **Prioridad:** Alta
 
@@ -657,21 +597,22 @@ El instructor tendrá permisos similares al pasante, pero también podrá valida
 El desarrollo y uso del sistema deben cumplir con diversas normativas que regulan el manejo de datos, la seguridad informática y las prácticas agrícolas. Algunas de las leyes y regulaciones aplicables pueden incluir:
 
 ### 1. Protección de Datos Personales:
-- Cumplimiento con la Ley de Protección de Datos Personales (según el país, por ejemplo, la Ley 1581 de 2012 en Colombia o el GDPR en la Unión Europea).
-- Garantizar el almacenamiento seguro de datos personales de los usuarios.
-- Implementación de medidas de privacidad para evitar accesos no autorizados.
+**- Ley:** Ley 1581 de 2012 y Decreto 1377 de 2013.
+**-Aplicación:** Obtener consentimiento para datos personales de usuarios, usar cifrado (AES-256) y limitar accesos no autorizados.
+
 
 ### 2. Normativas Agrícolas:
-- Cumplimiento con regulaciones nacionales sobre buenas prácticas agrícolas.
-- Registro y trazabilidad de insumos agrícolas conforme a la normativa vigente.
+**-Ley:** Ley 1581 de 2012 y Decreto 1377 de 2013.
+**-Aplicación:** Obtener consentimiento para datos personales de usuarios, usar cifrado (AES-256) y limitar accesos no autorizados.
+
 
 ### 3. Seguridad en el Uso de IoT:
-- Cumplimiento de estándares en la transmisión y almacenamiento de datos de sensores.
-- Protección de la información transmitida mediante cifrado y protocolos seguros.
+**-Ley:** Circular Externa 007 de 2018 (Superintendencia de Industria y Comercio).
+**-Aplicación:** Usar protocolos seguros (MQTT con TLS/SSL) y cifrado para datos de sensores.
 
 ### 4. Normativas Financieras:
-- Cumplimiento con regulaciones fiscales en la gestión de ingresos y egresos.
-- Garantizar la trazabilidad de los movimientos financieros dentro del sistema.
+**-Ley:** Estatuto Tributario (Decreto 624 de 1989) y Circular Externa 100-000005 de 2017 (Superintendencia de Sociedades).
+**-Aplicación:** Registrar ingresos/egresos y garantizar trazabilidad de transacciones para auditorías fiscales.
 
 ---
 
