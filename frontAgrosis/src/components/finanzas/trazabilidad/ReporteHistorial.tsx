@@ -1,12 +1,12 @@
 import { useRef } from 'react';
 import { ChartLine } from '@/components/globales/Charts';
-import ExcelJS from 'exceljs';
-import html2canvas from 'html2canvas';
 import { Download } from 'lucide-react';
 import Button from '@/components/globales/Button';
 import { SnapshotTrazabilidad } from './Types';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { DescargarExcel } from '@/components/globales/DescargarExcel';
+import html2canvas from 'html2canvas';
 
 interface ReporteHistorialProps {
   ordenarSnapshots: SnapshotTrazabilidad[];
@@ -35,17 +35,41 @@ const ReporteHistorial = ({ ordenarSnapshots, formato }: ReporteHistorialProps) 
     ],
   });
 
+  const cargarImagenComoBase64 = (url: string): Promise<string> => {
+    return fetch(url)
+      .then((res) => res.blob())
+      .then(
+        (blob) =>
+          new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          })
+      );
+  };
+
   const generarReporte = async () => {
-    const columnas = ['Versión', 'Fecha', 'B/C', 'Balance'];
-    const datos = ordenarSnapshots.map(s => [
-      `v${s.version}`,
-      new Date(s.fecha_registro).toLocaleDateString('es-CO'),
-      (s.datos.beneficio_costo_acumulado ?? 0).toFixed(2),
-      new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(
+    // Definir columnas para Excel
+    const columnas = [
+      { header: 'Versión', key: 'version', width: 15 },
+      { header: 'Fecha', key: 'fecha', width: 20 },
+      { header: 'B/C', key: 'bc', width: 15 },
+      { header: 'Balance', key: 'balance', width: 20 },
+    ];
+
+    // Preparar datos para Excel
+    const datos = ordenarSnapshots.map(s => ({
+      version: `v${s.version}`,
+      fecha: new Date(s.fecha_registro).toLocaleDateString('es-CO'),
+      bc: (s.datos.beneficio_costo_acumulado ?? 0).toFixed(2),
+      balance: new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(
         (s.datos.ingresos_ventas_acumulado || 0) -
-        ((s.datos.costo_mano_obra_acumulado || 0) + (s.datos.egresos_insumos_acumulado || 0) + (s.datos.depreciacion_herramientas_acumulada || 0))
+        ((s.datos.costo_mano_obra_acumulado || 0) +
+         (s.datos.egresos_insumos_acumulado || 0) +
+         (s.datos.depreciacion_herramientas_acumulada || 0))
       ),
-    ]);
+    }));
 
     if (formato === 'pdf') {
       const doc = new jsPDF();
@@ -104,13 +128,13 @@ const ReporteHistorial = ({ ordenarSnapshots, formato }: ReporteHistorialProps) 
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(100, 100, 100);
-      doc.text(`Fecha: ${new Date().toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })}`, pageWidth - rightMargin, infoY, { align: 'right' });
+      doc.text(`Fecha de generación: ${new Date().toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })}`, pageWidth - rightMargin, infoY, { align: 'right' });
 
       // Tabla
       autoTable(doc, {
         startY: infoY + 10,
-        head: [columnas],
-        body: datos,
+        head: [columnas.map(col => col.header)],
+        body: datos.map(d => Object.values(d)),
         theme: 'striped',
         styles: { fontSize: 10, cellPadding: 4, halign: 'center', lineWidth: 0.1, font: 'helvetica' },
         headStyles: { fillColor: [0, 120, 100], textColor: 255, fontStyle: 'bold', fontSize: 11 },
@@ -125,9 +149,8 @@ const ReporteHistorial = ({ ordenarSnapshots, formato }: ReporteHistorialProps) 
 
       // Gráfico
       if (chartRef.current) {
-        await new Promise(resolve => setTimeout(resolve, 500));
-        const canvas = await html2canvas(chartRef.current);
-        const imageData = canvas.toDataURL('image/png');
+        const canvas = await html2canvas(chartRef.current, { scale: 3, useCORS: true, logging: false });
+        const imageData = canvas.toDataURL('image/png', 1.0);
         const finalY = (doc as any).lastAutoTable?.finalY || (infoY + 10);
         try {
           doc.addImage(imageData, 'PNG', leftMargin, finalY + 10, 180, 80);
@@ -146,128 +169,18 @@ const ReporteHistorial = ({ ordenarSnapshots, formato }: ReporteHistorialProps) 
 
       doc.save('historial_snapshots.pdf');
     } else {
-      const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('Historial');
-
-      // Cargar logos
-      const logoSena = await cargarImagenComoBase64('/logoSena.png');
-      const logoKaizen = await cargarImagenComoBase64('/agrosoft.png');
-
-      // Encabezado
-      worksheet.mergeCells('A1:D1');
-      worksheet.getCell('A1').value = 'CENTRO DE GESTIÓN Y DESARROLLO SOSTENIBLE SURCOLOMBIANO';
-      worksheet.getCell('A1').font = { name: 'Calibri', size: 14, bold: true, color: { argb: '004D3C' } };
-      worksheet.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' };
-      worksheet.getCell('A1').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F5F5F5' } };
-      worksheet.getRow(1).height = 30;
-
-      worksheet.mergeCells('A2:D2');
-      worksheet.getCell('A2').value = 'ÁREA PAE - Historial de Snapshots';
-      worksheet.getCell('A2').font = { name: 'Calibri', size: 12, bold: true, color: { argb: '006633' } };
-      worksheet.getCell('A2').alignment = { horizontal: 'center', vertical: 'middle' };
-      worksheet.getRow(2).height = 25;
-
-      // Logos
-      const logoSenaId = workbook.addImage({ base64: logoSena, extension: 'png' });
-      worksheet.mergeCells('A3:A4');
-      worksheet.addImage(logoSenaId, { tl: { col: 0, row: 2 }, ext: { width: 50, height: 50 } });
-
-      const logoKaizenId = workbook.addImage({ base64: logoKaizen, extension: 'png' });
-      worksheet.mergeCells('D3:D4');
-      worksheet.addImage(logoKaizenId, { tl: { col: 3, row: 2 }, ext: { width: 50, height: 50 } });
-
-      // Fecha de generación
-      worksheet.mergeCells('A5:D5');
-      worksheet.getCell('A5').value = `Fecha de generación: ${new Date().toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })}`;
-      worksheet.getCell('A5').font = { name: 'Calibri', size: 10, color: { argb: '666666' } };
-      worksheet.getCell('A5').alignment = { horizontal: 'right', vertical: 'middle' };
-      worksheet.getRow(5).height = 20;
-
-      // Espaciado
-      worksheet.addRow([]); // Fila vacía
-      worksheet.getRow(6).height = 10;
-
-      // Tabla - Encabezado
-      worksheet.columns = [
-        { header: 'Versión', key: 'version', width: 15 },
-        { header: 'Fecha', key: 'fecha', width: 20 },
-        { header: 'B/C', key: 'bc', width: 15 },
-        { header: 'Balance', key: 'balance', width: 20 },
-      ];
-      const headerRow = worksheet.getRow(7);
-      headerRow.values = columnas;
-      headerRow.eachCell(cell => {
-        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '007864' } };
-        cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFF' } };
-        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-        cell.border = {
-          top: { style: 'thin', color: { argb: '004D3C' } },
-          left: { style: 'thin', color: { argb: '004D3C' } },
-          bottom: { style: 'thin', color: { argb: '004D3C' } },
-          right: { style: 'thin', color: { argb: '004D3C' } },
-        };
+      // Usar DescargarExcel para generar el reporte Excel
+      await DescargarExcel({
+        data: datos,
+        columns: columnas,
+        title: 'CENTRO DE GESTIÓN Y DESARROLLO SOSTENIBLE SURCOLOMBIANO',
+        subtitle: 'ÁREA PAE - Historial de Snapshots',
+        logoSenaPath: '/logoSena.png',
+        logoKaizenPath: '/agrosoft.png',
+        chartRef,
+        filename: 'historial_snapshots.xlsx',
       });
-      headerRow.height = 25;
-
-      // Tabla - Datos
-      datos.forEach((d, index) => {
-        const dataRow = worksheet.addRow({ version: d[0], fecha: d[1], bc: d[2], balance: d[3] });
-        dataRow.eachCell(cell => {
-          cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-          cell.font = { name: 'Calibri', size: 10 };
-          cell.border = {
-            top: { style: 'thin', color: { argb: '004D3C' } },
-            left: { style: 'thin', color: { argb: '004D3C' } },
-            bottom: { style: 'thin', color: { argb: '004D3C' } },
-            right: { style: 'thin', color: { argb: '004D3C' } },
-          };
-          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: index % 2 === 0 ? 'F7F7F7' : 'FFFFFF' } };
-        });
-        dataRow.height = 20;
-      });
-
-      // Gráfico
-      if (chartRef.current) {
-        const canvas = await html2canvas(chartRef.current);
-        const imageData = canvas.toDataURL('image/png');
-        const imageId = workbook.addImage({ base64: imageData, extension: 'png' });
-        worksheet.addImage(imageId, { tl: { col: 0, row: datos.length + 8 }, ext: { width: 500, height: 300 } });
-      }
-
-      // Pie de página
-      const footerRow = datos.length + 18;
-      worksheet.mergeCells(`A${footerRow}:D${footerRow}`);
-      worksheet.getCell(`A${footerRow}`).value = 'Generado por Agrosoft - Centro de Gestión y Desarrollo Sostenible Surcolombiano';
-      worksheet.getCell(`A${footerRow}`).font = { name: 'Calibri', size: 9, color: { argb: '666666' } };
-      worksheet.getCell(`A${footerRow}`).alignment = { horizontal: 'center', vertical: 'middle' };
-      worksheet.getRow(footerRow).height = 20;
-
-      // Generar archivo
-      const buffer = await workbook.xlsx.writeBuffer();
-      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'historial_snapshots.xlsx';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
     }
-  };
-
-  const cargarImagenComoBase64 = (url: string): Promise<string> => {
-    return fetch(url)
-      .then((res) => res.blob())
-      .then(
-        (blob) =>
-          new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result as string);
-            reader.onerror = reject;
-            reader.readAsDataURL(blob);
-          })
-      );
   };
 
   return (
@@ -289,7 +202,7 @@ const ReporteHistorial = ({ ordenarSnapshots, formato }: ReporteHistorialProps) 
         text="Descargar Reporte"
         variant="success"
         onClick={generarReporte}
-        className="w-full flex justify-center items-center gap-2 hover:bg-green-600 transition-colors"
+        className="w-full flex justify-center items-center gap-2 hover:bg-green-600 transition-colors py-3"
         icon={Download}
       />
     </div>

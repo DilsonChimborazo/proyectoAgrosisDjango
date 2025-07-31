@@ -1,12 +1,12 @@
 import { useRef } from 'react';
 import { ChartLine } from '@/components/globales/Charts';
-import ExcelJS from 'exceljs';
-import html2canvas from 'html2canvas';
 import { Download } from 'lucide-react';
 import Button from '@/components/globales/Button';
 import { TrazabilidadCultivoReporte } from './Types';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { DescargarExcel } from '@/components/globales/DescargarExcel';
+import html2canvas from 'html2canvas';
 
 interface ReporteProduccionVentasProps {
   trazabilidadData: TrazabilidadCultivoReporte | undefined;
@@ -43,14 +43,36 @@ const ReporteProduccionVentas = ({ trazabilidadData, formato }: ReporteProduccio
     ],
   });
 
+  const cargarImagenComoBase64 = (url: string): Promise<string> => {
+    return fetch(url)
+      .then((res) => res.blob())
+      .then(
+        (blob) =>
+          new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          })
+      );
+  };
+
   const generarReporte = async () => {
-    const columnas = ['Fecha', 'Cantidad', 'Precio Unitario', 'Total'];
-    const datos = trazabilidadData.detalle_ventas.map(v => [
-      v.fecha || 'Sin fecha',
-      `${v.cantidad || 0} ${v.unidad_medida || 'N/A'}`,
-      new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(v.precio_unidad_con_descuento || 0),
-      new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(v.total || 0),
-    ]);
+    // Definir columnas para Excel
+    const columnas = [
+      { header: 'Fecha', key: 'fecha', width: 20 },
+      { header: 'Cantidad', key: 'cantidad', width: 15 },
+      { header: 'Precio Unitario', key: 'precio', width: 15 },
+      { header: 'Total', key: 'total', width: 15 },
+    ];
+
+    // Preparar datos para Excel
+    const datos = trazabilidadData.detalle_ventas.map(v => ({
+      fecha: v.fecha || 'Sin fecha',
+      cantidad: `${v.cantidad || 0} ${v.unidad_medida || 'N/A'}`,
+      precio: new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(v.precio_unidad_con_descuento || 0),
+      total: new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(v.total || 0),
+    }));
 
     if (formato === 'pdf') {
       const doc = new jsPDF();
@@ -109,13 +131,13 @@ const ReporteProduccionVentas = ({ trazabilidadData, formato }: ReporteProduccio
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(100, 100, 100);
-      doc.text(`Fecha: ${new Date().toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })}`, pageWidth - rightMargin, infoY, { align: 'right' });
+      doc.text(`Fecha de generación: ${new Date().toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })}`, pageWidth - rightMargin, infoY, { align: 'right' });
 
       // Tabla
       autoTable(doc, {
         startY: infoY + 10,
-        head: [columnas],
-        body: datos,
+        head: [columnas.map(col => col.header)],
+        body: datos.map(d => Object.values(d)),
         theme: 'striped',
         styles: { fontSize: 10, cellPadding: 4, halign: 'center', lineWidth: 0.1, font: 'helvetica' },
         headStyles: { fillColor: [0, 120, 100], textColor: 255, fontStyle: 'bold', fontSize: 11 },
@@ -130,9 +152,8 @@ const ReporteProduccionVentas = ({ trazabilidadData, formato }: ReporteProduccio
 
       // Gráfico
       if (chartRef.current) {
-        await new Promise(resolve => setTimeout(resolve, 500));
-        const canvas = await html2canvas(chartRef.current);
-        const imageData = canvas.toDataURL('image/png');
+        const canvas = await html2canvas(chartRef.current, { scale: 3, useCORS: true, logging: false });
+        const imageData = canvas.toDataURL('image/png', 1.0);
         const finalY = (doc as any).lastAutoTable?.finalY || (infoY + 10);
         try {
           doc.addImage(imageData, 'PNG', leftMargin, finalY + 10, 180, 80);
@@ -151,128 +172,18 @@ const ReporteProduccionVentas = ({ trazabilidadData, formato }: ReporteProduccio
 
       doc.save(`reporte_ventas_${trazabilidadData.cultivo || 'trazabilidad'}.pdf`);
     } else {
-      const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('Producción y Ventas');
-
-      // Cargar logos
-      const logoSena = await cargarImagenComoBase64('/logoSena.png');
-      const logoKaizen = await cargarImagenComoBase64('/agrosoft.png');
-
-      // Encabezado
-      worksheet.mergeCells('A1:D1');
-      worksheet.getCell('A1').value = 'CENTRO DE GESTIÓN Y DESARROLLO SOSTENIBLE SURCOLOMBIANO';
-      worksheet.getCell('A1').font = { name: 'Calibri', size: 14, bold: true, color: { argb: '004D3C' } };
-      worksheet.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' };
-      worksheet.getCell('A1').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F5F5F5' } };
-      worksheet.getRow(1).height = 30;
-
-      worksheet.mergeCells('A2:D2');
-      worksheet.getCell('A2').value = `ÁREA PAE - Reporte de Producción y Ventas - ${trazabilidadData.cultivo || 'Sin cultivo'}`;
-      worksheet.getCell('A2').font = { name: 'Calibri', size: 12, bold: true, color: { argb: '006633' } };
-      worksheet.getCell('A2').alignment = { horizontal: 'center', vertical: 'middle' };
-      worksheet.getRow(2).height = 25;
-
-      // Logos
-      const logoSenaId = workbook.addImage({ base64: logoSena, extension: 'png' });
-      worksheet.mergeCells('A3:A4');
-      worksheet.addImage(logoSenaId, { tl: { col: 0, row: 2 }, ext: { width: 50, height: 50 } });
-
-      const logoKaizenId = workbook.addImage({ base64: logoKaizen, extension: 'png' });
-      worksheet.mergeCells('D3:D4');
-      worksheet.addImage(logoKaizenId, { tl: { col: 3, row: 2 }, ext: { width: 50, height: 50 } });
-
-      // Fecha de generación
-      worksheet.mergeCells('A5:D5');
-      worksheet.getCell('A5').value = `Fecha de generación: ${new Date().toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })}`;
-      worksheet.getCell('A5').font = { name: 'Calibri', size: 10, color: { argb: '666666' } };
-      worksheet.getCell('A5').alignment = { horizontal: 'right', vertical: 'middle' };
-      worksheet.getRow(5).height = 20;
-
-      // Espaciado
-      worksheet.addRow([]); // Fila vacía
-      worksheet.getRow(6).height = 10;
-
-      // Tabla - Encabezado
-      worksheet.columns = [
-        { header: 'Fecha', key: 'fecha', width: 20 },
-        { header: 'Cantidad', key: 'cantidad', width: 15 },
-        { header: 'Precio Unitario', key: 'precio', width: 15 },
-        { header: 'Total', key: 'total', width: 15 },
-      ];
-      const headerRow = worksheet.getRow(7);
-      headerRow.values = columnas;
-      headerRow.eachCell(cell => {
-        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '007864' } };
-        cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFF' } };
-        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-        cell.border = {
-          top: { style: 'thin', color: { argb: '004D3C' } },
-          left: { style: 'thin', color: { argb: '004D3C' } },
-          bottom: { style: 'thin', color: { argb: '004D3C' } },
-          right: { style: 'thin', color: { argb: '004D3C' } },
-        };
+      // Usar DescargarExcel para generar el reporte Excel
+      await DescargarExcel({
+        data: datos,
+        columns: columnas,
+        title: 'CENTRO DE GESTIÓN Y DESARROLLO SOSTENIBLE SURCOLOMBIANO',
+        subtitle: `ÁREA PAE - Reporte de Producción y Ventas - ${trazabilidadData.cultivo || 'Sin cultivo'}`,
+        logoSenaPath: '/logoSena.png',
+        logoKaizenPath: '/agrosoft.png',
+        chartRef,
+        filename: `reporte_ventas_${trazabilidadData.cultivo || 'trazabilidad'}.xlsx`,
       });
-      headerRow.height = 25;
-
-      // Tabla - Datos
-      datos.forEach((d, index) => {
-        const dataRow = worksheet.addRow({ fecha: d[0], cantidad: d[1], precio: d[2], total: d[3] });
-        dataRow.eachCell(cell => {
-          cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-          cell.font = { name: 'Calibri', size: 10 };
-          cell.border = {
-            top: { style: 'thin', color: { argb: '004D3C' } },
-            left: { style: 'thin', color: { argb: '004D3C' } },
-            bottom: { style: 'thin', color: { argb: '004D3C' } },
-            right: { style: 'thin', color: { argb: '004D3C' } },
-          };
-          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: index % 2 === 0 ? 'F7F7F7' : 'FFFFFF' } };
-        });
-        dataRow.height = 20;
-      });
-
-      // Gráfico
-      if (chartRef.current) {
-        const canvas = await html2canvas(chartRef.current);
-        const imageData = canvas.toDataURL('image/png');
-        const imageId = workbook.addImage({ base64: imageData, extension: 'png' });
-        worksheet.addImage(imageId, { tl: { col: 0, row: datos.length + 8 }, ext: { width: 500, height: 300 } });
-      }
-
-      // Pie de página
-      const footerRow = datos.length + 18;
-      worksheet.mergeCells(`A${footerRow}:D${footerRow}`);
-      worksheet.getCell(`A${footerRow}`).value = 'Generado por Agrosoft - Centro de Gestión y Desarrollo Sostenible Surcolombiano';
-      worksheet.getCell(`A${footerRow}`).font = { name: 'Calibri', size: 9, color: { argb: '666666' } };
-      worksheet.getCell(`A${footerRow}`).alignment = { horizontal: 'center', vertical: 'middle' };
-      worksheet.getRow(footerRow).height = 20;
-
-      // Generar archivo
-      const buffer = await workbook.xlsx.writeBuffer();
-      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `reporte_ventas_${trazabilidadData.cultivo || 'trazabilidad'}.xlsx`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
     }
-  };
-
-  const cargarImagenComoBase64 = (url: string): Promise<string> => {
-    return fetch(url)
-      .then((res) => res.blob())
-      .then(
-        (blob) =>
-          new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result as string);
-            reader.onerror = reject;
-            reader.readAsDataURL(blob);
-          })
-      );
   };
 
   return (
@@ -295,7 +206,7 @@ const ReporteProduccionVentas = ({ trazabilidadData, formato }: ReporteProduccio
         text="Descargar Reporte"
         variant="success"
         onClick={generarReporte}
-        className="w-full flex justify-center items-center gap-2 hover:bg-green-600 transition-colors"
+        className="w-full flex justify-center items-center gap-2 hover:bg-green-600 transition-colors py-3"
         icon={Download}
       />
     </div>

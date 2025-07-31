@@ -281,6 +281,12 @@ integrations: [
 					{ label: 'Prototipado del sistema', slug: 'usuario/problematica/prototipado'},
 				],
 			},
+			{
+				label: 'Informe general del sistema',
+				items: [
+					{ label: 'Informe general del sistema', slug: 'usuario/problematica/informegeneral'},
+				],
+			},
           ]
         },
       ]
