@@ -5,8 +5,6 @@ services:
       - "8080:80"
     env_file:
       - ./frontAgrosis/.env
-    volumes:
-      - ./update_env.sh:/app/update_env.sh
     depends_on:
       - back-end
     networks:
