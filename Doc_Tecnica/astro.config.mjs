@@ -294,7 +294,14 @@ integrations: [
 					{ label: 'Caso de pruebas', slug: 'usuario/problematica/casoprueba'},
 				],
 			},
-          ]
+			{
+				label: 'Documentacion tecnica',
+				items: [
+					{ label: 'Documnetacion tecnica', slug: 'usuario/problematica/documentaciontecnica'},
+				],
+			},
+
+		]
         },
       ]
     })
