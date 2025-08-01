@@ -2,6 +2,8 @@ import React, { useEffect, useState, useRef } from "react";
 import { addToast } from "@heroui/toast";
 import { Button } from "@heroui/button";
 
+const apiUrl = import.meta.env.VITE_WS_URL;
+
 interface Notification {
   id: number;
   usuario: string;
@@ -14,7 +16,7 @@ const ActividadNotifications: React.FC = () => {
   const socketRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
-    const wsUrl = "ws://192.168.0.106:8000/ws/api/asignacion_actividades/";
+    const wsUrl =`${apiUrl}asignaciones_actividades/`;
     socketRef.current = new WebSocket(wsUrl);
 
     socketRef.current.onopen = () => {

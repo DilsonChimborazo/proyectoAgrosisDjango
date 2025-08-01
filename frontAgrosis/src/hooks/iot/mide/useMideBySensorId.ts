@@ -40,31 +40,49 @@ export const useMideBySensorId = (sensorId: number): MideBySensorIdResponse => {
       setIsLoading(true);
       setError(null);
     
-      try {
-        const readingsRes = await fetch(`${apiUrl}mide/por-sensor/${sensorId}`);
-        if (!readingsRes.ok) {
-          throw new Error("No se pudieron obtener las lecturas del sensor.");
-        }
-        const readingsData = await readingsRes.json();
-        setData(readingsData.data);
-    
-        const sensorRes = await fetch(`${apiUrl}sensores/${sensorId}/`);
-        if (!sensorRes.ok) {
-          throw new Error("No se pudieron obtener los detalles del sensor.");
-        }
-        const sensorData: Sensor = await sensorRes.json();
-        setSensor(sensorData);
-      } catch (err) {
-        const customError = err instanceof Error ? err : new Error("Error desconocido");
-        setError(customError);
-        setData([]);
-        setSensor(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
+  try {
+    const token = localStorage.getItem("token");
 
+    if (!token) {
+      throw new Error("No se encontró el token en localStorage");
+    }
+
+    const readingsRes = await fetch(`${apiUrl}mide/por-sensor/${sensorId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}` 
+      }
+    });
+
+    if (!readingsRes.ok) {
+      throw new Error("No se pudieron obtener las lecturas del sensor.");
+    }
+    const readingsData = await readingsRes.json();
+    setData(readingsData.data);
+
+    const sensorRes = await fetch(`${apiUrl}sensores/${sensorId}/`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    if (!sensorRes.ok) {
+      throw new Error("No se pudieron obtener los detalles del sensor.");
+    }
+    const sensorData = await sensorRes.json();
+    setSensor(sensorData);
+  } catch (err) {
+    const customError = err instanceof Error ? err : new Error("Error desconocido");
+    setError(customError);
+    setData([]);
+    setSensor(null);
+  } finally {
+    setIsLoading(false);
+  }};
+    
     fetchData();
   }, [sensorId]);
 

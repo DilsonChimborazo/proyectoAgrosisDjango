@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 
 const apiUrl = import.meta.env.VITE_API_URL;
-const wsUrl = 'ws://localhost:8000/ws/api/evapotranspiracion/';
+const wsUrl = import.meta.env.VITE_WS_URL;
 
 export interface EvapoData {
     id: number;

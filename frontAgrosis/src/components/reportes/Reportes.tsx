@@ -1,11 +1,10 @@
 import { useState } from 'react';
 
 import useLotesActivos from '@/hooks/iot/lote/useLotesActivos';
-import { useReporteHerramientas } from '@/hooks/inventario/herramientas/useReporteHerramientas';
 import { useReporteInsumos } from '@/hooks/inventario/insumos/useReporteInsumos';
 import { useReporteControles } from '@/hooks/trazabilidad/control/useReporteControl';
 import { useReporteAsignaciones } from '@/hooks/trazabilidad/asignacion/useReportesAsignacion';
-import ReporteHerramientas from '@/components/inventario/herramientas/ReporteHerramientas';
+
 import Tabla from '@/components/globales/Tabla';
 import ReporteInsumosBajoStock from '../inventario/insumos/ReporteInsumo';
 import ReportesControl from '@/components/trazabilidad/control/ReportesControl';
@@ -42,7 +41,6 @@ const Reportes = () => {
   // Obtener datos de los hooks
 
   const { lotes, loading: loadingLotes, error: errorLotes } = useLotesActivos();
-  const { data: herramientas, isLoading: loadingHerramientas, error: errorHerramientas } = useReporteHerramientas();
   const { data: insumosBajoStock, isLoading: loadingInsumos, error: errorInsumos } = useReporteInsumos();
   const { data: controles, isLoading: loadingControles, error: errorControles } = useReporteControles();
   const { data: asignaciones, isLoading: loadingAsignaciones, error: errorAsignaciones } = useReporteAsignaciones();
@@ -102,16 +100,6 @@ const Reportes = () => {
       id: 'inventario',
       nombre: 'Inventario',
       reportes: [
-        {
-          id: 'herramientas',
-          nombre: 'Reporte de Herramientas',
-          requiereFechas: false,
-          componente: <ReporteHerramientas 
-                        data={herramientas} 
-                        loading={loadingHerramientas} 
-                        error={errorHerramientas} 
-                      />
-        },
         {
           id: 'insumos',
           nombre: 'Reporte de Insumos Bajo Stock',
