@@ -5,6 +5,8 @@ import Tabla from "@/components/globales/Tabla";
 import VentanaModal from "@/components/globales/VentanasModales";
 import CrearFicha from "./crearFicha";
 
+const apiUrl = import.meta.env.VITE_API_URL;
+
 const Fichas = () => {
   const navigate = useNavigate();
   const { data: fichas, isLoading, error, refetch } = UseFicha();
@@ -53,7 +55,7 @@ const Fichas = () => {
     const accion = ficha.is_active ? "desactivar" : "activar";
 
     try {
-      const response = await fetch(`http://localhost:8000/api/ficha/${ficha.id}/${accion}/`, {
+      const response = await fetch(`${apiUrl}ficha/${ficha.id}/${accion}/`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

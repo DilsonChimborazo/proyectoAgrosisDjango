@@ -54,7 +54,7 @@ const transformToDecodedUsuario = (user: Usuario): DecodedUsuario => ({
 });
 
 const fetchCurrentUser = async (): Promise<Usuario> => {
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  const apiUrl = import.meta.env.VITE_API_URL;
   const token = localStorage.getItem('token');
   const storedUser = localStorage.getItem('user');
 
@@ -81,7 +81,7 @@ const fetchCurrentUser = async (): Promise<Usuario> => {
   }
 
   try {
-    const response = await fetch(`${apiUrl}/perfil/`, {
+    const response = await fetch(`${apiUrl}perfil/`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
