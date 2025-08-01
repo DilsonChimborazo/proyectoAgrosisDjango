@@ -50,7 +50,17 @@ export function useMide() {
   // Cargar datos históricos de mediciones
   const fetchMediciones = async () => {
     try {
-      const response = await fetch(API_MEDICIONES);
+        const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("No se encontró el token en localStorage");
+      }
+      const response = await fetch(API_MEDICIONES, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        }
+      });
       if (!response.ok) throw new Error("Error al obtener mediciones");
       const data = await response.json();
       const processedData = data.map((item: any) => ({
@@ -70,14 +80,26 @@ export function useMide() {
 
   // Cargar sensores
   const fetchSensors = async () => {
-    try {
-      const response = await fetch(API_SENSORES);
-      if (!response.ok) throw new Error("Error al obtener sensores");
-      const data: Sensor[] = await response.json();
-      setSensors(data);
-    } catch (error) {
-      console.error("❌ Error obteniendo sensores:", error);
+  try {
+    const token = localStorage.getItem("token"); 
+    if (!token) {
+      throw new Error("No se encontró el token en localStorage");
     }
+
+    const response = await fetch(API_SENSORES, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}` 
+      }
+    });
+
+    if (!response.ok) throw new Error("Error al obtener sensores");
+    const data = await response.json();
+    setSensors(data);
+  } catch (error) {
+    console.error("❌ Error obteniendo sensores:", error);
+  }
   };
 
   // Conectar al WebSocket de mediciones
@@ -178,17 +200,24 @@ export function useMide() {
 
   // Crear un nuevo sensor
   const createSensor = async (sensor: Omit<Sensor, "id">) => {
-    try {
-      const response = await fetch(API_CREATE_SENSOR, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(sensor),
-      });
-      if (!response.ok) throw new Error("Error al crear sensor");
-    } catch (error) {
-      console.error("❌ Error creando sensor:", error);
-      throw error;
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("No se encontró el token en localStorage");
     }
+    const response = await fetch(API_CREATE_SENSOR, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify(sensor),
+    });
+    if (!response.ok) throw new Error("Error al crear sensor");
+  } catch (error) {
+    console.error("❌ Error creando sensor:", error);
+    throw error;
+  }
   };
 
   useEffect(() => {
