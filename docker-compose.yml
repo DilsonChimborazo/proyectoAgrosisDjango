@@ -20,6 +20,8 @@ services:
       - .env
     volumes:
       - ./back-end:/app
+    ports:
+      - "8000:8000"
     depends_on:
       - postgres
     networks:
