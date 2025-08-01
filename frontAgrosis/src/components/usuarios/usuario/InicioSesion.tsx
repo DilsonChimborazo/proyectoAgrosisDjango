@@ -152,7 +152,7 @@ export default function Login() {
               href="https://r.search.yahoo.com/_ylt=AwrE_3o4SEpoCgIApGWrcgx.;_ylu=Y29sbwNiZjEEcG9zAzEEdnRpZAMEc2VjA3Ny/RV=2/RE=1750908217/RO=10/RU=https%3a%2f%2foferta.senasofiaplus.edu.co%2fsofia-oferta%2f/RK=2/RS=TmHDuEeQUtEAKLd3xLFqMDjcRvI-"
               title="Sofia plus"
             >
-              <img src="../../../../public/logoSena.png" alt="" className="w-10 h-10" />
+              <img src="/logoSena.png" alt="" className="w-10 h-10" />
             </a>
           </div>
         </div>
