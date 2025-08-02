@@ -94,7 +94,7 @@ export default function Principal({ children }: LayoutProps) {
     navigate("/");
   };
 
-type Rol = "Invitado" | "Aprendiz" | "Pasante" | "SinRol" | "Administrador";
+type Rol = "Invitado" | "Aprendiz" | "Pasante" | "SinRol" | "Administrador" | "Instructor";
 
 // 2. Permisos definidos por rol
 const permisosPorRol: Record<Rol, string[]> = {
@@ -107,6 +107,7 @@ const permisosPorRol: Record<Rol, string[]> = {
     .map(item => item.name),
   SinRol: [],
   Administrador: menuItems.map(item => item.name),
+  Instructor: menuItems.map(item => item.name),
 };
 
 // 3. Detectar rol actual del usuario
