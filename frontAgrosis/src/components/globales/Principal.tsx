@@ -94,7 +94,7 @@ export default function Principal({ children }: LayoutProps) {
     navigate("/");
   };
 
-type Rol = "Invitado" | "Aprendiz" | "Pasante" | "SinRol" | "Administrador" | "Instructor";
+type Rol = "Invitado" | "Aprendiz" | "Pasante" | "SinRol" | "Administrador" | "Instructor" | "Operario";
 
 // 2. Permisos definidos por rol
 const permisosPorRol: Record<Rol, string[]> = {
@@ -103,6 +103,9 @@ const permisosPorRol: Record<Rol, string[]> = {
     .filter(item => !["Inventario", "IoT"].includes(item.name))
     .map(item => item.name),
   Pasante: menuItems
+    .filter(item => !["IoT"].includes(item.name))
+    .map(item => item.name),
+  Operario: menuItems
     .filter(item => !["IoT"].includes(item.name))
     .map(item => item.name),
   SinRol: [],
