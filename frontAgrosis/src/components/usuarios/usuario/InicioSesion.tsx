@@ -31,21 +31,14 @@ export default function Login() {
       return;
     }
 
-  try {
-    const token = localStorage.getItem("token"); 
-    
-    if (!token) {
-      throw new Error("No se encontró el token en localStorage");
-    }
-
-    const response = await fetch(`${apiUrl}token/`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}` 
-      },
-      body: JSON.stringify(data),
-    });
+    try {
+      const response = await fetch(`${apiUrl}token/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
 
       const responseData = await response.json();
       if (!response.ok) {
@@ -168,5 +161,5 @@ export default function Login() {
       </div>
     </div>
   </div>
-  );  
+  );
 }
