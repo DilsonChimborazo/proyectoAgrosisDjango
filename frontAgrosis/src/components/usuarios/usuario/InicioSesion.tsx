@@ -34,7 +34,9 @@ export default function Login() {
     try {
       const response = await fetch(`${apiUrl}token/`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(data),
       });
 
@@ -159,5 +161,5 @@ export default function Login() {
       </div>
     </div>
   </div>
-  );  
+  );
 }

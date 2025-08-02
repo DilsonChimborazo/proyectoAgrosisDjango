@@ -29,14 +29,11 @@ export function useAuth() {
         throw new Error(data.detail || "Error en la autenticación.");
       }
 
-      // Guardar tokens
       localStorage.setItem("token", data.access);
       if (data.refresh) {
         localStorage.setItem("refreshToken", data.refresh);
       }
 
-      // No es necesario hacer fetch de perfil, ya viene en el token
-      // El contexto se encargará de decodificar y establecer el usuario
       return { success: true };
     } catch (err: any) {
       setError(err.message);

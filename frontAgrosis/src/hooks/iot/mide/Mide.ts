@@ -42,13 +42,24 @@ export interface Sensor {
   }
 
 const Mide = async (): Promise<Mide[]> => {
-    try {
-        const { data } = await axios.get(`${apiUrl}mide/`);
-        return data;
-    } catch (error) {
-        console.error("Error al obtener usuarios:", error);
-        throw new Error("No se pudo obtener la lista de usuarios");
+  try {
+    const token = localStorage.getItem("token"); 
+    if (!token) {
+      throw new Error("No se encontró el token en localStorage");
     }
+
+    const { data } = await axios.get(`${apiUrl}mide/`, {
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}` 
+      }
+    });
+
+    return data;
+  } catch (error) {
+    console.error("Error al obtener datos de mide:", error);
+    throw new Error("No se pudo obtener la lista de datos de mide");
+  }
 };
 
 export const useMide = () => {

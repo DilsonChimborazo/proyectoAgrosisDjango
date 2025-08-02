@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 
-const apiUrl = import.meta.env.VITE_API_URL || 'http://192.168.101.7:8000/api/';
-const wsUrl = 'ws://localhost:8000/ws/api/evapotranspiracion/';
+const apiUrl = import.meta.env.VITE_API_URL;
+const wsUrl = import.meta.env.VITE_WS_URL;
+const WS_URL = `${wsUrl}evapotranspiracion/`;
 
 export interface EvapoData {
     id: number;
@@ -89,7 +90,7 @@ export function useEvapotranspiracion(plantacionId: number) {
             return;
         }
 
-        const ws = new WebSocket(wsUrl);
+        const ws = new WebSocket(WS_URL);
 
         ws.onopen = () => {
         };
@@ -144,7 +145,7 @@ export function useEvapotranspiracion(plantacionId: number) {
 
         ws.onclose = () => {
             setTimeout(() => {
-                const newWs = new WebSocket(wsUrl);
+                const newWs = new WebSocket(WS_URL);
                 newWs.onopen = ws.onopen;
                 newWs.onmessage = ws.onmessage;
                 newWs.onerror = ws.onerror;

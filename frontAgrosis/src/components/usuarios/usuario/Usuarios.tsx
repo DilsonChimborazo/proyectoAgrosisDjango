@@ -7,6 +7,8 @@ import ActualizarUsuarioModal from "../usuario/UpdateUsuario";
 import { showToast } from "@/components/globales/Toast";
 import LoadingBox from "@/components/globales/LoadingBox";
 
+const apiUrl = import.meta.env.VITE_API_URL;
+
 const Usuarios = () => {
   const { data: usuarios, isLoading, error, refetch } = useUsuarios();
   const [selectedUser, setSelectedUser] = useState<Record<string, any> | null>(null);
@@ -40,7 +42,7 @@ const Usuarios = () => {
   const openModalHandler = useCallback(async (usuario: Record<string, any>) => {
     const token = localStorage.getItem("token");
     try {
-      const res = await fetch(`http://localhost:8000/api/usuario/${usuario.id}`, {
+      const res = await fetch(`${apiUrl}usuario/${usuario.id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -97,7 +99,7 @@ const Usuarios = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:8000/api/usuario/${usuario.id}/${accion}/`,
+        `${apiUrl}usuario/${usuario.id}/${accion}/`,
         {
           method: "POST",
           headers: {

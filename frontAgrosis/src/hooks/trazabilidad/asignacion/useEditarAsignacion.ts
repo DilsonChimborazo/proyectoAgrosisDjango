@@ -66,7 +66,7 @@ export interface EditarAsignacionDTO {
 // Función para editar una asignación con manejo de errores
 const editarAsignacion = async (asignacionData: EditarAsignacionDTO): Promise<Asignacion> => {
   try {
-    const response = await axios.put(`${apiUrl}/asignaciones_actividades/${asignacionData.id}/`, asignacionData);
+    const response = await axios.put(`${apiUrl}asignaciones_actividades/${asignacionData.id}/`, asignacionData);
     return response.data;
   } catch (error: any) {
     throw new Error("No se pudo editar la asignación");
