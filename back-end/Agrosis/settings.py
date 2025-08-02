@@ -10,15 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
-from dotenv import load_dotenv
-import os
 from pathlib import Path
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-# ✅ Cargar el archivo .env que está en la raíz del proyecto
-dotenv_path = BASE_DIR.parent / ".env"
-load_dotenv(dotenv_path=dotenv_path)
+from datetime import timedelta
+import os
 
 
 
