@@ -30,10 +30,10 @@ WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org", -18000, 60000); 
 
 // 🌐 Configuración
-const char* websocket_server = "172.20.10.13";
+const char* websocket_server = "192.168.101.6";
 const int websocket_port = 8000;
 const char* websocket_path = "/ws/api/mide/";
-const char* sensoresUrl = "http://172.20.10.13:8000/api/sensores/";
+const char* sensoresUrl = "http:/192.168.101.6:8000/api/sensores/";
 WebSocketsClient webSocket;
 
 // WiFiManager
