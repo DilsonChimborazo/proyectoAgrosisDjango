@@ -4,7 +4,7 @@ import Tabla from "../../globales/Tabla";
 import VentanaModal from "../../globales/VentanasModales";
 import CrearLote from "./CrearLote";
 import EditarLote from "./EditarLote";
-import Switch from 'react-switch';
+import Switch from "react-switch";
 import { useNavigate } from "react-router-dom";
 import DescargarTablaPDF from "../../globales/DescargarTablaPDF";
 
@@ -25,9 +25,9 @@ const Lotes = () => {
   }, []);
 
   const handleToggleStatus = async (lote: any) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      navigate('/login');
+      navigate("/login");
       return;
     }
 
@@ -60,8 +60,7 @@ const Lotes = () => {
       }
 
       refetch();
-    } catch (error: any) {
-    }
+    } catch (error: any) {}
   };
 
   const openModalHandler = (lote: object, type: "details" | "update") => {
@@ -79,16 +78,6 @@ const Lotes = () => {
       );
     }
 
-    setIsModalOpen(true);
-  };
-
-  const openCreateModal = () => {
-    if (!esAdministrador) {
-      return;
-    }
-    setSelectedLote(null);
-    setModalType("create");
-    setModalContenido(<CrearLote onSuccess={handleSuccess} />);
     setIsModalOpen(true);
   };
 
@@ -121,8 +110,8 @@ const Lotes = () => {
     }
   };
 
-  const headers = ["ID", "Nombre", "dimencion", "Estado"];
-  const columnasPDF = ["ID", "Nombre", "dimencion", "Estado"];
+  const headers = ["ID", "Nombre", "Dimensión", "Estado"];
+  const columnasPDF = ["ID", "Nombre", "Dimensión", "Estado"];
   const datosPDF = lotes && Array.isArray(lotes)
     ? lotes
         .sort((a, b) => (a.estado === b.estado ? 0 : a.estado ? -1 : 1))
@@ -136,21 +125,17 @@ const Lotes = () => {
 
   if (isLoading) return <div>Cargando lotes...</div>;
   if (error instanceof Error) {
-    return (
-      <div>
-        Error al cargar lotes: {error.message}
-      </div>
-    );
+    return <div>Error al cargar lotes: {error.message}</div>;
   }
 
   const lotesList = Array.isArray(lotes) ? lotes : [];
 
   const mappedLotes = lotesList
-    .sort((a, b) => (a.estado === b.estado ? 0 : a.estado ? -1 : 1)) // Ordena: activos primero, inactivos después
+    .sort((a, b) => (a.estado === b.estado ? 0 : a.estado ? -1 : 1))
     .map((item) => ({
       id: item.id,
       nombre: item.nombre_lote,
-      dimencion: item.dimencion,
+      dimension: item.dimencion,
       estado: esAdministrador ? (
         <Switch
           onChange={() => handleToggleStatus(item)}
@@ -168,7 +153,7 @@ const Lotes = () => {
           {item.estado ? "Activo" : "Inactivo"}
         </span>
       ),
-      rowClassName: item.estado ? "bg-white" : "bg-gray-100" // Color de fondo según estado
+      rowClassName: item.estado ? "bg-white" : "bg-gray-100",
     }));
 
   return (
@@ -179,7 +164,20 @@ const Lotes = () => {
         data={mappedLotes}
         onClickAction={handleRowClick}
         onUpdate={handleUpdateClick}
-        onCreate={openCreateModal}
+        onCreate={() => {
+          if (!esAdministrador) {
+            return;
+          }
+          setModalContenido(
+            <CrearLote
+              onSuccess={() => {
+                refetch();
+                closeModal();
+              }}
+            />
+          );
+          setIsModalOpen(true);
+        }}
         createButtonTitle="Crear"
         extraButton={
           <DescargarTablaPDF
@@ -199,16 +197,27 @@ const Lotes = () => {
             modalType === "details"
               ? "Detalles del Lote"
               : modalType === "create"
-              ? ""
-              : ""
+              ? "Crear Nuevo Lote"
+              : "Editar Lote"
           }
           contenido={
             modalType === "details" && selectedLote ? (
               <div className="grid grid-cols-2 gap-4">
-                <p><strong>ID:</strong> {(selectedLote as any).id}</p>
-                <p><strong>Nombre:</strong> {(selectedLote as any).nombre_lote || "Sin nombre"}</p>
-                <p><strong>Dimensión:</strong> {(selectedLote as any).dimencion || "Sin dimensión"}</p>
-                <p><strong>Estado:</strong> {(selectedLote as any).estado ? "Activo" : "Inactivo"}</p>
+                <p>
+                  <strong>ID:</strong> {(selectedLote as any).id}
+                </p>
+                <p>
+                  <strong>Nombre:</strong>{" "}
+                  {(selectedLote as any).nombre_lote || "Sin nombre"}
+                </p>
+                <p>
+                  <strong>Dimensión:</strong>{" "}
+                  {(selectedLote as any).dimencion || "Sin dimensión"}
+                </p>
+                <p>
+                  <strong>Estado:</strong>{" "}
+                  {(selectedLote as any).estado ? "Activo" : "Inactivo"}
+                </p>
               </div>
             ) : (
               modalContenido
