@@ -51,7 +51,7 @@ const PlantacionSelector = ({
                             <option value="">Seleccione una plantación</option>
                             {plantaciones?.map((plantacion) => (
                                 <option key={plantacion.id} value={plantacion.id}>
-                                    {formatDate(plantacion.fecha_plantacion)} - {plantacion.fk_id_cultivo.nombre_cultivo}
+                                    {(plantacion.fecha_plantacion)} - {plantacion.fk_id_cultivo.nombre_cultivo}
                                 </option>
                             ))}
                         </select>
