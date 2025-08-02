@@ -11,7 +11,6 @@ COPY tsconfig.json ./
 COPY . .
 COPY .env .env
 
-
 # Instala dependencias
 RUN npm install --legacy-peer-deps
 
