@@ -10,14 +10,15 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
-from pathlib import Path
-from datetime import timedelta
-import os
 from dotenv import load_dotenv
-
-load_dotenv()
+import os
+from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# ✅ Cargar el archivo .env que está en la raíz del proyecto
+dotenv_path = BASE_DIR.parent / ".env"
+load_dotenv(dotenv_path=dotenv_path)
 
 
 
@@ -240,7 +241,7 @@ EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
+FRONTEND_URL = os.getenv("FRONTEND_URL")
 
 
 
