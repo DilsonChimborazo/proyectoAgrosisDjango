@@ -1,5 +1,6 @@
 asgiref==3.8.1
 django-extensions
+python-dotenv
 reportlab
 itsdangerous
 requests
@@ -41,6 +42,5 @@ typing_extensions==4.12.2
 tzdata==2024.1
 uritemplate==4.1.1
 zope.interface==7.2
-python-dotenv
 
 
