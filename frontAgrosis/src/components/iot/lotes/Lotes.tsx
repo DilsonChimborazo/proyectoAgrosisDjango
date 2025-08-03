@@ -110,8 +110,8 @@ const Lotes = () => {
     }
   };
 
-  const headers = ["ID", "Nombre", "Dimensión", "Estado"];
-  const columnasPDF = ["ID", "Nombre", "Dimensión", "Estado"];
+  const headers = ["ID", "Nombre", "dimension", "Estado"];
+  const columnasPDF = ["ID", "Nombre", "dimension", "Estado"];
   const datosPDF = lotes && Array.isArray(lotes)
     ? lotes
         .sort((a, b) => (a.estado === b.estado ? 0 : a.estado ? -1 : 1))
