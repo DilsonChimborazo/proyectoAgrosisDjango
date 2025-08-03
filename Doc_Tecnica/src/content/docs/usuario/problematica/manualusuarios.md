@@ -90,6 +90,14 @@ Este manual describe el uso del sistema Agrosoft, una plataforma híbrida (web) 
 
 ---
 
+### videos tutoriales de como utilizar el sistema agrosoft
+
+- https://youtu.be/VlnFWH1dJ1A -> ***Modulo Usuarios***
+- https://youtu.be/539JwMfBieo -> ***Modulo Inventario***
+- https://youtu.be/VlnFWH1dJ1A -> ***Modulo IOT***
+- https://youtu.be/K1ROXcKzBHw -> ***Modulo Trazabilidad***
+- https://youtu.be/bu5zLAFRVyg -> ***Modulo finanzas***
+
 ## 5. Roles y Usuarios
 
 ### 5.1 Usuarios
