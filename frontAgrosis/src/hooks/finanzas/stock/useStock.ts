@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import axios, { AxiosError } from 'axios';
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface UnidadMedida {
   id: number;
@@ -100,7 +99,7 @@ const getToken = () => {
 const fetchProducciones = async (): Promise<Produccion[]> => {
   try {
     const token = getToken();
-    const { data } = await axios.get(`${apiUrl}produccion/`, {
+    const { data } = await axios.get(`/api/produccion/`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -117,7 +116,7 @@ const fetchProducciones = async (): Promise<Produccion[]> => {
 const fetchStockByProduccion = async (produccionId: number): Promise<Stock[]> => {
   try {
     const token = getToken();
-    const { data } = await axios.get(`${apiUrl}stock/?fk_id_produccion=${produccionId}`, {
+    const { data } = await axios.get(`/api/stock/?fk_id_produccion=${produccionId}`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -134,7 +133,7 @@ const fetchStockByProduccion = async (produccionId: number): Promise<Stock[]> =>
 const fetchAllStock = async (): Promise<Stock[]> => {
   try {
     const token = getToken();
-    const { data } = await axios.get(`${apiUrl}stock/`, {
+    const { data } = await axios.get(`/api/stock/`, {
       headers: {
         Authorization: `Bearer ${token}`
       }

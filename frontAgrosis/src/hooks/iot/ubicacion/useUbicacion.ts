@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 // Interfaz para Ubicacion
 export interface Ubicacion {
@@ -13,7 +12,7 @@ export interface Ubicacion {
 // Función para obtener las ubicaciones desde la API
 const fetchUbicaciones = async (): Promise<Ubicacion[]> => {
   try {
-    const { data } = await axios.get(`${apiUrl}ubicacion/`); // Ajusta la ruta según tu API
+    const { data } = await axios.get(`/api/ubicacion/`); // Ajusta la ruta según tu API
     return data;
   } catch (error) {
     console.error("Error al obtener las ubicaciones:", error);

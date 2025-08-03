@@ -12,7 +12,6 @@ import { cargarImagenComoBase64 } from './utils';
 import { TrazabilidadCultivoReporte } from '@/components/finanzas/trazabilidad/Types';
 import { DescargarExcel } from '@/components/globales/DescargarExcel';
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 interface ReporteMultiplesCultivosProps {
   plantaciones: Plantacion[] | undefined;
@@ -28,7 +27,7 @@ const useTrazabilidadMultiples = (plantacionIds: number[]) => {
       queryFn: async (): Promise<TrazabilidadCultivoReporte> => {
         try {
           console.log(`Solicitando datos para plantación ${id}`);
-          const response = await axios.get(`${apiUrl}trazabilidad/plantacion/${id}/`, {
+          const response = await axios.get(`/api/trazabilidad/plantacion/${id}/`, {
             headers: {
               'Accept': 'application/json',
               'Content-Type': 'application/json',

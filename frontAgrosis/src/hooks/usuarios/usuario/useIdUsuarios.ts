@@ -22,8 +22,6 @@ interface Usuario {
     ficha?: Ficha | null;
 }
 
-const apiUrl = import.meta.env.VITE_API_URL;
-
 export const useUsuarioPorId = (id: string | undefined) => {
     return useQuery<Usuario>({  // 🔥 Aquí especificamos que la consulta devuelve un 'Usuario'
         queryKey: ["Usuario", id],
@@ -33,7 +31,7 @@ export const useUsuarioPorId = (id: string | undefined) => {
                 throw new Error("No se ha encontrado un token de autenticación");
             }
 
-            const { data } = await axios.get<Usuario>(`${apiUrl}usuario/${id}`, {
+            const { data } = await axios.get<Usuario>(`/api/usuario/${id}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 

@@ -2,7 +2,6 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
-const apiUrl = import.meta.env.VITE_API_URL;
 export interface Rol{
   id: number;
   rol: string;
@@ -122,7 +121,7 @@ export interface Programacion {
 
 const fetchProgramaciones = async (): Promise<Programacion[]> => {
   const token = localStorage.getItem('token');
-  const { data } = await axios.get(`${apiUrl}programaciones/`, {
+  const { data } = await axios.get(`/api/programaciones/`, {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',

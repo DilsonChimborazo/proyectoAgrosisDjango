@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 // Interfaces
 export interface Mide {
@@ -47,7 +46,7 @@ export const useMideBySensorId = (sensorId: number): MideBySensorIdResponse => {
       throw new Error("No se encontró el token en localStorage");
     }
 
-    const readingsRes = await fetch(`${apiUrl}mide/por-sensor/${sensorId}`, {
+    const readingsRes = await fetch(`/api/mide/por-sensor/${sensorId}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -61,7 +60,7 @@ export const useMideBySensorId = (sensorId: number): MideBySensorIdResponse => {
     const readingsData = await readingsRes.json();
     setData(readingsData.data);
 
-    const sensorRes = await fetch(`${apiUrl}sensores/${sensorId}/`, {
+    const sensorRes = await fetch(`/api/sensores/${sensorId}/`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

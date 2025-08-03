@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface Rol {
   id?: number;
@@ -14,7 +13,7 @@ const fetchRoles = async (): Promise<Rol[]> => {
     const token = localStorage.getItem("token");
     if (!token) throw new Error("No hay token de autenticación");
 
-    const response = await axios.get(`${apiUrl}rol/`, {
+    const response = await axios.get(`/api/rol/`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

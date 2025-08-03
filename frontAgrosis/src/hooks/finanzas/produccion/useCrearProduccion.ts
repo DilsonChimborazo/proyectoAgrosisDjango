@@ -2,7 +2,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { Produccion } from "./useProduccion";
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface CrearProduccionData {
   nombre_produccion: string;
@@ -30,7 +29,7 @@ export const useCrearProduccion = () => {
       };
 
       const { data } = await axios.post<Produccion>(
-        `${apiUrl}produccion/`,
+        `/api/produccion/`,
         datosEnvio,
         {
           headers: {

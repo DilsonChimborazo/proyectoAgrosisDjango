@@ -36,7 +36,7 @@ const Lotes = () => {
     }
 
     const action = lote.estado ? "desactivar" : "activar";
-    const url = `${import.meta.env.VITE_API_URL}lote/${lote.id}/${action}/`;
+    const url = `/api/lote/${lote.id}/${action}/`;
 
     try {
       const response = await fetch(url, {

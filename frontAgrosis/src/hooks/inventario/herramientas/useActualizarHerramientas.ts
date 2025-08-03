@@ -1,8 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
-const apiUrl = import.meta.env.VITE_API_URL;
-
 export interface Herramientas {
     id: number;
     nombre_h: string;
@@ -37,7 +35,7 @@ export const useActualizarHerramientas = () => {
             }
 
             try {
-                const { data } = await axios.put(`${apiUrl}herramientas/${id}/`, datos, {
+                const { data } = await axios.put(`/api/herramientas/${id}/`, datos, {
                     headers: {
                         "Content-Type": "application/json",
                         "Authorization": `Bearer ${token}`,

@@ -1,8 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
-const apiUrl = import.meta.env.VITE_API_URL;
-
 interface Rol {
   id: number;
   nombre: string;
@@ -31,7 +29,7 @@ export const useActualizarUsuario = () => {
 
       const { id, ...datos } = usuarioActualizado;
 
-      const { data } = await axios.patch(`${apiUrl}usuario/${id}/`, datos, {
+      const { data } = await axios.patch(`usuario/${id}/`, datos, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

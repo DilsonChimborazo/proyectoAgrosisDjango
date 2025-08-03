@@ -29,7 +29,6 @@ import { useHerramientas } from "@/hooks/inventario/herramientas/useHerramientas
 import { useInsumo } from "@/hooks/inventario/insumos/useInsumo";
 import { useAsignacion } from "@/hooks/trazabilidad/asignacion/useAsignacion";
 
-const apiUrl = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
 // Interfaces
 interface UnidadMedida {
@@ -106,7 +105,7 @@ const SafeImage = ({
     if (!path) return null;
     return path.startsWith("http://") || path.startsWith("https://")
       ? path
-      : `${apiUrl}/${(path ?? '').replace(/^\/+/, "")}`;
+      : `/${(path ?? '').replace(/^\/+/, "")}`;
   };
 
   useEffect(() => {
@@ -201,7 +200,7 @@ const useMovimientosBodega = () => {
   return useQuery<MovimientoBodega[], Error>({
     queryKey: ["movimientosBodega"],
     queryFn: async () => {
-      const { data } = await axios.get(`${apiUrl}bodega/`);
+      const { data } = await axios.get(`/api/bodega/`);
       return data;
     },
     gcTime: 1000 * 60 * 5,

@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface Plantacion {
     fk_id_eras: number;
@@ -18,7 +17,7 @@ export const useCrearPlantacion = () => {
 
     return useMutation({
         mutationFn: async (nuevaPlantacion: Plantacion) => {
-            const { data } = await axios.post(`${apiUrl}plantacion/`, nuevaPlantacion);
+            const { data } = await axios.post(`/api/plantacion/`, nuevaPlantacion);
             return data;
         },
         onSuccess: () => {

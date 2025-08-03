@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface Pea {
     id: number;
@@ -13,7 +12,7 @@ export interface Pea {
 // Función para obtener la lista de Peas con manejo de errores
 const fetchPeas = async (): Promise<Pea[]> => {
     try {
-        const { data } = await axios.get(`${apiUrl}pea/`);
+        const { data } = await axios.get(`/api/pea/`);
         return data;
     } catch (error) {
         console.error("Error al obtener la lista de Peas:", error);

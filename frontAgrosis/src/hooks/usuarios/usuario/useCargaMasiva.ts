@@ -2,7 +2,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 export const useCargaMasivaUsuarios = () => {
   const queryClient = useQueryClient();
@@ -15,7 +14,7 @@ export const useCargaMasivaUsuarios = () => {
       }
 
       const { data } = await axios.post(
-        `${apiUrl}usuario/carga_masiva/`,
+        `/api/usuario/carga_masiva/`,
         formData,
         {
           headers: {

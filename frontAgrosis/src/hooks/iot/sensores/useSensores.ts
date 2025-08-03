@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface Sensores {
     id: number;
@@ -20,7 +19,7 @@ const fetchSensores = async (): Promise<Sensores[]> => {
         throw new Error("No se encontró el token en localStorage");
     }
 
-    const { data } = await axios.get(`${apiUrl}sensores/`, {
+    const { data } = await axios.get(`/api/sensores/`, {
         headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}` 

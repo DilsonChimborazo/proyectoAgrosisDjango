@@ -3,7 +3,6 @@ import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import axios from 'axios';
 import { Cultivo } from '../asignacion/useAsignacion';
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface Actividad {
   id: number;
@@ -53,7 +52,7 @@ export interface Realiza {
 
 const fetchRealiza = async (): Promise<Realiza[]> => {
   try {
-    const { data } = await axios.get(`${apiUrl}realiza/`);
+    const { data } = await axios.get(`/api/realiza/`);
     return data;
   } catch (error: any) {
     throw new Error("No se pudo obtener la lista de realiza");
@@ -76,7 +75,7 @@ export interface CrearRealizaDTO {
 
 const crearRealiza = async (realizaData: CrearRealizaDTO): Promise<Realiza> => {
   try {
-    const response = await axios.post(`${apiUrl}realiza/`, realizaData);
+    const response = await axios.post(`/api/realiza/`, realizaData);
     return response.data;
   } catch (error: any) {
     throw new Error("No se pudo crear el realiza");

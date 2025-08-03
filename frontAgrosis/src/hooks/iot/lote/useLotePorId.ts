@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-
-const apiUrl = import.meta.env.VITE_API_URL; 
+ 
 
 export const useLotePorId = (id: string | undefined) => {
     return useQuery({
@@ -11,7 +10,7 @@ export const useLotePorId = (id: string | undefined) => {
                 console.error("❌ Error: ID no proporcionado");
                 throw new Error("ID no proporcionado");
             }
-            const { data } = await axios.get(`${apiUrl}lote/${id}`);
+            const { data } = await axios.get(`/api/lote/${id}`);
             return data;
         },
         enabled: !!id,

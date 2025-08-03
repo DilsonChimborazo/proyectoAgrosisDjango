@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface Residuos {
     id: number;
@@ -51,7 +50,7 @@ export interface TipoResiduos {
 // Función para obtener los usuarios con manejo de errores
 const fetchAsignacion = async (): Promise<Residuos[]> => {
     try {
-        const response = await axios.get(`${apiUrl}residuos/`);
+        const response = await axios.get(`/api/residuos/`);
         return response.data;
     } catch (error) {
         console.error("Error al obtener residuos:", error);

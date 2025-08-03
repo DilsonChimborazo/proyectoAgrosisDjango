@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface Lotes {
     id: number;
@@ -12,7 +11,7 @@ export interface Lotes {
 
 const fetchLotes = async (): Promise<Lotes[]> => {
     try {
-        const { data } = await axios.get(`${apiUrl}lote/`);
+        const { data } = await axios.get(`/api/lote/`);
         return data;
     } catch (error) {
         console.error("Error al obtener los lotes:", error);

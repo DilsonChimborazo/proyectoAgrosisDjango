@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface Herramientas {
     id: number
@@ -56,7 +55,7 @@ export interface Bodega {
 
 const fetchBodega = async (): Promise<Bodega[]> => {
     try {
-        const { data } = await axios.get(`${apiUrl}bodega/`);
+        const { data } = await axios.get(`/api/bodega/`);
         return data;
     } catch (error) {
         console.error("Error al obtener los movimientos de bodega:", error);

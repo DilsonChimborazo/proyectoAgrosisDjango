@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
-const apiUrl = import.meta.env.VITE_API_URL;
+
 
 export interface TipoCultivo {
     id: number;
@@ -15,7 +15,7 @@ export const useCrearTipoCultivo = () => {
 
     return useMutation({
         mutationFn: async (nuevoTipoCultivo: Omit<TipoCultivo, 'id'>) => {
-            const { data } = await axios.post(`${apiUrl}tipos_cultivo/`, nuevoTipoCultivo);
+            const { data } = await axios.post(`/api/tipos_cultivo/`, nuevoTipoCultivo);
             return data;
         },
         onSuccess: () => {

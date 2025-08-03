@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 
 export interface Cultivos{
@@ -35,7 +34,7 @@ export interface Cultivos {
 
 const fetchAsignacion = async (): Promise<Cultivos[]> => {
     try {
-        const response = await axios.get(`${apiUrl}cultivo/`);
+        const response = await axios.get(`/api/cultivo/`);
         return response.data;
     } catch (error: any) {
         console.error("Error al obtener cultivos:", error.response?.data || error.message);

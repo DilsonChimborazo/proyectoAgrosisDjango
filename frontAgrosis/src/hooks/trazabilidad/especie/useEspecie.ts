@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface Especie {
   id: number;
@@ -19,7 +18,7 @@ interface TipoCultivo {
 
 const fetchEspecie = async (): Promise<Especie[]> => {
   try {
-    const { data} = await axios.get(`${apiUrl}especies/`);
+    const { data} = await axios.get(`/api/especies/`);
     if (!Array.isArray(data)) {
       throw new Error("La respuesta del API no es una lista de especies");
     }

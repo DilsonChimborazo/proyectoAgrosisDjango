@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 
 
@@ -28,7 +27,7 @@ export const useCrearVenta = () => {
 
       try {
         const { data } = await axios.post(
-          `${apiUrl}venta/`, 
+          `/api/venta/`, 
           nuevaVenta,
           {
             headers: {

@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface Ficha {
     id?: number;
@@ -23,7 +22,7 @@ export const useCreateFicha = () =>{
           throw new Error("No se ha encontrado un token de autenticacion");
         }
   const {data} = await axios.post(
-    `${apiUrl}ficha/`,
+    `/api/ficha/`,
     nuevaFicha,
     {
 

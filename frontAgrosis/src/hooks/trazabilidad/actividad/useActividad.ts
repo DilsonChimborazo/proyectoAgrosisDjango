@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface Actividad {
   id: number;
@@ -12,7 +11,7 @@ export interface Actividad {
 // Función para obtener las actividades con manejo de errores
 const fetchActividades = async (): Promise<Actividad[]> => {
   try {
-    const { data } = await axios.get(`${apiUrl}actividad/`);
+    const { data } = await axios.get(`/api/actividad/`);
     return data;
   } catch (error) {
     throw new Error('No se pudo obtener la lista de actividades');

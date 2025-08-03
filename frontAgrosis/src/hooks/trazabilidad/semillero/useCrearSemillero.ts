@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
-const apiUrl = import.meta.env.VITE_API_URL;
+
 
 export interface Semillero {
     id: number; // ID único
@@ -17,7 +17,7 @@ export const useCrearSemillero = () => {
     return useMutation({
         mutationFn: async (nuevoSemillero: Semillero) => {
 
-            const { data } = await axios.post(`${apiUrl}semilleros/`, nuevoSemillero); // Endpoint correcto
+            const { data } = await axios.post(`/api/semilleros/`, nuevoSemillero); // Endpoint correcto
             return data;
         },
         onSuccess: () => {

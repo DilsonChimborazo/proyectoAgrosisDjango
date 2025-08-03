@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface Eras{
     id: number;
@@ -21,7 +20,7 @@ export const useCrearEras = () => {
                 throw new Error("No se ha encontrado un token de autenticación");
             }
     const { data } = await axios.post(
-        `${apiUrl}eras/`,
+        `eras/`,
         nuevaEra,
         {
             headers: {

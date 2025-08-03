@@ -1,8 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 
-const apiUrl = import.meta.env.VITE_API_URL;
-const wsUrl = import.meta.env.VITE_WS_URL;
-const WS_URL = `${wsUrl}evapotranspiracion/`;
+
+const WS_URL = `/api/evapotranspiracion/`;
 
 export interface EvapoData {
     id: number;
@@ -38,7 +37,7 @@ export function useEvapotranspiracion(plantacionId: number) {
             }
 
 
-            const response = await fetch(`${apiUrl}evapotranspiracion/?fk_id_plantacion=${plantacionId}`, {
+            const response = await fetch(`/api/evapotranspiracion/?fk_id_plantacion=${plantacionId}`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     'Content-Type': 'application/json',

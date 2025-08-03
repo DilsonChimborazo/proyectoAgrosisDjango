@@ -2,7 +2,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { showToast } from '@/components/globales/Toast';
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 interface Asignacion {
   id: number;
@@ -36,7 +35,7 @@ const actualizarAsignacion = async (asignacion: ActualizarAsignacionDTO): Promis
 
   try {
     const response = await axios.post(
-      `${apiUrl}asignaciones_actividades/${asignacion.id}/finalizar/`,
+      `/api/asignaciones_actividades/${asignacion.id}/finalizar/`,
       updateData,
       {
         headers: {

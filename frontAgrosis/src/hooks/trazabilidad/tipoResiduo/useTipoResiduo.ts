@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface TipoResiduo {
   id: number;
@@ -12,7 +11,7 @@ export interface TipoResiduo {
 const fetchTiposResiduos = async (): Promise<TipoResiduo[]> => {
   try {
    // const token = localStorage.getItem("token");
-    const { data } = await axios.get(`${apiUrl}tipo_residuos/`, {
+    const { data } = await axios.get(`/api/tipo_residuos/`, {
       headers: {
         //Authorization: `Bearer ${token}`,
       },

@@ -1,9 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
-// URL base de la API
-const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/';
-
 // Definición de interfaces
 export interface Insumo {
   id: number;
@@ -145,7 +142,7 @@ axios.interceptors.request.use(
 // Función auxiliar para obtener detalles de insumos
 const fetchInsumos = async (ids: number[]): Promise<Insumo[]> => {
   try {
-    const { data } = await axios.get(`${apiUrl}insumo/`, {
+    const { data } = await axios.get(`/api/insumo/`, {
       params: { ids: ids.join(',') }, // Ajusta según la API, podría necesitar un filtro diferente
     });
     return Array.isArray(data) ? data : [];
@@ -157,7 +154,7 @@ const fetchInsumos = async (ids: number[]): Promise<Insumo[]> => {
 // Función auxiliar para obtener detalles de herramientas
 const fetchHerramientas = async (ids: number[]): Promise<Herramienta[]> => {
   try {
-    const { data } = await axios.get(`${apiUrl}herramientas/`, {
+    const { data } = await axios.get(`/api/herramientas/`, {
       params: { ids: ids.join(',') }, // Ajusta según la API
     });
     return Array.isArray(data) ? data : [];
@@ -169,7 +166,7 @@ const fetchHerramientas = async (ids: number[]): Promise<Herramienta[]> => {
 // Función para obtener las asignaciones desde la API
 const fetchAsignaciones = async (): Promise<Asignacion[]> => {
   try {
-    const { data } = await axios.get(`${apiUrl}asignaciones_actividades/`);
+    const { data } = await axios.get(`/api/asignaciones_actividades/`);
     if (!Array.isArray(data)) {
       throw new Error('La API no devolvió un array válido.');
     }
@@ -222,7 +219,7 @@ const fetchAsignaciones = async (): Promise<Asignacion[]> => {
 // Función para finalizar una asignación
 export const finalizarAsignacion = async (id: number): Promise<Asignacion> => {
   try {
-    const { data } = await axios.post(`${apiUrl}asignaciones_actividades/${id}/finalizar/`);
+    const { data } = await axios.post(`/api/asignaciones_actividades/${id}/finalizar/`);
     return data.asignacion;
   } catch (error: any) {
     const errorMessage = error.response?.data?.error || error.message || 'No se pudo finalizar la asignación';

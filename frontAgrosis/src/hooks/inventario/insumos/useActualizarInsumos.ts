@@ -2,7 +2,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useCrearBodega } from "@/hooks/inventario/bodega/useCrearBodega";
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface UnidadMedida {
     nombre_medida: string;
@@ -45,7 +44,7 @@ export const useActualizarInsumos = () => {
             if (!token) throw new Error("⚠️ Token de autenticación no encontrado.");
 
             // Obtener la cantidad actual del insumo
-            const insumoActual = await axios.get(`${apiUrl}insumo/${id}/`, {
+            const insumoActual = await axios.get(`/api/insumo/${id}/`, {
                 headers: {
                     "Authorization": `Bearer ${token}`,
                 },
@@ -73,7 +72,7 @@ export const useActualizarInsumos = () => {
             }
 
             try {
-                const { data } = await axios.patch(`${apiUrl}insumo/${id}/`, formData, {
+                const { data } = await axios.patch(`insumo/${id}/`, formData, {
                     headers: {
                         "Content-Type": "multipart/form-data",
                         "Authorization": `Bearer ${token}`,

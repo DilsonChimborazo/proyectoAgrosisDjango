@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface PagoUsuario {
   usuario_id: number;
@@ -65,7 +64,7 @@ export const usePagosPorUsuario = (filtros?: FiltrosPagos) => {
         params.append('pagado', filtros.estado === 'pagado' ? 'true' : 'false');
       }
 
-      const { data } = await axios.get(`${apiUrl}nomina/reporte-por-persona?${params.toString()}`, {
+      const { data } = await axios.get(`/api/nomina/reporte-por-persona?${params.toString()}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       return data;
@@ -80,7 +79,7 @@ export const usePagosPorActividad = () => {
     queryKey: ['pagos-actividad'],
     queryFn: async () => {
       const token = localStorage.getItem('token');
-      const { data } = await axios.get(`${apiUrl}nomina/reporte-por-actividad/`, {
+      const { data } = await axios.get(`/api/nomina/reporte-por-actividad/`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       return data;
@@ -102,7 +101,7 @@ export const usePagosDetallados = (filtros?: FiltrosPagos) => {
         params.append('pagado', filtros.estado === 'pagado' ? 'true' : 'false');
       }
 
-      const { data } = await axios.get(`${apiUrl}nomina/reporte-detallado?${params.toString()}`, {
+      const { data } = await axios.get(`/api/nomina/reporte-detallado?${params.toString()}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       return data.map((item: any) => ({
@@ -125,7 +124,7 @@ export const useMarcarPago = () => {
   return useMutation({
     mutationFn: async (id: number) => {
       const token = localStorage.getItem('token');
-      const url = `${apiUrl}nomina/${id}/marcar-pagado/`;
+      const url = `nomina/${id}/marcar-pagado/`;
       const response = await axios.patch(url, {}, {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
       });
@@ -147,7 +146,7 @@ export const useMarcarPagosPorUsuario = () => {
   return useMutation({
     mutationFn: async (params: { usuario_id: number; fecha_inicio?: string; fecha_fin?: string }) => {
       const token = localStorage.getItem('token');
-      const url = `${apiUrl}nomina/marcar-pagado-por-usuario/`;
+      const url = `/api/nomina/marcar-pagado-por-usuario/`;
       const response = await axios.post(url, params, {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
       });

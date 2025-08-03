@@ -21,7 +21,7 @@ const ListarInsumos = () => {
 
     useEffect(() => {
       if (src) {
-        const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+        const baseUrl = '/api/';
         const cleanPath = src.startsWith('http') ? src : `${baseUrl}${src.startsWith('/') ? '' : '/'}${src}`;
         const img = new Image();
         img.src = cleanPath;

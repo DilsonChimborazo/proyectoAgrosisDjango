@@ -2,7 +2,6 @@ import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { TrazabilidadCultivoReporte, SnapshotTrazabilidad, ResumenTrazabilidad } from '@/components/finanzas/trazabilidad/Types';
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 const formatDate = (dateStr: string | null | undefined): string => {
   if (!dateStr) return 'Sin fecha';
@@ -52,7 +51,7 @@ const transformarDatosTrazabilidad = (data: any): TrazabilidadCultivoReporte => 
 
 const fetchTrazabilidadActual = async (plantacionId: number) => {
   const token = localStorage.getItem('token');
-  const { data } = await axios.get(`${apiUrl}trazabilidad/plantacion/${plantacionId}/`, {
+  const { data } = await axios.get(`/api/trazabilidad/plantacion/${plantacionId}/`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -62,7 +61,7 @@ const fetchTrazabilidadActual = async (plantacionId: number) => {
 
 const fetchResumenActual = async (plantacionId: number) => {
   const token = localStorage.getItem('token');
-  const { data } = await axios.get(`${apiUrl}resumen-actual/${plantacionId}/`, {
+  const { data } = await axios.get(`/api/resumen-actual/${plantacionId}/`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -76,7 +75,7 @@ const fetchResumenActual = async (plantacionId: number) => {
 
 const fetchHistorialTrazabilidad = async (plantacionId: number) => {
   const token = localStorage.getItem('token');
-  const { data } = await axios.get(`${apiUrl}trazabilidad/historico/${plantacionId}/`, {
+  const { data } = await axios.get(`/api/trazabilidad/historico/${plantacionId}/`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },

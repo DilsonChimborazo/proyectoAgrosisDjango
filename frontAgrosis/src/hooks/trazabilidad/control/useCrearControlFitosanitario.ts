@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface ControlFitosanitario {
     fecha_control: string;
@@ -42,7 +41,7 @@ export const useCrearControlFitosanitario = () => {
             formData.append('img', nuevoControl.img);
 
             try {
-                const { data } = await axios.post(`${apiUrl}control_fitosanitario/`, formData, {
+                const { data } = await axios.post(`/api/control_fitosanitario/`, formData, {
                     headers: {
                         'Content-Type': 'multipart/form-data',
                         Authorization: `Bearer ${token}`,

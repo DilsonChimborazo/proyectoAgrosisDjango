@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import axios from 'axios'
 
-const apiUrl = import.meta.env.VITE_API_URL
 
 interface ReporteControl {
   fecha_control: Date
@@ -14,7 +13,7 @@ interface ReporteControl {
 
 const fetchReporteControles = async (): Promise<ReporteControl[]> => {
   try {
-    const { data } = await axios.get(`${apiUrl}control_fitosanitario/reporte-controles/`)
+    const { data } = await axios.get(`/api/control_fitosanitario/reporte-controles/`)
     return data.reporte
   } catch (error) {
     console.error('Error al obtener el reporte de controles fitosanitarios:', error)

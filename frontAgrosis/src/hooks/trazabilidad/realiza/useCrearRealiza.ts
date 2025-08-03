@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface CrearRealizaDTO {
   fk_id_plantacion: number;
@@ -18,7 +17,7 @@ export const useCrearRealiza = () => {
         throw new Error("No hay token de autenticación");
       }
 
-      const response = await axios.post(`${apiUrl}realiza/`, data, {
+      const response = await axios.post(`/api/realiza/`, data, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

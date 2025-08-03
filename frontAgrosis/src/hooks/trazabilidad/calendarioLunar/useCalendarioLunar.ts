@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface CalendarioLunar {
   id: number;
@@ -12,7 +11,7 @@ export interface CalendarioLunar {
 
 const fetchCalendarioLunar = async (): Promise<CalendarioLunar[]> => {
   try {
-    const { data } = await axios.get(`${apiUrl}calendario_lunar/`);
+    const { data } = await axios.get(`/api/calendario_lunar/`);
     return data;
   } catch (error) {
     throw new Error("No se pudo obtener el calendario lunar");

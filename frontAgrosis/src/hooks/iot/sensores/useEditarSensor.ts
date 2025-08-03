@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface Sensores {
     id: number;
@@ -34,7 +33,7 @@ export const useEditarSensor = () => {
 
 
             try {
-                const { data } = await axios.put(`${apiUrl}sensores/${id}/`, datos, {
+                const { data } = await axios.put(`/api/sensores/${id}/`, datos, {
                     headers: {
                         "Content-Type": "application/json",
                     },

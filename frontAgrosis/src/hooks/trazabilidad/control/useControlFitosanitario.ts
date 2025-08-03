@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface ControlFitosanitario {
     id: number;
@@ -92,7 +91,7 @@ export interface Usuario {
 
 const fetchControlFitosanitario = async (): Promise<ControlFitosanitario[]> => {
     try {
-        const { data } = await axios.get(`${apiUrl}control_fitosanitario/`);
+        const { data } = await axios.get(`/api/control_fitosanitario/`);
         return data;
     } catch (error) {
         console.error("Error al obtener Control Fitosanitario:", error);

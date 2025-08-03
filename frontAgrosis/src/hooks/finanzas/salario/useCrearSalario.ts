@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
-const apiUrl = import.meta.env.VITE_API_URL;
+
 
 export interface CrearSalarioPayload {
   fk_id_rol: number;
@@ -19,7 +19,7 @@ export const useCrearSalario = () => {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("No se ha encontrado un token de autenticación");
 
-      const response = await axios.post(`${apiUrl}salario/`, nuevoSalario, {
+      const response = await axios.post(`/api/salario/`, nuevoSalario, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',

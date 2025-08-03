@@ -2,7 +2,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { showToast } from '@/components/globales/Toast';
 
-const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/';
 
 // Reusing interfaces from the first snippet for consistency
 export interface Insumo {
@@ -148,7 +147,7 @@ const crearAsignacion = async (asignacionData: CrearAsignacionDTO): Promise<Asig
       throw new Error('Los IDs de usuarios en fk_identificacion deben ser enteros válidos y mayores que cero');
     }
 
-    const { data } = await axios.post(`${apiUrl}asignaciones_actividades/`, asignacionData, {
+    const { data } = await axios.post(`/api/asignaciones_actividades/`, asignacionData, {
       headers: {
         'Content-Type': 'application/json',
       },

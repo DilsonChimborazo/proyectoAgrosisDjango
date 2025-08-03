@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import axios from 'axios'
 
-const apiUrl = (import.meta.env.VITE_API_URL ?? '').replace(/\/+$/, '')
 
 interface ReporteResiduo {
   fecha: string
@@ -11,7 +10,7 @@ interface ReporteResiduo {
 
 const fetchReporteResiduos = async (): Promise<ReporteResiduo[]> => {
   try {
-    const { data } = await axios.get(`${apiUrl}/residuos/reporte-residuos/`)
+    const { data } = await axios.get(`/api/residuos/reporte-residuos/`)
     return data.reporte
   } catch (error) {
     console.error('Error al obtener el reporte de residuos:', error)

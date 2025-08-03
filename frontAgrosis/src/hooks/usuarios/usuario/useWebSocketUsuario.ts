@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { useAuthContext } from "@/context/AuthContext";
 import { showToast } from "@/components/globales/Toast";
 
-const wsBaseUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:8000/ws/api/';
 
 const useWebSocketUsuario = () => {
   const { usuario, logout } = useAuthContext();
@@ -10,7 +9,7 @@ const useWebSocketUsuario = () => {
   useEffect(() => {
     if (!usuario?.user_id) return;
 
-    const ws = new WebSocket(`${wsBaseUrl}usuario/${usuario.user_id}/`);
+    const ws = new WebSocket(`/api/usuario/${usuario.user_id}/`);
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);

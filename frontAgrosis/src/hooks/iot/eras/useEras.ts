@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
-const apiUrl = import.meta.env.VITE_API_URL
 
 export interface Ubicacion {
     id: number;
@@ -28,7 +27,7 @@ const fetchEras = async (): Promise<Eras[]> => {
     try {
         const token = localStorage.getItem('token');
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
-        const { data } = await axios.get(`${apiUrl}eras/`, { headers });
+        const { data } = await axios.get(`/api/eras/`, { headers });
         return data;
     } catch (error) {
         console.error('Error al obtener las eras:', error);

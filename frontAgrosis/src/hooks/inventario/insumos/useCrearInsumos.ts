@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface UnidadMedida {
   nombre_medida: string;
@@ -29,7 +28,7 @@ export const useCrearInsumo = () => {
         throw new Error("No se ha encontrado un token de autenticación");
       }
 
-      const { data } = await axios.post(`${apiUrl}insumo/`, nuevoInsumo, {
+      const { data } = await axios.post(`/api/insumo/`, nuevoInsumo, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

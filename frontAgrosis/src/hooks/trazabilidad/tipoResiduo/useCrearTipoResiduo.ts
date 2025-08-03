@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface TipoResiduo {
   nombre: string;
@@ -9,7 +8,7 @@ export interface TipoResiduo {
 }
 
 const crearTipoResiduo = async (tipo: TipoResiduo) => {
-  const { data } = await axios.post(`${apiUrl}tipo_residuos/`, tipo, {
+  const { data } = await axios.post(`/api/tipo_residuos/`, tipo, {
     headers: {
       "Content-Type": "application/json",
     },

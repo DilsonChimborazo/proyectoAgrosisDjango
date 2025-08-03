@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface Plantacion {
     id: number;
@@ -60,7 +59,7 @@ export interface Semillero {
 // Función para obtener las plantaciones con manejo de errores
 const fetchPlantaciones = async (): Promise<Plantacion[]> => {
     try {
-        const { data } = await axios.get(`${apiUrl}plantacion/`);
+        const { data } = await axios.get(`/api/plantacion/`);
         return data.map((plantacion: any) => ({
             ...plantacion,
             fecha_plantacion: new Date(plantacion.fecha_plantacion).toLocaleDateString()

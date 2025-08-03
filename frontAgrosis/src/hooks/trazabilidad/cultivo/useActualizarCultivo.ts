@@ -1,8 +1,6 @@
     import { useMutation, useQueryClient } from "@tanstack/react-query";
     import axios from "axios";
 
-    const apiUrl = import.meta.env.VITE_API_URL;
-
     export interface Cultivo {
         id: number;
         nombre_cultivo: string;
@@ -16,7 +14,7 @@
         return useMutation({
             mutationFn: async (cultivoActualizado: Cultivo) => {
                 const { id, ...datos } = cultivoActualizado;
-                const { data } = await axios.put(`${apiUrl}cultivo/${id}/`, datos);
+                const { data } = await axios.put(`/api/cultivo/${id}/`, datos);
                 return data;
             },
             onSuccess: () => {

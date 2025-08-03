@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface Eras {
   id: number;
@@ -28,7 +27,7 @@ const useEditarEras = () => {
       };
 
 
-      const url = `${apiUrl}eras/${eraActualizada.id}/`;
+      const url = `/api/eras/${eraActualizada.id}/`;
 
 
       try {

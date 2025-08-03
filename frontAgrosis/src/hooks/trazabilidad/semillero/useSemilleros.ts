@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 
 export interface Semillero {
@@ -14,7 +13,7 @@ export interface Semillero {
 
 const fetchSemilleros = async (): Promise<Semillero[]> => {
   try {
-    const { data } = await axios.get(`${apiUrl}semilleros/`);
+    const { data } = await axios.get(`/api/semilleros/`);
     return data;
   } catch (error) {
     throw new Error("No se pudo obtener los semilleros");

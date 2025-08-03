@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-const apiUrl = import.meta.env.VITE_API_URL;
 
 
 export interface Ubicacion {
@@ -24,7 +23,7 @@ const useLotesActivos = () => {
   useEffect(() => {
     const fetchLotes = async () => {
       try {
-        const response = await axios.get<Lotes[]>(`${apiUrl}lote/lotesActivos`);
+        const response = await axios.get<Lotes[]>(`/api/lote/lotesActivos`);
         setLotes(response.data);
       } catch (err: any) {
         setError(err?.message || "Error desconocido");

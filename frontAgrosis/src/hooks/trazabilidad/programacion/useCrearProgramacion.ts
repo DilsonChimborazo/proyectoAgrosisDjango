@@ -2,7 +2,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { showToast } from '@/components/globales/Toast';
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface Programacion {
   id?: number;
@@ -23,7 +22,7 @@ export const useCrearProgramacion = () => {
         formDataEntries[key] = value instanceof File ? `File: ${value.name}` : value;
       }
 
-      const response = await axios.post(`${apiUrl}programaciones/`, nuevaProgramacion, {
+      const response = await axios.post(`/api/programaciones/`, nuevaProgramacion, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

@@ -7,15 +7,9 @@ export function useAuth() {
 
   const login = async (identificacion: string, password: string) => {
     setError(null);
-    const apiUrl = import.meta.env.VITE_API_URL;
-
-    if (!apiUrl) {
-      setError("La URL de la API no está definida");
-      return { success: false };
-    }
 
     try {
-      const response = await fetch(`${apiUrl}token/`, {
+      const response = await fetch('/api/token/', {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -21,8 +21,7 @@ const InsumoNotifications = () => {
       return null;
     }
 
-    // Usamos la variable de entorno VITE_WS_URL
-    const baseUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:8000';
+    const baseUrl = '/api/';
     return `${baseUrl}insumos/?token=${token}`;
   };
 

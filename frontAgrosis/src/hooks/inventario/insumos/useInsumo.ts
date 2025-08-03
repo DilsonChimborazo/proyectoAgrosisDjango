@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface UnidadMedida {
     id: number;
@@ -27,7 +26,7 @@ export interface Insumo{
 
 const fetch = async (): Promise<Insumo[]> => {
     try {
-        const { data } = await axios.get(`${apiUrl}insumo/`);
+        const { data } = await axios.get(`/api/insumo/`);
         return data;
     } catch (error) {
         console.error("Error al obtener el insumo:", error);

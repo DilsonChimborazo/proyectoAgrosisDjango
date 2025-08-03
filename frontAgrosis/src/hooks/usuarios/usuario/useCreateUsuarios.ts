@@ -2,8 +2,6 @@
   import axios from "axios";
   import { showToast } from "@/components/globales/Toast";
 
-  const apiUrl = import.meta.env.VITE_API_URL;
-
   export interface Usuario {
     id?: number;
     identificacion: number;
@@ -44,7 +42,7 @@
           formData.append("img", nuevoUsuario.img);
         }
 
-        const { data } = await axios.post(`${apiUrl}usuario/`, formData, {
+        const { data } = await axios.post(`/api/usuario/`, formData, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data", // necesario para FormData

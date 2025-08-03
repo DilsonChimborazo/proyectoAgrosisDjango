@@ -5,8 +5,11 @@ services:
       - "80"
     env_file:
       - ./frontAgrosis/.env
-    volumes:
-      - ./update_env.sh:/app/update_env.sh
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     depends_on:
       - back-end
     networks:
@@ -50,12 +53,15 @@ services:
     ports:
       - "8085:80"
     volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./frontAgrosis/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
-      - fronAgrosis
-      - back-end
+      fronAgrosis:
+        condition: service_healthy
+      back-end:
+        condition: service_started
     networks:
       - app-network
+
 
 volumes:
   postgres-data:

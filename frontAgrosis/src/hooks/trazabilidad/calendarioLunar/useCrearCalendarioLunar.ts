@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface CalendarioLunar {
     fecha: string;
@@ -14,7 +13,7 @@ export const useCrearCalendarioLunar = () => {
 
     return useMutation({
         mutationFn: async (nuevoCalendario: CalendarioLunar) => {
-            const { data } = await axios.post(`${apiUrl}calendario_lunar/`, nuevoCalendario);
+            const { data } = await axios.post(`/api/calendario_lunar/`, nuevoCalendario);
             return data;
         },
         onSuccess: () => {

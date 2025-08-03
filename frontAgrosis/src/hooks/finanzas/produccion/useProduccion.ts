@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 // Interfaces basadas en tus modelos Django
 export interface UnidadMedida {
@@ -64,7 +63,7 @@ export interface Produccion {
 const fetchProduccion = async (): Promise<Produccion[]> => {
   const token = localStorage.getItem("token");
   try {
-    const { data } = await axios.get<Produccion[]>(`${apiUrl}produccion/`, {
+    const { data } = await axios.get<Produccion[]>(`/api/produccion/`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

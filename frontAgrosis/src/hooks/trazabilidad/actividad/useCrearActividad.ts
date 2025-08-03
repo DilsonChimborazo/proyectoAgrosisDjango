@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface Actividad {
   id: number;
@@ -12,7 +11,7 @@ export interface Actividad {
 // Función para crear una actividad con manejo de errores
 const crearActividad = async (actividadData: Omit<Actividad, 'id'>): Promise<Actividad> => {
   try {
-    const { data } = await axios.post(`${apiUrl}actividad/`, actividadData);
+    const { data } = await axios.post(`/api/actividad/`, actividadData);
     return data;
   } catch (error) {
     throw new Error('No se pudo crear la actividad');

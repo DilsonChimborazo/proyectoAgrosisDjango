@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface Residuos {
     nombre: string;
@@ -16,7 +15,7 @@ export const useCrearResiduo = () => {
 
     return useMutation({
         mutationFn: async (nuevoResiduo: Residuos) => {
-            const { data } = await axios.post(`${apiUrl}residuos/`, nuevoResiduo);
+            const { data } = await axios.post(`/api/residuos/`, nuevoResiduo);
             return data;
         },
         onSuccess: () => {

@@ -8,7 +8,6 @@ import Switch from 'react-switch';
 import { useNavigate } from 'react-router-dom';
 import DescargarTablaPDF from '../../globales/DescargarTablaPDF';
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 const Eras = () => {
     const { data: eras, isLoading, error, refetch } = useEras();
@@ -39,7 +38,7 @@ const Eras = () => {
         }
 
         const action = era.estado ? "desactivar" : "activar";
-        const url = `${apiUrl}eras/${era.id}/${action}/`;
+        const url = `/api/eras/${era.id}/${action}/`;
 
         try {
             const response = await fetch(url, {

@@ -1,8 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
-const apiUrl = import.meta.env.VITE_API_URL; // Verifica que esta variable esté configurada en tu entorno
-
 export interface Ficha {
   id: number;
   numero_ficha: number;
@@ -40,7 +38,7 @@ const fetchUsuarios = async (): Promise<Usuario[]> => {
   }
 
   try {
-    const response = await axios.get(`${apiUrl}usuario/`, {
+    const response = await axios.get(`/api/usuario/`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     // Validamos que los datos devueltos sean un array

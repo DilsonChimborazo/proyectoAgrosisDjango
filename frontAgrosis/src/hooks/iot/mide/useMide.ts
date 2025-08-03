@@ -1,13 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
-const apiUrl = import.meta.env.VITE_API_URL;
-const wsUrl = import.meta.env.VITE_WS_URL;
 
-const WS_URL = `${wsUrl}mide/`;
-const WS_SENSORES_URL = `${wsUrl}sensores/`;
-const API_SENSORES = `${apiUrl}sensores/`;
-const API_MEDICIONES = `${apiUrl}mide/`;
-const API_CREATE_SENSOR = `${apiUrl}sensores/`;
+const WS_URL = `/api/mide/`;
+const WS_SENSORES_URL = `/api/sensores/`;
+const API_SENSORES = `/api/sensores/`;
+const API_MEDICIONES = `/api/mide/`;
+const API_CREATE_SENSOR = `/api/sensores/`;
 
 export interface Sensor {
   id: number;

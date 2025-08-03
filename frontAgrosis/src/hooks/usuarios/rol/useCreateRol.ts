@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface Rol {
     id?: number;
@@ -19,7 +18,7 @@ export const useCreateRol = () =>{
           throw new Error("No se ha encontrado un token de autenticacion");
         }
   const {data} = await axios.post(
-    `${apiUrl}rol/`,
+    `/api/rol/`,
     nuevoRol,
     {
 

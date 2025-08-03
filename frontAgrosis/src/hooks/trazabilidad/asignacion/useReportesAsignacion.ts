@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 interface ReporteAsignacion {
   fecha_programada: string;
@@ -14,7 +13,7 @@ interface ReporteAsignacion {
 
 const fetchReporteAsignaciones = async (): Promise<ReporteAsignacion[]> => {
   try {
-    const { data } = await axios.get(`${apiUrl}asignaciones_actividades/reporte-asignaciones/`);
+    const { data } = await axios.get(`/api/asignaciones_actividades/reporte-asignaciones/`);
     return data.reporte;
   } catch (error) {
     throw new Error('No se pudo obtener el reporte');

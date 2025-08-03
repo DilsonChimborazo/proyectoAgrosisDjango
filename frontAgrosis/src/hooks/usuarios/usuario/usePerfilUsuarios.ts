@@ -3,7 +3,6 @@ import axios from 'axios';
 import { useAuthContext } from '../../../context/AuthContext';
 import { jwtDecode } from 'jwt-decode';
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 
 // Interfaces
@@ -69,7 +68,7 @@ const updatePerfil = async (formData: FormData): Promise<{ access: string }> => 
   if (formData.img) data.append('img', formData.img);
   if (formData.password) data.append('password', formData.password);
 
-  const response = await axios.put(`${apiUrl}usuario/img/`, data, {
+  const response = await axios.put(`/api/usuario/img/`, data, {
     headers: { Authorization: `Bearer ${token}` },
   });
 

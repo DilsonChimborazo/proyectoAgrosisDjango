@@ -2,7 +2,6 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface UnidadMedida {
   id: number;
@@ -14,7 +13,7 @@ export interface UnidadMedida {
 const fetchUnidades = async (): Promise<UnidadMedida[]> => {
   const token = localStorage.getItem("token");
 
-  const { data } = await axios.get(`${apiUrl}unidad_medida/`, {
+  const { data } = await axios.get(`/api/unidad_medida/`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },

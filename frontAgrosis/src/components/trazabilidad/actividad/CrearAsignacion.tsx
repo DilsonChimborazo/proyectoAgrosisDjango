@@ -44,8 +44,8 @@ const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios }: { onSuccess: 
     const fetchResources = async () => {
       try {
         const [herramientasResp, insumosResp] = await Promise.all([
-          axios.get(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/'}herramientas/`),
-          axios.get(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/'}insumo/`),
+          axios.get(`herramientas/`),
+          axios.get(`insumo/`),
         ]);
         setHerramientas(herramientasResp.data);
         setInsumos(insumosResp.data);
@@ -238,7 +238,7 @@ const CrearAsignacion = ({ onSuccess, usuarios: initialUsuarios }: { onSuccess: 
           if (herramientasIds.length > 0 || insumosIds.length > 0) {
             try {
               await axios.post(
-                `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/'}asignaciones_actividades/${asignacionId}/asignar-recursos/`,
+                `/api/asignaciones_actividades/${asignacionId}/asignar-recursos/`,
                 {
                   herramientas_ids: herramientasIds,
                   insumos_ids: insumosIds,

@@ -13,6 +13,8 @@ export default function Login() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
+
+
   const {
     register,
     handleSubmit,
@@ -25,14 +27,8 @@ export default function Login() {
   const onSubmit = async (data: LoginData) => {
     setError(null);
 
-    const apiUrl = import.meta.env.VITE_API_URL;
-    if (!apiUrl) {
-      setError("La URL de la API no está definida");
-      return;
-    }
-
     try {
-      const response = await fetch(`${apiUrl}token/`, {
+      const response = await fetch(`/api/token/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -163,7 +159,7 @@ export default function Login() {
               <img
                 src="/logo-doc.png"
                 alt="Documentación Agrosoft"
-                className="w-10 h-10 "
+                className="w-10 h-5 "
               />
             </a>
           </div>

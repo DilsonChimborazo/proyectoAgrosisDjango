@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 // Definición de interfaces para los datos relacionados
 export interface Asignacion {
@@ -66,7 +65,7 @@ export interface EditarAsignacionDTO {
 // Función para editar una asignación con manejo de errores
 const editarAsignacion = async (asignacionData: EditarAsignacionDTO): Promise<Asignacion> => {
   try {
-    const response = await axios.put(`${apiUrl}asignaciones_actividades/${asignacionData.id}/`, asignacionData);
+    const response = await axios.put(`/api/asignaciones_actividades/${asignacionData.id}/`, asignacionData);
     return response.data;
   } catch (error: any) {
     throw new Error("No se pudo editar la asignación");

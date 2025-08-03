@@ -2,8 +2,6 @@ import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
 
-const apiUrl = import.meta.env.VITE_API_URL;
-
 export interface Lote {
     id: number;
     dimencion: string;
@@ -55,7 +53,7 @@ const fetchPlantaciones = async (): Promise<Plantacion[]> => {
     }
 
     try {
-        const { data } = await axios.get<Plantacion[]>(`${apiUrl}plantacion/`, {
+        const { data } = await axios.get<Plantacion[]>(`/api/plantacion/`, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },

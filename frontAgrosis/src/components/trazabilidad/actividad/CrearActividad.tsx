@@ -2,7 +2,6 @@ import { useState } from "react";
 import axios from "axios";
 import { showToast } from '@/components/globales/Toast';
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 interface CrearActividadProps {
   onSuccess: () => void;
@@ -28,7 +27,7 @@ const CrearActividad = ({ onSuccess }: CrearActividadProps) => {
 
     setIsLoading(true);
     try {
-      await axios.post(`${apiUrl}actividad/`, {
+      await axios.post(`/api/actividad/`, {
         nombre_actividad: nombreActividad.trim(),
         descripcion: descripcion.trim(),
       });

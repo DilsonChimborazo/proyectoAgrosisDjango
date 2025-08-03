@@ -28,15 +28,6 @@ export default function RegisterForm() {
   });
 
   const onSubmit = async (data: RegistroData) => {
-    const apiUrl = import.meta.env.VITE_API_URL;
-    if (!apiUrl) {
-      showToast({
-          title: 'Error en el servidor',
-          description: 'No se pudo conectar al servidor, contacta a soporte',
-          variant: 'error'
-        });
-      return;
-    }
 
     try {
       setLoading(true);
@@ -45,7 +36,7 @@ export default function RegisterForm() {
         fk_id_rol: parseInt(data.fk_id_rol), // Convertimos a número para la API
       };
 
-      const response = await axios.post(`${apiUrl}usuario/`, dataToSend, {
+      const response = await axios.post(`/api/usuario/`, dataToSend, {
         headers: {
           "Content-Type": "application/json",
         },

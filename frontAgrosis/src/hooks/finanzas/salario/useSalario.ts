@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface Rol {
   id: number;
@@ -25,7 +24,7 @@ const fetchSalario = async (): Promise<Salario[]> => {
   }
 
   try {
-    const { data } = await axios.get<Salario[]>(`${apiUrl}salario/`, {
+    const { data } = await axios.get<Salario[]>(`/api/salario/`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

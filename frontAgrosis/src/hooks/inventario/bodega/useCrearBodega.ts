@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 interface Usuario {
   id: number;
@@ -105,7 +104,7 @@ export const useCrearBodega = () => {
         throw new Error("Debe incluir al menos una herramienta o un insumo");
       }
 
-      const response = await axios.post(`${apiUrl}bodega/`, payload, {
+      const response = await axios.post(`/api/bodega/`, payload, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',

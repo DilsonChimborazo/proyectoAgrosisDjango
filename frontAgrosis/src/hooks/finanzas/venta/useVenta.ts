@@ -3,7 +3,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 // Interfaces para los modelos
 export interface UnidadMedida {
@@ -104,7 +103,6 @@ export interface Venta {
 
 // Crear una instancia de axios con configuración base
 const api = axios.create({
-  baseURL: apiUrl,
   headers: {
     'Content-Type': 'application/json',
   }

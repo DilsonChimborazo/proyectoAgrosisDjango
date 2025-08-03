@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface ControlFitosanitario {
     id: number;
@@ -46,7 +45,7 @@ export const useActualizarControlFitosanitario = () => {
 
             try {
                 const { data } = await axios.put(
-                    `${apiUrl}control_fitosanitario/${controlActualizado.id}/`,
+                    `/api/control_fitosanitario/${controlActualizado.id}/`,
                     formData,
                     {
                         headers: {

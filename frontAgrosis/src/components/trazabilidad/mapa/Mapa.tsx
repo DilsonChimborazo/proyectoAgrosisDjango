@@ -47,7 +47,7 @@ const Mapa: React.FC<MapaProps> = ({ nuevaPlantacion }) => {
 
   useEffect(() => {
     axios
-      .get<Plantacion[]>(`${import.meta.env.VITE_API_URL}plantacion/`)
+      .get<Plantacion[]>(`plantacion/`)
       .then((res) => {
         setPlantaciones(res.data);
       })

@@ -1,8 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
-const apiUrl = import.meta.env.VITE_API_URL;
-
 export interface Lotes {
     id: number;
     dimencion: number;
@@ -20,7 +18,7 @@ export const useCrearLote = () => {
                 throw new Error("No se ha encontrado un token de autenticación");
             }
     const { data } = await axios.post(
-        `${apiUrl}lote/`,
+        `/api/lote/`,
         nuevaEra,
         {
             headers: {

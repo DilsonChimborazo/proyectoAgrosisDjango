@@ -204,7 +204,6 @@ const styleSheet = document.createElement("style");
 styleSheet.innerText = styles;
 document.head.appendChild(styleSheet);
 
-const wsUrl = import.meta.env.VITE_WS_URL;
 
 interface Sensor {
   id: number;
@@ -371,7 +370,7 @@ const HomePage = () => {
   }, []);
 
   useEffect(() => {
-    const wsSensors = new WebSocket(`${wsUrl}sensores/`);
+    const wsSensors = new WebSocket(`/api/sensores/`);
     wsSensors.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
@@ -442,7 +441,7 @@ const HomePage = () => {
   }, [realTimeData, sensors]);
 
   useEffect(() => {
-    const ws = new WebSocket(`${wsUrl}mide/`);
+    const ws = new WebSocket(`/api/mide/`);
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);

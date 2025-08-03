@@ -13,8 +13,6 @@ import axios from 'axios';
 // Registrar componentes de chart.js
 ChartJS.register(LineElement, PointElement, LinearScale, TimeScale, Title, Tooltip, Legend);
 
-// URL base para la API
-const apiUrl = import.meta.env.VITE_API_URL || 'http://192.168.101.7:8000/api/';
 
 export interface Plantacion {
     id: number;
@@ -67,7 +65,7 @@ const Evapotranspiracion = () => {
                     throw new Error('No se encontró un token de autenticación');
                 }
                 const headers = { Authorization: `Bearer ${token}` };
-                const response = await axios.get(`${apiUrl}plantacion/`, { headers });
+                const response = await axios.get(`/api/plantacion/`, { headers });
                 const plantacionesData = response.data;
                 setPlantaciones(plantacionesData);
                 if (plantacionesData.length > 0 && plantacionId === 0) {

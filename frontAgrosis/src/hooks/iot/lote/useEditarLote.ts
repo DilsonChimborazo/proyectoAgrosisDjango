@@ -1,8 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
-const apiUrl = import.meta.env.VITE_API_URL;
-
 export interface Lotes {
     id: number;
     dimencion: number;
@@ -34,7 +32,7 @@ export const useEditarLote = () => {
             };
 
             try {
-                const { data } = await axios.put(`${apiUrl}lote/${id}/`, datos, { headers });
+                const { data } = await axios.put(`/api/lote/${id}/`, datos, { headers });
                 return data;
             } catch (error: any) {
                 console.error("❌ Error en la solicitud:", error.response?.data || error.message);

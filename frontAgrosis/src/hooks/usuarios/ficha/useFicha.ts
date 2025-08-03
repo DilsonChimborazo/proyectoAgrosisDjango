@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface Ficha {
     id?: number;
@@ -19,7 +18,7 @@ const fetchFicha = async (): Promise<Ficha[]> => {
     if (!token) {
         throw new Error("No hay token de autenticacion");
     } try {
-        const response = await axios.get(`${apiUrl}ficha/`, {
+        const response = await axios.get(`/api/ficha/`, {
             headers: { Authorization: `Bearer ${token}` },
         });
         if (!Array.isArray(response.data)) {

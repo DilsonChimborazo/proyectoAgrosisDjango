@@ -2,8 +2,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 
-const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/';
-const wsBaseUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:8000/ws/api/';
 
 export interface Notificacion {
   id: number;
@@ -21,7 +19,7 @@ const fetchNotificaciones = async (): Promise<Notificacion[]> => {
   }
 
   try {
-    const response = await axios.get(`${apiUrl}notificaciones/`, {
+    const response = await axios.get(`/api/notificaciones/`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!Array.isArray(response.data)) {
@@ -44,7 +42,7 @@ const markNotificacionAsRead = async (id: number): Promise<void> => {
   }
 
   try {
-    await axios.put(`${apiUrl}notificaciones/${id}/`, { leida: true }, {
+    await axios.put(`/api/notificaciones/${id}/`, { leida: true }, {
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
     });
   } catch (error: any) {
@@ -83,7 +81,7 @@ export const useNotificacion = () => {
     if (!token) {
       return;
     }
-    const ws = new WebSocket(`${wsBaseUrl}notificaciones/?token=${token}`);
+    const ws = new WebSocket(`/api/notificaciones/?token=${token}`);
 
     ws.onopen = () => {};
     ws.onmessage = (event: MessageEvent) => {

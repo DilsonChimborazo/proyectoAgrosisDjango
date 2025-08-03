@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 export interface InsumoBajoStock {
   id: number;
@@ -30,7 +29,7 @@ export const useReporteInsumos = (umbral: number = 2000) => {
       }
 
       const { data } = await axios.get(
-        `${apiUrl}insumo/reporteBajoStock/`,
+        `/api/insumo/reporteBajoStock/`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
