@@ -158,18 +158,13 @@ export default function Login() {
             </a>
             <a
               href={import.meta.env.VITE_DOC_URL}
-              className="flex flex-col items-center gap-2 hover:opacity-80 transition-opacity duration-200"
-              target="_blank"
-              rel="noopener noreferrer"
+              title="Documentación Agrosoft"
             >
               <img
                 src="/logo-doc.png"
                 alt="Documentación Agrosoft"
-                className="w-10 h-10 object-contain"
+                className="w-10 h-10 "
               />
-              <span className="text-sm font-medium text-white dark:text-gray-200">
-                Documentación Agrosoft
-              </span>
             </a>
           </div>
         </div>
