@@ -228,7 +228,7 @@ const StockDashboard = () => {
           <tbody>
             {productosConStock.map((p) => {
               const precioSugerido = parsePrecioSugerido(p.precio_sugerido_venta);
-              const valorTotal = precioSugerido * (p.stock_disponible || 0);
+              const valorTotal = precioSugerido * (p.cantidad_producida || 0);
               return (
                 <tr key={p.id} className="border-b border-gray-100 hover:bg-green-50">
                   <td className="py-2 px-3">{p.nombre_produccion}</td>
@@ -264,7 +264,7 @@ const StockDashboard = () => {
   const totalProductos = productosConStock.length;
   const valorEstimado = productosConStock.reduce((sum, p) => {
     const precio = parsePrecioSugerido(p.precio_sugerido_venta);
-    const valor = precio * (p.stock_disponible || 0);
+    const valor = precio * (p.cantidad_producida || 0);
     return sum + valor;
   }, 0) || 0;
 

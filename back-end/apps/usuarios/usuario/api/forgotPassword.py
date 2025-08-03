@@ -16,7 +16,7 @@ def generar_link_recuperacion(usuario):
     """Genera un token encriptado con tiempo de expiración."""
     data = {"id": usuario.id, "token": default_token_generator.make_token(usuario)}
     token = serializer.dumps(data)
-    return f"{settings.FRONTEND_URL}/resetearContrasena/?token={token}&id={usuario.id}"
+    return f"http://192.168.101.6:8085/resetearContrasena/?token={token}&id={usuario.id}"
 
 @api_view(["POST"])
 def solicitar_recuperacion(request):

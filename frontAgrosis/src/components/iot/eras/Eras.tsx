@@ -82,11 +82,6 @@ const Eras = () => {
     };
 
     const openCreateModal = () => {
-        if (!esAdministrador) {
-            setMensaje("No tienes permisos para crear eras.");
-            setTimeout(() => setMensaje(null), 3000);
-            return;
-        }
         setSelectedEra(null);
         setModalType("create");
         setModalContenido(<CrearEras onSuccess={handleSuccess} />);

@@ -14,12 +14,6 @@ interface PlantacionSelectorProps {
     historialDisponible: boolean;
 }
 
-const formatDate = (dateStr: string | null | undefined): string => {
-    if (!dateStr) return 'Sin fecha';
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' });
-};
-
 const PlantacionSelector = ({
     plantaciones,
     loadingPlantaciones,
@@ -51,7 +45,7 @@ const PlantacionSelector = ({
                             <option value="">Seleccione una plantación</option>
                             {plantaciones?.map((plantacion) => (
                                 <option key={plantacion.id} value={plantacion.id}>
-                                    {formatDate(plantacion.fecha_plantacion)} - {plantacion.fk_id_cultivo.nombre_cultivo}
+                                    {(plantacion.fecha_plantacion)} - {plantacion.fk_id_cultivo.nombre_cultivo}
                                 </option>
                             ))}
                         </select>
