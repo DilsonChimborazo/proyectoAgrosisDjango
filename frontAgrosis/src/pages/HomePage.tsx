@@ -441,7 +441,7 @@ const HomePage = () => {
   }, [realTimeData, sensors]);
 
   useEffect(() => {
-    const ws = new WebSocket(`/api/mide/`);
+    const ws = new WebSocket(`/ws/api/mide/`);
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);

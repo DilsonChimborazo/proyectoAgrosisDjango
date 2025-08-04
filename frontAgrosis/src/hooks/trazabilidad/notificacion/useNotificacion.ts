@@ -81,7 +81,7 @@ export const useNotificacion = () => {
     if (!token) {
       return;
     }
-    const ws = new WebSocket(`/api/notificaciones/?token=${token}`);
+    const ws = new WebSocket(`/ws/api/notificaciones/?token=${token}`);
 
     ws.onopen = () => {};
     ws.onmessage = (event: MessageEvent) => {

@@ -9,7 +9,7 @@ const useWebSocketUsuario = () => {
   useEffect(() => {
     if (!usuario?.user_id) return;
 
-    const ws = new WebSocket(`/api/usuario/${usuario.user_id}/`);
+    const ws = new WebSocket(`/ws/api/usuario/${usuario.user_id}/`);
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);

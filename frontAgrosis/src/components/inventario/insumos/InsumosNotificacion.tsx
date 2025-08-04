@@ -21,7 +21,7 @@ const InsumoNotifications = () => {
       return null;
     }
 
-    const baseUrl = '/api/';
+    const baseUrl = '/ws/api/';
     return `${baseUrl}insumos/?token=${token}`;
   };
 

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 
 
-const WS_URL = `/api/evapotranspiracion/`;
+const WS_URL = `/ws/api/evapotranspiracion/`;
 
 export interface EvapoData {
     id: number;

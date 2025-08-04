@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
 
-const WS_URL = `/api/mide/`;
-const WS_SENSORES_URL = `/api/sensores/`;
+const WS_URL = `/ws/api/mide/`;
+const WS_SENSORES_URL = `/ws/api/sensores/`;
 const API_SENSORES = `/api/sensores/`;
 const API_MEDICIONES = `/api/mide/`;
 const API_CREATE_SENSOR = `/api/sensores/`;
