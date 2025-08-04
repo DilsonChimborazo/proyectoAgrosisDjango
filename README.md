@@ -36,11 +36,11 @@ https://github.com/DilsonChimborazo/proyectoAgrosisDjango.git
 ### cd proyectoAgrosisDjango
 
 
-# 2. Instala dependencias (para trabajar localmente)
+# 2. Instala dependencias
 cd frontAgrosis
+npm install --legacy-peer-deps
+npm run build
 ### crear archivo .env (con el siguiente contenido)
-VITE_API_URL=http://192.168.101.6:8000/api/
-VITE_WS_URL=ws://192.168.101.6:8000/ws/api/
 VITE_DOC_URL=http://192.168.101.6:4321/
 VITE_WEATHER_API_KEY=d1eac6ff7d294b7d90c162117252605
 VITE_GOOGLE_MAPS_API_KEY=d1eac6ff7d294b7d90c162117252605AQ
