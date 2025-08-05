@@ -50,9 +50,9 @@ const SeccionDesplegable = ({
 };
 
 const StockDashboard = () => {
-  const { data: producciones, error: produccionesError, refetch: refetchProducciones } = useProducciones();
-  const { data: allStock, error: allStockError, refetch: refetchAllStock } = useAllStock();
-  const { data: ventas, error: ventasError, refetch: refetchVentas } = useVentas();
+  const { data: producciones = [], error: produccionesError, refetch: refetchProducciones, isLoading: isLoadingProducciones } = useProducciones();
+  const { data: allStock = [], error: allStockError, refetch: refetchAllStock, isLoading: isLoadingAllStock } = useAllStock();
+  const { data: ventas = [], error: ventasError, refetch: refetchVentas, isLoading: isLoadingVentas } = useVentas();
   const [selectedProduccionId, setSelectedProduccionId] = useState<number | null>(null);
   const [isMovimientosModalOpen, setIsMovimientosModalOpen] = useState(false);
   const [isProductosModalOpen, setIsProductosModalOpen] = useState(false);
@@ -61,6 +61,14 @@ const StockDashboard = () => {
   const [isProduccionModalOpen, setIsProduccionModalOpen] = useState(false);
   const [isReportesModalOpen, setIsReportesModalOpen] = useState(false);
   const [seccionAbierta, setSeccionAbierta] = useState<string | null>(null);
+
+  if (isLoadingProducciones || isLoadingAllStock || isLoadingVentas) {
+    return <div className="text-center text-gray-500 py-8">Cargando datos...</div>;
+  }
+
+  if (produccionesError) return <div className="text-center py-8 text-red-500">Error al cargar producciones: {produccionesError.message}</div>;
+  if (allStockError) return <div className="text-center py-8 text-red-500">Error al cargar movimientos: {allStockError.message}</div>;
+  if (ventasError) return <div className="text-center py-8 text-red-500">Error al cargar ventas: {ventasError.message}</div>;
 
   const toggleSeccion = (seccion: string) => {
     setSeccionAbierta(seccionAbierta === seccion ? null : seccion);
@@ -76,14 +84,8 @@ const StockDashboard = () => {
     setIsMovimientosModalOpen(false);
   };
 
-  const closeProductosModal = () => {
-    setIsProductosModalOpen(false);
-  };
-
-  const closeValorModal = () => {
-    setIsValorModalOpen(false);
-  };
-
+  const closeProductosModal = () => setIsProductosModalOpen(false);
+  const closeValorModal = () => setIsValorModalOpen(false);
   const cerrarModalConExito = () => {
     setIsVentaModalOpen(false);
     setIsProduccionModalOpen(false);
@@ -100,18 +102,18 @@ const StockDashboard = () => {
 
   const getCultivosUnicos = () => {
     const cultivos = new Set<string>();
-    producciones?.forEach(p => {
-      const nombreCultivo = p.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo;
+    producciones.forEach(p => {
+      const nombreCultivo = p?.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo;
       if (nombreCultivo) cultivos.add(nombreCultivo);
     });
-    ventas?.forEach(v => {
-      v.items.forEach(item => {
-        const nombreCultivo = item.produccion.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo;
+    ventas.forEach(v => {
+      v.items?.forEach(item => {
+        const nombreCultivo = item?.produccion?.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo;
         if (nombreCultivo) cultivos.add(nombreCultivo);
       });
     });
-    allStock?.forEach(s => {
-      const nombreCultivo = s.fk_id_produccion?.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo;
+    allStock.forEach(s => {
+      const nombreCultivo = s?.fk_id_produccion?.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo;
       if (nombreCultivo) cultivos.add(nombreCultivo);
     });
     return Array.from(cultivos).sort();
@@ -136,26 +138,20 @@ const StockDashboard = () => {
       return nombreCultivo && cultivosSeleccionados.includes(nombreCultivo);
     };
 
-    const produccionesFiltradas = producciones?.filter(p => {
+    const produccionesFiltradas = producciones.filter(p => {
       return filtrarPorFecha(p.fecha) && filtrarPorCultivo(p.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo);
-    }) || [];
-
-    const allStockFiltrado = allStock?.filter(s => {
+    });
+    const allStockFiltrado = allStock.filter(s => {
       return filtrarPorFecha(s.fecha) && filtrarPorCultivo(s.fk_id_produccion?.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo);
-    }) || [];
-
-    const ventasFiltradas = ventas?.filter(v => {
-      return filtrarPorFecha(v.fecha) && v.items.some(item => filtrarPorCultivo(item.produccion.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo));
-    }) || [];
+    });
+    const ventasFiltradas = ventas.filter(v => {
+      return filtrarPorFecha(v.fecha) && v.items?.some(item => filtrarPorCultivo(item.produccion.fk_id_plantacion?.fk_id_cultivo?.nombre_cultivo));
+    });
 
     return { produccionesFiltradas, allStockFiltrado, ventasFiltradas };
   };
 
   const renderMovimientosDetails = () => {
-    if (!producciones || producciones.length === 0) return (
-      <p className="text-center text-gray-500 py-4">No hay datos disponibles.</p>
-    );
-
     const produccion = producciones.find(p => p.id === selectedProduccionId);
     if (!produccion) return <p className="text-center text-gray-500 py-4">Producción no encontrada.</p>;
 
@@ -177,7 +173,7 @@ const StockDashboard = () => {
   };
 
   const renderProductosDetails = () => {
-    const productosConStock = producciones?.filter(p => p.stock_disponible >= 1) || [];
+    const productosConStock = producciones.filter(p => p.stock_disponible >= 1);
     if (productosConStock.length === 0) return (
       <p className="text-center text-gray-500 py-4">No hay productos con stock disponible.</p>
     );
@@ -208,14 +204,14 @@ const StockDashboard = () => {
   };
 
   const renderValorDetails = () => {
-    const productosConStock = producciones?.filter(p => p.stock_disponible >= 1) || [];
+    const productosConStock = producciones.filter(p => p.stock_disponible >= 1);
     if (productosConStock.length === 0) return (
       <p className="text-center text-gray-500 py-4">No hay productos con stock disponible.</p>
     );
 
     return (
       <div className="p-4 bg-white rounded-lg shadow-sm">
-        <h3 className="text-lg font-semibold text-gray погод: 800 border-b border-gray-200 pb-2 mb-4">
+        <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2 mb-4">
           Valor Estimado por Producto
         </h3>
         <table className="w-full text-sm text-gray-700">
@@ -242,25 +238,7 @@ const StockDashboard = () => {
     );
   };
 
-  if (produccionesError) return (
-    <div className="text-center py-8 text-red-500">
-      Error al cargar producciones: {produccionesError.message}
-    </div>
-  );
-
-  if (allStockError) return (
-    <div className="text-center py-8 text-red-500">
-      Error al cargar movimientos: {allStockError.message}
-    </div>
-  );
-
-  if (ventasError) return (
-    <div className="text-center py-8 text-red-500">
-      Error al cargar ventas: {ventasError.message}
-    </div>
-  );
-
-  const productosConStock = producciones?.filter(p => p.stock_disponible >= 1) || [];
+  const productosConStock = producciones.filter(p => p.stock_disponible >= 1);
   const totalProductos = productosConStock.length;
   const valorEstimado = productosConStock.reduce((sum, p) => {
     const precio = parsePrecioSugerido(p.precio_sugerido_venta);
@@ -268,7 +246,7 @@ const StockDashboard = () => {
     return sum + valor;
   }, 0) || 0;
 
-  const mappedProducciones = (producciones || []).map((produccion) => {
+  const mappedProducciones = producciones.map((produccion) => {
     const precioSugerido = parsePrecioSugerido(produccion.precio_sugerido_venta);
 
     return {
@@ -284,7 +262,7 @@ const StockDashboard = () => {
     };
   });
 
-  const mappedMovimientos = (allStock || []).map((movimiento) => {
+  const mappedMovimientos = allStock.map((movimiento) => {
     const nombreProducto = movimiento.fk_id_produccion?.nombre_produccion || movimiento.fk_id_item_venta?.produccion?.nombre_produccion || 'N/A';
     const unidadBase = movimiento.fk_id_produccion?.fk_unidad_medida?.unidad_base || movimiento.fk_id_item_venta?.unidad_medida?.unidad_base || 'N/A';
 
@@ -309,7 +287,7 @@ const StockDashboard = () => {
       <div className="bg-white p-4 rounded-lg shadow-md">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <h1 className="text-xl font-semibold text-gray-800 text-center flex items-center gap-2">
-            <Package size={24} className="text-green-600" />
+            <Package width={24} height={24} className="text-green-600" />
             Stock Actual
           </h1>
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
@@ -318,7 +296,7 @@ const StockDashboard = () => {
               className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg text-sm flex items-center gap-1 transition-colors w-full sm:w-auto"
               type="button"
             >
-              <PlusCircle size={16} />
+              <PlusCircle width={16} height={16} />
               Registrar Venta
             </button>
             <button
@@ -326,7 +304,7 @@ const StockDashboard = () => {
               className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg text-sm flex items-center gap-1 transition-colors w-full sm:w-auto"
               type="button"
             >
-              <PlusCircle size={16} />
+              <PlusCircle width={16} height={16} />
               Registrar Producción
             </button>
             <button
@@ -334,7 +312,7 @@ const StockDashboard = () => {
               className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg text-sm flex items-center gap-1 transition-colors w-full sm:w-auto"
               type="button"
             >
-              <FileText size={16} />
+              <FileText width={16} height={16} />
               Reportes
             </button>
           </div>
@@ -362,11 +340,11 @@ const StockDashboard = () => {
         <SeccionDesplegable
           titulo="Inventario de Productos"
           icono={<Package className="h-5 w-5 text-green-600" />}
-          cantidad={producciones?.length || 0}
+          cantidad={producciones.length}
           abierta={seccionAbierta === 'productos'}
           onToggle={() => toggleSeccion('productos')}
         >
-          {producciones && producciones.length === 0 ? (
+          {mappedProducciones.length === 0 ? (
             <p className="text-center text-gray-500 py-4">No hay productos registrados.</p>
           ) : (
             <Tabla
@@ -382,11 +360,11 @@ const StockDashboard = () => {
         <SeccionDesplegable
           titulo="Movimientos de Stock"
           icono={<Activity className="h-5 w-5 text-blue-600" />}
-          cantidad={allStock?.length || 0}
+          cantidad={allStock.length}
           abierta={seccionAbierta === 'movimientos'}
           onToggle={() => toggleSeccion('movimientos')}
         >
-          {allStock && allStock.length === 0 ? (
+          {mappedMovimientos.length === 0 ? (
             <p className="text-center text-gray-500 py-4">No hay movimientos registrados.</p>
           ) : (
             <Tabla
@@ -401,7 +379,7 @@ const StockDashboard = () => {
         <SeccionDesplegable
           titulo="Ventas"
           icono={<DollarSign className="h-5 w-5 text-green-600" />}
-          cantidad={ventas?.length || 0}
+          cantidad={ventas.length}
           abierta={seccionAbierta === 'ventas'}
           onToggle={() => toggleSeccion('ventas')}
         >
@@ -411,7 +389,7 @@ const StockDashboard = () => {
         <SeccionDesplegable
           titulo="Producciones"
           icono={<Package className="h-5 w-5 text-purple-600" />}
-          cantidad={producciones?.length || 0}
+          cantidad={producciones.length}
           abierta={seccionAbierta === 'producciones'}
           onToggle={() => toggleSeccion('producciones')}
         >

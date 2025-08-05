@@ -1,10 +1,7 @@
-// hooks/finanzas/venta/useVenta.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-
-// Interfaces para los modelos
 export interface UnidadMedida {
   id: number;
   nombre_medida: string;
@@ -101,124 +98,86 @@ export interface Venta {
   usuario?: UsuarioVenta;
 }
 
-// Crear una instancia de axios con configuración base
 const api = axios.create({
-  headers: {
-    'Content-Type': 'application/json',
-  }
+  headers: { 'Content-Type': 'application/json' },
 });
 
-// Interceptor para agregar el token a cada solicitud
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Obtener todas las ventas
+interface AxiosErrorData {
+  message?: string;
+}
+
 const fetchVentas = async (): Promise<Venta[]> => {
   try {
-    const response = await api.get('/ventas/');
-    return response.data;
+    const { data } = await api.get('/ventas/');
+    return Array.isArray(data) ? data : data.results || [];
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      if (error.response?.status === 401) {
-        console.error('Token expirado o inválido');
-      }
-      throw new Error(error.response?.data?.message || 'Error al obtener ventas');
-    }
-    throw new Error('Error desconocido al obtener ventas');
+    const axiosError = error as AxiosError<AxiosErrorData>;
+    throw new Error(axiosError.response?.data?.message || 'Error al obtener ventas');
   }
 };
 
-// Crear una nueva venta
+const fetchVenta = async (id: number): Promise<Venta> => {
+  try {
+    const { data } = await api.get(`/ventas/${id}/`);
+    return data;
+  } catch (error) {
+    const axiosError = error as AxiosError<AxiosErrorData>;
+    throw new Error(axiosError.response?.data?.message || 'Error al obtener la venta');
+  }
+};
+
 export const useCrearVenta = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
   return useMutation({
     mutationFn: async (ventaData: CrearVentaData) => {
-      try {
-        const response = await api.post('/ventas/', ventaData);
-        return response.data;
-      } catch (error) {
-        if (axios.isAxiosError(error)) {
-          throw new Error(
-            error.response?.data?.message ||
-            'Error al crear la venta'
-          );
-        }
-        throw error;
-      }
+      const response = await api.post('/ventas/', ventaData);
+      return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["ventas"] });
-      queryClient.invalidateQueries({ queryKey: ["producciones"] });
-      queryClient.invalidateQueries({ queryKey: ["stock"] });
-      navigate("/stock");
+      queryClient.invalidateQueries({ queryKey: ['ventas'] });
+      queryClient.invalidateQueries({ queryKey: ['producciones'] });
+      queryClient.invalidateQueries({ queryKey: ['stock'] });
+      navigate('/stock');
     },
     onError: (error: Error) => {
-      console.error("Error al crear la venta:", error.message);
+      console.error('Error al crear la venta:', error.message);
     },
   });
 };
 
-// Obtener una venta específica
-const fetchVenta = async (id: number): Promise<Venta> => {
-  try {
-    const response = await api.get(`/ventas/${id}/`);
-    return response.data;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      throw new Error(
-        error.response?.data?.message ||
-        'Error al obtener la venta'
-      );
-    }
-    throw new Error('Error desconocido al obtener la venta');
-  }
-};
-
-// Actualizar una venta
 export const useActualizarVenta = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, ventaData }: { id: number, ventaData: Partial<CrearVentaData> }) => {
-      try {
-        const response = await api.patch(`/ventas/${id}/`, ventaData);
-        return response.data;
-      } catch (error) {
-        if (axios.isAxiosError(error)) {
-          throw new Error(
-            error.response?.data?.message ||
-            'Error al actualizar la venta'
-          );
-        }
-        throw error;
-      }
+    mutationFn: async ({ id, ventaData }: { id: number; ventaData: Partial<CrearVentaData> }) => {
+      const response = await api.patch(`/ventas/${id}/`, ventaData);
+      return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["ventas"] });
-      queryClient.invalidateQueries({ queryKey: ["producciones"] });
-      queryClient.invalidateQueries({ queryKey: ["stock"] });
+      queryClient.invalidateQueries({ queryKey: ['ventas'] });
+      queryClient.invalidateQueries({ queryKey: ['producciones'] });
+      queryClient.invalidateQueries({ queryKey: ['stock'] });
     },
   });
 };
 
-// Exportar los hooks
 export const useVentas = () => {
   return useQuery<Venta[], Error>({
     queryKey: ['ventas'],
     queryFn: fetchVentas,
     staleTime: 1000 * 60 * 5,
+    retry: 2,
   });
 };
 
@@ -226,5 +185,8 @@ export const useVenta = (id: number) => {
   return useQuery<Venta, Error>({
     queryKey: ['venta', id],
     queryFn: () => fetchVenta(id),
+    enabled: !!id,
+    staleTime: 1000 * 60 * 5,
+    retry: 2,
   });
 };
