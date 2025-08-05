@@ -20,7 +20,7 @@ export const useCrearEras = () => {
                 throw new Error("No se ha encontrado un token de autenticación");
             }
     const { data } = await axios.post(
-        `eras/`,
+        `api/eras/`,
         nuevaEra,
         {
             headers: {
