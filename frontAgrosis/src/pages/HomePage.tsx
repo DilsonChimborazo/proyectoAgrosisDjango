@@ -370,7 +370,7 @@ const HomePage = () => {
   }, []);
 
   useEffect(() => {
-    const wsSensors = new WebSocket(`/api/sensores/`);
+    const wsSensors = new WebSocket(`ws/api/sensores/`);
     wsSensors.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
